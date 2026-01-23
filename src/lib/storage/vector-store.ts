@@ -12,15 +12,19 @@ export interface DocumentChunk {
     metadata: any;
 }
 
-let mockVectorDb: DocumentChunk[] = [];
+// Use globalThis to persist the DB during Next.js hot-reloads
+const globalForVectorDb = globalThis as unknown as { mockVectorDb: DocumentChunk[] };
+if (!globalForVectorDb.mockVectorDb) {
+    globalForVectorDb.mockVectorDb = [];
+}
 
 /**
  * Splits text into manageable "pages" or chunks for the AI
  */
 export function chunkText(text: string, sourceId: string): DocumentChunk[] {
-    const words = text.split(" ");
+    const words = text.split(/\s+/);
     const chunks: DocumentChunk[] = [];
-    const chunkSize = 200; // Words per chunk
+    const chunkSize = 150; // Smaller chunks for better precision
 
     for (let i = 0; i < words.length; i += chunkSize) {
         const content = words.slice(i, i + chunkSize).join(" ");
@@ -39,32 +43,64 @@ export function chunkText(text: string, sourceId: string): DocumentChunk[] {
  * Stores chunks in our simulated database
  */
 export function ingestDocuments(text: string, sourceId: string) {
+    // Check if source already exists to avoid duplicates on reload
+    if (globalForVectorDb.mockVectorDb.some(c => c.sourceId === sourceId)) {
+        console.log(`Source ${sourceId} already exists, skipping re-ingestion.`);
+        return [];
+    }
+
     const newChunks = chunkText(text, sourceId);
-    mockVectorDb = [...mockVectorDb, ...newChunks];
-    console.log(`Ingested ${newChunks.length} chunks from source: ${sourceId}`);
+    globalForVectorDb.mockVectorDb = [...globalForVectorDb.mockVectorDb, ...newChunks];
+    console.log(`[VectorStore] Ingested ${newChunks.length} chunks from: ${sourceId}`);
     return newChunks;
 }
 
 /**
  * Searches for the most relevant chunks based on a query
  */
-export function searchRelevantChunks(query: string, limit: number = 3): DocumentChunk[] {
-    const searchTerms = query.toLowerCase().split(" ");
+/**
+ * Searches for the most relevant chunks based on a query
+ */
+export function searchRelevantChunks(query: string, limit: number = 6): DocumentChunk[] {
+    const q = query.toLowerCase();
+    const searchTerms = q.split(/\W+/).filter(t => t.length > 2); // Ignore short words
 
-    // Simple scoring based on term frequency
-    const scoredChunks = mockVectorDb.map(chunk => {
+    console.log(`[VectorStore] Searching for: "${q}" across ${globalForVectorDb.mockVectorDb.length} chunks`);
+
+    // Improved scoring
+    const scoredChunks = globalForVectorDb.mockVectorDb.map(chunk => {
         let score = 0;
         const contentLower = chunk.content.toLowerCase();
+
+        // Exact phrase match (High score)
+        if (contentLower.includes(q)) score += 10;
+
+        // Individual term matches
         searchTerms.forEach(term => {
-            if (contentLower.includes(term)) score += 1;
+            if (contentLower.includes(term)) score += 2;
         });
+
+        // Source name match (bonus if searching for a specific file)
+        if (chunk.sourceId.toLowerCase().includes(q)) score += 5;
+
         return { ...chunk, score };
     });
 
-    return scoredChunks
+    let results = scoredChunks
         .filter(chunk => chunk.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, limit);
+
+    // --- SMART FALLBACK ---
+    // If it's a generic command like "summarize" or "tell me more" 
+    // and we found nothing, just return the most recently added chunks.
+    if (results.length === 0 && (q.includes("summarize") || q.includes("more") || q.includes("everything") || q.includes("tell me about") || q.includes("details"))) {
+        console.log(`[VectorStore] No direct match for generic query, falling back to latest 6 chunks.`);
+        results = [...globalForVectorDb.mockVectorDb].reverse().slice(0, 6).map(chunk => ({ ...chunk, score: 0 }));
+    }
+
+    console.log(`[VectorStore] Found ${results.length} relevant chunks.`);
+    return results;
 }
 
 // --- Initial Sample Data ---

@@ -17,17 +17,19 @@ export async function generateGroundedResponse(query: string, sources: string[])
     const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
 
     const prompt = `
-    You are an expert AI Research Assistant.
-    Answer the following user question ONLY using the provided research sources below.
-    If the answer is not in the sources, say "I don't have enough information in your current sources."
-    
-    IMPORTANT: You must include citations in the format [1], [2], etc., immediately after the sentence they support.
+    You are an expert AI Research Assistant in the "NotebookLLM" environment. 
+    Your goal is to synthesize answers based ONLY on the research sources provided below.
+
+    ADHERE TO THESE RULES:
+    1. GROUNDING: Only answer using the sources. If the information isn't there, say you don't know based on the current context.
+    2. CITATIONS: When you use information from a source, add its index like [1] or [2] at the end of the relevant sentence.
+    3. HELPFULNESS: Be professional, concise, and structured. Use bullet points if helpful.
     
     RESEARCH SOURCES (indexed):
-    ${sources.map((s, i) => `[${i + 1}] ${s}`).join("\n\n---\n\n")}
+    ${sources.length > 0 ? sources.map((s, i) => `[${i + 1}] ${s}`).join("\n\n---\n\n") : "NO SOURCES PROVIDED."}
 
     USER QUESTION:
-    ${query}
+    "${query}"
 
     AI ANSWER:
   `;
