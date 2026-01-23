@@ -22,7 +22,10 @@ import {
     X,
     Globe,
     Link as LinkIcon,
-    ShieldCheck
+    ShieldCheck,
+    Pin,
+    Copy,
+    ExternalLink
 } from "lucide-react";
 
 export default function NotebookWorkspace() {
@@ -33,6 +36,11 @@ export default function NotebookWorkspace() {
         { role: "assistant", content: "How can I assist your research today?" }
     ]);
     const [input, setInput] = useState("");
+    const [noteContent, setNoteContent] = useState("");
+
+    const addNoteAtCursor = (text: string) => {
+        setNoteContent(prev => prev + (prev ? "\n\n" : "") + text);
+    };
 
     const handleSendMessage = async () => {
         if (!input.trim()) return;
@@ -233,6 +241,8 @@ export default function NotebookWorkspace() {
                         <div className="prose prose-zinc dark:prose-invert max-w-none">
                             <textarea
                                 placeholder="Start typing your research notes here..."
+                                value={noteContent}
+                                onChange={(e) => setNoteContent(e.target.value)}
                                 className="w-full min-h-[500px] bg-transparent border-none focus:outline-none text-lg resize-none leading-relaxed"
                                 rows={20}
                             />
@@ -283,8 +293,27 @@ export default function NotebookWorkspace() {
                                 <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
                                     {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                 </div>
-                                <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%]`}>
+                                <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%] group relative`}>
                                     {msg.content}
+
+                                    {msg.role === 'assistant' && (
+                                        <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => addNoteAtCursor(msg.content)}
+                                                className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
+                                                title="Pin to Note"
+                                            >
+                                                <Pin size={14} />
+                                            </button>
+                                            <button
+                                                className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
+                                                title="Copy"
+                                                onClick={() => navigator.clipboard.writeText(msg.content)}
+                                            >
+                                                <Copy size={14} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

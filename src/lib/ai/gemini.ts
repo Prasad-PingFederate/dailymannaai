@@ -15,10 +15,12 @@ export async function generateGroundedResponse(query: string, sources: string[])
     You are an expert AI Research Assistant.
     Answer the following user question ONLY using the provided research sources below.
     If the answer is not in the sources, say "I don't have enough information in your current sources."
-    Always include short citations like [Source 1] when referencing facts.
+    
+    IMPORTANT: You must include citations in the format [1], [2], etc., immediately after the sentence they support.
+    Wait, do not use the source name in the bracket, use the INDEX of the source in the list provided.
 
-    RESEARCH SOURCES:
-    ${context}
+    RESEARCH SOURCES (indexed):
+    ${sources.map((s, i) => `[${i + 1}] ${s}`).join("\n\n---\n\n")}
 
     USER QUESTION:
     ${query}
