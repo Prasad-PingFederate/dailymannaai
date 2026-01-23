@@ -105,16 +105,20 @@ export function searchRelevantChunks(query: string, limit: number = 6): Document
 
 // --- Initial Sample Data ---
 ingestDocuments(`
-    NotebookLLM.ai is a next-generation research platform. 
-    It uses RAG (Retrieval-Augmented Generation) to ensure AI responses are grounded in user documents.
-    Key features include Citation Mapping, Audio Overviews, and Semantic Workspace.
-    The founder's vision is to make research "painless and conversational."
-`, "Intro-Source");
+    John Wesley (Methodist Founder): "Do all the good you can, by all the means you can, in all the ways you can, in all the places you can, at all the times you can, to all the people you can, as long as ever you can."
+    Wesley's "Quadrilateral" for spiritual guidance includes: Scripture, Tradition, Reason, and Experience.
+`, "John-Wesley-Teachings");
 
 ingestDocuments(`
-    Project Q1 Goals for NotebookLLM:
-    1. Launch beta by February 2026.
-    2. Implement local PDF parsing.
-    3. Integrate high-quality neural voices for Audio Overviews.
-    4. Secure venture funding for scaling.
-`, "Strategy-Source");
+    Billy Graham (Evangelist): "God proved His love on the Cross. When Christ hung, and bled, and died, it was God saying to the world, 'I love you.'"
+    Graham focused on the simplicity of the Gospel and the need for a personal relationship with Jesus Christ.
+`, "Billy-Graham-Wisdom");
+
+ingestDocuments(`
+    Reinhard Bonnke (Evangelist): "Africa shall be saved!" He believed in the power of the Holy Spirit to transform lives and that "God's word is like a lion; you don't have to defend a lion. All you have to do is let the lion out!"
+`, "Reinhard-Bonnke-Quotes");
+
+ingestDocuments(`
+    Spiritual Guidance for Anxiety: 
+    Philippians 4:6-7: "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus."
+`, "Guidance-Source");

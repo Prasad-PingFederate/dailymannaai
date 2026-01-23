@@ -56,7 +56,9 @@ export default function NotebookWorkspace() {
     const handleFileUpload = async (file: File) => {
         const id = `Source-${Date.now()}`;
         const fileName = file.name;
-        const newSource = { id, name: fileName, type: "pdf", selected: true };
+        const fileType = file.type;
+        const isMP3 = fileType === "audio/mpeg" || fileName.toLowerCase().endsWith(".mp3");
+        const newSource = { id, name: fileName, type: isMP3 ? "audio" : "pdf", selected: true };
 
         try {
             const formData = new FormData();
@@ -72,9 +74,14 @@ export default function NotebookWorkspace() {
 
             setSources(prev => [...prev, newSource]);
             setUploadModalOpen(false);
+
+            const assistanceMessage = isMP3
+                ? `I've finished transcribing and "listening" to the sermon "${fileName}". I can now answer questions about the message and the scriptures mentioned in it!`
+                : `I've finished reading and indexing "${fileName}". I have "learned" its spiritual content and can now answer any questions about it!`;
+
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `I've finished reading and indexing "${fileName}". I have "learned" its specific content and can now answer any questions about it!`
+                content: assistanceMessage
             }]);
         } catch (error) {
             console.error("Ingestion Error:", error);

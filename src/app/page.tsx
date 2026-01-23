@@ -20,13 +20,13 @@ export default function Home() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white shadow-lg shadow-accent/20">
               <BookOpen size={20} />
             </div>
-            <span className="text-xl font-bold tracking-tight">notebookllm<span className="text-accent">.ai</span></span>
+            <span className="text-xl font-bold tracking-tight">christian-notebook<span className="text-accent">.ai</span></span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted">
-            <Link href="#features" className="transition-colors hover:text-foreground">Features</Link>
-            <Link href="#how-it-works" className="transition-colors hover:text-foreground">How it Works</Link>
-            <Link href="#pricing" className="transition-colors hover:text-foreground">Pricing</Link>
+            <Link href="#features" className="transition-colors hover:text-foreground">Study the Word</Link>
+            <Link href="#how-it-works" className="transition-colors hover:text-foreground">Spiritual Guidance</Link>
+            <Link href="#pricing" className="transition-colors hover:text-foreground">Sermon Analysis</Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -35,7 +35,7 @@ export default function Home() {
               href="/notebook"
               className="shine rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-transform active:scale-95 shadow-xl shadow-foreground/10"
             >
-              Get Started Free
+              Start Your Bible Study
             </Link>
           </div>
         </div>
@@ -51,19 +51,19 @@ export default function Home() {
           <div className="mb-8 flex justify-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card-bg/50 px-3 py-1 text-sm font-medium text-muted">
               <Sparkles size={14} className="text-accent-secondary" />
-              <span>NotebookLM clone, reimagined for you</span>
+              <span>Deepen your relationship with the Word</span>
             </div>
           </div>
 
           <h1 className="mb-6 text-5xl font-extrabold tracking-tight md:text-7xl">
-            Meet your personal <br />
-            <span className="gradient-text leading-tight">AI Research Assistant.</span>
+            Your Personal <br />
+            <span className="gradient-text leading-tight">Spiritual Guidance Partner.</span>
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg text-muted md:text-xl md:leading-relaxed">
-            Upload your documents, podcasts, and notes. Instantly extract insights,
-            generate citations, and create professional audio overviews.
-            Built for creators, researchers, and world-class students.
+            Upload sermons, study the Bible, and get situational guidance.
+            Ground your study in the teachings of John Wesley, Billy Graham,
+            and the Holy Scriptures. Built for modern disciples.
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -71,7 +71,7 @@ export default function Home() {
               href="/notebook"
               className="flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-lg font-bold text-white transition-all hover:scale-105 hover:bg-accent/90 shadow-2xl shadow-accent/20"
             >
-              Build your first Notebook
+              Open Your Study Workspace
               <ArrowRight size={20} />
             </Link>
             <Link
@@ -80,19 +80,18 @@ export default function Home() {
               className="flex items-center gap-2 rounded-full border border-border bg-card-bg px-8 py-4 text-lg font-semibold transition-colors hover:bg-border/50"
             >
               <Github size={20} />
-              Star on GitHub
+              Support on GitHub
             </Link>
           </div>
 
           {/* Social Proof */}
           <div className="mt-16 flex flex-col items-center gap-4 opacity-70">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted">Trusted by creators worldwide</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted">Wisdom from the great teachers</p>
             <div className="flex gap-8 grayscale brightness-125 dark:invert">
-              {/* Add dummy company logos or text */}
-              <span className="text-lg font-bold text-muted">RESEARCHER</span>
-              <span className="text-lg font-bold text-muted">ACADEMIA</span>
-              <span className="text-lg font-bold text-muted">TECHNOW</span>
-              <span className="text-lg font-bold text-muted">IDEALAB</span>
+              <span className="text-lg font-bold text-muted">WESLEY</span>
+              <span className="text-lg font-bold text-muted">GRAHAM</span>
+              <span className="text-lg font-bold text-muted">BONNKE</span>
+              <span className="text-lg font-bold text-muted">SCRIPTURE</span>
             </div>
           </div>
         </div>
@@ -102,41 +101,41 @@ export default function Home() {
       <section id="features" className="py-24 bg-card-bg/30">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">Power tools for the curious.</h2>
-            <p className="text-muted md:text-lg">Everything you love about NotebookLM, plus the freedom of your own project.</p>
+            <h2 className="mb-4 text-3xl font-bold md:text-4xl">Power tools for your soul.</h2>
+            <p className="text-muted md:text-lg">AI grounded in Scripture and the teachings of great men of God.</p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {[
               {
                 icon: <MessageSquare className="text-accent" />,
-                title: "Grounded Chat",
-                desc: "AI that speaks only from your sources. No hallucinations. Precise citations for every claim."
+                title: "Situational Guidance",
+                desc: "Get answers to life's challenges grounded in the Bible and the wisdom of Billy Graham and John Wesley."
               },
               {
                 icon: <Mic2 className="text-accent-secondary" />,
-                title: "Audio Overviews",
-                desc: "Turn messy notes into professional 2-person podcast discussions using neural AI voices."
+                title: "Sermon Analysis",
+                desc: "Upload MP3 sermons to transcribe and analyze. Extract key points and Scripture references automatically."
               },
               {
                 icon: <ShieldCheck className="text-green-500" />,
-                title: "Privacy First",
-                desc: "Your documents are yours. We encrypt everything and never train on your private data."
+                title: "Safe Study",
+                desc: "A secure workspace for your private prayers, notes, and theological reflections. We never train on your data."
               },
               {
                 icon: <Zap className="text-amber-500" />,
-                title: "Source Sync",
-                desc: "Connect Google Drive, Notion, or local PDFs. Your notebook updates in real-time."
+                title: "Word Sync",
+                desc: "Connect your Bible apps or local study guides. Your spiritual notebook stays updated in real-time."
               },
               {
                 icon: <Sparkles className="text-purple-500" />,
-                title: "Insight Mapping",
-                desc: "Automatically find connections between distant files. AI-powered semantic mapping."
+                title: "Verse Mapping",
+                desc: "Automatically find connections between sermons and Bible verses. AI-powered theological mapping."
               },
               {
                 icon: <BookOpen className="text-blue-500" />,
-                title: "Auto Citations",
-                desc: "Never lose a source again. Click any claim to jump directly to the exact page it came from."
+                title: "Cited Truth",
+                desc: "Never misquote again. Click any claim to jump directly to the exact Scripture or sermon page it came from."
               }
             ].map((f, i) => (
               <div
@@ -162,7 +161,7 @@ export default function Home() {
               <div className="flex h-6 w-6 items-center justify-center rounded bg-accent text-white">
                 <BookOpen size={14} />
               </div>
-              <span className="font-bold tracking-tight">notebookllm<span className="text-accent">.ai</span></span>
+              <span className="font-bold tracking-tight">christian-notebook<span className="text-accent">.ai</span></span>
             </div>
 
             <p className="text-sm text-muted">
