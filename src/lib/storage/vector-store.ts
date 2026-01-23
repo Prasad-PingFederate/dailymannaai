@@ -66,3 +66,19 @@ export function searchRelevantChunks(query: string, limit: number = 3): Document
         .sort((a, b) => b.score - a.score)
         .slice(0, limit);
 }
+
+// --- Initial Sample Data ---
+ingestDocuments(`
+    NotebookLLM.ai is a next-generation research platform. 
+    It uses RAG (Retrieval-Augmented Generation) to ensure AI responses are grounded in user documents.
+    Key features include Citation Mapping, Audio Overviews, and Semantic Workspace.
+    The founder's vision is to make research "painless and conversational."
+`, "Intro-Source");
+
+ingestDocuments(`
+    Project Q1 Goals for NotebookLLM:
+    1. Launch beta by February 2026.
+    2. Implement local PDF parsing.
+    3. Integrate high-quality neural voices for Audio Overviews.
+    4. Secure venture funding for scaling.
+`, "Strategy-Source");

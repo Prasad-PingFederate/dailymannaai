@@ -34,21 +34,35 @@ export default function NotebookWorkspace() {
     ]);
     const [input, setInput] = useState("");
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (!input.trim()) return;
 
         const userMessage = { role: "user", content: input };
         setMessages(prev => [...prev, userMessage]);
         setInput("");
 
-        // Simulate AI thinking and response
-        setTimeout(() => {
-            const aiResponse = {
+        try {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: input }),
+            });
+
+            const data = await res.json();
+
+            if (data.role === "assistant") {
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: data.content
+                }]);
+            }
+        } catch (error) {
+            console.error("Chat Error:", error);
+            setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `Based on your documents, there's a clear trend regarding ${input.toLowerCase()}. I've identified 3 key citations to support this.`
-            };
-            setMessages(prev => [...prev, aiResponse]);
-        }, 1500);
+                content: "I'm having trouble connecting to my brain. Please try again later."
+            }]);
+        }
     };
 
     return (

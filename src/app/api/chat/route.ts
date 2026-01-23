@@ -1,22 +1,30 @@
 import { NextResponse } from "next/server";
 import { generateGroundedResponse } from "@/lib/ai/gemini";
+import { searchRelevantChunks } from "@/lib/storage/vector-store";
 
 export async function POST(req: Request) {
     try {
-        const { query, sources } = await req.json();
+        const { query } = await req.json();
 
         if (!query) {
             return NextResponse.json({ error: "Query is required" }, { status: 400 });
         }
 
-        // In a real scenario, sources would be fetched from a vector DB.
-        // Here we simulate the grounded response.
-        const response = await generateGroundedResponse(query, sources || ["No sources provided."]);
+        // 1. Search our "Vector Database" for relevant text pieces
+        const relevantChunks = searchRelevantChunks(query);
+        const sourcesText = relevantChunks.map(c => `[${c.sourceId}] ${c.content}`);
+
+        // 2. Generate the grounded response
+        const response = await generateGroundedResponse(query, sourcesText);
 
         return NextResponse.json({
             role: "assistant",
             content: response,
-            citations: [1, 2] // Mocking citation ID mapping
+            citations: relevantChunks.map(c => ({
+                id: c.id,
+                source: c.sourceId,
+                preview: c.content.substring(0, 50) + "..."
+            }))
         });
     } catch (error) {
         console.error("API Route Error:", error);
