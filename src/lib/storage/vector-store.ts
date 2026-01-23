@@ -119,6 +119,20 @@ ingestDocuments(`
 `, "Reinhard-Bonnke-Quotes");
 
 ingestDocuments(`
-    Spiritual Guidance for Anxiety: 
-    Philippians 4:6-7: "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus."
-`, "Guidance-Source");
+    Billy Graham's "Steps to Peace with God": 
+    1. God's Purpose: Peace and Life. 
+    2. Our Problem: Separation from God. 
+    3. God's Remedy: The Cross. 
+    4. Our Response: Receive Jesus Christ.
+`, "Billy-Graham-Peace-Steps");
+
+ingestDocuments(`
+    John Wesley on Prayer: "God does nothing but in answer to prayer." 
+    Wesley emphasized that prayer is the primary means of receiving grace and should be conversational and constant.
+`, "Wesley-On-Prayer");
+
+ingestDocuments(`
+    Handling Fear and Uncertainty:
+    Joshua 1:9: "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go."
+    Psalm 23:4: "Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me."
+`, "Scripture-Comfort-Source");

@@ -29,6 +29,7 @@ import {
     Mic2,
     ArrowRight
 } from "lucide-react";
+import { resolvePortrait, resolveSituationalImage } from "@/lib/ai/image-resolver";
 
 export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -396,35 +397,57 @@ export default function NotebookWorkspace() {
                     </div>
 
                     <div className="space-y-4">
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300`}>
-                                <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
-                                    {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
-                                </div>
-                                <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%] group relative`}>
-                                    {msg.content}
+                        {messages.map((msg, i) => {
+                            const portrait = msg.role === 'assistant' ? resolvePortrait(msg.content) : null;
+                            const situationalImg = msg.role === 'assistant' && !portrait ? resolveSituationalImage(msg.content) : null;
 
-                                    {msg.role === 'assistant' && (
-                                        <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => addNoteAtCursor(msg.content)}
-                                                className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
-                                                title="Pin to Note"
-                                            >
-                                                <Pin size={14} />
-                                            </button>
-                                            <button
-                                                className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
-                                                title="Copy"
-                                                onClick={() => navigator.clipboard.writeText(msg.content)}
-                                            >
-                                                <Copy size={14} />
-                                            </button>
-                                        </div>
-                                    )}
+                            return (
+                                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300`}>
+                                    <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
+                                        {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
+                                    </div>
+                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%] group relative flex flex-col gap-3`}>
+                                        {msg.content}
+
+                                        {portrait && (
+                                            <div className="mt-2 rounded-xl overflow-hidden border border-border bg-card-bg shadow-lg animate-in zoom-in-95 duration-500">
+                                                <img src={portrait.imageUrl} alt={portrait.name} className="w-full h-40 object-cover" />
+                                                <div className="p-3 bg-accent/5">
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1">Inspirational Figure</p>
+                                                    <p className="font-bold text-sm">{portrait.name}</p>
+                                                    <p className="text-[11px] text-muted">{portrait.description}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {situationalImg && (
+                                            <div className="mt-2 rounded-xl overflow-hidden border border-border shadow-md animate-in fade-in duration-700">
+                                                <img src={situationalImg} alt="Spiritual reflection" className="w-full h-32 object-cover" />
+                                            </div>
+                                        )}
+
+                                        {msg.role === 'assistant' && (
+                                            <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => addNoteAtCursor(msg.content)}
+                                                    className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
+                                                    title="Pin to Note"
+                                                >
+                                                    <Pin size={14} />
+                                                </button>
+                                                <button
+                                                    className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
+                                                    title="Copy"
+                                                    onClick={() => navigator.clipboard.writeText(msg.content)}
+                                                >
+                                                    <Copy size={14} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
