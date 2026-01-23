@@ -29,6 +29,27 @@ export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState("sources"); // sources, chat
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
+    const [messages, setMessages] = useState([
+        { role: "assistant", content: "How can I assist your research today?" }
+    ]);
+    const [input, setInput] = useState("");
+
+    const handleSendMessage = () => {
+        if (!input.trim()) return;
+
+        const userMessage = { role: "user", content: input };
+        setMessages(prev => [...prev, userMessage]);
+        setInput("");
+
+        // Simulate AI thinking and response
+        setTimeout(() => {
+            const aiResponse = {
+                role: "assistant",
+                content: `Based on your documents, there's a clear trend regarding ${input.toLowerCase()}. I've identified 3 key citations to support this.`
+            };
+            setMessages(prev => [...prev, aiResponse]);
+        }, 1500);
+    };
 
     return (
         <div className="flex h-screen w-full bg-background text-foreground overflow-hidden relative">
@@ -243,15 +264,16 @@ export default function NotebookWorkspace() {
                     </div>
 
                     <div className="space-y-4">
-                        {/* AI Message */}
-                        <div className="flex gap-3 max-w-[90%]">
-                            <div className="h-8 w-8 rounded-full bg-accent-secondary flex-shrink-0 flex items-center justify-center text-white">
-                                <Sparkles size={16} />
+                        {messages.map((msg, i) => (
+                            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300`}>
+                                <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
+                                    {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
+                                </div>
+                                <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%]`}>
+                                    {msg.content}
+                                </div>
                             </div>
-                            <div className="bg-muted/10 rounded-2xl p-3 text-sm">
-                                How can I assist your research today?
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
@@ -260,10 +282,21 @@ export default function NotebookWorkspace() {
                     <div className="relative group">
                         <textarea
                             placeholder="Ask anything about your sources..."
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                }
+                            }}
                             className="w-full bg-background border border-border rounded-2xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-accent resize-none min-h-[44px] max-h-32"
                             rows={1}
                         />
-                        <button className="absolute right-2 top-2 p-1.5 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all opacity-40 group-focus-within:opacity-100 shadow-lg shadow-accent/20">
+                        <button
+                            onClick={handleSendMessage}
+                            className={`absolute right-2 top-2 p-1.5 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 ${input.trim() ? 'opacity-100 scale-100' : 'opacity-40 scale-95 cursor-not-allowed'}`}
+                        >
                             <Send size={16} />
                         </button>
                         <div className="absolute left-4 -top-3 px-2 py-0.5 bg-background border border-border rounded text-[9px] font-bold text-muted uppercase tracking-tighter">
