@@ -1,14 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 /**
  * Grounded AI response generation
  */
 export async function generateGroundedResponse(query: string, sources: string[]) {
-    console.log(`[AI] Generating response with model: gemini-1.5-flash. Key starts with: ${process.env.GEMINI_API_KEY?.substring(0, 5)}...`);
-    const context = sources.join("\n\n---\n\n");
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.log(`[AI] Generating response. Key starts with: ${apiKey?.substring(0, 5)}...`);
+
+    if (!apiKey) {
+        return "I can't think because I don't have an API Key. Please add GEMINI_API_KEY to your .env.local file.";
+    }
+
+    // Using the 'models/' prefix and 'latest' alias to ensure availability
+    const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
 
     const prompt = `
     You are an expert AI Research Assistant.
@@ -16,8 +22,7 @@ export async function generateGroundedResponse(query: string, sources: string[])
     If the answer is not in the sources, say "I don't have enough information in your current sources."
     
     IMPORTANT: You must include citations in the format [1], [2], etc., immediately after the sentence they support.
-    Wait, do not use the source name in the bracket, use the INDEX of the source in the list provided.
-
+    
     RESEARCH SOURCES (indexed):
     ${sources.map((s, i) => `[${i + 1}] ${s}`).join("\n\n---\n\n")}
 
@@ -32,21 +37,20 @@ export async function generateGroundedResponse(query: string, sources: string[])
         const response = await result.response;
         return response.text();
     } catch (error: any) {
-        console.error("AI Generation Error:", error);
+        console.error("AI Generation Error Details:", error);
 
-        // If 404 (Model Not Found), try the legacy model as a fallback
-        if (error.status === 404 || error.message?.includes("404")) {
-            console.log("[AI] Primary model failed with 404, falling back to gemini-pro...");
-            try {
-                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
-                const result = await fallbackModel.generateContent(prompt);
-                const response = await result.response;
-                return response.text();
-            } catch (fallbackError) {
-                console.error("Fallback Model Error:", fallbackError);
-            }
+        const errorMessage = error.message || "Unknown error";
+
+        // 404 is specifically model-not-found or API-not-enabled
+        if (errorMessage.includes("404") || error.status === 404) {
+            return `Error 404: The AI model was not found. 
+             
+Possible fixes:
+1. Enable 'Generative Language API' in Google Cloud.
+2. Ensure your API Key is from a project where this API is enabled.
+3. Check if Gemini 1.5 Flash is available in your region.`;
         }
 
-        return `Something went wrong while analyzing your sources. (Error: ${error.status || 'Unknown'})`;
+        return `Something went wrong while analyzing your sources. (Error: ${errorMessage})`;
     }
 }
