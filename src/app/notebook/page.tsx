@@ -53,38 +53,35 @@ export default function NotebookWorkspace() {
         ));
     };
 
-    const handleFileUpload = async (fileName: string) => {
+    const handleFileUpload = async (file: File) => {
         const id = `Source-${Date.now()}`;
+        const fileName = file.name;
         const newSource = { id, name: fileName, type: "pdf", selected: true };
 
-        const nameLower = fileName.toLowerCase();
-        let mockContent = `This document titled "${fileName}" has been ingested and parsed. It contains relevant information that the AI can now analyze to answer your specific research questions.`;
-
-        if (nameLower.includes("jesus") || nameLower.includes("mighty")) {
-            mockContent = `The document "${fileName}" is a theological or spiritual text concerning the significance of the Name of Jesus. It covers biblical context, authority, faith-based practices, and the spiritual power attributed to the divine name in Christian study.`;
-        } else if (nameLower.includes("flowchart") || nameLower.includes("test")) {
-            mockContent = `The document "${fileName}" is a comprehensive Test Execution Flowchart for the B4iGo Production environment. It contains key Test Cases and Execution Logic:
-            - Module 1: System Readiness and Environment Validation test cases.
-            - Module 2: End-to-End user journey test cases for production stability.
-            - Module 3: Automated regression test branches.
-            - Module 4: Failover and Error Recovery test cases.`;
-        }
-
         try {
-            await fetch("/api/ingest", {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("name", fileName);
+
+            const res = await fetch("/api/ingest", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: fileName, content: mockContent }),
+                body: formData,
             });
+
+            if (!res.ok) throw new Error("Failed to ingest file");
 
             setSources(prev => [...prev, newSource]);
             setUploadModalOpen(false);
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `I've analyzed and ingested "${fileName}". I can now answer questions and provide summaries based on its content!`
+                content: `I've finished reading and indexing "${fileName}". I have "learned" its specific content and can now answer any questions about it!`
             }]);
         } catch (error) {
             console.error("Ingestion Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: "Sorry, I had trouble reading that file. Please make sure it's a valid PDF or text file."
+            }]);
         }
     };
 
@@ -186,7 +183,7 @@ export default function NotebookWorkspace() {
                                     className="hidden"
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(file.name);
+                                        if (file) handleFileUpload(file);
                                     }}
                                 />
                                 <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
