@@ -30,9 +30,9 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium transition-colors hover:text-accent">Sign In</Link>
+            <Link href="/notebook" className="text-sm font-medium transition-colors hover:text-accent">Sign In</Link>
             <Link
-              href="/signup"
+              href="/notebook"
               className="shine rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-transform active:scale-95 shadow-xl shadow-foreground/10"
             >
               Get Started Free
@@ -68,7 +68,7 @@ export default function Home() {
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              href="/signup"
+              href="/notebook"
               className="flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-lg font-bold text-white transition-all hover:scale-105 hover:bg-accent/90 shadow-2xl shadow-accent/20"
             >
               Build your first Notebook

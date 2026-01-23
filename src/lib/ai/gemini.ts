@@ -5,10 +5,9 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 /**
  * Grounded AI response generation
- * This is the "Librarian" part of the project that ensures the AI 
- * only uses the provided sources.
  */
 export async function generateGroundedResponse(query: string, sources: string[]) {
+    console.log(`[AI] Generating response with model: gemini-1.5-flash. Key starts with: ${process.env.GEMINI_API_KEY?.substring(0, 5)}...`);
     const context = sources.join("\n\n---\n\n");
 
     const prompt = `
@@ -32,8 +31,22 @@ export async function generateGroundedResponse(query: string, sources: string[])
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
-    } catch (error) {
+    } catch (error: any) {
         console.error("AI Generation Error:", error);
-        return "Something went wrong while analyzing your sources.";
+
+        // If 404 (Model Not Found), try the legacy model as a fallback
+        if (error.status === 404 || error.message?.includes("404")) {
+            console.log("[AI] Primary model failed with 404, falling back to gemini-pro...");
+            try {
+                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+                const result = await fallbackModel.generateContent(prompt);
+                const response = await result.response;
+                return response.text();
+            } catch (fallbackError) {
+                console.error("Fallback Model Error:", fallbackError);
+            }
+        }
+
+        return `Something went wrong while analyzing your sources. (Error: ${error.status || 'Unknown'})`;
     }
 }
