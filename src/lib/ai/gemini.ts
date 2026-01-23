@@ -13,9 +13,10 @@ export async function generateGroundedResponse(query: string, sources: string[])
         return "I can't think because I don't have an API Key. Please add GEMINI_API_KEY to your .env.local file.";
     }
 
-    // Using the 'models/' prefix and 'latest' alias to ensure availability
+    // Reverting to 'gemini-flash-latest' as it was found previously, but kept the robust error handling
     const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
 
+    // ... prompt construction ...
     const prompt = `
     You are an expert Spiritual Research Assistant in the "Christian Notebook LLM" environment. 
     Your goal is to synthesize answers based on research sources, Scripture, and the wisdom of great teachers.
@@ -44,14 +45,22 @@ export async function generateGroundedResponse(query: string, sources: string[])
 
         const errorMessage = error.message || "Unknown error";
 
+        // 429 - Rate Limit / Quota Exceeded
+        if (errorMessage.includes("429") || error.status === 429) {
+            return `🙏 **The AI is taking a moment of rest.** 
+            
+You've had a very productive study session! The free tier of the Gemini API has a limit on how many questions we can ask in a short time. 
+
+**Please wait about 30-60 seconds and try your question again.** The Word is worth the wait!`;
+        }
+
         // 404 is specifically model-not-found or API-not-enabled
         if (errorMessage.includes("404") || error.status === 404) {
             return `Error 404: The AI model was not found. 
              
 Possible fixes:
-1. Enable 'Generative Language API' in Google Cloud.
-2. Ensure your API Key is from a project where this API is enabled.
-3. Check if Gemini 1.5 Flash is available in your region.`;
+1. Enable 'Generative Language API' in Google AI Studio.
+2. Check if your API Key is valid and active.`;
         }
 
         return `Something went wrong while analyzing your sources. (Error: ${errorMessage})`;
