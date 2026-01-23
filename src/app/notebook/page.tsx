@@ -37,6 +37,27 @@ export default function NotebookWorkspace() {
     ]);
     const [input, setInput] = useState("");
     const [noteContent, setNoteContent] = useState("");
+    const [sources, setSources] = useState([
+        { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true },
+        { id: "Strategy-Source", name: "Q1 Strategy", type: "text", selected: true }
+    ]);
+
+    const toggleSource = (id: string) => {
+        setSources(prev => prev.map(s =>
+            s.id === id ? { ...s, selected: !s.selected } : s
+        ));
+    };
+
+    const handleFileUpload = (fileName: string) => {
+        const id = `Source-${Date.now()}`;
+        const newSource = { id, name: fileName, type: "pdf", selected: true };
+        setSources(prev => [...prev, newSource]);
+        setUploadModalOpen(false);
+        setMessages(prev => [...prev, {
+            role: "assistant",
+            content: `I've finished reading "${fileName}". I can now answer questions based on its content!`
+        }]);
+    };
 
     const addNoteAtCursor = (text: string) => {
         setNoteContent(prev => prev + (prev ? "\n\n" : "") + text);
@@ -114,7 +135,10 @@ export default function NotebookWorkspace() {
                                 ))}
                             </div>
 
-                            <div className="border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/5 group">
+                            <div
+                                onClick={() => handleFileUpload("New Research Paper.pdf")}
+                                className="border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/5 group"
+                            >
                                 <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Upload size={32} />
                                 </div>
@@ -173,22 +197,22 @@ export default function NotebookWorkspace() {
                     </div>
 
                     <div className="space-y-2">
-                        {[
-                            { name: "Project Requirements.pdf", type: "pdf" },
-                            { name: "Market Research Notes", type: "text" },
-                            { name: "User Interviews - 2024", type: "text" }
-                        ].map((source, i) => (
+                        {sources.map((source) => (
                             <div
-                                key={i}
-                                className="group flex items-center gap-3 p-2 rounded-lg hover:bg-accent/10 border border-transparent hover:border-accent/20 cursor-pointer transition-all"
+                                key={source.id}
+                                onClick={() => toggleSource(source.id)}
+                                className={`group flex items-center gap-3 p-2 rounded-lg border transition-all cursor-pointer ${source.selected
+                                        ? "bg-accent/10 border-accent/20 ring-1 ring-accent/10"
+                                        : "hover:bg-muted/10 border-transparent opacity-60"
+                                    }`}
                             >
-                                <div className="text-accent">
+                                <div className={source.selected ? "text-accent" : "text-muted"}>
                                     <FileText size={16} />
                                 </div>
-                                <span className="text-sm font-medium truncate flex-1">{source.name}</span>
-                                <button className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity">
-                                    <Trash2 size={14} />
-                                </button>
+                                <span className={`text-sm font-medium truncate flex-1 ${source.selected ? "text-foreground" : "text-muted"}`}>
+                                    {source.name}
+                                </span>
+                                <div className={`h-2 w-2 rounded-full ${source.selected ? "bg-accent" : "bg-transparent border border-muted"}`} />
                             </div>
                         ))}
                     </div>
@@ -343,7 +367,7 @@ export default function NotebookWorkspace() {
                             <Send size={16} />
                         </button>
                         <div className="absolute left-4 -top-3 px-2 py-0.5 bg-background border border-border rounded text-[9px] font-bold text-muted uppercase tracking-tighter">
-                            Grounded in 3 sources
+                            Grounded in {sources.filter(s => s.selected).length} sources
                         </div>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-[10px] text-muted font-medium px-1">
