@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
     Plus,
     FileText,
@@ -45,6 +45,7 @@ export default function NotebookWorkspace() {
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const toggleSource = (id: string) => {
         setSources(prev => prev.map(s =>
@@ -152,9 +153,18 @@ export default function NotebookWorkspace() {
                             </div>
 
                             <div
-                                onClick={() => handleFileUpload("New Research Paper.pdf")}
+                                onClick={() => fileInputRef.current?.click()}
                                 className="border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/5 group"
                             >
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleFileUpload(file.name);
+                                    }}
+                                />
                                 <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Upload size={32} />
                                 </div>
