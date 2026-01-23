@@ -17,15 +17,88 @@ import {
     BookOpen,
     Send,
     Sparkles,
-    Paperclip
+    Paperclip,
+    Upload,
+    X,
+    Globe,
+    Link as LinkIcon,
+    ShieldCheck
 } from "lucide-react";
 
 export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState("sources"); // sources, chat
+    const [isUploadModalOpen, setUploadModalOpen] = useState(false);
 
     return (
-        <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+        <div className="flex h-screen w-full bg-background text-foreground overflow-hidden relative">
+            {/* Upload Modal Overlay */}
+            {isUploadModalOpen && (
+                <div className="absolute inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm transition-all animate-in fade-in">
+                    <div className="relative w-full max-w-2xl bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200">
+                        <header className="p-6 border-b border-border flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-bold">Add Sources</h3>
+                                <p className="text-sm text-muted">Sources help NotebookLLM answer your questions.</p>
+                            </div>
+                            <button
+                                onClick={() => setUploadModalOpen(false)}
+                                className="p-2 hover:bg-border/50 rounded-full transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </header>
+
+                        <div className="p-8">
+                            <div className="grid grid-cols-3 gap-4 mb-8">
+                                {[
+                                    { icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD" },
+                                    { icon: <Globe size={20} />, label: "Website", sub: "Enter URL" },
+                                    { icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
+                                ].map((option, i) => (
+                                    <button
+                                        key={i}
+                                        className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-border bg-background hover:border-accent hover:bg-accent/5 transition-all group"
+                                    >
+                                        <div className="p-3 bg-muted/10 rounded-xl text-muted group-hover:text-accent group-hover:bg-accent/10 transition-colors">
+                                            {option.icon}
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-sm font-bold">{option.label}</div>
+                                            <div className="text-[10px] text-muted uppercase tracking-tight">{option.sub}</div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/5 group">
+                                <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Upload size={32} />
+                                </div>
+                                <p className="text-lg font-bold mb-1">Drag and drop files here</p>
+                                <p className="text-sm text-muted">or <span className="text-accent underline">browse files</span> from your computer</p>
+                                <p className="mt-6 text-[11px] text-muted max-w-xs mx-auto">
+                                    By uploading, you agree to our Terms. Max 50MB per file.
+                                    Grounded AI works best with structured text.
+                                </p>
+                            </div>
+                        </div>
+
+                        <footer className="p-6 bg-muted/5 border-t border-border flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs font-medium text-muted">
+                                <ShieldCheck size={14} className="text-green-500" />
+                                Your data is encrypted and private.
+                            </div>
+                            <button
+                                onClick={() => setUploadModalOpen(false)}
+                                className="px-6 py-2 bg-foreground text-background rounded-full font-bold hover:bg-foreground/90 transition-all active:scale-95"
+                            >
+                                Done
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
             {/* 1. Sources Sidebar (Left) */}
             <aside
                 className={`${isSidebarOpen ? "w-[300px]" : "w-0"
@@ -38,7 +111,10 @@ export default function NotebookWorkspace() {
                         </div>
                         <span className="font-bold tracking-tight">Sources</span>
                     </div>
-                    <button className="p-1 hover:bg-border/50 rounded-md transition-colors">
+                    <button
+                        onClick={() => setUploadModalOpen(true)}
+                        className="p-1 hover:bg-border/50 rounded-md transition-colors text-accent"
+                    >
                         <Plus size={18} />
                     </button>
                 </div>
@@ -76,7 +152,10 @@ export default function NotebookWorkspace() {
                 </div>
 
                 <div className="p-4 border-t border-border mt-auto">
-                    <button className="flex items-center gap-2 w-full p-2 bg-accent/10 text-accent rounded-lg text-sm font-bold hover:bg-accent/20 transition-colors">
+                    <button
+                        onClick={() => setUploadModalOpen(true)}
+                        className="flex items-center gap-2 w-full p-2 bg-accent/10 text-accent rounded-lg text-sm font-bold hover:bg-accent/20 transition-colors"
+                    >
                         <Plus size={16} /> Add Source
                     </button>
                 </div>
