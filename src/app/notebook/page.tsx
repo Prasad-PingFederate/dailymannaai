@@ -27,7 +27,10 @@ import {
     Copy,
     ExternalLink,
     Mic2,
-    ArrowRight
+    ArrowRight,
+    FileStack,
+    Wand2,
+    FileAudio
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage } from "@/lib/ai/image-resolver";
 
@@ -48,7 +51,26 @@ export default function NotebookWorkspace() {
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
+    const [isSummarizing, setIsSummarizing] = useState(false);
+    const [isRefining, setIsRefining] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
+    const [selectedVoice, setSelectedVoice] = useState<'male' | 'female'>('male');
+    const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+    const isPlayingRef = useRef(false);
+
+    // Load available voices
+    React.useEffect(() => {
+        const loadVoices = () => {
+            const voices = window.speechSynthesis.getVoices();
+            setAvailableVoices(voices);
+        };
+
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }, []);
 
     const toggleSource = (id: string) => {
         setSources(prev => prev.map(s =>
@@ -130,16 +152,314 @@ export default function NotebookWorkspace() {
         }
     };
 
-    const generateAudioOverview = () => {
-        setGeneratingAudio(true);
-        // Simulate podcast script generation based on sources
-        setTimeout(() => {
-            setAudioOverview({
-                title: "Research Deep Dive: NotebookLLM Strategy",
-                script: "Host 1: Today we're looking at a new project called NotebookLLM.ai. Host 2: Right, and it's interesting how they're focusing on 'grounded' AI for researchers..."
+    const handleSummarize = async () => {
+        const selectedSourceIds = sources.filter(s => s.selected).map(s => s.id);
+
+        if (selectedSourceIds.length === 0) {
+            alert("Please select at least one source to summarize.");
+            return;
+        }
+
+        setIsSummarizing(true);
+        try {
+            const res = await fetch("/api/summarize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sourceIds: selectedSourceIds }),
             });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // Add summary to notes
+                setNoteContent(prev => prev + (prev ? "\n\n" : "") + "## Summary\n\n" + data.summary);
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: `I've created a summary of ${data.sourceCount} source(s) and added it to your notes!`
+                }]);
+            } else {
+                throw new Error(data.error || "Failed to generate summary");
+            }
+        } catch (error: any) {
+            console.error("Summarize Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble creating the summary: ${error.message}`
+            }]);
+        } finally {
+            setIsSummarizing(false);
+        }
+    };
+
+    const handleRefine = async () => {
+        if (!noteContent || noteContent.trim().length === 0) {
+            alert("Please write some notes first, then I can help refine them.");
+            return;
+        }
+
+        setIsRefining(true);
+        try {
+            const res = await fetch("/api/refine", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: noteContent }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setNoteContent(data.refined);
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: "I've refined your notes! Check the editor to see the improvements."
+                }]);
+            } else {
+                throw new Error(data.error || "Failed to refine text");
+            }
+        } catch (error: any) {
+            console.error("Refine Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble refining your notes: ${error.message}`
+            }]);
+        } finally {
+            setIsRefining(false);
+        }
+    };
+
+    const generateAudioOverview = async () => {
+        const selectedSourceIds = sources.filter(s => s.selected).map(s => s.id);
+
+        if (selectedSourceIds.length === 0) {
+            alert("Please select at least one source for the audio overview.");
+            return;
+        }
+
+        setGeneratingAudio(true);
+        try {
+            const res = await fetch("/api/audio-overview", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sourceIds: selectedSourceIds }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setAudioOverview({
+                    title: data.title,
+                    script: data.script
+                });
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: `I've created a podcast-style overview of your ${data.sourceCount} source(s)! Check the audio player above.`
+                }]);
+            } else {
+                throw new Error(data.error || "Failed to generate audio overview");
+            }
+        } catch (error: any) {
+            console.error("Audio Overview Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble creating the audio overview: ${error.message}`
+            }]);
+        } finally {
             setGeneratingAudio(false);
-        }, 3000);
+        }
+    };
+
+    const playAudio = () => {
+        if (!audioOverview) return;
+
+        // Stop any existing speech
+        window.speechSynthesis.cancel();
+
+        // Parse the script to separate speakers
+        const lines = audioOverview.script.split('\n').filter(line => line.trim());
+        const voices = availableVoices;
+
+        // Find male and female voices
+        const femaleVoice = voices.find(v =>
+            v.name.toLowerCase().includes('female') ||
+            v.name.toLowerCase().includes('zira') ||
+            v.name.toLowerCase().includes('samantha') ||
+            v.name.toLowerCase().includes('victoria') ||
+            v.name.toLowerCase().includes('karen')
+        ) || voices.find(v => v.name.includes('Google') && v.lang.includes('en'));
+
+        const maleVoice = voices.find(v =>
+            v.name.toLowerCase().includes('male') ||
+            v.name.toLowerCase().includes('david') ||
+            v.name.toLowerCase().includes('mark') ||
+            v.name.toLowerCase().includes('daniel')
+        ) || voices.find(v => v.name.includes('Google') && v.lang.includes('en'));
+
+        setIsPlaying(true);
+        isPlayingRef.current = true;
+        setIsPaused(false);
+
+        let currentIndex = 0;
+
+        const speakNextLine = () => {
+            if (!isPlayingRef.current) return;
+
+            if (currentIndex >= lines.length) {
+                setIsPlaying(false);
+                isPlayingRef.current = false;
+                setIsPaused(false);
+                return;
+            }
+
+            const line = lines[currentIndex];
+            currentIndex++;
+
+            // Skip empty lines or non-dialogue lines
+            if (!line.includes(':')) {
+                speakNextLine();
+                return;
+            }
+
+            // Extract speaker and text
+            const [speaker, ...textParts] = line.split(':');
+            const text = textParts.join(':').trim();
+
+            if (!text) {
+                speakNextLine();
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+
+            // Assign voice based on speaker
+            const isSarah = speaker.toLowerCase().includes('sarah');
+            const voice = isSarah ? femaleVoice : maleVoice;
+
+            if (voice) {
+                utterance.voice = voice;
+            }
+
+            utterance.rate = 0.95;
+            utterance.pitch = isSarah ? 1.1 : 0.9;
+            utterance.volume = 1.0;
+
+            utterance.onend = () => {
+                // Small pause between speakers
+                if (isPlayingRef.current) {
+                    setTimeout(() => {
+                        if (isPlayingRef.current) speakNextLine();
+                    }, 300);
+                }
+            };
+
+            utterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event);
+                setIsPlaying(false);
+                isPlayingRef.current = false;
+                setIsPaused(false);
+            };
+
+            speechSynthesisRef.current = utterance;
+            window.speechSynthesis.speak(utterance);
+        };
+
+        speakNextLine();
+    };
+
+    const pauseAudio = () => {
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+            window.speechSynthesis.pause();
+            setIsPaused(true);
+        }
+    };
+
+    const resumeAudio = () => {
+        if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            setIsPaused(false);
+        }
+    };
+
+    const stopAudio = () => {
+        window.speechSynthesis.cancel();
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+        setIsPaused(false);
+        speechSynthesisRef.current = null;
+    };
+
+    const downloadAudio = () => {
+        if (!audioOverview) return;
+
+        const content = `${audioOverview.title}\n\n${audioOverview.script}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${audioOverview.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const downloadMp3 = async () => {
+        if (!audioOverview) return;
+
+        try {
+            // Show loading state (optional, but good UX)
+            const btn = document.querySelector('button[title="Download MP3 Audio"]') as HTMLButtonElement;
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="animate-spin">⏳</span> Generating...';
+                btn.disabled = true;
+            }
+
+            const res = await fetch('/api/generate-audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: audioOverview.script })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Failed to generate audio');
+
+            if (data.audio_base64) {
+                // Convert Base64 to Blob
+                const byteCharacters = atob(data.audio_base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+
+                // Download
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${audioOverview.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Restore button
+            if (btn) {
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-audio"><path d="M17.5 22h.5c.5 0 1-.5 1-1v-4c0-.5-.5-1-1-1h-1.5c-.5 0-1 .5-1 1v4c0 .5.5 1 1 1h.5"></path><path d="M7 2v20"></path><path d="M11 2h10"></path><path d="M13 2H3"></path><path d="M3 20h8"></path><path d="M18.9 2h.1c.5 0 1 .5 1 1v20c0 .5-.5 1-1 1h-.1"></path><path d="M9.1 12H11"></path><path d="M16 12h1"></path><path d="M5 2h2"></path></svg> Download MP3';
+                btn.disabled = false;
+            }
+
+        } catch (error) {
+            console.error("MP3 Download Error:", error);
+            alert("Could not generate MP3. Please try again.");
+            const btn = document.querySelector('button[title="Download MP3 Audio"]') as HTMLButtonElement;
+            if (btn) {
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-audio"><path d="M17.5 22h.5c.5 0 1-.5 1-1v-4c0-.5-.5-1-1-1h-1.5c-.5 0-1 .5-1 1v4c0 .5.5 1 1 1h.5"></path><path d="M7 2v20"></path><path d="M11 2h10"></path><path d="M13 2H3"></path><path d="M3 20h8"></path><path d="M18.9 2h.1c.5 0 1 .5 1 1v20c0 .5-.5 1-1 1h-.1"></path><path d="M9.1 12H11"></path><path d="M16 12h1"></path><path d="M5 2h2"></path></svg> Download MP3';
+                btn.disabled = false;
+            }
+        }
     };
 
     return (
@@ -310,26 +630,133 @@ export default function NotebookWorkspace() {
 
                 {/* Audio Overview Player (Appears when generated) */}
                 {audioOverview && (
-                    <div className="absolute top-20 right-6 w-80 glass-morphism rounded-2xl p-4 shadow-2xl border border-accent/20 animate-in slide-in-from-top-4 duration-500 z-40">
-                        <div className="flex items-center justify-between mb-3">
+                    <div className="absolute top-20 right-6 w-96 max-h-[600px] glass-morphism rounded-2xl shadow-2xl border border-accent/20 animate-in slide-in-from-top-4 duration-500 z-40 flex flex-col">
+                        <div className="flex items-center justify-between p-4 border-b border-border">
                             <div className="flex items-center gap-2 text-accent">
                                 <Mic2 size={16} />
                                 <span className="text-xs font-bold uppercase tracking-wider">Audio Overview</span>
                             </div>
-                            <button onClick={() => setAudioOverview(null)} className="text-muted hover:text-foreground">
+                            <button onClick={() => { stopAudio(); setAudioOverview(null); }} className="text-muted hover:text-foreground">
                                 <X size={14} />
                             </button>
                         </div>
-                        <h4 className="font-bold text-sm mb-2">{audioOverview.title}</h4>
-                        <div className="h-1 bg-muted/20 rounded-full overflow-hidden mb-4">
-                            <div className="h-full bg-accent w-1/3 animate-pulse" />
+
+                        {/* Audio Controls */}
+                        <div className="p-6 border-b border-border bg-gradient-to-br from-accent/10 to-accent-secondary/10">
+                            <div className="flex flex-col items-center gap-4">
+                                {/* Status Text - Large and Prominent */}
+                                <div className="text-center">
+                                    <p className="text-sm font-bold text-foreground mb-1">
+                                        {isPlaying ? (isPaused ? '⏸️ Paused' : '🔊 Playing Podcast...') : '🎧 Ready to Listen'}
+                                    </p>
+                                    <p className="text-[10px] text-muted">
+                                        {isPlaying ? '👨 David & 👩 Sarah - Two Voice Conversation' : 'Click play for two-voice podcast'}
+                                    </p>
+                                </div>
+
+                                {/* Play/Pause/Stop Controls */}
+                                <div className="flex items-center justify-center gap-6">
+                                    {!isPlaying ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <button
+                                                onClick={playAudio}
+                                                className="h-16 w-16 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
+                                                title="Start Podcast"
+                                            >
+                                                <ArrowRight size={28} className="rotate-90 ml-0.5" />
+                                            </button>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Start</span>
+                                        </div>
+                                    ) : isPaused ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <button
+                                                onClick={resumeAudio}
+                                                className="h-16 w-16 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
+                                                title="Resume Podcast"
+                                            >
+                                                <ArrowRight size={28} className="rotate-90 ml-0.5" />
+                                            </button>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Resume</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <button
+                                                onClick={pauseAudio}
+                                                className="h-16 w-16 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
+                                                title="Pause Podcast"
+                                            >
+                                                <div className="flex gap-1.5">
+                                                    <div className="w-1.5 h-6 bg-white rounded"></div>
+                                                    <div className="w-1.5 h-6 bg-white rounded"></div>
+                                                </div>
+                                            </button>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Pause</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col items-center gap-2">
+                                        <button
+                                            onClick={stopAudio}
+                                            disabled={!isPlaying && !isPaused}
+                                            className={`h-12 w-12 rounded-full flex items-center justify-center border transition-all ${isPlaying || isPaused
+                                                ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
+                                                : "bg-muted/5 text-muted/30 border-transparent cursor-not-allowed"
+                                                }`}
+                                            title="Stop Podcast"
+                                        >
+                                            <div className="w-4 h-4 bg-current rounded-sm"></div>
+                                        </button>
+                                        <span className={`text-[10px] font-bold uppercase tracking-wider ${isPlaying || isPaused ? "text-muted" : "text-muted/30"}`}>Stop</span>
+                                    </div>
+                                </div>
+
+                                {/* Progress Indicator */}
+                                {isPlaying && !isPaused && (
+                                    <div className="w-full">
+                                        <div className="h-1 bg-muted/20 rounded-full overflow-hidden">
+                                            <div className="h-full bg-accent animate-pulse w-full"></div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex items-center justify-center gap-6">
-                            <button className="text-muted"><ChevronLeft size={20} /></button>
-                            <button className="h-10 w-10 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/20">
-                                <ArrowRight size={20} className="rotate-90 ml-0.5" />
-                            </button>
-                            <button className="text-muted"><ChevronRight size={20} /></button>
+
+
+                        <div className="p-4 overflow-y-auto flex-1 bg-background">
+                            <div className="mb-3 pb-3 border-b border-border">
+                                <h4 className="font-bold text-base mb-1">{audioOverview.title}</h4>
+                                <p className="text-[10px] text-muted uppercase tracking-wider">Podcast Transcript</p>
+                            </div>
+                            <div className="text-xs leading-relaxed space-y-3 text-foreground whitespace-pre-wrap font-mono">
+                                {audioOverview.script}
+                            </div>
+                        </div>
+                        <div className="p-3 border-t border-border bg-muted/5 flex items-center justify-between">
+                            <p className="text-[10px] text-muted">
+                                🎙️ Browser TTS Engine
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => navigator.clipboard.writeText(audioOverview.script)}
+                                    className="text-[10px] text-accent hover:text-accent/80 font-medium flex items-center gap-1"
+                                >
+                                    <Copy size={10} /> Copy Script
+                                </button>
+                                <button
+                                    onClick={downloadMp3}
+                                    className="px-4 py-1.5 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 font-bold text-xs flex items-center gap-1.5 transition-colors border border-accent/20"
+                                    title="Download MP3 Audio"
+                                >
+                                    <FileAudio size={12} /> Download MP3
+                                </button>
+                                <button
+                                    onClick={downloadAudio}
+                                    className="px-4 py-1.5 bg-green-600/10 text-green-600 rounded-lg hover:bg-green-600/20 font-bold text-xs flex items-center gap-1.5 transition-colors border border-green-600/20"
+                                    title="Download text transcript"
+                                >
+                                    <ArrowRight size={12} className="rotate-90" /> Download Script
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -358,21 +785,69 @@ export default function NotebookWorkspace() {
                 </div>
 
                 {/* Dynamic Action Bar (Bottom Middle) */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass-morphism rounded-full px-6 py-3 flex items-center gap-4 shadow-2xl border border-border/50">
-                    <button className="text-xs font-bold flex items-center gap-2 hover:text-accent transition-colors">
-                        <Sparkles size={14} className="text-accent-secondary" /> Summarize
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass-morphism rounded-2xl px-4 py-3 flex items-center gap-3 shadow-2xl border border-border/50">
+                    {/* Summarize - Works on SOURCES */}
+                    <button
+                        onClick={handleSummarize}
+                        disabled={isSummarizing}
+                        title="Summarize selected sources and add to notes"
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <FileStack size={16} className="text-blue-500" />
+                            <span className="text-xs font-bold">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
+                        </div>
+                        <span className="text-[9px] text-muted uppercase tracking-wider">From Sources</span>
+                        {!isSummarizing && (
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Create summary from selected sources
+                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                            </div>
+                        )}
                     </button>
-                    <div className="w-px h-4 bg-border" />
-                    <button className="text-xs font-bold flex items-center gap-2 hover:text-accent transition-colors">
-                        <Edit3 size={14} /> Refine
+
+                    <div className="w-px h-12 bg-border" />
+
+                    {/* Refine - Works on NOTES */}
+                    <button
+                        onClick={handleRefine}
+                        disabled={isRefining}
+                        title="Refine and improve your notes"
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Wand2 size={16} className="text-purple-500" />
+                            <span className="text-xs font-bold">{isRefining ? 'Refining...' : 'Refine'}</span>
+                        </div>
+                        <span className="text-[9px] text-muted uppercase tracking-wider">Polish Notes</span>
+                        {!isRefining && (
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Improve your written notes
+                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                            </div>
+                        )}
                     </button>
-                    <div className="w-px h-4 bg-border" />
+
+                    <div className="w-px h-12 bg-border" />
+
+                    {/* Audio Overview - Works on SOURCES */}
                     <button
                         onClick={generateAudioOverview}
                         disabled={isGeneratingAudio}
-                        className={`text-xs font-bold flex items-center gap-2 transition-colors ${isGeneratingAudio ? 'text-accent animate-pulse' : 'hover:text-accent'}`}
+                        title="Generate podcast-style overview"
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
                     >
-                        {isGeneratingAudio ? 'Generating...' : 'Audio Overview'}
+                        <div className="flex items-center gap-2">
+                            <Mic2 size={16} className="text-accent" />
+                            <span className="text-xs font-bold">{isGeneratingAudio ? 'Generating...' : 'Audio Overview'}</span>
+                        </div>
+                        <span className="text-[9px] text-muted uppercase tracking-wider">Podcast Script</span>
+                        {!isGeneratingAudio && (
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Create podcast from sources
+                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                            </div>
+                        )}
                     </button>
                 </div>
             </main>

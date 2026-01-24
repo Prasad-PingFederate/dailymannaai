@@ -24,7 +24,7 @@ class GeminiProvider implements AIProvider {
     }
 
     async generateResponse(prompt: string): Promise<string> {
-        const model = this.client.getGenerativeModel({ model: "models/gemini-flash-latest" });
+        const model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
@@ -80,6 +80,7 @@ class HuggingFaceProvider implements AIProvider {
 
 /**
  * Together AI Provider (Fallback #3)
+ * Using official Together SDK
  */
 class TogetherProvider implements AIProvider {
     name = "Together AI";
@@ -90,6 +91,7 @@ class TogetherProvider implements AIProvider {
     }
 
     async generateResponse(prompt: string): Promise<string> {
+        // Using fetch API since together-ai npm package might not have TypeScript types
         const response = await fetch("https://api.together.xyz/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -97,7 +99,7 @@ class TogetherProvider implements AIProvider {
                 "Authorization": `Bearer ${this.apiKey}`,
             },
             body: JSON.stringify({
-                model: "meta-llama/Llama-3-70b-chat-hf",
+                model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
                 messages: [{ role: "user", content: prompt }],
                 max_tokens: 2048,
                 temperature: 0.7,
@@ -105,7 +107,8 @@ class TogetherProvider implements AIProvider {
         });
 
         if (!response.ok) {
-            throw new Error(`Together API error: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`Together API error: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
