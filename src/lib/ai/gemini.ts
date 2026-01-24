@@ -1,22 +1,23 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { AIProviderManager } from "./providers";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const providerManager = new AIProviderManager();
 
 /**
- * Grounded AI response generation
+ * Grounded AI response generation with multi-provider fallback
  */
 export async function generateGroundedResponse(query: string, sources: string[]) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    console.log(`[AI] Generating response. Key starts with: ${apiKey?.substring(0, 5)}...`);
+    console.log(`[AI] Active providers: ${providerManager.getActiveProviders().join(", ")}`);
 
-    if (!apiKey) {
-        return "I can't think because I don't have an API Key. Please add GEMINI_API_KEY to your .env.local file.";
+    if (providerManager.getActiveProviders().length === 0) {
+        return `I can't think because no AI providers are configured. 
+        
+Please add at least one API key to your .env.local file:
+- GEMINI_API_KEY (Google Gemini)
+- GROQ_API_KEY (Groq - recommended for speed)
+- HUGGINGFACE_API_KEY (Hugging Face)
+- TOGETHER_API_KEY (Together AI)`;
     }
 
-    // Reverting to 'gemini-flash-latest' as it was found previously, but kept the robust error handling
-    const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
-
-    // ... prompt construction ...
     const prompt = `
     You are an expert Spiritual Research Assistant in the "Christian Notebook LLM" environment. 
     Your goal is to synthesize answers based on research sources, Scripture, and the wisdom of great teachers.
@@ -37,32 +38,11 @@ export async function generateGroundedResponse(query: string, sources: string[])
   `;
 
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text();
+        const { response, provider } = await providerManager.generateResponse(prompt);
+        console.log(`[AI] Response generated successfully using: ${provider}`);
+        return response;
     } catch (error: any) {
-        console.error("AI Generation Error Details:", error);
-
-        const errorMessage = error.message || "Unknown error";
-
-        // 429 - Rate Limit / Quota Exceeded
-        if (errorMessage.includes("429") || error.status === 429) {
-            return `🙏 **The AI is taking a moment of rest.** 
-            
-You've had a very productive study session! The free tier of the Gemini API has a limit on how many questions we can ask in a short time. 
-
-**Please wait about 30-60 seconds and try your question again.** The Word is worth the wait!`;
-        }
-
-        // 404 is specifically model-not-found or API-not-enabled
-        if (errorMessage.includes("404") || error.status === 404) {
-            return `Error 404: The AI model was not found. 
-             
-Possible fixes:
-1. Enable 'Generative Language API' in Google AI Studio.
-2. Check if your API Key is valid and active.`;
-        }
-
-        return `Something went wrong while analyzing your sources. (Error: ${errorMessage})`;
+        console.error("AI Generation Error:", error);
+        return error.message || "Failed to generate response from all available AI providers.";
     }
 }
