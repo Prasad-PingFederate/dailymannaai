@@ -42,7 +42,9 @@ export default function NotebookWorkspace() {
     const [noteContent, setNoteContent] = useState("");
     const [sources, setSources] = useState([
         { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true },
-        { id: "Strategy-Source", name: "Q1 Strategy", type: "text", selected: true }
+        { id: "Historical-Missionaries-Pioneers", name: "Historical Missionaries", type: "text", selected: true },
+        { id: "Modern-Evangelists-Missionaries", name: "Modern Evangelists", type: "text", selected: true },
+        { id: "Joshua-Daniel-Doing-Gods-Will", name: "Joshua Daniel - Doing God's Will", type: "text", selected: true }
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);

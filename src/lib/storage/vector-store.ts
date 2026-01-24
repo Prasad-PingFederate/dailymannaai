@@ -136,3 +136,28 @@ ingestDocuments(`
     Joshua 1:9: "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go."
     Psalm 23:4: "Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me."
 `, "Scripture-Comfort-Source");
+ingestDocuments(`
+    Hudson Taylor (1832–1905): A British missionary who spent 51 years in China. He founded the China Inland Mission (CIM), which brought over 800 missionaries to the region.
+    David Livingstone (1813–1873): A Scottish medical missionary and explorer who spent most of his life in Africa. He is famous for mapping southern Africa and advocating for the abolition of the slave trade.
+    Adoniram Judson (1788–1850): The first American missionary to Burma (now Myanmar). He served there for 40 years, translated the Bible into Burmese, and founded over 100 churches.
+    Amy Carmichael (1867–1951): An Irish missionary who served in India for 56 years. She is best known for her work rescuing children from temple prostitution and founding the Dohnavur Fellowship.
+    Mary Slessor (1848–1915): A Scottish missionary in Nigeria who fought for women's rights and stopped the traditional practice of infanticide of twins.
+`, "Historical-Missionaries-Pioneers");
+
+ingestDocuments(`
+    George Whitefield (1714–1770): A contemporary of John Wesley and a fellow leader of the Methodist movement. He was a powerful open-air preacher who played a central role in the First Great Awakening in Britain and the American colonies.
+    Billy Graham (1918–2018): One of the most influential evangelists of the 20th century, he preached to millions through massive "crusades" and television broadcasts.
+    Jim Elliot (1927–1956): An American missionary martyred in Ecuador while attempting to evangelize the Huaorani people. His life and death inspired a new generation of missionary efforts.
+    Brother Andrew (1928–2022): A Dutch missionary known for smuggling Bibles into communist countries during the Cold War and founding the organization Open Doors.
+    George Müller (1805–1898): Known for his extensive work with orphans in Bristol, England, and for promoting "faith missions," where missionaries trust God for financial support without direct appeals for funds.
+`, "Modern-Evangelists-Missionaries");
+
+ingestDocuments(`
+    Joshua Daniel's Teaching on Doing God's Will (John 6:38):
+    Core Principle: True conversion is marked by the abandonment of self-will. "Self will destroy you" unless the cross is at the center of your life.
+    "A Speaking God": God is not silent; He wants to direct our footsteps and lead us through the Holy Spirit.
+    Saviors vs Seductors: Young people are challenged to be "saviors" who lift others up, rather than "seductors" who corrupt.
+    Marriage: Marriage requires a servant's heart and is a commitment to serving one's spouse as unto God.
+    Global Focus: A burden for reaching the lost in Nepal, Sri Lanka, Delhi, and Europe (specifically France).
+    Historical Examples: The Puritans and Pilgrim Fathers were nonconformists who sacrificed comfort to follow God's will.
+`, "Joshua-Daniel-Doing-Gods-Will");
