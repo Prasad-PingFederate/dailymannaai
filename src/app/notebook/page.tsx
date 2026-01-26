@@ -631,7 +631,7 @@ export default function NotebookWorkspace() {
 
                 {/* Audio Overview Player (Appears when generated) */}
                 {audioOverview && (
-                    <div className="absolute top-20 right-6 w-96 max-h-[600px] glass-morphism rounded-2xl shadow-2xl border border-accent/20 animate-in slide-in-from-top-4 duration-500 z-40 flex flex-col">
+                    <div className="absolute top-20 right-6 w-96 max-h-[calc(100vh-120px)] glass-morphism rounded-2xl shadow-2xl border border-accent/20 animate-in slide-in-from-top-4 duration-500 z-40 flex flex-col">
                         <div className="flex items-center justify-between p-4 border-b border-border">
                             <div className="flex items-center gap-2 text-accent">
                                 <Mic2 size={16} />
@@ -732,30 +732,32 @@ export default function NotebookWorkspace() {
                                 {audioOverview.script}
                             </div>
                         </div>
-                        <div className="p-3 border-t border-border bg-muted/5 flex items-center justify-between">
-                            <p className="text-[10px] text-muted">
-                                🎙️ Browser TTS Engine
-                            </p>
-                            <div className="flex items-center gap-2">
+                        <div className="p-4 border-t border-border bg-muted/5 flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                                <p className="text-[10px] text-muted">
+                                    🎙️ Browser TTS Engine
+                                </p>
                                 <button
                                     onClick={() => navigator.clipboard.writeText(audioOverview.script)}
                                     className="text-[10px] text-accent hover:text-accent/80 font-medium flex items-center gap-1"
                                 >
                                     <Copy size={10} /> Copy Script
                                 </button>
+                            </div>
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={downloadMp3}
-                                    className="px-4 py-1.5 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 font-bold text-xs flex items-center gap-1.5 transition-colors border border-accent/20"
+                                    className="flex-1 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-accent/20"
                                     title="Download MP3 Audio"
                                 >
-                                    <FileAudio size={12} /> Download MP3
+                                    <FileAudio size={14} /> Download MP3
                                 </button>
                                 <button
                                     onClick={downloadAudio}
-                                    className="px-4 py-1.5 bg-green-600/10 text-green-600 rounded-lg hover:bg-green-600/20 font-bold text-xs flex items-center gap-1.5 transition-colors border border-green-600/20"
+                                    className="flex-1 py-2 bg-card-bg border border-border text-foreground rounded-lg hover:bg-border/50 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
                                     title="Download text transcript"
                                 >
-                                    <ArrowRight size={12} className="rotate-90" /> Download Script
+                                    <ArrowRight size={14} className="rotate-90" /> Get Script
                                 </button>
                             </div>
                         </div>
