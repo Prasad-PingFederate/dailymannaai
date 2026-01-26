@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Plus,
     FileText,
@@ -15,6 +15,7 @@ import {
     ChevronLeft,
     ChevronRight,
     BookOpen,
+    Eye,
     Send,
     Sparkles,
     Paperclip,
@@ -30,7 +31,8 @@ import {
     ArrowRight,
     FileStack,
     Wand2,
-    FileAudio
+    FileAudio,
+    CheckCircle2
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 
@@ -57,6 +59,41 @@ export default function NotebookWorkspace() {
     const [isPaused, setIsPaused] = useState(false);
     const [selectedVoice, setSelectedVoice] = useState<'male' | 'female'>('male');
     const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+    const [uploadMode, setUploadMode] = useState<'file' | 'website' | 'text'>('file');
+    const [websiteUrl, setWebsiteUrl] = useState("");
+    const [websiteTitle, setWebsiteTitle] = useState("");
+    const [pastedText, setPastedText] = useState("");
+    const [pastedTitle, setPastedTitle] = useState("");
+    const [isIngesting, setIsIngesting] = useState(false);
+    const [isGrammarChecking, setIsGrammarChecking] = useState(false);
+    const [viewingSource, setViewingSource] = useState<any>(null);
+    const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+
+    // --- PERSISTENCE: Load data on mount ---
+    useEffect(() => {
+        const savedSources = localStorage.getItem("notebook_sources");
+        const savedMessages = localStorage.getItem("notebook_messages");
+        const savedNote = localStorage.getItem("notebook_note");
+
+        if (savedSources) setSources(JSON.parse(savedSources));
+        if (savedMessages) setMessages(JSON.parse(savedMessages));
+        if (savedNote) setNoteContent(savedNote);
+    }, []);
+
+    // --- PERSISTENCE: Save data on change ---
+    useEffect(() => {
+        if (sources.length > 0) localStorage.setItem("notebook_sources", JSON.stringify(sources));
+    }, [sources]);
+
+    useEffect(() => {
+        if (messages.length > 0) localStorage.setItem("notebook_messages", JSON.stringify(messages));
+    }, [messages]);
+
+    useEffect(() => {
+        localStorage.setItem("notebook_note", noteContent);
+    }, [noteContent]);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
     const isPlayingRef = useRef(false);
@@ -85,6 +122,7 @@ export default function NotebookWorkspace() {
         const isMP3 = fileType === "audio/mpeg" || fileName.toLowerCase().endsWith(".mp3");
         const newSource = { id, name: fileName, type: isMP3 ? "audio" : "pdf", selected: true };
 
+        setIsIngesting(true);
         try {
             const formData = new FormData();
             formData.append("file", file);
@@ -95,9 +133,13 @@ export default function NotebookWorkspace() {
                 body: formData,
             });
 
+            const data = await res.json();
             if (!res.ok) throw new Error("Failed to ingest file");
 
-            setSources(prev => [...prev, newSource]);
+            setSources(prev => [...prev, {
+                ...newSource,
+                fullContent: data.preview || "Text content extracted successfully."
+            }]);
             setUploadModalOpen(false);
 
             const assistanceMessage = isMP3
@@ -114,6 +156,96 @@ export default function NotebookWorkspace() {
                 role: "assistant",
                 content: "Sorry, I had trouble reading that file. Please make sure it's a valid PDF or text file."
             }]);
+        } finally {
+            setIsIngesting(false);
+        }
+    };
+
+    const handleWebsiteIngest = async () => {
+        if (!websiteUrl || !websiteTitle) {
+            alert("URL and Title are required");
+            return;
+        }
+
+        setIsIngesting(true);
+        try {
+            const res = await fetch("/api/ingest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: websiteUrl, name: websiteTitle, mode: "website" }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to ingest website");
+
+            const id = `Web-${Date.now()}`;
+            setSources(prev => [...prev, {
+                id,
+                name: websiteTitle,
+                type: "text",
+                selected: true,
+                fullContent: data.preview
+            }]);
+            setUploadModalOpen(false);
+            setWebsiteUrl("");
+            setWebsiteTitle("");
+
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `I've finished exploring and "learning" from the website "${websiteTitle}". I'm ready to answer any questions about it!`
+            }]);
+        } catch (error: any) {
+            console.error("Website Ingest Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble visiting that website: ${error.message}`
+            }]);
+        } finally {
+            setIsIngesting(false);
+        }
+    };
+
+    const handleTextIngest = async () => {
+        if (!pastedText || !pastedTitle) {
+            alert("Text and Title are required");
+            return;
+        }
+
+        setIsIngesting(true);
+        try {
+            const res = await fetch("/api/ingest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: pastedText, name: pastedTitle, mode: "text" }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to ingest text");
+
+            const id = `Text-${Date.now()}`;
+            setSources(prev => [...prev, {
+                id,
+                name: pastedTitle,
+                type: "text",
+                selected: true,
+                fullContent: pastedText
+            }]);
+            setUploadModalOpen(false);
+            setPastedText("");
+            setPastedTitle("");
+
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `I've learned from your pasted note "${pastedTitle}". It's now part of my collective wisdom!`
+            }]);
+        } catch (error: any) {
+            console.error("Text Ingest Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble processing your text: ${error.message}`
+            }]);
+        } finally {
+            setIsIngesting(false);
         }
     };
 
@@ -128,12 +260,16 @@ export default function NotebookWorkspace() {
         const userMessage = { role: "user", content: textToSend };
         setMessages(prev => [...prev, userMessage]);
         setInput("");
+        setSuggestions([]); // Clear previous suggestions
 
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: textToSend }),
+                body: JSON.stringify({
+                    query: textToSend,
+                    history: messages // Pass the history before the new message
+                }),
             });
 
             const data = await res.json();
@@ -143,6 +279,9 @@ export default function NotebookWorkspace() {
                     role: "assistant",
                     content: data.content
                 }]);
+                if (data.suggestions) {
+                    setSuggestions(data.suggestions);
+                }
             }
         } catch (error) {
             console.error("Chat Error:", error);
@@ -225,6 +364,96 @@ export default function NotebookWorkspace() {
             }]);
         } finally {
             setIsRefining(false);
+        }
+    };
+
+    const handleGrammarCheck = async () => {
+        if (!noteContent || noteContent.trim().length < 5) {
+            alert("Please write some notes first to check for mistakes.");
+            return;
+        }
+
+        setIsGrammarChecking(true);
+        try {
+            const res = await fetch("/api/grammar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: noteContent }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to analyze grammar");
+
+            // Build a nice message for the assistant
+            let analysisMessage = `📊 **Grammar Analysis Report** (Quality: ${data.overallQuality}/10)\n\n`;
+
+            if (data.hasMistakes && data.suggestions.length > 0) {
+                analysisMessage += `I found ${data.suggestions.length} potential area(s) for improvement:\n\n`;
+                data.suggestions.forEach((s: any, i: number) => {
+                    analysisMessage += `${i + 1}. **"${s.original}"** → *"${s.corrected}"*\n   *Why:* ${s.reason}\n\n`;
+                });
+
+                if (data.deepDive) {
+                    analysisMessage += `💡 **Deep Dive: ${data.deepDive.mistake}**\n${data.deepDive.explanation}\n\n*Rule to remember:* ${data.deepDive.rule}`;
+                }
+            } else {
+                analysisMessage += "✨ **Excellent work!** Your writing is clear, grammatically sound, and spiritually focused. No significant errors were found.";
+            }
+
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: analysisMessage
+            }]);
+
+        } catch (error: any) {
+            console.error("Grammar Check Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble analyzing your grammar: ${error.message}`
+            }]);
+        } finally {
+            setIsGrammarChecking(false);
+        }
+    };
+
+    const handleGenerateGuide = async (type: "study-guide" | "faq" | "timeline" | "briefing doc") => {
+        const selectedSources = sources.filter(s => s.selected);
+        if (selectedSources.length === 0) {
+            alert("Please select at least one source to generate from.");
+            return;
+        }
+
+        setIsGeneratingGuide(true);
+        try {
+            const res = await fetch("/api/generate-guide", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type,
+                    sources: selectedSources.map(s => s.name)
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to generate guide");
+
+            const label = type === "study-guide" ? "Study Guide" :
+                type === "faq" ? "FAQ" :
+                    type === "timeline" ? "Timeline" : "Briefing Doc";
+
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `### 📘 ${label}\n\n${data.result}`
+            }]);
+
+        } catch (error: any) {
+            console.error("Guide Error:", error);
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: `Sorry, I had trouble generating your ${type}: ${error.message}`
+            }]);
+        } finally {
+            setIsGeneratingGuide(false);
         }
     };
 
@@ -485,15 +714,16 @@ export default function NotebookWorkspace() {
                         <div className="p-8">
                             <div className="grid grid-cols-3 gap-4 mb-8">
                                 {[
-                                    { icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD" },
-                                    { icon: <Globe size={20} />, label: "Website", sub: "Enter URL" },
-                                    { icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
+                                    { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD" },
+                                    { mode: 'website', icon: <Globe size={20} />, label: "Website", sub: "Enter URL" },
+                                    { mode: 'text', icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
                                 ].map((option, i) => (
                                     <button
                                         key={i}
-                                        className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-border bg-background hover:border-accent hover:bg-accent/5 transition-all group"
+                                        onClick={() => setUploadMode(option.mode as any)}
+                                        className={`flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border transition-all group ${uploadMode === option.mode ? 'bg-accent/10 border-accent text-accent' : 'bg-background border-border hover:bg-accent/5'}`}
                                     >
-                                        <div className="p-3 bg-muted/10 rounded-xl text-muted group-hover:text-accent group-hover:bg-accent/10 transition-colors">
+                                        <div className={`p-3 rounded-xl transition-colors ${uploadMode === option.mode ? 'bg-accent/20 text-accent' : 'bg-muted/10 text-muted group-hover:text-accent group-hover:bg-accent/10'}`}>
                                             {option.icon}
                                         </div>
                                         <div className="text-center">
@@ -504,29 +734,86 @@ export default function NotebookWorkspace() {
                                 ))}
                             </div>
 
-                            <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/5 group"
-                            >
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleFileUpload(file);
-                                    }}
-                                />
-                                <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                    <Upload size={32} />
+                            {uploadMode === 'file' ? (
+                                <div
+                                    onClick={() => !isIngesting && fileInputRef.current?.click()}
+                                    className={`border-2 border-dashed border-border rounded-2xl p-12 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/5 group ${isIngesting ? 'opacity-50 cursor-wait' : ''}`}
+                                >
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleFileUpload(file);
+                                        }}
+                                    />
+                                    <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        {isIngesting ? <div className="animate-spin text-2xl">⏳</div> : <Upload size={32} />}
+                                    </div>
+                                    <p className="text-lg font-bold mb-1">{isIngesting ? 'Ingesting...' : 'Drag and drop files here'}</p>
+                                    <p className="text-sm text-muted">or <span className="text-accent underline">browse files</span> from your computer</p>
                                 </div>
-                                <p className="text-lg font-bold mb-1">Drag and drop files here</p>
-                                <p className="text-sm text-muted">or <span className="text-accent underline">browse files</span> from your computer</p>
-                                <p className="mt-6 text-[11px] text-muted max-w-xs mx-auto">
-                                    By uploading, you agree to our Terms. Max 50MB per file.
-                                    Grounded AI works best with structured text.
-                                </p>
-                            </div>
+                            ) : uploadMode === 'website' ? (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Site Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g., Sadhu Sundar Singh Biography"
+                                            value={websiteTitle}
+                                            onChange={(e) => setWebsiteTitle(e.target.value)}
+                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Website URL</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://example.com/page"
+                                            value={websiteUrl}
+                                            onChange={(e) => setWebsiteUrl(e.target.value)}
+                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleWebsiteIngest}
+                                        disabled={isIngesting || !websiteUrl || !websiteTitle}
+                                        className="w-full bg-accent text-white py-4 rounded-xl font-bold shadow-lg shadow-accent/20 hover:bg-accent/90 transition-all active:scale-95 disabled:opacity-50 disabled:scale-100"
+                                    >
+                                        {isIngesting ? 'Exploring Website...' : 'Ingest Website'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Source Title</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g., My Study Notes"
+                                            value={pastedTitle}
+                                            onChange={(e) => setPastedTitle(e.target.value)}
+                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Paste Text Content</label>
+                                        <textarea
+                                            placeholder="Paste your text here..."
+                                            value={pastedText}
+                                            onChange={(e) => setPastedText(e.target.value)}
+                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none min-h-[150px] resize-none"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleTextIngest}
+                                        disabled={isIngesting || !pastedText || !pastedTitle}
+                                        className="w-full bg-accent text-white py-4 rounded-xl font-bold shadow-lg shadow-accent/20 hover:bg-accent/90 transition-all active:scale-95 disabled:opacity-50 disabled:scale-100"
+                                    >
+                                        {isIngesting ? 'Ingesting Notes...' : 'Ingest Text'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <footer className="p-6 bg-muted/5 border-t border-border flex items-center justify-between">
@@ -539,6 +826,53 @@ export default function NotebookWorkspace() {
                                 className="px-6 py-2 bg-foreground text-background rounded-full font-bold hover:bg-foreground/90 transition-all active:scale-95"
                             >
                                 Done
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
+
+            {/* Source Viewer Modal */}
+            {viewingSource && (
+                <div className="absolute inset-0 z-[110] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm transition-all animate-in fade-in">
+                    <div className="relative w-full max-w-4xl h-[80vh] bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200 flex flex-col">
+                        <header className="p-6 border-b border-border flex items-center justify-between bg-muted/5">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-accent/10 text-accent rounded-lg">
+                                    <FileText size={20} />
+                                </div>
+                                <h3 className="text-xl font-bold truncate max-w-md">{viewingSource.name}</h3>
+                            </div>
+                            <button
+                                onClick={() => setViewingSource(null)}
+                                className="p-2 hover:bg-border/50 rounded-full transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </header>
+                        <div className="flex-1 overflow-y-auto p-8 leading-relaxed text-foreground select-text custom-scrollbar">
+                            <div className="max-w-3xl mx-auto space-y-4">
+                                {viewingSource.name.toLowerCase().endsWith(".mp3") ? (
+                                    <div className="p-6 bg-accent/5 rounded-2xl border border-accent/20">
+                                        <h4 className="font-bold text-accent mb-2">Simulated Sermon Transcription</h4>
+                                        <p className="whitespace-pre-wrap">
+                                            This is a digital transcript generated from the audio source "{viewingSource.name}".
+                                            The message focuses on spiritual growth and biblical wisdom.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="whitespace-pre-wrap">
+                                        {viewingSource.fullContent || "[No content preview available for this source.]"}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <footer className="p-4 border-t border-border bg-muted/5 text-center">
+                            <button
+                                onClick={() => setViewingSource(null)}
+                                className="px-8 py-2 bg-foreground text-background rounded-full font-bold hover:bg-foreground/90 transition-all"
+                            >
+                                Close Explorer
                             </button>
                         </footer>
                     </div>
@@ -590,6 +924,16 @@ export default function NotebookWorkspace() {
                                 <span className={`text-sm font-medium truncate flex-1 ${source.selected ? "text-foreground" : "text-muted"}`}>
                                     {source.name}
                                 </span>
+                                <div
+                                    title="View full source content"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setViewingSource(source);
+                                    }}
+                                    className="p-1 hover:bg-accent/20 rounded text-muted hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                    <Eye size={14} />
+                                </div>
                                 <div className={`h-2 w-2 rounded-full ${source.selected ? "bg-accent" : "bg-transparent border border-muted"}`} />
                             </div>
                         ))}
@@ -833,6 +1177,28 @@ export default function NotebookWorkspace() {
 
                     <div className="w-px h-12 bg-border" />
 
+                    {/* Grammar Check - NEW */}
+                    <button
+                        onClick={handleGrammarCheck}
+                        disabled={isGrammarChecking}
+                        title="Identify grammar mistakes and explain rules"
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 size={16} className="text-green-500" />
+                            <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
+                        </div>
+                        <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
+                        {!isGrammarChecking && (
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Identify and explain grammar mistakes
+                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                            </div>
+                        )}
+                    </button>
+
+                    <div className="w-px h-12 bg-border" />
+
                     {/* Audio Overview - Works on SOURCES */}
                     <button
                         onClick={generateAudioOverview}
@@ -975,17 +1341,34 @@ export default function NotebookWorkspace() {
 
                 {/* Recommended Actions (Help Me Create) */}
                 <div className="px-4 pb-2">
+                    {/* Suggested Questions Chips */}
+                    {suggestions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3 animate-in fade-in slide-in-from-bottom-2">
+                            {suggestions.map((suggestion, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleSendMessage(suggestion)}
+                                    className="px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-full text-xs font-bold text-accent hover:bg-accent/20 transition-all flex items-center gap-2"
+                                >
+                                    <Sparkles size={10} />
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
                         {[
-                            { label: "🙏 Study Guide", prompt: "Create a Bible Study Guide based on these sources. Include key verses, reflection questions, and a prayer point for each section." },
-                            { label: "❓ FAQ", prompt: "Based on the selected sources, generate a list of Frequently Asked Questions that a seeker might ask about these topics, and answer them using Scripture and the texts provided." },
-                            { label: "📅 Timeline", prompt: "Create a chronological timeline of the spiritual events or movements mentioned in these sources." },
-                            { label: "📝 Briefing Doc", prompt: "Create a spiritual briefing document summarizing the key theological themes and practical applications from these texts." }
+                            { id: "study-guide", label: "🙏 Study Guide" },
+                            { id: "faq", label: "❓ FAQ" },
+                            { id: "timeline", label: "📅 Timeline" },
+                            { id: "briefing doc", label: "📝 Briefing Doc" }
                         ].map((action, i) => (
                             <button
                                 key={i}
-                                onClick={() => handleSendMessage(action.prompt)}
-                                className="flex-shrink-0 px-3 py-1.5 bg-accent/5 border border-accent/10 rounded-full text-xs font-medium text-accent hover:bg-accent/10 transition-colors whitespace-nowrap"
+                                onClick={() => handleGenerateGuide(action.id as any)}
+                                disabled={isGeneratingGuide}
+                                className={`flex-shrink-0 px-3 py-1.5 bg-accent/5 border border-accent/10 rounded-full text-xs font-medium text-accent hover:bg-accent/10 transition-colors whitespace-nowrap ${isGeneratingGuide ? 'opacity-50 cursor-wait' : ''}`}
                             >
                                 {action.label}
                             </button>

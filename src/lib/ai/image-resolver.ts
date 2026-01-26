@@ -13,6 +13,13 @@ export interface PersonalityPortrait {
 }
 
 const PERSONALITIES: Record<string, PersonalityPortrait> = {
+    "sadhu sundar singh": {
+        name: "Sadhu Sundar Singh",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/2/27/Sadhu_Sundar_Singh.jpg",
+        description: "Known as the 'Apostle with the Bleeding Feet', he was an Indian Christian missionary who traveled widely in saffron robes.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Sadhu_Sundar_Singh.jpg"
+    },
     "john wesley": {
         name: "John Wesley",
         imageUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1c/John_Wesley_by_John_Michael_Williams.jpg",
@@ -33,6 +40,90 @@ const PERSONALITIES: Record<string, PersonalityPortrait> = {
         description: "German-born evangelist known for massive crusades across Africa.",
         attribution: "Wikimedia Commons",
         sourceUrl: "https://commons.wikimedia.org/wiki/File:Ev_Bonnke_in_Nigeria.jpg"
+    },
+    "charles spurgeon": {
+        name: "Charles H. Spurgeon",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/2/29/Charles_Spurgeon.jpg",
+        description: "The 'Prince of Preachers', a 19th-century British Baptist minister.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Charles_Spurgeon.jpg"
+    },
+    "martin luther": {
+        name: "Martin Luther",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/9/91/Martin_Luther%2C_1529.jpg",
+        description: "Key figure of the Protestant Reformation.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Martin_Luther,_1529.jpg"
+    },
+    "john calvin": {
+        name: "John Calvin",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/5/58/John_Calvin.jpg",
+        description: "French theologian and major Protestant reformer.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:John_Calvin.jpg"
+    },
+    "augustine": {
+        name: "Augustine of Hippo",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/05/Saint_Augustine_Portrait.jpg",
+        description: "4th-century theologian and philosopher from Roman North Africa.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Saint_Augustine_Portrait.jpg"
+    },
+    "francis of assisi": {
+        name: "Francis of Assisi",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Saint_Francis_of_Assisi_%28by_Cimabue%2C_c._1280%29.jpg",
+        description: "12th-century mystic and founder of the Franciscan order.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Saint_Francis_of_Assisi_(by_Cimabue,_c._1280).jpg"
+    },
+    "thomas aquinas": {
+        name: "Thomas Aquinas",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/d/de/St-thomas-aquinas.jpg",
+        description: "13th-century scholastic philosopher and 'Angelic Doctor'.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:St-thomas-aquinas.jpg"
+    },
+    "irenaeus": {
+        name: "Irenaeus of Lyon",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Saint_Irenaeus.jpg",
+        description: "2nd-century bishop and early Church Father.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Saint_Irenaeus.jpg"
+    },
+    "constantine": {
+        name: "Constantine the Great",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Colossal_head_of_Constantine_the_Great%2C_Capitoline_Museums.jpg",
+        description: "The first Roman Emperor to convert to Christianity.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Colossal_head_of_Constantine_the_Great,_Capitoline_Museums.jpg"
+    },
+    "athanasius": {
+        name: "Athanasius of Alexandria",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/9/95/Saint_Athanasius.jpg",
+        description: "4th-century champion of Nicene orthodoxy.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Saint_Athanasius.jpg"
+    },
+    "jonathan edwards": {
+        name: "Jonathan Edwards",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/a/af/Jonathan_Edwards.jpg",
+        description: "18th-century revivalist and leader of the First Great Awakening.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Jonathan_Edwards.jpg"
+    },
+    "d.l. moody": {
+        name: "Dwight L. Moody",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Dwight_L_Moody_LOC.jpg/800px-Dwight_L_Moody_LOC.jpg",
+        description: "19th-century American evangelist and founder of Moody Bible Institute.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Dwight_L_Moody_LOC.jpg"
+    },
+    "joshua daniel": {
+        name: "Joshua Daniel",
+        imageUrl: "https://lefi.org/Portals/0/LiveSermons/JDH-Desktop-v5.jpg",
+        description: "Leader of the Laymen's Evangelical Fellowship of India (LEFI).",
+        attribution: "LEFI.org (Official Portrait)",
+        sourceUrl: "https://lefi.org"
     },
     "hudson taylor": {
         name: "Hudson Taylor",
