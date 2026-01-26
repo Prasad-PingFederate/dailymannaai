@@ -32,7 +32,7 @@ import {
     Wand2,
     FileAudio
 } from "lucide-react";
-import { resolvePortrait, resolveSituationalImage } from "@/lib/ai/image-resolver";
+import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 
 export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -900,9 +900,29 @@ export default function NotebookWorkspace() {
 
                                         {portrait && (
                                             <div className="mt-2 rounded-xl overflow-hidden border border-border bg-card-bg shadow-lg animate-in zoom-in-95 duration-500">
-                                                <img src={portrait.imageUrl} alt={portrait.name} className="w-full h-40 object-cover" />
+                                                <img
+                                                    src={portrait.imageUrl}
+                                                    alt={portrait.name}
+                                                    className="w-full h-40 object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = FALLBACK_IMAGE;
+                                                    }}
+                                                />
                                                 <div className="p-3 bg-accent/5">
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1">Inspirational Figure</p>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Inspirational Figure</p>
+                                                        {portrait.attribution && (
+                                                            <a
+                                                                href={portrait.sourceUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-[10px] text-muted-foreground hover:text-accent flex items-center gap-1"
+                                                            >
+                                                                <ExternalLink size={10} /> {portrait.attribution}
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                     <p className="font-bold text-sm">{portrait.name}</p>
                                                     <p className="text-[11px] text-muted">{portrait.description}</p>
                                                 </div>
@@ -911,7 +931,18 @@ export default function NotebookWorkspace() {
 
                                         {situationalImg && (
                                             <div className="mt-2 rounded-xl overflow-hidden border border-border shadow-md animate-in fade-in duration-700">
-                                                <img src={situationalImg} alt="Spiritual reflection" className="w-full h-32 object-cover" />
+                                                <img
+                                                    src={situationalImg}
+                                                    alt="Spiritual reflection"
+                                                    className="w-full h-32 object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = FALLBACK_IMAGE;
+                                                    }}
+                                                />
+                                                <div className="p-1 px-2 text-[9px] text-muted-foreground bg-background/50 text-right">
+                                                    Source: Unsplash
+                                                </div>
                                             </div>
                                         )}
 
