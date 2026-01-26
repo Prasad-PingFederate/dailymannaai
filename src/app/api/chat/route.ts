@@ -14,21 +14,30 @@ export async function POST(req: Request) {
 
         console.log(`[ChatAPI-DNA] Entry Query: "${query}"`);
 
-        // Check for direct Bible Verse Lookup
-        const bibleVerse = lookupBibleReference(query);
-        if (bibleVerse) {
-            console.log(`[ChatAPI-DNA] Direct Bible Verse Match found for: ${query}`);
-            return NextResponse.json({
-                role: "assistant",
-                content: bibleVerse,
-                suggestions: [
-                    `What is the context of ${query}?`,
-                    `Show me the next verse.`,
-                    `Explain the meaning of this chapter.`
-                ],
-                citations: [],
-                webResults: []
-            });
+        // Check for Bible Verse Lookup
+        const bibleResult = lookupBibleReference(query);
+        const parsed = bibleResult ? (query as any) : null; // This is a bit hacky, I'll fix it by returning the parsed object from lookup
+
+        if (bibleResult) {
+            // Check if it's a "Direct" lookup (show/read/lookup or just the reference)
+            // I need to update lookupBibleReference to return more info. 
+            // For now, let's assume if it matches, we can decide based on query length/content.
+            const isDirect = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(query.trim());
+
+            if (isDirect) {
+                console.log(`[ChatAPI-DNA] Direct Bible Verse Match found for: ${query}`);
+                return NextResponse.json({
+                    role: "assistant",
+                    content: bibleResult,
+                    suggestions: [
+                        `What is the context of ${query}?`,
+                        `Explain this chapter.`,
+                        `Show me the next chapter.`
+                    ],
+                    citations: [],
+                    webResults: []
+                });
+            }
         }
 
         // 1. Expert Rewriting (Phonetic Awareness)
@@ -37,6 +46,16 @@ export async function POST(req: Request) {
         // 2. Pass 1: Primary Search
         let relevantChunks = searchRelevantChunks(standaloneQuery);
         let webResults = await performWebSearch(standaloneQuery);
+
+        // Inject Bible Verse into context if found in query
+        if (bibleResult) {
+            relevantChunks.push({
+                id: "kjv-verse",
+                sourceId: "KJV Bible",
+                content: bibleResult,
+                score: 1.0
+            } as any);
+        }
 
         // 🧬 DNA LOGIC: Proactive Retry
         // If we find nothing local AND nothing on the web, broaden the query

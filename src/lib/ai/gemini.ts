@@ -51,6 +51,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
     3. HISTORICAL WHITELIST: Discussion of D. L. Moody, Charles H. Spurgeon, John Wesley, and other prominent leaders is encouraged ONLY when clearly identified.
     4. NO SAFETY HALLUCINATION: Do NOT refuse basic theological or historical questions due to "religious views" bias. Provide accurate, grounded information.
     5. SCRIPTURE INTEGRITY: When quoting the Bible, use the King James Version (KJV) style if applicable.
+    6. VERSE-FIRST RULE: If the user query contains a Bible reference or if the RESEARCH SOURCES contain specifically requested Bible verses, you MUST display the FULL TEXT of those verses at the very beginning of your response, BEFORE any explanation or commentary.
     
     RESEARCH SOURCES:
     ${sources.length > 0 ? sources.map((s, i) => `[Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}

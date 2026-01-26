@@ -84,21 +84,28 @@ const BOOK_MAP: Record<string, number> = {
 /**
  * Parses a reference like "Matthew 1:1", "matthew:1:1", "1 John 1:1-10", "john1-10"
  */
+/**
+ * Parses a reference like "Matthew 1:1", "matthew:1:1", "1 John 1:1-10", "john1-10"
+ * Also attempts to find a reference within a sentence.
+ */
 export function parseVerseReference(ref: string) {
     const original = ref.toLowerCase().trim();
+
+    // Check if the query IS a single reference (the "fast path")
+    const isDirectLookup = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(original);
+
     // 1. Clean query: remove prefixes like "show", "read", "tell me about"
     let clean = original
-        .replace(/^(show|read|lookup|give me|find)\s+/i, '')
+        .replace(/^(show|read|lookup|give me|find|tell me about|what does|where is)\s+/i, '')
         .replace(/:/g, ' ');
 
     // 2. Handle compressed "john1:1" -> "john 1 1"
-    // Insert spaces between letters and numbers if missing
     clean = clean.replace(/([a-z])(\d)/g, '$1 $2');
 
     // Check if there's a hyphen in the original after the prefix
     const hasHyphen = original.includes('-');
 
-    const parts = clean.split(/[\s-]+/); // Split by space or hyphen
+    const parts = clean.split(/[\s-]+/);
 
     if (parts.length < 2) return null;
 
@@ -106,42 +113,50 @@ export function parseVerseReference(ref: string) {
     let chapter = 0;
     let startVerse = 0;
     let endVerse = 0;
+    let foundRef = false;
 
-    if (!isNaN(parseInt(parts[0])) && parts.length >= 3) {
-        // "1 John 2 1" or "1 John 2 1 10"
-        bookName = `${parts[0]} ${parts[1]}`;
-        chapter = parseInt(parts[2]);
-        startVerse = parseInt(parts[3]);
-        if (parts.length >= 5) endVerse = parseInt(parts[4]);
-    } else {
-        // "Matthew 1 1" or "John 1 1 10" or "John 1 10"
-        bookName = parts[0];
-        if (!isNaN(parseInt(parts[1]))) {
-            chapter = parseInt(parts[1]);
+    // Iterate to find a valid book name followed by numbers
+    for (let i = 0; i < parts.length - 1; i++) {
+        let currentBook = parts[i];
+        let nextIndex = i + 1;
+
+        // Handle "1 John"
+        if ((currentBook === '1' || currentBook === '2' || currentBook === '3') && parts[i + 1]) {
+            currentBook = `${parts[i]} ${parts[i + 1]}`;
+            nextIndex = i + 2;
         }
 
-        if (parts.length === 3) {
-            if (hasHyphen) {
-                // "John 1-10" -> Interpret as Chapter 1, Verses 1 to 10
-                startVerse = 1;
-                endVerse = parseInt(parts[2]);
-            } else {
-                startVerse = parseInt(parts[2]);
+        const bookId = BOOK_MAP[currentBook] || BOOK_MAP[currentBook.replace(/\s/g, '')];
+
+        if (bookId && parts[nextIndex] && !isNaN(parseInt(parts[nextIndex]))) {
+            bookName = currentBook;
+            chapter = parseInt(parts[nextIndex]);
+
+            if (parts[nextIndex + 1] && !isNaN(parseInt(parts[nextIndex + 1]))) {
+                if (parts.length === 3 && hasHyphen && isDirectLookup) {
+                    // "John 1-10" case
+                    startVerse = 1;
+                    endVerse = parseInt(parts[nextIndex + 1]);
+                } else {
+                    startVerse = parseInt(parts[nextIndex + 1]);
+                    if (parts[nextIndex + 2] && !isNaN(parseInt(parts[nextIndex + 2]))) {
+                        endVerse = parseInt(parts[nextIndex + 2]);
+                    }
+                }
             }
-        } else if (parts.length >= 4) {
-            startVerse = parseInt(parts[2]);
-            endVerse = parseInt(parts[3]);
+
+            // Default to verse 1 if not specified
+            if (!startVerse) startVerse = 1;
+
+            foundRef = true;
+            break;
         }
     }
 
     const bookId = BOOK_MAP[bookName] || BOOK_MAP[bookName.replace(/\s/g, '')];
+    if (!foundRef || !bookId || isNaN(chapter)) return null;
 
-    if (!bookId || isNaN(chapter)) return null;
-
-    // Default to verse 1 if not specified
-    if (!startVerse && !endVerse) startVerse = 1;
-
-    return { bookId, chapter, startVerse: startVerse || 1, endVerse: endVerse || startVerse || 0 };
+    return { bookId, chapter, startVerse: startVerse || 1, endVerse: endVerse || startVerse || 0, isDirectLookup };
 }
 
 export function getVerseRange(bookId: number, chapter: number, start: number, end: number): string[] {
