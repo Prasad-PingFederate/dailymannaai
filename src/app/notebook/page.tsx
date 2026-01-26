@@ -69,6 +69,8 @@ export default function NotebookWorkspace() {
     const [viewingSource, setViewingSource] = useState<any>(null);
     const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [chatSidebarWidth, setChatSidebarWidth] = useState(450);
+    const [isResizing, setIsResizing] = useState(false);
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -108,6 +110,40 @@ export default function NotebookWorkspace() {
         loadVoices();
         window.speechSynthesis.onvoiceschanged = loadVoices;
     }, []);
+
+    // --- Resizing Logic ---
+    const startResizing = (e: React.MouseEvent) => {
+        setIsResizing(true);
+        e.preventDefault();
+    };
+
+    const stopResizing = () => {
+        setIsResizing(false);
+    };
+
+    const resize = (e: MouseEvent) => {
+        if (isResizing) {
+            const newWidth = window.innerWidth - e.clientX;
+            if (newWidth > 300 && newWidth < 800) {
+                setChatSidebarWidth(newWidth);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (isResizing) {
+            window.addEventListener("mousemove", resize);
+            window.addEventListener("mouseup", stopResizing);
+        } else {
+            window.removeEventListener("mousemove", resize);
+            window.removeEventListener("mouseup", stopResizing);
+        }
+
+        return () => {
+            window.removeEventListener("mousemove", resize);
+            window.removeEventListener("mouseup", stopResizing);
+        };
+    }, [isResizing]);
 
     const toggleSource = (id: string) => {
         setSources(prev => prev.map(s =>
@@ -1222,7 +1258,16 @@ export default function NotebookWorkspace() {
             </main>
 
             {/* 3. AI Assistant (Right) */}
-            <section className="w-[450px] border-l border-border flex flex-col bg-card-bg/20 glass-morphism">
+            <section
+                style={{ width: `${chatSidebarWidth}px` }}
+                className="border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative"
+            >
+                {/* Resize Handle */}
+                <div
+                    onMouseDown={startResizing}
+                    className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent/50 transition-colors z-50"
+                />
+
                 <header className="h-16 border-b border-border flex items-center px-4 gap-3">
                     <div className="text-accent-secondary">
                         <MessageSquare size={20} />
