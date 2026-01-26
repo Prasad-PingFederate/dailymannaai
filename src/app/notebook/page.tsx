@@ -1222,7 +1222,7 @@ export default function NotebookWorkspace() {
             </main>
 
             {/* 3. AI Assistant (Right) */}
-            <section className="w-[380px] border-l border-border flex flex-col bg-card-bg/20 glass-morphism">
+            <section className="w-[450px] border-l border-border flex flex-col bg-card-bg/20 glass-morphism">
                 <header className="h-16 border-b border-border flex items-center px-4 gap-3">
                     <div className="text-accent-secondary">
                         <MessageSquare size={20} />
@@ -1252,8 +1252,8 @@ export default function NotebookWorkspace() {
                                     <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
                                         {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                     </div>
-                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%] group relative flex flex-col gap-3 overflow-hidden`}>
-                                        <div className="whitespace-pre-wrap break-words break-all">
+                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm max-w-[90%] group relative flex flex-col gap-3 overflow-hidden shadow-sm`}>
+                                        <div className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">
                                             {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
                                                 if (/^\[\d+\]$/.test(part)) {
                                                     return (
