@@ -121,10 +121,11 @@ export default function NotebookWorkspace() {
         setNoteContent(prev => prev + (prev ? "\n\n" : "") + text);
     };
 
-    const handleSendMessage = async () => {
-        if (!input.trim()) return;
+    const handleSendMessage = async (overrideText?: string) => {
+        const textToSend = overrideText || input;
+        if (!textToSend.trim()) return;
 
-        const userMessage = { role: "user", content: input };
+        const userMessage = { role: "user", content: textToSend };
         setMessages(prev => [...prev, userMessage]);
         setInput("");
 
@@ -132,7 +133,7 @@ export default function NotebookWorkspace() {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: input }),
+                body: JSON.stringify({ query: textToSend }),
             });
 
             const data = await res.json();
@@ -883,8 +884,19 @@ export default function NotebookWorkspace() {
                                     <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
                                         {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                     </div>
-                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%] group relative flex flex-col gap-3`}>
-                                        {msg.content}
+                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-3 text-sm max-w-[80%] group relative flex flex-col gap-3 overflow-hidden`}>
+                                        <div className="whitespace-pre-wrap break-words break-all">
+                                            {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
+                                                if (/^\[\d+\]$/.test(part)) {
+                                                    return (
+                                                        <span key={partIndex} className="inline-flex items-center justify-center bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold rounded px-1 min-w-[18px] h-[18px] mx-0.5 cursor-pointer hover:bg-accent hover:text-white transition-colors" title="View Source">
+                                                            {part.replace(/[\[\]]/g, '')}
+                                                        </span>
+                                                    );
+                                                }
+                                                return part;
+                                            })}
+                                        </div>
 
                                         {portrait && (
                                             <div className="mt-2 rounded-xl overflow-hidden border border-border bg-card-bg shadow-lg animate-in zoom-in-95 duration-500">
@@ -928,6 +940,26 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
 
+                {/* Recommended Actions (Help Me Create) */}
+                <div className="px-4 pb-2">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                        {[
+                            { label: "🙏 Study Guide", prompt: "Create a Bible Study Guide based on these sources. Include key verses, reflection questions, and a prayer point for each section." },
+                            { label: "❓ FAQ", prompt: "Based on the selected sources, generate a list of Frequently Asked Questions that a seeker might ask about these topics, and answer them using Scripture and the texts provided." },
+                            { label: "📅 Timeline", prompt: "Create a chronological timeline of the spiritual events or movements mentioned in these sources." },
+                            { label: "📝 Briefing Doc", prompt: "Create a spiritual briefing document summarizing the key theological themes and practical applications from these texts." }
+                        ].map((action, i) => (
+                            <button
+                                key={i}
+                                onClick={() => handleSendMessage(action.prompt)}
+                                className="flex-shrink-0 px-3 py-1.5 bg-accent/5 border border-accent/10 rounded-full text-xs font-medium text-accent hover:bg-accent/10 transition-colors whitespace-nowrap"
+                            >
+                                {action.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Chat Input */}
                 <div className="p-4 border-t border-border">
                     <div className="relative group">
@@ -941,16 +973,17 @@ export default function NotebookWorkspace() {
                                     handleSendMessage();
                                 }
                             }}
-                            className="w-full bg-background border border-border rounded-2xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:ring-1 focus:ring-accent resize-none min-h-[44px] max-h-32"
+                            className="w-full bg-background border border-border rounded-2xl py-3 pl-4 pr-12 pb-8 text-sm focus:outline-none focus:ring-1 focus:ring-accent resize-none min-h-[44px] max-h-32"
                             rows={1}
                         />
                         <button
-                            onClick={handleSendMessage}
+                            onClick={() => handleSendMessage()}
                             className={`absolute right-2 top-2 p-1.5 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 ${input.trim() ? 'opacity-100 scale-100' : 'opacity-40 scale-95 cursor-not-allowed'}`}
+                            title="Send Message"
                         >
                             <Send size={16} />
                         </button>
-                        <div className="absolute left-4 -top-3 px-2 py-0.5 bg-background border border-border rounded text-[9px] font-bold text-muted uppercase tracking-tighter">
+                        <div className="absolute left-3 bottom-3 px-2 py-0.5 bg-background border border-border rounded text-[9px] font-bold text-muted uppercase tracking-tighter shadow-sm">
                             Grounded in {sources.filter(s => s.selected).length} sources
                         </div>
                     </div>

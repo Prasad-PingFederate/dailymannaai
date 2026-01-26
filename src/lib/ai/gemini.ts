@@ -5,7 +5,7 @@ const providerManager = new AIProviderManager();
 /**
  * Grounded AI response generation with multi-provider fallback
  */
-export async function generateGroundedResponse(query: string, sources: string[]) {
+export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "") {
     console.log(`[AI] Active providers: ${providerManager.getActiveProviders().join(", ")}`);
 
     if (providerManager.getActiveProviders().length === 0) {
@@ -23,13 +23,17 @@ Please add at least one API key to your .env.local file:
     Your goal is to synthesize answers based on research sources, Scripture, and the wisdom of great teachers.
 
     ADHERE TO THESE RULES:
-    1. SPIRITUAL GUIDANCE: For life situations (anxiety, etc.), provide Scripture-grounded wisdom and specify the "spirit" of the guidance.
-    2. VISUAL TRIGGERS: Mention spiritual leaders by their FULL NAME (e.g., "John Wesley," "Billy Graham," or "Reinhard Bonnke") whenever you reference their teachings. This helps the system display their portraits.
-    3. CITATIONS: Use [1], [2] tags for provided sources.
-    4. TONE: Professional, compassionate, and faith-centered.
+    1. SOURCE-BASED: Answer using the provided "RESEARCH SOURCES" and "WEB SEARCH RESULTS". If the answer isn't in either, say "I couldn't find that in your sources."
+    2. STRICT CITATIONS: Every claim must be cited. Use the format [1], [2] to refer *specifically* to the numbered chunks below. Use [WEB] for web results.
+    3. SPIRITUAL GUIDANCE: For life situations (anxiety, etc.), provide Scripture-grounded wisdom and specify the "spirit" of the guidance.
+    4. VISUAL TRIGGERS: Mention spiritual leaders by their FULL NAME (e.g., "John Wesley," "Billy Graham," or "Reinhard Bonnke") whenever you reference their teachings. This helps the system display their portraits.
+    5. TONE: Professional, compassionate, and faith-centered.
     
-    RESEARCH SOURCES (indexed):
-    ${sources.length > 0 ? sources.map((s, i) => `[${i + 1}] ${s}`).join("\n\n---\n\n") : "NO SOURCES PROVIDED."}
+    RESEARCH SOURCES (Use these IDs for citations):
+    ${sources.length > 0 ? sources.map((s, i) => `Source [${i + 1}]:\n${s}`).join("\n\n") : "NO LOCAL SOURCES PROVIDED."}
+
+    WEB SEARCH RESULTS:
+    ${webContext || "NO WEB SEARCH RESULTS."}
 
     USER QUESTION:
     "${query}"

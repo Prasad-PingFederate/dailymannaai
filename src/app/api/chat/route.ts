@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateGroundedResponse } from "@/lib/ai/gemini";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
+import { performWebSearch, formatSearchResults } from "@/lib/tools/web-search";
 
 export async function POST(req: Request) {
     try {
@@ -14,8 +15,12 @@ export async function POST(req: Request) {
         const relevantChunks = searchRelevantChunks(query);
         const sourcesText = relevantChunks.map(c => `[${c.sourceId}] ${c.content}`);
 
-        // 2. Generate the grounded response
-        const response = await generateGroundedResponse(query, sourcesText);
+        // 2. Perform Web Search (DuckDuckGo)
+        const webResults = await performWebSearch(query);
+        const webContext = formatSearchResults(webResults);
+
+        // 3. Generate the grounded response
+        const response = await generateGroundedResponse(query, sourcesText, webContext);
 
         return NextResponse.json({
             role: "assistant",
@@ -24,6 +29,10 @@ export async function POST(req: Request) {
                 id: c.id,
                 source: c.sourceId,
                 preview: c.content.substring(0, 50) + "..."
+            })),
+            webResults: webResults.map(r => ({
+                title: r.title,
+                url: r.url
             }))
         });
     } catch (error) {
