@@ -1262,10 +1262,11 @@ export default function NotebookWorkspace() {
                 style={{ width: `${chatSidebarWidth}px` }}
                 className="border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative"
             >
-                {/* Resize Handle */}
+                {/* Resize Handle (Hit Area) */}
                 <div
                     onMouseDown={startResizing}
-                    className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent/50 transition-colors z-50"
+                    className="absolute left-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-accent/30 transition-all z-50 group-hover:bg-accent/10"
+                    title="Drag to resize chat"
                 />
 
                 <header className="h-16 border-b border-border flex items-center px-4 gap-3">
