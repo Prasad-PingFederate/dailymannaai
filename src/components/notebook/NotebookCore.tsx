@@ -82,6 +82,8 @@ export default function NotebookWorkspace() {
     const [isResizing, setIsResizing] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [isMeditating, setIsMeditating] = useState(false);
+    const [isBarHovered, setIsBarHovered] = useState(false);
+    const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
 
     // --- PERSISTENCE: Load data on mount ---
@@ -226,6 +228,44 @@ export default function NotebookWorkspace() {
         setSources(prev => prev.map(s =>
             s.id === id ? { ...s, selected: !s.selected } : s
         ));
+    };
+
+    const handleSidebarDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDraggingToSidebar(false);
+        const files = e.dataTransfer.files;
+        const droppedText = e.dataTransfer.getData("text/plain");
+        const type = e.dataTransfer.getData("type");
+
+        if (files && files.length > 0) {
+            handleFileUpload(files[0]);
+            showToast("Ingesting spiritual file...", "success");
+        } else if (droppedText && type === "assistant_message") {
+            const newSource: Source = {
+                id: `dynamic-${Date.now()}`,
+                name: `Divine Insight ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                type: 'text',
+                selected: true,
+                fullContent: droppedText
+            };
+            setSources(prev => [newSource, ...prev]);
+            showToast("Saved revelation to sources", "success");
+
+            // Sync with backend
+            try {
+                await fetch("/api/ingest", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        text: droppedText,
+                        name: newSource.name,
+                        mode: "text"
+                    }),
+                });
+            } catch (err) {
+                console.error("Failed to sync dropped revelation", err);
+            }
+        }
     };
 
     const handleFileUpload = async (file: File) => {
@@ -1168,8 +1208,11 @@ export default function NotebookWorkspace() {
             )}
             {/* 1. Sources Sidebar (Left) */}
             <aside
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingToSidebar(true); }}
+                onDragLeave={() => setIsDraggingToSidebar(false)}
+                onDrop={handleSidebarDrop}
                 className={`${isSidebarOpen ? "w-[300px]" : "w-0"
-                    } transition-all duration-300 border-r border-border flex flex-col glass-morphism relative overflow-hidden`}
+                    } transition-all duration-300 border-r border-border flex flex-col glass-morphism relative overflow-hidden ${isDraggingToSidebar ? 'bg-accent/10 ring-2 ring-inset ring-accent' : ''}`}
             >
                 <div className="p-4 border-b border-border flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1429,8 +1472,15 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
 
-                {/* Dynamic Action Bar (Bottom Middle) - High Z-Index Fix */}
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-card-bg/95 border border-accent/20 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in slide-in-from-bottom-5 duration-700 pointer-events-auto max-w-[90%] whitespace-nowrap overflow-x-auto no-scrollbar">
+                {/* Dynamic Action Bar (Bottom Middle) - Smart Shift & Expand */}
+                <div
+                    onMouseEnter={() => setIsBarHovered(true)}
+                    onMouseLeave={() => setIsBarHovered(false)}
+                    className={`absolute bottom-10 transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in slide-in-from-bottom-5 pointer-events-auto no-scrollbar 
+                        ${isBarHovered
+                            ? (isSidebarOpen ? 'left-[320px]' : 'left-8') + ' translate-x-0 w-max max-w-[calc(100vw-500px)]'
+                            : 'left-1/2 -translate-x-1/2 max-w-[90%] overflow-x-auto'}`}
+                >
                     {/* Summarize - Works on SOURCES */}
                     <button
                         onClick={handleSummarize}
@@ -1590,7 +1640,17 @@ export default function NotebookWorkspace() {
                             const situationalImg = msg.role === 'assistant' && !portrait ? resolveSituationalImage(msg.content) : null;
 
                             return (
-                                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300`}>
+                                <div
+                                    key={i}
+                                    draggable={msg.role === 'assistant'}
+                                    onDragStart={(e) => {
+                                        if (msg.role === 'assistant') {
+                                            e.dataTransfer.setData("text/plain", msg.content);
+                                            e.dataTransfer.setData("type", "assistant_message");
+                                        }
+                                    }}
+                                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300 ${msg.role === 'assistant' ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                >
                                     <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
                                         {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                     </div>
