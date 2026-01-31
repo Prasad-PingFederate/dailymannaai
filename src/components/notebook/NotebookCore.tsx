@@ -1523,12 +1523,6 @@ export default function NotebookWorkspace() {
                                 <span className="text-xs font-bold">{isRefining ? 'Refining...' : 'Refine'}</span>
                             </div>
                             <span className="text-[9px] text-muted uppercase tracking-wider">Polish Notes</span>
-                            {!isRefining && (
-                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    Improve your written notes
-                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
-                                </div>
-                            )}
                         </button>
 
                         <div className="w-px h-12 bg-border" />
@@ -1579,12 +1573,6 @@ export default function NotebookWorkspace() {
                                 <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
                             </div>
                             <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
-                            {!isGrammarChecking && (
-                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    Identify and explain grammar mistakes
-                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
-                                </div>
-                            )}
                         </button>
                     </div>
                 </div>
