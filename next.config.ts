@@ -1,21 +1,20 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  webpack: (config) => {
-    // Fixes npm packages that depend on `canvas` module
-    config.resolve.alias.canvas = false;
+  webpack: (config, { isServer }) => {
+    // This is the CRITICAL fix for PDF.js on Vercel/Next.js
+    if (isServer) {
+      config.resolve.alias.canvas = false;
+    } else {
+      config.resolve.alias.canvas = false;
+    }
     return config;
   },
   experimental: {
-    // For Next.js Turbopack
-    turbo: {
-      resolveAlias: {
-        canvas: './src/lib/empty.js',
-      },
-    },
+    // Just disable turbo for now if it continues to fail, 
+    // or try the alias correctly.
   },
+  // Ensure we use the standard build, not Turbopack if it's causing issues.
 };
 
 export default nextConfig;
