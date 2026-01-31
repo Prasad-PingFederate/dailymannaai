@@ -154,4 +154,15 @@ export function initializeDatabase() {
     `, "Historical-Christian-Giants");
 }
 
+/**
+ * GUARANTEED RETRIEVAL: Returns every single chunk for the given source IDs.
+ * This bypasses the uncertainty of keyword search for summaries and podcasts.
+ */
+export function getChunksBySource(sourceIds: string[]): DocumentChunk[] {
+    if (globalForVectorDb.mockVectorDb.length === 0) {
+        initializeDatabase();
+    }
+    return globalForVectorDb.mockVectorDb.filter(chunk => sourceIds.includes(chunk.sourceId));
+}
+
 initializeDatabase();

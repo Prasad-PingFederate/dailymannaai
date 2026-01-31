@@ -80,6 +80,7 @@ export default function NotebookWorkspace() {
     const [chatSidebarWidth, setChatSidebarWidth] = useState(450);
     const [isResizing, setIsResizing] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const [isMeditating, setIsMeditating] = useState(false);
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -515,10 +516,16 @@ export default function NotebookWorkspace() {
 
         setIsSummarizing(true);
         try {
+            const selectedSources = sources.filter(s => s.selected);
             const res = await fetch("/api/summarize", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sourceIds: selectedSourceIds }),
+                body: JSON.stringify({
+                    sources: selectedSources.map(s => ({
+                        name: s.name,
+                        content: s.fullContent || ""
+                    }))
+                }),
             });
 
             const data = await res.json();
@@ -597,7 +604,6 @@ export default function NotebookWorkspace() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Failed to analyze grammar");
 
-            // Build a nice message for the assistant
             let analysisMessage = `📊 **Grammar Analysis Report** (Quality: ${data.overallQuality}/10)\n\n`;
 
             if (data.hasMistakes && data.suggestions.length > 0) {
@@ -629,6 +635,38 @@ export default function NotebookWorkspace() {
         }
     };
 
+    const handleDivineMeditation = async () => {
+        if (!noteContent || noteContent.trim().length < 20) {
+            alert("Write a bit more in your research notes first, then we can seek a deeper meditation.");
+            return;
+        }
+
+        setIsMeditating(true);
+        try {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: "Based on my research notes, please provide a deep spiritual meditation and a prayer that glorifies God. Identify the main Christ-centered themes.",
+                    history: [{ role: "user", content: `Here is my current research: ${noteContent}` }]
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: `✨ **Divine Reflection**\n\n${data.content}`
+                }]);
+                showToast("Meditation added for your spirit", "success");
+            }
+        } catch (e) {
+            console.error("Meditation Error:", e);
+        } finally {
+            setIsMeditating(false);
+        }
+    };
+
     const handleGenerateGuide = async (type: "study-guide" | "faq" | "timeline" | "briefing doc") => {
         const selectedSources = sources.filter(s => s.selected);
         if (selectedSources.length === 0) {
@@ -643,7 +681,10 @@ export default function NotebookWorkspace() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     type,
-                    sources: selectedSources.map(s => s.name)
+                    sources: selectedSources.map(s => ({
+                        name: s.name,
+                        content: s.fullContent || "[Content Pending Extraction]"
+                    }))
                 }),
             });
 
@@ -680,10 +721,16 @@ export default function NotebookWorkspace() {
 
         setGeneratingAudio(true);
         try {
+            const selectedSources = sources.filter(s => s.selected);
             const res = await fetch("/api/audio-overview", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sourceIds: selectedSourceIds }),
+                body: JSON.stringify({
+                    sources: selectedSources.map(s => ({
+                        name: s.name,
+                        content: s.fullContent || ""
+                    }))
+                }),
             });
 
             const data = await res.json();
@@ -1435,12 +1482,22 @@ export default function NotebookWorkspace() {
                             <span className="text-xs font-bold">{isGeneratingAudio ? 'Generating...' : 'Audio Overview'}</span>
                         </div>
                         <span className="text-[9px] text-muted uppercase tracking-wider">Podcast Script</span>
-                        {!isGeneratingAudio && (
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                Create podcast from sources
-                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
-                            </div>
-                        )}
+                    </button>
+
+                    <div className="w-px h-12 bg-border" />
+
+                    {/* Divine Meditation - NEW FEATURE */}
+                    <button
+                        onClick={handleDivineMeditation}
+                        disabled={isMeditating}
+                        title="Transform research into a prayerful meditation"
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                    >
+                        <div className="flex items-center gap-2 text-yellow-500">
+                            <Sparkles size={16} />
+                            <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
+                        </div>
+                        <span className="text-[9px] text-muted uppercase tracking-wider">Glorify God</span>
                     </button>
                 </div>
             </main>
@@ -1461,7 +1518,7 @@ export default function NotebookWorkspace() {
                     <div className="text-accent-secondary">
                         <MessageSquare size={20} />
                     </div>
-                    <h3 className="font-bold">Notebook Assistant</h3>
+                    <h3 className="font-bold">Spiritual Disciple Assistant</h3>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">

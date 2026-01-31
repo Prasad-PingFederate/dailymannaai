@@ -6,24 +6,15 @@ const providerManager = new AIProviderManager();
 
 export async function POST(req: Request) {
     try {
-        const { sourceIds } = await req.json();
+        const { sources } = await req.json();
 
-        if (!sourceIds || sourceIds.length === 0) {
-            return NextResponse.json({ error: "No sources selected" }, { status: 400 });
-        }
-
-        // Get all chunks from selected sources
-        const allChunks = searchRelevantChunks("", 100).filter(chunk =>
-            sourceIds.includes(chunk.sourceId)
-        );
-
-        if (allChunks.length === 0) {
-            return NextResponse.json({ error: "No content found in selected sources" }, { status: 400 });
+        if (!sources || sources.length === 0) {
+            return NextResponse.json({ error: "No sources provided" }, { status: 400 });
         }
 
         // Combine content from all sources
-        const combinedContent = allChunks
-            .map(chunk => `[${chunk.sourceId}] ${chunk.content}`)
+        const combinedContent = sources
+            .map((s: any) => `### Source: ${s.name}\n${s.content}`)
             .join("\n\n");
 
         const prompt = `You are creating a podcast-style audio overview of spiritual research materials. Generate a natural, engaging conversation between two hosts discussing the content.
@@ -57,9 +48,8 @@ PODCAST SCRIPT:`;
 
         return NextResponse.json({
             script: response,
-            title: `Spiritual Insights: ${sourceIds.length} Source${sourceIds.length > 1 ? 's' : ''}`,
-            sourceCount: sourceIds.length,
-            // audioUrl: null, // Would be populated after TTS generation
+            title: `Spiritual Insights: ${sources.length} Source${sources.length > 1 ? 's' : ''}`,
+            sourceCount: sources.length,
             duration: "~3-5 minutes"
         });
     } catch (error: any) {

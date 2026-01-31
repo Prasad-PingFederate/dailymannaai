@@ -8,22 +8,15 @@ export async function POST(req: Request) {
     try {
         const { sourceIds } = await req.json();
 
-        if (!sourceIds || sourceIds.length === 0) {
-            return NextResponse.json({ error: "No sources selected" }, { status: 400 });
+        const { sources } = await req.json();
+
+        if (!sources || sources.length === 0) {
+            return NextResponse.json({ error: "No source content provided" }, { status: 400 });
         }
 
-        // Get all chunks from selected sources
-        const allChunks = searchRelevantChunks("", 100).filter(chunk =>
-            sourceIds.includes(chunk.sourceId)
-        );
-
-        if (allChunks.length === 0) {
-            return NextResponse.json({ error: "No content found in selected sources" }, { status: 400 });
-        }
-
-        // Combine content from all sources
-        const combinedContent = allChunks
-            .map(chunk => chunk.content)
+        // Combine content from all provided sources
+        const combinedContent = sources
+            .map((s: any) => `### Source: ${s.name}\n${s.content}`)
             .join("\n\n");
 
         const prompt = `You are a spiritual research assistant helping to summarize Christian teachings and biblical wisdom.
@@ -46,8 +39,7 @@ SUMMARY:`;
 
         return NextResponse.json({
             summary: response,
-            sourceCount: sourceIds.length,
-            chunkCount: allChunks.length
+            sourceCount: sources.length
         });
     } catch (error: any) {
         console.error("Summarize Error:", error);

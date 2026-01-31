@@ -42,11 +42,27 @@ export async function POST(req: Request) {
 
         const { response } = await providerManager.generateResponse(prompt);
 
-        // Extract JSON from response (handling potential markdown markers)
-        const jsonStr = response.replace(/```json|```/g, "").trim();
-        const analysis = JSON.parse(jsonStr);
+        // Robust JSON extraction
+        let jsonStr = response;
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            jsonStr = jsonMatch[0];
+        } else {
+            jsonStr = response.replace(/```json|```/g, "").trim();
+        }
 
-        return NextResponse.json(analysis);
+        try {
+            const analysis = JSON.parse(jsonStr);
+            return NextResponse.json(analysis);
+        } catch (e) {
+            console.error("JSON Parse Error:", e, "Raw:", response);
+            return NextResponse.json({
+                hasMistakes: true,
+                suggestions: [{ original: "N/A", corrected: "N/A", reason: "The AI had trouble formatting the feedback. Please try again." }],
+                deepDive: { mistake: "Formatting Error", explanation: "The AI response was not in a readable format.", rule: "Clarity" },
+                overallQuality: "7"
+            });
+        }
     } catch (error: any) {
         console.error("Grammar Check Error:", error);
         return NextResponse.json({

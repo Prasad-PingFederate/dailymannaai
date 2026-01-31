@@ -11,7 +11,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No sources selected to generate from" }, { status: 400 });
         }
 
-        const sourceContext = sources.map((s: any, i: number) => `Source [${i + 1}]:\n${s}`).join("\n\n");
+        const sourceContext = sources.map((s: any, i: number) => {
+            const name = typeof s === 'string' ? s : s.name;
+            const content = typeof s === 'string' ? "" : s.content;
+            return `Source [${i + 1}]: ${name}\nCONTENT:\n${content}`;
+        }).join("\n\n");
 
         let prompt = `Identity: ANTIGRAVITY RESEARCH CORE (Expert Agent). 
         Status: Authoritative Research Synthesis.
