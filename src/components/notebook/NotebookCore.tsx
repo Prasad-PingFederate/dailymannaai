@@ -505,6 +505,7 @@ export default function NotebookWorkspace() {
     };
 
     const handleSummarize = async () => {
+        console.log("Summarize Clicked");
         const selectedSourceIds = sources.filter(s => s.selected).map(s => s.id);
 
         if (selectedSourceIds.length === 0) {
@@ -1354,8 +1355,8 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
 
-                {/* Dynamic Action Bar (Bottom Middle) */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass-morphism rounded-2xl px-4 py-3 flex items-center gap-3 shadow-2xl border border-border/50">
+                {/* Dynamic Action Bar (Bottom Middle) - High Z-Index Fix */}
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 glass-morphism rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 z-[100] animate-in slide-in-from-bottom-5 duration-700 pointer-events-auto">
                     {/* Summarize - Works on SOURCES */}
                     <button
                         onClick={handleSummarize}
