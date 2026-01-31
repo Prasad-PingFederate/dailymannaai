@@ -230,6 +230,11 @@ export default function NotebookWorkspace() {
         ));
     };
 
+    const removeSource = (id: string, name: string) => {
+        setSources(prev => prev.filter(s => s.id !== id));
+        showToast(`Removed "${name}" from sources`, "success");
+    };
+
     const handleSidebarDrop = async (e: React.DragEvent) => {
         e.preventDefault();
         setIsDraggingToSidebar(false);
@@ -1266,6 +1271,16 @@ export default function NotebookWorkspace() {
                                     className="p-1 hover:bg-accent/20 rounded text-muted hover:text-accent transition-colors opacity-0 group-hover:opacity-100"
                                 >
                                     <Eye size={14} />
+                                </div>
+                                <div
+                                    title="Remove source"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeSource(source.id, source.name);
+                                    }}
+                                    className="p-1 hover:bg-red-500/20 rounded text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                    <Trash2 size={14} />
                                 </div>
                                 <div className={`h-2 w-2 rounded-full ${source.selected ? "bg-accent" : "bg-transparent border border-muted"}`} />
                             </div>
