@@ -222,7 +222,7 @@ export default function NotebookWorkspace() {
                     console.error("Client-side PDF parse failed / Scanned fallback:", pdfErr);
 
                     if (pdfErr.message.includes("Scanned")) {
-                        showToast("Scanned PDF detected. Using Advanced AI Reading...", "info");
+                        showToast("Scanned PDF detected. Using Advanced AI Reading...", "success");
                     } else {
                         showToast(`Client parse failed (${pdfErr.message}), trying server...`, "error");
                     }
