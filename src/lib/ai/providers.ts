@@ -66,28 +66,36 @@ class XAIProvider implements AIProvider {
     }
 
     async generateResponse(prompt: string): Promise<string> {
-        const response = await fetch("https://api.x.ai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${this.apiKey}`,
-            },
-            body: JSON.stringify({
-                model: "grok-beta",
-                messages: [{ role: "user", content: prompt }],
-            }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
-        if (!response.ok) {
-            const text = await response.text();
-            if (text.includes("credits")) {
-                throw new Error("Grok requires a credit purchase to use the API.");
+        try {
+            const response = await fetch("https://api.x.ai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.apiKey}`,
+                },
+                body: JSON.stringify({
+                    model: "grok-beta",
+                    messages: [{ role: "user", content: prompt }],
+                }),
+                signal: controller.signal,
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                if (text.includes("credits")) {
+                    throw new Error("Grok requires a credit purchase to use the API.");
+                }
+                throw new Error(`xAI Error ${response.status}: ${text}`);
             }
-            throw new Error(`xAI Error ${response.status}: ${text}`);
-        }
 
-        const data = await response.json();
-        return data.choices[0]?.message?.content || "";
+            const data = await response.json();
+            return data.choices[0]?.message?.content || "";
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 }
 
@@ -115,6 +123,9 @@ class OpenRouterProvider implements AIProvider {
         let lastError = "";
 
         for (const modelId of fallbackModels) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
             try {
                 console.log(`[AI] OpenRouter testing: ${modelId}...`);
                 const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -122,14 +133,15 @@ class OpenRouterProvider implements AIProvider {
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${this.apiKey}`,
-                        "HTTP-Referer": "https://biblenotebookllm.ai",
-                        "X-Title": "Bible Notebook LLM",
+                        "HTTP-Referer": "https://dailymannaai.com",
+                        "X-Title": "Daily Manna AI",
                     },
                     body: JSON.stringify({
                         model: modelId,
                         messages: [{ role: "user", content: prompt }],
-                        max_tokens: 2048,
+                        max_tokens: 1024,
                     }),
+                    signal: controller.signal,
                 });
 
                 const data = await response.json().catch(() => ({ error: { message: "Invalid JSON" } }));
@@ -145,8 +157,10 @@ class OpenRouterProvider implements AIProvider {
 
                 return data.choices[0]?.message?.content || "";
             } catch (error: any) {
-                lastError = error.message;
+                lastError = error.name === 'AbortError' ? 'Request timeout (8s)' : error.message;
                 continue;
+            } finally {
+                clearTimeout(timeoutId);
             }
         }
         throw new Error(`OpenRouter failed (likely credits or no free endpoints). Last: ${lastError}`);

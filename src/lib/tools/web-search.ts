@@ -6,13 +6,26 @@ export interface SearchResult {
     description: string;
 }
 
+// Timeout wrapper for promises
+function withTimeout<T>(promise: Promise<T>, ms: number, errorMsg: string): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error(errorMsg)), ms)
+        )
+    ]);
+}
+
 export async function performWebSearch(query: string): Promise<SearchResult[]> {
     try {
         console.log(`[WebSearch] Searching for: ${query}`);
 
-        const response = await search(query, {
-            safeSearch: SafeSearchType.STRICT
-        });
+        // 5 second timeout - DuckDuckGo can be slow/blocked on Vercel
+        const response = await withTimeout(
+            search(query, { safeSearch: SafeSearchType.STRICT }),
+            5000,
+            'Web search timeout (5s) - DuckDuckGo may be rate-limited'
+        );
 
         if (!response.results || response.results.length === 0) {
             console.log('[WebSearch] No results found');
@@ -26,11 +39,12 @@ export async function performWebSearch(query: string): Promise<SearchResult[]> {
             description: result.description || "No description available"
         }));
 
+        console.log(`[WebSearch] Found ${formattedResults.length} results`);
         return formattedResults;
 
-    } catch (error) {
-        console.error('[WebSearch] Error performing search:', error);
-        return [];
+    } catch (error: any) {
+        console.warn('[WebSearch] Search failed (continuing without web results):', error.message);
+        return []; // Graceful degradation - don't crash the entire request
     }
 }
 

@@ -1,0 +1,22 @@
+{
+    "functions": {
+        "app/api/chat/route.ts": {
+            "maxDuration": 30
+        },
+        "app/api/grammar/route.ts": {
+            "maxDuration": 30
+        },
+        "app/api/refine/route.ts": {
+            "maxDuration": 30
+        },
+        "app/api/generate-audio/route.ts": {
+            "maxDuration": 15
+        },
+        "app/api/audio-overview/route.ts": {
+            "maxDuration": 30
+        }
+    },
+    "regions": [
+        "iad1"
+    ]
+}

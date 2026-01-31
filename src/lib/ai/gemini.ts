@@ -104,7 +104,24 @@ export async function generateGroundedResponse(query: string, sources: string[],
 
         return { answer, suggestions };
     } catch (error: any) {
-        return { answer: "I encountered a processing latency in the Research Core DNA.", suggestions: [] };
+        console.error('[AI-DNA] Core synthesis error:', error.message);
+
+        // Provide specific, helpful error messages
+        let userMessage = "I encountered an issue processing your request. ";
+
+        if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
+            userMessage += "The AI service took too long to respond. Please try again with a shorter question.";
+        } else if (error.message?.includes('API key') || error.message?.includes('401') || error.message?.includes('403')) {
+            userMessage += "There's an authentication issue with the AI service. Please contact support.";
+        } else if (error.message?.includes('rate') || error.message?.includes('429') || error.message?.includes('quota')) {
+            userMessage += "The AI service is currently at capacity. Please wait a moment and try again.";
+        } else if (error.message?.includes('offline') || error.message?.includes('network')) {
+            userMessage += "Unable to connect to AI services. Please check your connection.";
+        } else {
+            userMessage += "Please try rephrasing your question or try again in a few moments.";
+        }
+
+        return { answer: userMessage, suggestions: ["Try asking: Who is Jesus?", "Try asking: John 3:16"] };
     }
 }
 
