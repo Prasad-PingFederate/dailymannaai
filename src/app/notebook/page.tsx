@@ -203,6 +203,10 @@ export default function NotebookWorkspace() {
                         extractedText += `\n... (Truncated after ${maxPages} pages for performance) ...`;
                     }
 
+                    if (extractedText.trim().length < 20) {
+                        throw new Error("PDF seems to be Scanned/Image-only. I can only read text-based PDFs. Please convert to OCR or Copy-Paste text.");
+                    }
+
                     // Send as TEXT mode (JSON) instead of Blob (FormData)
                     // This bypasses 4.5MB limit because text is much smaller
                     body = JSON.stringify({
@@ -214,7 +218,14 @@ export default function NotebookWorkspace() {
                     console.log("PDF parsed client-side. Size:", extractedText.length);
 
                 } catch (pdfErr: any) {
-                    console.error("Client-side PDF parse failed, falling back to server:", pdfErr);
+                    console.error("Client-side PDF parse failed:", pdfErr);
+                    // If it was the "Scanned" error, show it and STOP. Don't fallback to server (server will also fail on scanned).
+                    if (pdfErr.message.includes("Scanned")) {
+                        showToast(pdfErr.message, "error");
+                        setIsIngesting(false);
+                        return;
+                    }
+
                     showToast(`Client parse failed (${pdfErr.message}), trying server...`, "error");
                     // Fallback to standard upload
                     const formData = new FormData();
