@@ -1443,12 +1443,6 @@ export default function NotebookWorkspace() {
                             <span className="text-xs font-bold">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
                         </div>
                         <span className="text-[9px] text-muted uppercase tracking-wider">From Sources</span>
-                        {!isSummarizing && (
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                Create summary from selected sources
-                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
-                            </div>
-                        )}
                     </button>
 
                     <div className="w-px h-12 bg-border" />
@@ -1497,13 +1491,14 @@ export default function NotebookWorkspace() {
 
                     <div className="w-px h-12 bg-border" />
 
-                    {/* Audio Overview - Works on SOURCES */}
+                    {/* Audio Overview - Highlighted */}
                     <button
                         onClick={generateAudioOverview}
                         disabled={isGeneratingAudio}
                         title="Generate podcast-style overview"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
                     >
+                        <div className="feature-badge">NEW ✨</div>
                         <div className="flex items-center gap-2">
                             <Mic2 size={16} className="text-accent" />
                             <span className="text-xs font-bold">{isGeneratingAudio ? 'Generating...' : 'Audio Overview'}</span>
@@ -1513,13 +1508,14 @@ export default function NotebookWorkspace() {
 
                     <div className="w-px h-12 bg-border" />
 
-                    {/* Divine Meditation - NEW FEATURE */}
+                    {/* Divine Meditation - Highlighted */}
                     <button
                         onClick={handleDivineMeditation}
                         disabled={isMeditating}
                         title="Transform research into a prayerful meditation"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
                     >
+                        <div className="feature-badge">DIVINE ✨</div>
                         <div className="flex items-center gap-2 text-yellow-500">
                             <Sparkles size={16} />
                             <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
@@ -1549,15 +1545,43 @@ export default function NotebookWorkspace() {
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    <div className="bg-accent/5 border border-accent/10 rounded-2xl p-4 text-sm leading-relaxed">
+                    <div className="bg-accent/5 border border-accent/10 rounded-2xl p-4 text-sm leading-relaxed shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
                         <p className="font-bold text-accent mb-2 flex items-center gap-2">
-                            <Sparkles size={14} /> AI Insights
+                            <Sparkles size={14} /> Apostolic Discovery Guide
                         </p>
-                        Hello! I've analyzed your 3 sources. Based on your notes, I can help you:
-                        <ul className="list-disc ml-4 mt-2 space-y-1">
-                            <li className="hover:text-accent cursor-pointer underline decoration-accent/30 tracking-tight">Synthesize user interview trends</li>
-                            <li className="hover:text-accent cursor-pointer underline decoration-accent/30 tracking-tight">Draft a market entry plan</li>
-                        </ul>
+                        <p className="text-xs text-muted mb-3 italic">Unlock the full power of your Spiritual Research Companion:</p>
+
+                        <div className="space-y-3">
+                            <div className="flex gap-3 group cursor-pointer" onClick={generateAudioOverview}>
+                                <div className="p-2 bg-purple-500/10 text-purple-600 rounded-lg group-hover:bg-purple-500 group-hover:text-white transition-all shadow-sm">
+                                    <Mic2 size={14} />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-bold">Audio Overview (Podcast)</p>
+                                    <p className="text-[10px] text-muted">Hear David & Sarah discuss your research in a deep 2-voice conversation.</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 group cursor-pointer" onClick={handleDivineMeditation}>
+                                <div className="p-2 bg-yellow-500/10 text-yellow-600 rounded-lg group-hover:bg-yellow-500 group-hover:text-white transition-all shadow-sm animate-pulse">
+                                    <Sparkles size={14} />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-bold">Divine Reflection</p>
+                                    <p className="text-[10px] text-muted">Transform intellectual notes into Spirit-filled prayers and meditations.</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 group">
+                                <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
+                                    <Volume2 size={14} />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-bold">Divine Voice</p>
+                                    <p className="text-[10px] text-muted">Hover over any assistant message and click the speaker to listen.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-4">
