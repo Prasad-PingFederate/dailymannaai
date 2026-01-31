@@ -898,10 +898,10 @@ export default function NotebookWorkspace() {
             }
 
             const line = lines[currentIndex];
-            currentIndex++;
 
             // Skip empty lines or non-dialogue lines
             if (!line.includes(':')) {
+                currentIndex++;
                 speakNextLine();
                 return;
             }
@@ -910,7 +910,7 @@ export default function NotebookWorkspace() {
             const [speaker, ...textParts] = line.split(':');
             let text = textParts.join(':').trim();
 
-            // Clean text: remove asterisks, citation ranges [1] or [1-3], and phonetic guides
+            // Clean text
             text = text
                 .replace(/\*/g, '')
                 .replace(/\[[\d\s,-]+\]/g, '')
@@ -918,11 +918,40 @@ export default function NotebookWorkspace() {
                 .trim();
 
             if (!text) {
+                currentIndex++;
                 speakNextLine();
                 return;
             }
 
-            const utterance = new SpeechSynthesisUtterance(text);
+            // --- ADVANCED: GROUPING SAME SPEAKER ---
+            // Look ahead to see if the next line is the SAME speaker
+            // If it is, combine them to avoid pauses between sentences
+            let combinedText = text;
+            const currentSpeakerPrefix = speaker.trim().toLowerCase();
+
+            while (currentIndex + 1 < lines.length) {
+                const nextLine = lines[currentIndex + 1];
+                if (nextLine.includes(':')) {
+                    const [nextSpeaker, ...nextParts] = nextLine.split(':');
+                    if (nextSpeaker.trim().toLowerCase() === currentSpeakerPrefix) {
+                        let nextText = nextParts.join(':').trim();
+                        nextText = nextText
+                            .replace(/\*/g, '')
+                            .replace(/\[[\d\s,-]+\]/g, '')
+                            .replace(/\(\/.*?\/\)/g, '')
+                            .trim();
+
+                        combinedText += " " + nextText;
+                        currentIndex++; // Move to next line index
+                        continue;
+                    }
+                }
+                break;
+            }
+
+            currentIndex++; // Move index to the next unique speaker
+
+            const utterance = new SpeechSynthesisUtterance(combinedText);
 
             // Assign voice based on speaker
             const isSarah = speaker.toLowerCase().includes('sarah');
@@ -932,16 +961,16 @@ export default function NotebookWorkspace() {
                 utterance.voice = voice;
             }
 
-            utterance.rate = 0.95;
-            utterance.pitch = isSarah ? 1.1 : 0.9;
+            utterance.rate = 1.0; // Dynamic human rate
+            utterance.pitch = isSarah ? 1.05 : 0.95;
             utterance.volume = 1.0;
 
             utterance.onend = () => {
-                // Small pause between speakers
+                // Natural pause ONLY when switching speakers
                 if (isPlayingRef.current) {
                     setTimeout(() => {
                         if (isPlayingRef.current) speakNextLine();
-                    }, 300);
+                    }, 250);
                 }
             };
 
