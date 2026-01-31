@@ -183,8 +183,8 @@ export default function NotebookWorkspace() {
                     // Dynamic import to avoid SSR issues
                     const pdfJS = await import('pdfjs-dist');
 
-                    // Set worker (using CDN for reliability in Next.js App Router)
-                    pdfJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfJS.version}/pdf.worker.min.js`;
+                    // Set worker (local file to fix Firefox CORS issues)
+                    pdfJS.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 
                     const arrayBuffer = await file.arrayBuffer();
                     const pdf = await pdfJS.getDocument({ data: arrayBuffer }).promise;
@@ -213,8 +213,9 @@ export default function NotebookWorkspace() {
                     headers = { "Content-Type": "application/json" };
                     console.log("PDF parsed client-side. Size:", extractedText.length);
 
-                } catch (pdfErr) {
+                } catch (pdfErr: any) {
                     console.error("Client-side PDF parse failed, falling back to server:", pdfErr);
+                    showToast(`Client parse failed (${pdfErr.message}), trying server...`, "error");
                     // Fallback to standard upload
                     const formData = new FormData();
                     formData.append("file", file);
