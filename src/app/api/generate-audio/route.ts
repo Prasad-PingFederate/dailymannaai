@@ -9,8 +9,21 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Text is required' }, { status: 400 });
         }
 
-        // 1. Get audio chunks (base64) for the full text (automatically splits long text)
-        const results = await googleTTS.getAllAudioBase64(text, {
+        // Clean text for TTS: Remove markdown, citations, and phonetic guides
+        let cleanText = text
+            .replace(/\*\*/g, '')           // Bold
+            .replace(/\*/g, '')            // Italic/Bullet
+            .replace(/#+ /g, '')           // Headers
+            .replace(/\[[\d\s,-]+\]/g, '')  // Citations [1] or [1-3] or [1, 2]
+            .replace(/\(\/.*?\/\)/g, '')   // Phonetic guides (/.../)
+            .replace(/(\r\n|\n|\r)/gm, " ") // Newlines to spaces
+            .replace(/\s+/g, " ")          // Double spaces to single
+            .trim();
+
+        if (cleanText.length === 0) cleanText = "Empty text.";
+
+        // 1. Get audio chunks (base64) for the full text
+        const results = await googleTTS.getAllAudioBase64(cleanText, {
             lang: 'en',
             slow: false,
             host: 'https://translate.google.com',

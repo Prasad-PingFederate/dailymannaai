@@ -908,7 +908,14 @@ export default function NotebookWorkspace() {
 
             // Extract speaker and text
             const [speaker, ...textParts] = line.split(':');
-            const text = textParts.join(':').trim();
+            let text = textParts.join(':').trim();
+
+            // Clean text: remove asterisks, citation ranges [1] or [1-3], and phonetic guides
+            text = text
+                .replace(/\*/g, '')
+                .replace(/\[[\d\s,-]+\]/g, '')
+                .replace(/\(\/.*?\/\)/g, '')
+                .trim();
 
             if (!text) {
                 speakNextLine();
