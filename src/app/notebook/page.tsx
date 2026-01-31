@@ -204,7 +204,7 @@ export default function NotebookWorkspace() {
                     }
 
                     if (extractedText.trim().length < 20) {
-                        throw new Error("PDF seems to be Scanned/Image-only. I can only read text-based PDFs. Please convert to OCR or Copy-Paste text.");
+                        console.warn("Client-side extracted scarce text. Sending to server for OCR...");
                     }
 
                     // Send as TEXT mode (JSON) instead of Blob (FormData)

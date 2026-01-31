@@ -79,13 +79,26 @@ export async function POST(req: Request) {
                 }
 
                 try {
-                    // Try standard require first, if fails, imply simpler text extraction or error
+                    // Try standard require first
                     const pdfData = require("pdf-parse");
                     const data = await pdfData(buffer);
                     textContent = data.text;
+
+                    // If text is empty/scanned, use Gemini Vision
+                    if (!textContent || textContent.trim().length < 50) {
+                        console.log("PDF parse yielded empty text. Attempting Gemini OCR...");
+                        const ocrText = await performGeminiOCR(buffer, "application/pdf");
+                        if (ocrText) textContent = ocrText;
+                    }
                 } catch (pdfError: any) {
-                    console.error("PDF Parse Error:", pdfError);
-                    throw new Error("Failed to parse PDF. Ensure it is not password protected.");
+                    console.error("PDF Parse Error, trying Gemini OCR:", pdfError);
+                    // Fallback to Gemini if pdf-parse crashes
+                    const ocrText = await performGeminiOCR(buffer, "application/pdf");
+                    if (ocrText) {
+                        textContent = ocrText;
+                    } else {
+                        throw new Error("Failed to parse PDF and OCR failed.");
+                    }
                 }
             } else {
                 textContent = await file.text();
@@ -107,5 +120,39 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error("Ingestion Error:", error.message);
         return NextResponse.json({ error: error.message || "Failed to read document content" }, { status: 500 });
+    }
+}
+
+// Helper for Gemini Vision/OCR
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+async function performGeminiOCR(buffer: Buffer, mimeType: string): Promise<string> {
+    try {
+        if (!process.env.GEMINI_API_KEY) return "";
+
+        console.log("Creating Gemini instance for OCR...");
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // Use Flash for speed locally, or Pro if needed. Flash handles PDFs natively.
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const parts = [
+            {
+                inlineData: {
+                    mimeType: mimeType,
+                    data: buffer.toString("base64")
+                }
+            },
+            { text: "Extract all text from this document verbatim. Provide only the text content." }
+        ];
+
+        console.log("Sending document to Gemini Flash for OCR...");
+        const result = await model.generateContent(parts);
+        const text = result.response.text();
+        console.log(`Gemini OCR success. Extracted ${text.length} chars.`);
+
+        return text;
+    } catch (e: any) {
+        console.error("Gemini OCR Failed:", e.message);
+        return "";
     }
 }
