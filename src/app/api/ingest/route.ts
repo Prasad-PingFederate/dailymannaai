@@ -72,12 +72,21 @@ export async function POST(req: Request) {
 
             if (file.type === "application/pdf" || name.toLowerCase().endsWith(".pdf")) {
                 const buffer = Buffer.from(await file.arrayBuffer());
+
+                // Polyfill for PDF.js in Serverless Environment
                 if (typeof (global as any).DOMMatrix === 'undefined') {
                     (global as any).DOMMatrix = class DOMMatrix { };
                 }
-                const pdfData = require("pdf-parse");
-                const data = await pdfData(buffer);
-                textContent = data.text;
+
+                try {
+                    // Try standard require first, if fails, imply simpler text extraction or error
+                    const pdfData = require("pdf-parse");
+                    const data = await pdfData(buffer);
+                    textContent = data.text;
+                } catch (pdfError: any) {
+                    console.error("PDF Parse Error:", pdfError);
+                    throw new Error("Failed to parse PDF. Ensure it is not password protected.");
+                }
             } else {
                 textContent = await file.text();
             }

@@ -111,6 +111,14 @@ export default function NotebookWorkspace() {
         window.speechSynthesis.onvoiceschanged = loadVoices;
     }, []);
 
+    // --- Notification System ---
+    const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 4000); // Auto hide after 4s
+    };
+
     // --- Resizing Logic ---
     const startResizing = (e: React.MouseEvent) => {
         setIsResizing(true);
@@ -156,27 +164,98 @@ export default function NotebookWorkspace() {
         const fileName = file.name;
         const fileType = file.type;
         const isMP3 = fileType === "audio/mpeg" || fileName.toLowerCase().endsWith(".mp3");
+        const isPDF = fileType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf");
+
         const newSource = { id, name: fileName, type: isMP3 ? "audio" : "pdf", selected: true };
 
         setIsIngesting(true);
+        showToast("Processing file...", "success");
+
         try {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("name", fileName);
+            let payload: FormData | string;
+            let headers = {};
+            let body: any;
+
+            // CLIENT-SIDE PDF PARSING (Bypass Vercel 4.5MB Limit)
+            if (isPDF) {
+                showToast("Extracting text from PDF...", "success");
+                try {
+                    // Dynamic import to avoid SSR issues
+                    const pdfJS = await import('pdfjs-dist');
+
+                    // Set worker (using CDN for reliability in Next.js App Router)
+                    pdfJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfJS.version}/pdf.worker.min.js`;
+
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfJS.getDocument({ data: arrayBuffer }).promise;
+
+                    let extractedText = "";
+                    const maxPages = 50; // Limit pages to prevent browser freeze
+
+                    for (let i = 1; i <= Math.min(pdf.numPages, maxPages); i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+                        extractedText += `\n--- Page ${i} ---\n${pageText}`;
+                    }
+
+                    if (pdf.numPages > maxPages) {
+                        extractedText += `\n... (Truncated after ${maxPages} pages for performance) ...`;
+                    }
+
+                    // Send as TEXT mode (JSON) instead of Blob (FormData)
+                    // This bypasses 4.5MB limit because text is much smaller
+                    body = JSON.stringify({
+                        text: extractedText,
+                        name: fileName,
+                        mode: "text"
+                    });
+                    headers = { "Content-Type": "application/json" };
+                    console.log("PDF parsed client-side. Size:", extractedText.length);
+
+                } catch (pdfErr) {
+                    console.error("Client-side PDF parse failed, falling back to server:", pdfErr);
+                    // Fallback to standard upload
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("name", fileName);
+                    body = formData;
+                }
+            } else {
+                // Standard upload for MP3 / Text files
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("name", fileName);
+                body = formData;
+            }
 
             const res = await fetch("/api/ingest", {
                 method: "POST",
-                body: formData,
+                headers,
+                body,
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error("Failed to ingest file");
+            if (res.status === 413) {
+                throw new Error("File is too large for server processing. Try splitting it.");
+            }
+
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                const text = await res.text();
+                throw new Error(`Server Error (${res.status}): ${text.substring(0, 50)}...`);
+            }
+
+            if (!res.ok) throw new Error(data.error || "Failed to ingest file");
 
             setSources(prev => [...prev, {
                 ...newSource,
                 fullContent: data.preview || "Text content extracted successfully."
             }]);
             setUploadModalOpen(false);
+
+            showToast(`Successfully uploaded "${fileName}"`, 'success');
 
             const assistanceMessage = isMP3
                 ? `I've finished transcribing and "listening" to the sermon "${fileName}". I can now answer questions about the message and the scriptures mentioned in it!`
@@ -186,11 +265,12 @@ export default function NotebookWorkspace() {
                 role: "assistant",
                 content: assistanceMessage
             }]);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Ingestion Error:", error);
+            showToast(error.message || "Failed to upload file", 'error');
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: "Sorry, I had trouble reading that file. Please make sure it's a valid PDF or text file."
+                content: "Sorry, I had trouble reading that file. Please make sure it's a valid PDF or text file under 10MB."
             }]);
         } finally {
             setIsIngesting(false);
@@ -199,7 +279,7 @@ export default function NotebookWorkspace() {
 
     const handleWebsiteIngest = async () => {
         if (!websiteUrl || !websiteTitle) {
-            alert("URL and Title are required");
+            showToast("URL and Title are required", 'error');
             return;
         }
 
@@ -226,12 +306,15 @@ export default function NotebookWorkspace() {
             setWebsiteUrl("");
             setWebsiteTitle("");
 
+            showToast("Website content added successfully", 'success');
+
             setMessages(prev => [...prev, {
                 role: "assistant",
                 content: `I've finished exploring and "learning" from the website "${websiteTitle}". I'm ready to answer any questions about it!`
             }]);
         } catch (error: any) {
             console.error("Website Ingest Error:", error);
+            showToast(error.message, 'error');
             setMessages(prev => [...prev, {
                 role: "assistant",
                 content: `Sorry, I had trouble visiting that website: ${error.message}`
@@ -243,7 +326,7 @@ export default function NotebookWorkspace() {
 
     const handleTextIngest = async () => {
         if (!pastedText || !pastedTitle) {
-            alert("Text and Title are required");
+            showToast("Text and Title are required", 'error');
             return;
         }
 
@@ -270,12 +353,15 @@ export default function NotebookWorkspace() {
             setPastedText("");
             setPastedTitle("");
 
+            showToast("Note added successfully", 'success');
+
             setMessages(prev => [...prev, {
                 role: "assistant",
                 content: `I've learned from your pasted note "${pastedTitle}". It's now part of my collective wisdom!`
             }]);
         } catch (error: any) {
             console.error("Text Ingest Error:", error);
+            showToast(error.message, 'error');
             setMessages(prev => [...prev, {
                 role: "assistant",
                 content: `Sorry, I had trouble processing your text: ${error.message}`
@@ -287,6 +373,7 @@ export default function NotebookWorkspace() {
 
     const addNoteAtCursor = (text: string) => {
         setNoteContent(prev => prev + (prev ? "\n\n" : "") + text);
+        showToast("Added to notes", 'success');
     };
 
     const handleSendMessage = async (overrideText?: string) => {
