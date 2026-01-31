@@ -1745,27 +1745,28 @@ export default function NotebookWorkspace() {
                                         )}
 
                                         {msg.role === 'assistant' && (
-                                            <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm p-1 rounded-xl border border-border">
+                                            <div className="absolute right-2 top-2 flex items-center gap-1.5 bg-background shadow-md backdrop-blur-md p-1.5 rounded-2xl border border-accent/20 z-20 transition-all duration-300">
                                                 <button
                                                     onClick={() => handleSpeakMessage(msg.content, i)}
-                                                    className={`p-1.5 rounded-lg transition-all ${isSpeakingMap[i] ? 'bg-accent text-white animate-pulse' : 'hover:bg-accent/20 text-accent bg-accent/10'}`}
-                                                    title="Listen to Message"
+                                                    className={`p-2 rounded-xl transition-all flex items-center gap-1.5 ${isSpeakingMap[i] ? 'bg-blue-600 text-white animate-divine-pulse' : 'hover:bg-blue-100/50 text-blue-600 bg-blue-50'}`}
+                                                    title={isSpeakingMap[i] ? "Stop Listening" : "Listen to Message"}
                                                 >
-                                                    <Volume2 size={12} />
+                                                    {isSpeakingMap[i] ? <X size={16} /> : <Volume2 size={16} />}
+                                                    {isSpeakingMap[i] && <span className="text-[10px] font-bold uppercase tracking-tighter">Stop</span>}
                                                 </button>
                                                 <button
                                                     onClick={() => addNoteAtCursor(msg.content)}
-                                                    className="p-1.5 hover:text-accent transition-colors"
+                                                    className="p-2 hover:bg-accent/10 rounded-xl text-muted-foreground hover:text-accent transition-all"
                                                     title="Pin to Note"
                                                 >
-                                                    <Pin size={12} />
+                                                    <Pin size={16} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 hover:text-accent transition-colors"
+                                                    className="p-2 hover:bg-accent/10 rounded-xl text-muted-foreground hover:text-accent transition-all"
                                                     title="Copy"
                                                     onClick={() => navigator.clipboard.writeText(msg.content)}
                                                 >
-                                                    <Copy size={12} />
+                                                    <Copy size={16} />
                                                 </button>
                                             </div>
                                         )}
