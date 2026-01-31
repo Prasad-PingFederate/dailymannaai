@@ -1518,24 +1518,19 @@ export default function NotebookWorkspace() {
 
                         <div className="w-px h-12 bg-border" />
 
-                        {/* Grammar Check - NEW */}
+                        {/* Divine Reflection - Highlighted */}
                         <button
-                            onClick={handleGrammarCheck}
-                            disabled={isGrammarChecking}
-                            title="Identify grammar mistakes and explain rules"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                            onClick={handleDivineMeditation}
+                            disabled={isMeditating}
+                            title="Transform research into a prayerful meditation"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
                         >
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 size={16} className="text-green-500" />
-                                <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
+                            <div className="feature-badge">DIVINE ✨</div>
+                            <div className="flex items-center gap-2 text-yellow-500">
+                                <Sparkles size={16} />
+                                <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
-                            {!isGrammarChecking && (
-                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    Identify and explain grammar mistakes
-                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
-                                </div>
-                            )}
+                            <span className="text-[9px] text-muted uppercase tracking-wider">Glorify God</span>
                         </button>
 
                         <div className="w-px h-12 bg-border" />
@@ -1557,19 +1552,24 @@ export default function NotebookWorkspace() {
 
                         <div className="w-px h-12 bg-border" />
 
-                        {/* Divine Meditation - Highlighted */}
+                        {/* Grammar Check - NEW */}
                         <button
-                            onClick={handleDivineMeditation}
-                            disabled={isMeditating}
-                            title="Transform research into a prayerful meditation"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
+                            onClick={handleGrammarCheck}
+                            disabled={isGrammarChecking}
+                            title="Identify grammar mistakes and explain rules"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
                         >
-                            <div className="feature-badge">DIVINE ✨</div>
-                            <div className="flex items-center gap-2 text-yellow-500">
-                                <Sparkles size={16} />
-                                <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 size={16} className="text-green-500" />
+                                <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">Glorify God</span>
+                            <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
+                            {!isGrammarChecking && (
+                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Identify and explain grammar mistakes
+                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                                </div>
+                            )}
                         </button>
                     </div>
                 </div>
