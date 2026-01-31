@@ -1,4 +1,4 @@
-import kjvData from './data/kjv.json';
+// import kjvData from './data/kjv.json'; // Lazy loaded now
 
 export interface BibleVerse {
     pk: number;
@@ -159,7 +159,12 @@ export function parseVerseReference(ref: string) {
     return { bookId, chapter, startVerse: startVerse || 1, endVerse: endVerse || startVerse || 0, isDirectLookup };
 }
 
+
 export function getVerseRange(bookId: number, chapter: number, start: number, end: number): string[] {
+    // 🧬 DNA OPTIMIZATION: Lazy load the 9MB JSON only when explicitly needed.
+    // This prevents Vercel Cold Start Timeout for normal chat queries.
+    const kjvData = require('./data/kjv.json');
+
     const verses = (kjvData as BibleVerse[]).filter(v =>
         v.fields.book_id === bookId &&
         v.fields.chapter === chapter &&
