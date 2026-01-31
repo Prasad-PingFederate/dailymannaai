@@ -204,7 +204,8 @@ export default function NotebookWorkspace() {
                     }
 
                     if (extractedText.trim().length < 20) {
-                        console.warn("Client-side extracted scarce text. Sending to server for OCR...");
+                        // Throw to trigger catch block -> Fallback to server upload -> Gemini OCR
+                        throw new Error("Scanned PDF detected");
                     }
 
                     // Send as TEXT mode (JSON) instead of Blob (FormData)
@@ -218,15 +219,13 @@ export default function NotebookWorkspace() {
                     console.log("PDF parsed client-side. Size:", extractedText.length);
 
                 } catch (pdfErr: any) {
-                    console.error("Client-side PDF parse failed:", pdfErr);
-                    // If it was the "Scanned" error, show it and STOP. Don't fallback to server (server will also fail on scanned).
-                    if (pdfErr.message.includes("Scanned")) {
-                        showToast(pdfErr.message, "error");
-                        setIsIngesting(false);
-                        return;
-                    }
+                    console.error("Client-side PDF parse failed / Scanned fallback:", pdfErr);
 
-                    showToast(`Client parse failed (${pdfErr.message}), trying server...`, "error");
+                    if (pdfErr.message.includes("Scanned")) {
+                        showToast("Scanned PDF detected. Using Advanced AI Reading...", "info");
+                    } else {
+                        showToast(`Client parse failed (${pdfErr.message}), trying server...`, "error");
+                    }
                     // Fallback to standard upload
                     const formData = new FormData();
                     formData.append("file", file);
