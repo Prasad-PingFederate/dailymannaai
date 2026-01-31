@@ -19,7 +19,7 @@
     "lucide-react": "^0.563.0",
     "next": "16.1.4",
     "pdf-parse": "^2.4.5",
-    "pdfjs-dist": "^5.4.530",
+    "pdfjs-dist": "^3.11.174",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "together-ai": "^0.33.0"
