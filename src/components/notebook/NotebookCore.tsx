@@ -85,6 +85,7 @@ export default function NotebookWorkspace() {
     const [isBarHovered, setIsBarHovered] = useState(false);
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
+    const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -806,7 +807,16 @@ export default function NotebookWorkspace() {
     };
 
     const handleSpeakMessage = async (text: string, index: number) => {
-        if (isSpeakingMap[index]) return;
+        // TOGGLE LOGIC: If already speaking, STOP it.
+        if (isSpeakingMap[index]) {
+            if (messageAudioRefs.current[index]) {
+                messageAudioRefs.current[index].pause();
+                messageAudioRefs.current[index].currentTime = 0;
+                delete messageAudioRefs.current[index];
+            }
+            setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
+            return;
+        }
 
         setIsSpeakingMap(prev => ({ ...prev, [index]: true }));
         try {
@@ -819,13 +829,28 @@ export default function NotebookWorkspace() {
             const data = await res.json();
             if (data.audio_base64) {
                 const audio = new Audio(`data:audio/mp3;base64,${data.audio_base64}`);
+                messageAudioRefs.current[index] = audio;
+
+                audio.onended = () => {
+                    setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
+                    delete messageAudioRefs.current[index];
+                };
+
+                audio.onerror = () => {
+                    setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
+                    delete messageAudioRefs.current[index];
+                    showToast("Audio playback interrupted", "error");
+                };
+
                 audio.play();
                 showToast("Playing spiritual audio...", "success");
+            } else {
+                // If no audio data, reset state immediately
+                setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
             }
         } catch (e) {
             console.error("Audio Playback Error:", e);
             showToast("Failed to generate audio", "error");
-        } finally {
             setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
         }
     };
