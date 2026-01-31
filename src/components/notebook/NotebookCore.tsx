@@ -1472,106 +1472,106 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
 
-                {/* Dynamic Action Bar (Bottom Middle) - Smart Shift & Expand */}
-                <div
-                    onMouseEnter={() => setIsBarHovered(true)}
-                    onMouseLeave={() => setIsBarHovered(false)}
-                    className={`absolute bottom-10 transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in slide-in-from-bottom-5 pointer-events-auto no-scrollbar 
-                        ${isBarHovered
-                            ? (isSidebarOpen ? 'left-[320px]' : 'left-8') + ' translate-x-0 w-max max-w-[calc(100vw-500px)]'
-                            : 'left-1/2 -translate-x-1/2 max-w-[90%] overflow-x-auto'}`}
-                >
-                    {/* Summarize - Works on SOURCES */}
-                    <button
-                        onClick={handleSummarize}
-                        disabled={isSummarizing}
-                        title="Summarize selected sources and add to notes"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                {/* Dynamic Action Bar (Bottom Middle) - Stabilized */}
+                <div className="absolute bottom-10 inset-x-0 flex justify-center z-[100] pointer-events-none">
+                    <div
+                        onMouseEnter={() => setIsBarHovered(true)}
+                        onMouseLeave={() => setIsBarHovered(false)}
+                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto 
+                            ${isBarHovered ? 'w-max' : 'w-auto max-w-[400px]'}`}
                     >
-                        <div className="flex items-center gap-2">
-                            <FileStack size={16} className="text-blue-500" />
-                            <span className="text-xs font-bold">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
-                        </div>
-                        <span className="text-[9px] text-muted uppercase tracking-wider">From Sources</span>
-                    </button>
-
-                    <div className="w-px h-12 bg-border" />
-
-                    {/* Refine - Works on NOTES */}
-                    <button
-                        onClick={handleRefine}
-                        disabled={isRefining}
-                        title="Refine and improve your notes"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Wand2 size={16} className="text-purple-500" />
-                            <span className="text-xs font-bold">{isRefining ? 'Refining...' : 'Refine'}</span>
-                        </div>
-                        <span className="text-[9px] text-muted uppercase tracking-wider">Polish Notes</span>
-                        {!isRefining && (
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                Improve your written notes
-                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                        {/* Summarize - Works on SOURCES */}
+                        <button
+                            onClick={handleSummarize}
+                            disabled={isSummarizing}
+                            title="Summarize selected sources and add to notes"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <FileStack size={16} className="text-blue-500" />
+                                <span className="text-xs font-bold">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
                             </div>
-                        )}
-                    </button>
+                            <span className="text-[9px] text-muted uppercase tracking-wider">From Sources</span>
+                        </button>
 
-                    <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-12 bg-border" />
 
-                    {/* Grammar Check - NEW */}
-                    <button
-                        onClick={handleGrammarCheck}
-                        disabled={isGrammarChecking}
-                        title="Identify grammar mistakes and explain rules"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 size={16} className="text-green-500" />
-                            <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
-                        </div>
-                        <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
-                        {!isGrammarChecking && (
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                Identify and explain grammar mistakes
-                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                        {/* Refine - Works on NOTES */}
+                        <button
+                            onClick={handleRefine}
+                            disabled={isRefining}
+                            title="Refine and improve your notes"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Wand2 size={16} className="text-purple-500" />
+                                <span className="text-xs font-bold">{isRefining ? 'Refining...' : 'Refine'}</span>
                             </div>
-                        )}
-                    </button>
+                            <span className="text-[9px] text-muted uppercase tracking-wider">Polish Notes</span>
+                            {!isRefining && (
+                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Improve your written notes
+                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                                </div>
+                            )}
+                        </button>
 
-                    <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-12 bg-border" />
 
-                    {/* Audio Overview - Highlighted */}
-                    <button
-                        onClick={generateAudioOverview}
-                        disabled={isGeneratingAudio}
-                        title="Generate podcast-style overview"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
-                    >
-                        <div className="feature-badge">NEW ✨</div>
-                        <div className="flex items-center gap-2">
-                            <Mic2 size={16} className="text-accent" />
-                            <span className="text-xs font-bold">{isGeneratingAudio ? 'Generating...' : 'Audio Overview'}</span>
-                        </div>
-                        <span className="text-[9px] text-muted uppercase tracking-wider">Podcast Script</span>
-                    </button>
+                        {/* Grammar Check - NEW */}
+                        <button
+                            onClick={handleGrammarCheck}
+                            disabled={isGrammarChecking}
+                            title="Identify grammar mistakes and explain rules"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 size={16} className="text-green-500" />
+                                <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
+                            </div>
+                            <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
+                            {!isGrammarChecking && (
+                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Identify and explain grammar mistakes
+                                    <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground rotate-45"></div>
+                                </div>
+                            )}
+                        </button>
 
-                    <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-12 bg-border" />
 
-                    {/* Divine Meditation - Highlighted */}
-                    <button
-                        onClick={handleDivineMeditation}
-                        disabled={isMeditating}
-                        title="Transform research into a prayerful meditation"
-                        className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
-                    >
-                        <div className="feature-badge">DIVINE ✨</div>
-                        <div className="flex items-center gap-2 text-yellow-500">
-                            <Sparkles size={16} />
-                            <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
-                        </div>
-                        <span className="text-[9px] text-muted uppercase tracking-wider">Glorify God</span>
-                    </button>
+                        {/* Audio Overview - Highlighted */}
+                        <button
+                            onClick={generateAudioOverview}
+                            disabled={isGeneratingAudio}
+                            title="Generate podcast-style overview"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
+                        >
+                            <div className="feature-badge">NEW ✨</div>
+                            <div className="flex items-center gap-2">
+                                <Mic2 size={16} className="text-accent" />
+                                <span className="text-xs font-bold">{isGeneratingAudio ? 'Generating...' : 'Audio Overview'}</span>
+                            </div>
+                            <span className="text-[9px] text-muted uppercase tracking-wider">Podcast Script</span>
+                        </button>
+
+                        <div className="w-px h-12 bg-border" />
+
+                        {/* Divine Meditation - Highlighted */}
+                        <button
+                            onClick={handleDivineMeditation}
+                            disabled={isMeditating}
+                            title="Transform research into a prayerful meditation"
+                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
+                        >
+                            <div className="feature-badge">DIVINE ✨</div>
+                            <div className="flex items-center gap-2 text-yellow-500">
+                                <Sparkles size={16} />
+                                <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
+                            </div>
+                            <span className="text-[9px] text-muted uppercase tracking-wider">Glorify God</span>
+                        </button>
+                    </div>
                 </div>
             </main>
 
