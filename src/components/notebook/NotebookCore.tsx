@@ -36,6 +36,14 @@ import {
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 
+interface Source {
+    id: string;
+    name: string;
+    type: string;
+    selected: boolean;
+    fullContent?: string;
+}
+
 export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState("sources"); // sources, chat
@@ -45,11 +53,11 @@ export default function NotebookWorkspace() {
     ]);
     const [input, setInput] = useState("");
     const [noteContent, setNoteContent] = useState("");
-    const [sources, setSources] = useState([
-        { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true },
-        { id: "Historical-Missionaries-Pioneers", name: "Historical Missionaries", type: "text", selected: true },
-        { id: "Modern-Evangelists-Missionaries", name: "Modern Evangelists", type: "text", selected: true },
-        { id: "Joshua-Daniel-Doing-Gods-Will", name: "Joshua Daniel - Doing God's Will", type: "text", selected: true }
+    const [sources, setSources] = useState<Source[]>([
+        { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true, fullContent: "Daily Manna AI is a spiritual growth platform..." },
+        { id: "Historical-Missionaries-Pioneers", name: "Historical Missionaries", type: "text", selected: true, fullContent: "The history of missions is filled with pioneers like William Carey..." },
+        { id: "Modern-Evangelists-Missionaries", name: "Modern Evangelists", type: "text", selected: true, fullContent: "Modern evangelism leverages technology to reach the unreached..." },
+        { id: "Joshua-Daniel-Doing-Gods-Will", name: "Joshua Daniel - Doing God's Will", type: "text", selected: true, fullContent: "Joshua Daniel's life was a testament to following God's calling..." }
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
@@ -71,6 +79,7 @@ export default function NotebookWorkspace() {
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [chatSidebarWidth, setChatSidebarWidth] = useState(450);
     const [isResizing, setIsResizing] = useState(false);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -119,7 +128,45 @@ export default function NotebookWorkspace() {
         setTimeout(() => setNotification(null), 4000); // Auto hide after 4s
     };
 
-    // --- Resizing Logic ---
+    // --- Drag and Drop Logic --- (New Feature)
+    const handleSourceDragStart = (e: React.DragEvent, source: any) => {
+        e.dataTransfer.setData("sourceId", source.id);
+        e.dataTransfer.effectAllowed = "copy";
+
+        // Custom drag ghost image effect (Optional/Visual)
+        const ghost = document.createElement("div");
+        ghost.className = "bg-accent text-white px-3 py-1 rounded-full text-xs font-bold shadow-xl border border-white/20";
+        ghost.textContent = `📑 ${source.name}`;
+        ghost.style.position = "absolute";
+        ghost.style.top = "-1000px";
+        document.body.appendChild(ghost);
+        setTimeout(() => document.body.removeChild(ghost), 0);
+    };
+
+    const handleNoteDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+        const sourceId = e.dataTransfer.getData("sourceId");
+        const source = sources.find(s => s.id === sourceId);
+
+        if (source) {
+            const contentToAdd = `\n\n### 📑 Source: ${source.name}\n${source.fullContent || '[Extracting content...]'}\n`;
+            addNoteAtCursor(contentToAdd);
+            showToast(`Imported content from "${source.name}"`, "success");
+        }
+    };
+
+    const handleNoteDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDraggingOver(true);
+        e.dataTransfer.dropEffect = "copy";
+    };
+
+    const handleNoteDragLeave = () => {
+        setIsDraggingOver(false);
+    };
+
+    // --- Resizing Logic --- (Restored)
     const startResizing = (e: React.MouseEvent) => {
         setIsResizing(true);
         e.preventDefault();
@@ -1053,9 +1100,11 @@ export default function NotebookWorkspace() {
                         {sources.map((source) => (
                             <div
                                 key={source.id}
+                                draggable
+                                onDragStart={(e) => handleSourceDragStart(e, source)}
                                 onClick={() => toggleSource(source.id)}
-                                className={`group flex items-center gap-3 p-2 rounded-lg border transition-all cursor-pointer ${source.selected
-                                    ? "bg-accent/10 border-accent/20 ring-1 ring-accent/10"
+                                className={`group flex items-center gap-3 p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing ${source.selected
+                                    ? "bg-accent/10 border-accent/20 ring-1 ring-accent/10 shadow-sm"
                                     : "hover:bg-muted/10 border-transparent opacity-60"
                                     }`}
                             >
@@ -1260,12 +1309,20 @@ export default function NotebookWorkspace() {
                             <p className="text-muted text-sm italic">Last updated 2 hours ago</p>
                         </div>
 
-                        <div className="prose prose-zinc dark:prose-invert max-w-none">
+                        <div
+                            className={`prose prose-zinc dark:prose-invert max-w-none relative group transition-all duration-300 ${isDraggingOver ? 'scale-[1.01]' : ''}`}
+                            onDrop={handleNoteDrop}
+                            onDragOver={handleNoteDragOver}
+                            onDragLeave={handleNoteDragLeave}
+                        >
+                            {/* Drag overlay indicator */}
+                            <div className={`absolute inset-x-[-20px] inset-y-[-20px] border-2 border-dashed rounded-3xl pointer-events-none transition-all duration-300 z-0 ${isDraggingOver ? 'border-accent/40 bg-accent/5' : 'border-transparent'}`} />
+
                             <textarea
-                                placeholder="Start typing your research notes here..."
+                                placeholder="Start typing your research notes here... or drag a source here to analyze it."
                                 value={noteContent}
                                 onChange={(e) => setNoteContent(e.target.value)}
-                                className="w-full min-h-[500px] bg-transparent border-none focus:outline-none text-lg resize-none leading-relaxed"
+                                className="w-full min-h-[500px] bg-transparent border-none focus:outline-none text-lg resize-none leading-relaxed relative z-10"
                                 rows={20}
                             />
                         </div>
