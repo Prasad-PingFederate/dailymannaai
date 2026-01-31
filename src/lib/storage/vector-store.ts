@@ -85,7 +85,7 @@ export function searchRelevantChunks(query: string, limit: number = 6): Document
     });
 
     const results = scoredChunks
-        .filter(chunk => chunk.score > 0)
+        .filter(chunk => q === "" ? true : chunk.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, limit);
 
