@@ -267,9 +267,10 @@ export class AIProviderManager {
         const openRouterKey = process.env.OPENROUTER_API_KEY;
         const groqKey = process.env.GROQ_API_KEY;
 
-        // Sequence: Gemini -> OpenRouter -> xAI -> Together -> Hugging Face
-        if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));
+        // Sequence: OpenRouter (Primary) -> Gemini -> xAI (if any) -> Together -> Hugging Face
+        // OpenRouter first gives access to deepseek/llama-3 which are great for this use case
         if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
+        if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));
 
         if (groqKey && groqKey.startsWith("xai-")) {
             this.providers.push(new XAIProvider(groqKey));
