@@ -19,21 +19,28 @@ export async function POST(req: Request) {
             .map((s: any) => `### Source: ${s.name}\n${s.content}`)
             .join("\n\n");
 
-        const prompt = `You are a spiritual research assistant helping to summarize Christian teachings and biblical wisdom.
+        const prompt = `Identity: SPIRITUAL RESEARCH DISCIPLE (Master Synthesizer).
+        Task: Create a DUAL-LENS COMPREHENSIVE SUMMARY that bridges the Scientific/Historical and the Spiritual.
 
-SOURCES TO SUMMARIZE:
-${combinedContent}
+        SOURCES TO ANALYZE:
+        ${combinedContent}
 
-Please provide a comprehensive yet concise summary that:
-1. Captures the main spiritual themes and teachings
-2. Highlights key Scripture references
-3. Notes important wisdom from Christian leaders mentioned
-4. Organizes insights into clear sections
-5. Uses a warm, faith-centered tone
+        STRUCTURE YOUR SUMMARY IN TWO DISTINCT PILLARS:
 
-Format the summary with clear headings and bullet points for readability.
+        1. 🔬 THE SCIENTIFIC & HISTORICAL PILLAR:
+           - Analyze dates, names, locations, and historical contexts.
+           - Identify verifiable facts and logical frameworks mentioned in the text.
+           - Present the evidence-based foundation of the material.
 
-SUMMARY:`;
+        2. 🕊️ THE SPIRITUAL & REVELATORY PILLAR:
+           - Extract the soul of the message and the depth of Jesus Christ hidden in the text.
+           - Highlight Scriptural wisdom and revelatory insights.
+           - Explain how these truths lead to salvation or spiritual growth.
+
+        CONCLUSION: Provide a "Divine Synthesis" that connects both pillars into one unified truth to help seekers be benefited and saved.
+
+        Use high-precision Markdown with bold headers and clear formatting.
+        SUMMARY:`;
 
         const { response } = await providerManager.generateResponse(prompt);
 

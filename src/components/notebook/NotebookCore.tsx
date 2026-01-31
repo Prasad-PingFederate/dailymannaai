@@ -32,7 +32,8 @@ import {
     FileStack,
     Wand2,
     FileAudio,
-    CheckCircle2
+    CheckCircle2,
+    Volume2
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 
@@ -81,6 +82,7 @@ export default function NotebookWorkspace() {
     const [isResizing, setIsResizing] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [isMeditating, setIsMeditating] = useState(false);
+    const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -755,6 +757,31 @@ export default function NotebookWorkspace() {
             }]);
         } finally {
             setGeneratingAudio(false);
+        }
+    };
+
+    const handleSpeakMessage = async (text: string, index: number) => {
+        if (isSpeakingMap[index]) return;
+
+        setIsSpeakingMap(prev => ({ ...prev, [index]: true }));
+        try {
+            const res = await fetch("/api/generate-audio", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text.substring(0, 1000) }) // Limit for safety
+            });
+
+            const data = await res.json();
+            if (data.audio_base64) {
+                const audio = new Audio(`data:audio/mp3;base64,${data.audio_base64}`);
+                audio.play();
+                showToast("Playing spiritual audio...", "success");
+            }
+        } catch (e) {
+            console.error("Audio Playback Error:", e);
+            showToast("Failed to generate audio", "error");
+        } finally {
+            setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
         }
     };
 
@@ -1543,7 +1570,7 @@ export default function NotebookWorkspace() {
                                     <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
                                         {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                     </div>
-                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm max-w-[90%] group relative flex flex-col gap-3 overflow-hidden shadow-sm`}>
+                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm max-w-[90%] group relative flex flex-col gap-3 shadow-sm`}>
                                         <div className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">
                                             {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
                                                 if (/^\[\d+\]$/.test(part)) {
@@ -1606,20 +1633,27 @@ export default function NotebookWorkspace() {
                                         )}
 
                                         {msg.role === 'assistant' && (
-                                            <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm p-1 rounded-xl border border-border">
                                                 <button
-                                                    onClick={() => addNoteAtCursor(msg.content)}
-                                                    className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
-                                                    title="Pin to Note"
+                                                    onClick={() => handleSpeakMessage(msg.content, i)}
+                                                    className={`p-1.5 hover:text-accent transition-colors ${isSpeakingMap[i] ? 'animate-pulse text-accent' : ''}`}
+                                                    title="Listen to Message"
                                                 >
-                                                    <Pin size={14} />
+                                                    <Volume2 size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 bg-card-bg border border-border rounded-lg hover:text-accent shadow-sm"
+                                                    onClick={() => addNoteAtCursor(msg.content)}
+                                                    className="p-1.5 hover:text-accent transition-colors"
+                                                    title="Pin to Note"
+                                                >
+                                                    <Pin size={12} />
+                                                </button>
+                                                <button
+                                                    className="p-1.5 hover:text-accent transition-colors"
                                                     title="Copy"
                                                     onClick={() => navigator.clipboard.writeText(msg.content)}
                                                 >
-                                                    <Copy size={14} />
+                                                    <Copy size={12} />
                                                 </button>
                                             </div>
                                         )}

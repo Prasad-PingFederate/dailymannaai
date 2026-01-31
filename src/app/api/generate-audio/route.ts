@@ -17,11 +17,13 @@ export async function POST(req: Request) {
             timeout: 10000,
         });
 
-        // 2. Combine all base64 chunks into one single base64 string
-        const combinedBase64 = results.map(r => r.base64).join('');
+        // 2. Combine all base64 chunks into one single buffer then back to base64
+        const buffers = results.map(r => Buffer.from(r.base64, 'base64'));
+        const combinedBuffer = Buffer.concat(buffers);
+        const finalBase64 = combinedBuffer.toString('base64');
 
         return NextResponse.json({
-            audio_base64: combinedBase64,
+            audio_base64: finalBase64,
             chunks: results.length
         });
 
