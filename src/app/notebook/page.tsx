@@ -187,7 +187,7 @@ export default function NotebookWorkspace() {
                 showToast("Extracting text from PDF...", "success");
                 try {
                     // Dynamic import to avoid SSR issues
-                    const pdfJS = await import('pdfjs-dist/build/pdf');
+                    const pdfJS = await import('pdfjs-dist');
 
                     // Set worker (local file to fix Firefox CORS issues)
                     pdfJS.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
