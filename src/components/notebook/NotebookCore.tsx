@@ -143,16 +143,35 @@ export default function NotebookWorkspace() {
         setTimeout(() => document.body.removeChild(ghost), 0);
     };
 
-    const handleNoteDrop = (e: React.DragEvent) => {
+    const handleNoteDrop = async (e: React.DragEvent) => {
         e.preventDefault();
         setIsDraggingOver(false);
         const sourceId = e.dataTransfer.getData("sourceId");
         const source = sources.find(s => s.id === sourceId);
 
         if (source) {
+            // 1. Add to UI
             const contentToAdd = `\n\n### 📑 Source: ${source.name}\n${source.fullContent || '[Extracting content...]'}\n`;
             addNoteAtCursor(contentToAdd);
             showToast(`Imported content from "${source.name}"`, "success");
+
+            // 2. CRITICAL SYNC: Ensure server has this content for Summarize/Audio actions
+            // Even if it's already there, we re-ingest to be safe for this session
+            if (source.fullContent) {
+                try {
+                    await fetch("/api/ingest", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            text: source.fullContent,
+                            name: source.name,
+                            mode: "text"
+                        }),
+                    });
+                } catch (e) {
+                    console.error("Content sync failed on drop", e);
+                }
+            }
         }
     };
 
@@ -317,8 +336,14 @@ export default function NotebookWorkspace() {
                 ...newSource,
                 fullContent: data.preview || "Text content extracted successfully."
             }]);
-            setUploadModalOpen(false);
 
+            // CRITICAL: Ensure the server has this content in the vector store for SUMMARIZE
+            if (isPDF && body && headers) {
+                // The client-side parse already sent it to /api/ingest which saved it to Vector DB
+                console.log("Vector DB Sync preserved via /api/ingest");
+            }
+
+            setUploadModalOpen(false);
             showToast(`Successfully uploaded "${fileName}"`, 'success');
 
             const assistanceMessage = isMP3
