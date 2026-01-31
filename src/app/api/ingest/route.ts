@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ingestDocuments } from "@/lib/storage/vector-store";
+import mammoth from "mammoth";
 
 export async function POST(req: Request) {
     try {
@@ -100,6 +101,10 @@ export async function POST(req: Request) {
                         throw new Error("Failed to parse PDF and OCR failed.");
                     }
                 }
+            } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || name.toLowerCase().endsWith(".docx")) {
+                const buffer = Buffer.from(await file.arrayBuffer());
+                const result = await mammoth.extractRawText({ buffer });
+                textContent = result.value;
             } else {
                 textContent = await file.text();
             }

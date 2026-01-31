@@ -165,8 +165,14 @@ export default function NotebookWorkspace() {
         const fileType = file.type;
         const isMP3 = fileType === "audio/mpeg" || fileName.toLowerCase().endsWith(".mp3");
         const isPDF = fileType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf");
+        const isWord = fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || fileName.toLowerCase().endsWith(".docx");
 
-        const newSource = { id, name: fileName, type: isMP3 ? "audio" : "pdf", selected: true };
+        const newSource = {
+            id,
+            name: fileName,
+            type: isMP3 ? "audio" : isWord ? "word" : "pdf",
+            selected: true
+        };
 
         setIsIngesting(true);
         showToast("Processing file...", "success");
@@ -848,7 +854,7 @@ export default function NotebookWorkspace() {
                         <div className="p-8">
                             <div className="grid grid-cols-3 gap-4 mb-8">
                                 {[
-                                    { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD" },
+                                    { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD, DOCX" },
                                     { mode: 'website', icon: <Globe size={20} />, label: "Website", sub: "Enter URL" },
                                     { mode: 'text', icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
                                 ].map((option, i) => (
@@ -877,6 +883,7 @@ export default function NotebookWorkspace() {
                                         type="file"
                                         ref={fileInputRef}
                                         className="hidden"
+                                        accept=".pdf,.txt,.md,.docx,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                         onChange={(e) => {
                                             const file = e.target.files?.[0];
                                             if (file) handleFileUpload(file);
