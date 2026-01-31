@@ -823,7 +823,7 @@ export default function NotebookWorkspace() {
             const res = await fetch("/api/generate-audio", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: text.substring(0, 1000) }) // Limit for safety
+                body: JSON.stringify({ text: text.substring(0, 10000) }) // Increased limit for full messages
             });
 
             const data = await res.json();
@@ -1670,19 +1670,22 @@ export default function NotebookWorkspace() {
                             return (
                                 <div
                                     key={i}
-                                    draggable={msg.role === 'assistant'}
-                                    onDragStart={(e) => {
-                                        if (msg.role === 'assistant') {
-                                            e.dataTransfer.setData("text/plain", msg.content);
-                                            e.dataTransfer.setData("type", "assistant_message");
-                                        }
-                                    }}
-                                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300 ${msg.role === 'assistant' ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2 duration-300`}
                                 >
-                                    <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'}`}>
+                                    <div
+                                        draggable={msg.role === 'assistant'}
+                                        onDragStart={(e) => {
+                                            if (msg.role === 'assistant') {
+                                                e.dataTransfer.setData("text/plain", msg.content);
+                                                e.dataTransfer.setData("type", "assistant_message");
+                                            }
+                                        }}
+                                        className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-white ${msg.role === 'user' ? 'bg-accent' : 'bg-accent-secondary'} ${msg.role === 'assistant' ? 'cursor-grab active:cursor-grabbing shadow-sm hover:ring-2 hover:ring-accent/50 transition-all' : ''}`}
+                                        title={msg.role === 'assistant' ? "Drag avatar to side panel to save as source" : ""}
+                                    >
                                         {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                     </div>
-                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm max-w-[90%] group relative flex flex-col gap-3 shadow-sm`}>
+                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm max-w-[90%] group relative flex flex-col gap-3 shadow-sm select-text`}>
                                         <div className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">
                                             {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
                                                 if (/^\[\d+\]$/.test(part)) {
@@ -1748,7 +1751,7 @@ export default function NotebookWorkspace() {
                                             <div className="absolute right-2 top-2 flex items-center gap-1.5 bg-background shadow-md backdrop-blur-md p-1.5 rounded-2xl border border-accent/20 z-20 transition-all duration-300">
                                                 <button
                                                     onClick={() => handleSpeakMessage(msg.content, i)}
-                                                    className={`p-2 rounded-xl transition-all flex items-center gap-1.5 ${isSpeakingMap[i] ? 'bg-blue-600 text-white animate-divine-pulse' : 'hover:bg-blue-100/50 text-blue-600 bg-blue-50'}`}
+                                                    className={`p-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isSpeakingMap[i] ? 'bg-blue-600 text-white animate-divine-pulse' : 'hover:bg-blue-100/50 text-blue-600 bg-blue-50'}`}
                                                     title={isSpeakingMap[i] ? "Stop Listening" : "Listen to Message"}
                                                 >
                                                     {isSpeakingMap[i] ? <X size={16} /> : <Volume2 size={16} />}
@@ -1756,13 +1759,13 @@ export default function NotebookWorkspace() {
                                                 </button>
                                                 <button
                                                     onClick={() => addNoteAtCursor(msg.content)}
-                                                    className="p-2 hover:bg-accent/10 rounded-xl text-muted-foreground hover:text-accent transition-all"
+                                                    className="p-2 hover:bg-accent/10 rounded-xl text-muted-foreground hover:text-accent transition-all cursor-pointer"
                                                     title="Pin to Note"
                                                 >
                                                     <Pin size={16} />
                                                 </button>
                                                 <button
-                                                    className="p-2 hover:bg-accent/10 rounded-xl text-muted-foreground hover:text-accent transition-all"
+                                                    className="p-2 hover:bg-accent/10 rounded-xl text-muted-foreground hover:text-accent transition-all cursor-pointer"
                                                     title="Copy"
                                                     onClick={() => navigator.clipboard.writeText(msg.content)}
                                                 >
