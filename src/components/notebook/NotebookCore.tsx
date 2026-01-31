@@ -1430,7 +1430,7 @@ export default function NotebookWorkspace() {
                 </div>
 
                 {/* Dynamic Action Bar (Bottom Middle) - High Z-Index Fix */}
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 glass-morphism rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 z-[100] animate-in slide-in-from-bottom-5 duration-700 pointer-events-auto">
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-card-bg/95 border border-accent/20 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] animate-in slide-in-from-bottom-5 duration-700 pointer-events-auto max-w-[90%] whitespace-nowrap overflow-x-auto no-scrollbar">
                     {/* Summarize - Works on SOURCES */}
                     <button
                         onClick={handleSummarize}
@@ -1636,7 +1636,7 @@ export default function NotebookWorkspace() {
                                             <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm p-1 rounded-xl border border-border">
                                                 <button
                                                     onClick={() => handleSpeakMessage(msg.content, i)}
-                                                    className={`p-1.5 hover:text-accent transition-colors ${isSpeakingMap[i] ? 'animate-pulse text-accent' : ''}`}
+                                                    className={`p-1.5 rounded-lg transition-all ${isSpeakingMap[i] ? 'bg-accent text-white animate-pulse' : 'hover:bg-accent/20 text-accent bg-accent/10'}`}
                                                     title="Listen to Message"
                                                 >
                                                     <Volume2 size={12} />
