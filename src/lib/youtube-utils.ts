@@ -1,197 +1,178 @@
 // src/lib/youtube-utils.ts
-import { YoutubeTranscript } from 'youtube-transcript-plus';
 import { Innertube } from 'youtubei.js';
 
 export async function fetchYoutubeTranscript(url: string): Promise<string> {
   try {
     console.log(`[YT-Utils] Fetching transcript for: ${url}`);
 
-    // Robust video ID extraction
-    const extractVideoId = (inputUrl: string): string | null => {
+    // ─── Video ID extraction ────────────────────────────────────────
+    const extractVideoId = (input: string): string | null => {
       const patterns = [
         /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=))([^"&?/\s]{11})/i,
         /youtu\.be\/([^"&?/\s]{11})/i,
         /youtube\.com\/shorts\/([^"&?/\s]{11})/i,
       ];
-
-      for (const pattern of patterns) {
-        const match = inputUrl.match(pattern);
-        if (match && match[1]) return match[1];
+      for (const p of patterns) {
+        const m = input.match(p);
+        if (m?.[1]) return m[1];
       }
-
-      // If the input is already an 11-char ID
-      if (/^[a-zA-Z0-9_-]{11}$/.test(inputUrl.trim())) {
-        return inputUrl.trim();
-      }
-
-      return null;
+      return /^[a-zA-Z0-9_-]{11}$/.test(input.trim()) ? input.trim() : null;
     };
 
-    const videoId: string | null = extractVideoId(url);
+    const videoId = extractVideoId(url);
     if (!videoId) {
-      throw new Error("Could not extract valid YouTube video ID from the provided URL");
+      throw new Error("Invalid YouTube URL or video ID");
     }
 
     console.log(`[YT-Utils] Video ID: ${videoId}`);
-    const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-    // 1. Innertube with cookies (best for restricted/age-gated videos)
-    const cookies: string = process.env.YT_COOKIES || "";
+    // Headers to mimic real browser (very important in 2026)
+    const headers = {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Cookie': 'CONSENT=YES+cb.20250101-01-0', // basic consent bypass
+    };
+
+    // ─── 1. Try Innertube with cookies (best for restricted videos) ──
+    const cookies = process.env.YT_COOKIES?.trim();
     if (cookies) {
       try {
-        console.log("[YT-Utils] Trying Innertube with session cookies...");
+        console.log("[YT-Utils] Trying Innertube with cookies...");
         const yt = await Innertube.create({
           cookie: cookies,
           generate_session_locally: true,
+          retrieve_player: false,
         });
-
         const info = await yt.getInfo(videoId);
-        const transcriptData = await info.getTranscript();
-
-        if (transcriptData?.transcript?.content?.body?.initial_segments?.length) {
-          const text = transcriptData.transcript.content.body.initial_segments
-            .map((s: { snippet?: { text?: string } }) => s.snippet?.text || '')
+        const transcript = await info.getTranscript();
+        if (transcript?.transcript?.content?.body?.initial_segments?.length) {
+          const text = transcript.transcript.content.body.initial_segments
+            .map((s: any) => s.snippet?.text || '')
             .filter(Boolean)
             .join(' ')
             .trim();
-
           if (text.length > 50) {
             console.log(`[YT-Utils] Innertube success (${text.length} chars)`);
             return text;
           }
         }
-      } catch (err: unknown) {
-        console.warn(`[YT-Utils] Innertube failed: ${(err as Error).message || String(err)}`);
+      } catch (err: any) {
+        console.warn(`[YT-Utils] Innertube failed: ${err.message || err}`);
       }
     }
 
-    // Timeout wrapper
-    const withTimeout = <T>(promise: Promise<T>, ms: number = 30000): Promise<T> =>
+    // Timeout helper
+    const withTimeout = <T>(p: Promise<T>, ms = 20000): Promise<T> =>
       Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-          setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
-        ),
+        p,
+        new Promise<T>((_, r) => setTimeout(() => r(new Error(`Timeout after ${ms}ms`)), ms)),
       ]);
 
-    // 2. Official-ish library attempt
+    // ─── 2. Manual caption fetch (most reliable in 2026) ─────────────
     try {
-      console.log("[YT-Utils] Trying youtube-transcript-plus library...");
-      const transcriptItems = await withTimeout(
-        YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' })
-      );
+      console.log("[YT-Utils] Fetching video page for captions...");
+      const res = await withTimeout(fetch(watchUrl, { headers }));
+      if (!res.ok) throw new Error(`YouTube page HTTP ${res.status}`);
 
-      if (Array.isArray(transcriptItems) && transcriptItems.length > 0) {
-        const fullText = transcriptItems
-          .map(item => (item as { text: string }).text)
-          .join(' ')
-          .trim();
+      const html = await res.text();
 
-        console.log(`[YT-Utils] Library success (${fullText.length} chars)`);
-        return fullText;
-      }
-    } catch (err: unknown) {
-      console.warn(`[YT-Utils] Library failed: ${(err as Error).message || String(err)}`);
-    }
+      // More robust regex for ytInitialPlayerResponse (handles minified JS better)
+      const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?})(?:\s*;\s*(?:var|<\/script>))/s);
+      if (!match?.[1]) throw new Error("ytInitialPlayerResponse not found");
 
-    // 3. Manual HTML + captionTracks parsing (usually most reliable)
-    try {
-      console.log("[YT-Utils] Trying manual HTML fallback...");
-      const res = await fetch(normalizedUrl, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Cookie': 'CONSENT=YES+cb.20250101-01-0',
-        },
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status} from YouTube page`);
-
-      const html: string = await res.text();
-
-      const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+meta|<\/script>)/s);
-      if (!match || !match[1]) throw new Error("Could not find ytInitialPlayerResponse in HTML");
-
-      interface CaptionTrack {
-        baseUrl: string;
-        languageCode: string;
-        name?: { simpleText: string };
-      }
-
-      const data = JSON.parse(match[1]) as {
-        captions?: {
-          playerCaptionsTracklistRenderer?: {
-            captionTracks: CaptionTrack[];
-          };
-        };
-      };
-
+      const data = JSON.parse(match[1]) as any;
       const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-      if (!tracks || tracks.length === 0) {
-        throw new Error("No caption tracks found in player response");
+
+      if (!tracks?.length) throw new Error("No caption tracks available");
+
+      // Prefer English, fallback to first available
+      let track = tracks.find((t: any) => t.languageCode?.startsWith('en')) ||
+                  tracks.find((t: any) => t.languageCode) ||
+                  tracks[0];
+
+      let captionUrl = track.baseUrl;
+      // Try modern JSON format first (more reliable parsing)
+      const jsonUrl = `${captionUrl}&fmt=json3`;
+      console.log("[YT-Utils] Trying json3 format...");
+
+      let text = '';
+      try {
+        const jsonRes = await fetch(jsonUrl, { headers });
+        if (jsonRes.ok) {
+          const json = await jsonRes.json();
+          if (json.events) {
+            text = json.events
+              .map((e: any) => e.segs?.map((s: any) => s.utf8 || '').join('') || '')
+              .filter(Boolean)
+              .join(' ')
+              .trim();
+          }
+        }
+      } catch {}
+
+      // Fallback to XML if json3 fails
+      if (!text) {
+        const xmlUrl = `${captionUrl}&fmt=ttml`; // or srv3/vtt
+        const xmlRes = await fetch(xmlUrl, { headers });
+        if (!xmlRes.ok) throw new Error(`Caption fetch failed ${xmlRes.status}`);
+
+        const xml = await xmlRes.text();
+        const segments = xml.match(/<p[^>]*>(.*?)<\/p>/gs) || [];
+        text = segments
+          .map(p => p.replace(/<[^>]+>/g, ''))
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
       }
 
-      const preferredTrack = tracks.find(t => t.languageCode.startsWith('en')) || tracks[0];
-      const captionUrl = `${preferredTrack.baseUrl}&fmt=srv3`; // srv3 = clean XML
-
-      const xmlRes = await fetch(captionUrl);
-      if (!xmlRes.ok) throw new Error(`Caption fetch failed: HTTP ${xmlRes.status}`);
-
-      const xml = await xmlRes.text();
-
-      const textSegments = xml.match(/<text[^>]*>(.*?)<\/text>/gs) || [];
-      const fullText = textSegments
-        .map(t => t.replace(/<text[^>]*>|<\/text>/g, ''))
-        .map(t => decodeURIComponent(t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")))
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (fullText.length > 50) {
-        console.log(`[YT-Utils] Manual HTML parse success (${fullText.length} chars)`);
-        return fullText;
+      if (text.length > 50) {
+        console.log(`[YT-Utils] Manual caption success (${text.length} chars)`);
+        return text;
       }
-    } catch (err: unknown) {
-      console.warn(`[YT-Utils] Manual fallback failed: ${(err as Error).message || String(err)}`);
+    } catch (err: any) {
+      console.warn(`[YT-Utils] Manual caption failed: ${err.message}`);
     }
 
-    // 4. Piped fallback (public instances)
-    const pipedBases: string[] = [
+    // ─── 3. Piped fallback (expanded list 2026) ───────────────────────
+    const pipedInstances = [
       "https://pipedapi.kavin.rocks",
+      "https://api.piped.io",
       "https://piped-api.lunar.icu",
       "https://pipedapi-libre.kavin.rocks",
-      "https://api-piped-proxy.ashwin.run",
+      "https://piped-api-proxy.ashwin.run",
+      "https://piped.tor.hole",
     ];
 
-    for (const base of pipedBases) {
+    for (const base of pipedInstances) {
       try {
-        console.log(`[YT-Utils] Trying Piped instance: ${base}`);
-        const res = await withTimeout(fetch(`${base}/streams/${videoId}`), 12000);
-
+        console.log(`[YT-Utils] Piped try: ${base}`);
+        const res = await withTimeout(fetch(`${base}/streams/${videoId}`), 15000);
         if (!res.ok) continue;
 
-        const json = await res.json() as { subtitles?: Array<{ code: string; name: string; url: string }> };
+        const json = await res.json() as any;
+        const subs = json?.subtitles || [];
+        if (!subs.length) continue;
 
-        if (json.subtitles && json.subtitles.length > 0) {
-          const sub = json.subtitles.find(s => s.code?.startsWith('en') || s.name?.toLowerCase().includes('english')) || json.subtitles[0];
-          const txtRes = await fetch(sub.url);
-          const text = await txtRes.text();
+        const sub = subs.find((s: any) => s.code?.startsWith('en') || /english/i.test(s.name || '')) || subs[0];
+        const txtRes = await fetch(sub.url);
+        if (!txtRes.ok) continue;
 
-          console.log(`[YT-Utils] Piped success via ${base} (${text.length} chars)`);
-          return text.trim();
+        const text = (await txtRes.text()).trim();
+        if (text.length > 50) {
+          console.log(`[YT-Utils] Piped success (${text.length} chars via ${base})`);
+          return text;
         }
-      } catch {
-        // silent continue to next instance
-      }
+      } catch {}
     }
 
     throw new Error(
-      "All transcript methods failed. The video may have no captions enabled, or YouTube blocked all requests."
+      "All transcript methods failed. Video may lack captions, be age-restricted, or YouTube is blocking requests."
     );
-  } catch (error: unknown) {
-    console.error("[YT-Utils] Final error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error during transcript fetch";
-    throw new Error(`Transcript fetch failed: ${message}`);
+  } catch (error: any) {
+    console.error("[YT-Utils] Fatal:", error);
+    throw new Error(`Failed to fetch transcript: ${error.message}`);
   }
 }
