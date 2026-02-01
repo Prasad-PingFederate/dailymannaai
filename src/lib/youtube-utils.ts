@@ -2,7 +2,7 @@
 import { YoutubeTranscript } from 'youtube-transcript-plus';
 import { Innertube } from 'youtubei.js';
 
-export async function fetchYoutubeTranscript(url) {
+export async function fetchYoutubeTranscript(url: string): Promise<string> {
   try {
     console.log(`[YT-Utils] Fetching transcript for: ${url}`);
 
