@@ -21,6 +21,12 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         const transcript: any = await Promise.race([transcriptPromise, timeoutPromise]);
 
         if (!transcript || transcript.length === 0) {
+            console.log("[YoutubeUtils] First attempt empty. Retrying with lang='en'...");
+            const transcriptRetry = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' });
+            if (transcriptRetry && transcriptRetry.length > 0) {
+                const fullText = transcriptRetry.map((t: any) => t.text).join(' ');
+                return fullText;
+            }
             throw new Error("No transcript found for this video.");
         }
 
