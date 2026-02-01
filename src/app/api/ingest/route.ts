@@ -17,77 +17,44 @@ export async function POST(req: Request) {
             if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
                 console.log(`[Ingest] Detected YouTube URL: ${url}`);
                 try {
-                    // 1. Setup Timeout Wrapper
-                    const fetchWithTimeout = (promise: Promise<any>, ms: number) => {
-                        return Promise.race([
-                            promise,
-                            new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms))
-                        ]);
-                    };
+                    // Use isolated worker process to bypass Next.js fetch restrictions and ensure robust patching
+                    console.log(`[Ingest] Spawning worker for ${url}...`);
 
-                    // 2. Patch Global Fetch for User-Agent (Bypass YouTube Bot Detection)
-                    // youtube-transcript uses node-fetch or global fetch internally but doesn't expose headers.
-                    // We monkey-patch it temporarily for this request scope.
-                    const originalFetch = global.fetch;
-                    global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-                        const urlStr = input.toString();
-                        if (urlStr.includes('youtube.com') || urlStr.includes('youtu.be')) {
-                            init = init || {};
-                            init.headers = init.headers || {};
-                            // @ts-ignore
-                            init.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-                            // @ts-ignore
-                            init.headers['Accept-Language'] = 'en-US,en;q=0.9';
-                        }
-                        return originalFetch(input, init);
-                    };
+                    const { execFile } = await import('child_process');
+                    const path = await import('path');
 
-                    console.log(`[Ingest] Attempting to fetch transcript for ${url}...`);
+                    const workerScript = path.join(process.cwd(), 'src', 'workers', 'youtube-ingest.js');
 
-                    let transcriptItems = null;
-                    let usedMethod = "";
+                    const result: string = await new Promise((resolve, reject) => {
+                        execFile('node', [workerScript, url], { timeout: 45000 }, (error, stdout, stderr) => {
+                            if (error) {
+                                // Try to extract error json from stderr if possible
+                                try {
+                                    const errObj = JSON.parse(stderr);
+                                    reject(new Error(errObj.error || error.message));
+                                } catch {
+                                    reject(error);
+                                }
+                                return;
+                            }
+                            if (stderr) console.error(`[Worker Error] ${stderr}`);
+                            resolve(stdout);
+                        });
+                    });
 
-                    // 2. Dynamic Imports
-                    // @ts-ignore
-                    const { YoutubeTranscript: YtPlus } = await import('youtube-transcript-plus');
-                    // @ts-ignore
-                    const { YoutubeTranscript: YtStd } = await import('youtube-transcript');
-
-                    // 3. Strategy A: Try youtube-transcript-plus (Better for auto-captions)
+                    let output;
                     try {
-                        console.log("[Ingest] Strategy A: youtube-transcript-plus");
-                        transcriptItems = await fetchWithTimeout(
-                            YtPlus.fetchTranscript(url, { lang: 'en' }),
-                            15000 // 15s timeout for first attempt
-                        );
-                        usedMethod = "youtube-transcript-plus";
-                    } catch (errA: any) {
-                        console.warn(`[Ingest] Strategy A failed: ${errA.message}. Switching to Strategy B...`);
+                        output = JSON.parse(result);
+                    } catch (e) {
+                        throw new Error("Invalid response from worker process");
                     }
 
-                    // 4. Strategy B: Try youtube-transcript (Standard, fallback)
-                    if (!transcriptItems) {
-                        try {
-                            console.log("[Ingest] Strategy B: youtube-transcript (Standard)");
-                            transcriptItems = await fetchWithTimeout(
-                                YtStd.fetchTranscript(url),
-                                15000 // Another 15s
-                            );
-                            usedMethod = "youtube-transcript";
-                        } catch (errB: any) {
-                            console.warn(`[Ingest] Strategy B failed: ${errB.message}`);
-                            throw new Error(`All transcript fetch strategies failed. Last error: ${errB.message}`);
-                        }
+                    if (output.error) {
+                        throw new Error(output.error);
                     }
 
-                    if (!transcriptItems || transcriptItems.length === 0) {
-                        throw new Error("No transcript data found for this video.");
-                    }
-
-                    // Combine transcript parts
-                    textContent = transcriptItems.map((item: { text: string }) => item.text).join(' ');
-
-                    console.log(`[Ingest] Success via ${usedMethod}. Fetched ${textContent.length} chars.`);
+                    textContent = output.text;
+                    console.log(`[Ingest] Worker success. Fetched ${textContent.length} chars.`);
 
                     if (!name) {
                         name = `YouTube Video (${url})`;
