@@ -17,32 +17,19 @@ export async function POST(req: Request) {
             const { url, text, name: inputName, mode } = body;
             name = inputName;
 
-            // YouTube Detection
-            if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
-                console.log(`[Ingest] Detected YouTube URL: ${url}`);
+            // YouTube Detection (Bypass if text is already provided via Client-Side fetch)
+            if (!text && url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
+                console.log(`[Ingest] Detected YouTube URL (No client-side text): ${url}`);
                 try {
-                    console.log(`[Ingest] Fetching transcript directly for ${url}...`);
-
-                    // Refactored to use youtube-transcript-plus directly (no child_process)
                     textContent = await fetchYoutubeTranscript(url);
-
-                    console.log(`[Ingest] Success. Fetched ${textContent.length} chars.`);
-
-                    if (!name) {
-                        name = `YouTube Video (${url})`;
-                    }
-
+                    console.log(`[Ingest] Server-side YT fetch success: ${textContent.length} chars.`);
                 } catch (ytError: any) {
                     console.error("YouTube Main Transcript Error:", ytError.message);
-
-                    // Fallback detailed error message for user
-                    let userErrorMessage = `Failed to fetch YouTube transcript: ${ytError.message}`;
-                    if (ytError.message.includes("404")) userErrorMessage = "Video not found or unavailable.";
-                    if (ytError.message.includes("Captions") || ytError.message.includes("Could not retrieve")) userErrorMessage = "No English captions available for this video.";
-                    if (ytError.message.includes("Timeout")) userErrorMessage = "The video is too long or YouTube is responding slowly. Please try again.";
-
-                    return NextResponse.json({ error: userErrorMessage }, { status: 400 });
+                    return NextResponse.json({ error: ytError.message }, { status: 400 });
                 }
+            } else if (text) {
+                console.log(`[Ingest] Using provided text content for ${name || "unnamed source"}`);
+                textContent = text;
             } else if (mode === "website") {
                 if (!url) return NextResponse.json({ error: "URL is required" }, { status: 400 });
 
