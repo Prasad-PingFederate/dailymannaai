@@ -1724,7 +1724,7 @@ export default function NotebookWorkspace() {
                                     <div className="flex flex-col gap-1 max-w-[90%]">
                                         {/* Audio Controls - Positioned above message bubble */}
                                         {msg.role === 'assistant' && (
-                                            <div className="flex items-center gap-1.5 self-start bg-background shadow-md backdrop-blur-md p-1.5 rounded-2xl border border-accent/20 transition-all duration-300 opacity-0 group-hover:opacity-100">
+                                            <div className="flex items-center gap-1.5 self-start bg-background shadow-md backdrop-blur-md p-1.5 rounded-2xl border border-accent/20 transition-all duration-300">
                                                 <button
                                                     onClick={() => handleSpeakMessage(msg.content, i)}
                                                     className={`p-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isSpeakingMap[i] ? 'bg-blue-600 text-white animate-divine-pulse' : 'hover:bg-blue-100/50 text-blue-600 bg-blue-50'}`}
