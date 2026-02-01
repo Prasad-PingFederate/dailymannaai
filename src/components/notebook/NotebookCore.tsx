@@ -478,40 +478,99 @@ export default function NotebookWorkspace() {
         }
 
         setIsIngesting(true);
+        setIngestStatus("Initializing transcription...");
         try {
+            const isYoutube = websiteUrl.includes("youtube.com") || websiteUrl.includes("youtu.be") || websiteUrl.includes("walch");
+
+            let finalContent = "";
+            let finalMode = "website";
+
+            if (isYoutube) {
+                setIngestStatus("Connecting to YouTube (Client-Side)...");
+                // Extract Video ID
+                const videoIdMatch = websiteUrl.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/|v\/|walch\?v=)([^#\&\?]*)/);
+                const videoId = videoIdMatch ? videoIdMatch[1] : websiteUrl.trim();
+                const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+                try {
+                    // 1. Fetch HTML to find caption tracks
+                    const htmlRes = await fetch(normalizedUrl);
+                    const html = await htmlRes.text();
+
+                    const regex = /"captionTracks":\s*(\[.*?\])/;
+                    const match = html.match(regex);
+
+                    if (match) {
+                        setIngestStatus("Extracting transcript data...");
+                        const tracks = JSON.parse(match[1]);
+                        const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
+
+                        const transRes = await fetch(enTrack.baseUrl);
+                        const xml = await transRes.text();
+
+                        // Parse XML to Text
+                        const textMatch = xml.match(/<text.*?>([\s\S]*?)<\/text>/g);
+                        if (textMatch) {
+                            finalContent = textMatch
+                                .map(t => t.replace(/<text.*?>|<\/text>/g, ''))
+                                .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'))
+                                .join(' ')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+
+                            finalMode = "text"; // Send as raw text to bypass server yt fetch
+                            setIngestStatus("Transcript captured! Saving to profile...");
+                        }
+                    } else {
+                        throw new Error("YouTube blocked client fetch or video has no CC. Trying server fallback...");
+                    }
+                } catch (clientErr: any) {
+                    console.warn("Client-side YT fetch failed, falling back to server:", clientErr.message);
+                    setIngestStatus("Client-side check failed. Trying Server Fallback...");
+                }
+            }
+
             const res = await fetch("/api/ingest", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: websiteUrl, name: websiteTitle, mode: "website" }),
+                body: JSON.stringify({
+                    url: websiteUrl,
+                    name: websiteTitle,
+                    mode: finalMode,
+                    text: finalContent // Pass content directly if we grabbed it client-side
+                }),
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to ingest website");
+            if (res.ok) {
+                setIngestStatus("Success! Finalizing document...");
+                const data = await res.json();
 
-            const id = `Web-${Date.now()}`;
-            setSources(prev => [...prev, {
-                id,
-                name: websiteTitle,
-                type: "text",
-                selected: true,
-                fullContent: data.preview
-            }]);
-            setUploadModalOpen(false);
-            setWebsiteUrl("");
-            setWebsiteTitle("");
-
-            showToast("Website content added successfully", 'success');
-
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: `I've finished exploring and "learning" from the website "${websiteTitle}". I'm ready to answer any questions about it!`
-            }]);
+                const id = `Web-${Date.now()}`;
+                setSources(prev => [...prev, {
+                    id,
+                    name: websiteTitle,
+                    type: "text",
+                    selected: true,
+                    fullContent: data.preview || finalContent.substring(0, 1000)
+                }]);
+                setUploadModalOpen(false);
+                setWebsiteUrl("");
+                setWebsiteTitle("");
+                showToast("Content added successfully", 'success');
+                setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: `I've finished indexing "${websiteTitle}". I'm ready to answer any questions about it!`
+                }]);
+            } else {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to ingest content");
+            }
         } catch (error: any) {
             console.error("Website Ingest Error:", error);
             showToast(error.message, 'error');
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `Sorry, I had trouble visiting that website: ${error.message}`
+                content: `Sorry, I had trouble: ${error.message}`
             }]);
         } finally {
             setIsIngesting(false);
