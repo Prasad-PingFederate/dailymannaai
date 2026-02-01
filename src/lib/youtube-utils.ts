@@ -1,150 +1,163 @@
+// fetch-transcript.mjs
 import { YoutubeTranscript } from 'youtube-transcript-plus';
 import { Innertube } from 'youtubei.js';
 
-// Direct implementation without child_process to avoid build issues.
-// Running in 'nodejs' runtime in Next.js is sufficient for this library.
-export async function fetchYoutubeTranscript(url: string): Promise<string> {
-    try {
-        console.log(`[YoutubeUtils] Initializing fetch for ${url}`);
+export async function fetchYoutubeTranscript(url) {
+  try {
+    console.log(`[YT-Utils] Fetching transcript for: ${url}`);
 
-        // Robust video ID extraction (handles 'walch', 'watch', 'embed', 'youtu.be', etc.)
-        const videoIdMatch = url.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/|v\/|walch\?v=)([^#\&\?]*)/);
-        const videoId = videoIdMatch ? videoIdMatch[1] : url.trim();
-        console.log(`[YoutubeUtils] Normalized ID: ${videoId}`);
-        const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    // Robust video ID extraction
+    const extractVideoId = (url) => {
+      const patterns = [
+        /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=))([^"&?/\s]{11})/i,
+        /youtu\.be\/([^"&?/\s]{11})/i,
+        /youtube\.com\/shorts\/([^"&?/\s]{11})/i,
+      ];
+      for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+      }
+      // If already 11-char ID
+      return url.trim().length === 11 ? url.trim() : null;
+    };
 
-        // WELL MECHANISM: YouTubei.js with Session Cookies (Inspired by X Automation)
-        const cookies = process.env.YT_COOKIES || "";
-        if (cookies) {
-            try {
-                console.log(`[YoutubeUtils] Found YT_COOKIES. Using YouTubei.js Session Bypass...`);
-                // generate_session_locally helps bypass some environment-specific blocks
-                const yt = await Innertube.create({
-                    cookie: cookies,
-                    generate_session_locally: true
-                });
-                const info = await yt.getInfo(videoId);
-                const transcriptData = await info.getTranscript();
+    const videoId = extractVideoId(url);
+    if (!videoId) throw new Error("Could not extract valid YouTube video ID");
 
-                if (transcriptData?.transcript?.content?.body?.initial_segments) {
-                    const text = transcriptData.transcript.content.body.initial_segments
-                        .map((s: any) => s.snippet.text)
-                        .join(' ');
-                    console.log(`[YoutubeUtils] YouTubei.js Session Success: ${text.length} chars.`);
-                    return text;
-                }
-            } catch (ytErr: any) {
-                console.warn(`[YoutubeUtils] YouTubei.js Session failed: ${ytErr.message}`);
-            }
+    console.log(`[YT-Utils] Video ID: ${videoId}`);
+    const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    // 1. Innertube with cookies (best for restricted videos)
+    const cookies = process.env.YT_COOKIES || "";
+    if (cookies) {
+      try {
+        console.log("[YT-Utils] Trying Innertube with cookies...");
+        const yt = await Innertube.create({
+          cookie: cookies, // can be string or object – adjust if needed
+          generate_session_locally: true,
+        });
+        const info = await yt.getInfo(videoId);
+        const transcriptData = await info.getTranscript();
+        if (transcriptData?.transcript?.content?.body?.initial_segments?.length) {
+          const text = transcriptData.transcript.content.body.initial_segments
+            .map(s => s.snippet?.text || '')
+            .filter(Boolean)
+            .join(' ');
+          if (text.length > 50) {
+            console.log(`[YT-Utils] Innertube success (${text.length} chars)`);
+            return text;
+          }
         }
-
-        // Wrap in timeout to prevent hanging indefinitely
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("YouTube ingestion timed out after 30 seconds")), 30000)
-        );
-
-        // Attempt 1: Standard Library Fetch
-        const transcriptPromise = YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' });
-
-        try {
-            const transcript: any = await Promise.race([transcriptPromise, timeoutPromise]);
-            if (transcript && transcript.length > 0) {
-                const fullText = transcript.map((t: any) => t.text).join(' ');
-                console.log(`[YoutubeUtils] Library Success: ${fullText.length} chars.`);
-                return fullText;
-            }
-        } catch (libErr: any) {
-            console.log(`[YoutubeUtils] Library failed: ${libErr.message}. Trying Manual Fallback...`);
-        }
-
-        // FALLBACK: Manual HTML Parsing (Bypasses library/Bot limitations)
-        try {
-            console.log(`[YoutubeUtils] Starting Manual HTML Fallback for ${normalizedUrl}...`);
-            const res = await fetch(normalizedUrl, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+430' // Bypass consent wall
-                }
-            });
-            const html = await res.text();
-
-            // Broad capture for transcript list
-            const regex = /"captionTracks":\s*(\[.*?\])/;
-            const match = html.match(regex);
-
-            if (match) {
-                const tracks = JSON.parse(match[1]);
-                // Prioritize English, then any
-                const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
-                console.log(`[YoutubeUtils] Found Manual Track: ${enTrack.baseUrl}`);
-
-                const transRes = await fetch(enTrack.baseUrl);
-                const xml = await transRes.text();
-
-                // Simple XML to Plain Text conversion
-                const textMatch = xml.match(/<text.*?>([\s\S]*?)<\/text>/g);
-                if (textMatch) {
-                    const fullText = textMatch
-                        .map(t => t.replace(/<text.*?>|<\/text>/g, ''))
-                        .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'))
-                        .join(' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                    console.log(`[YoutubeUtils] Manual Parse Success: ${fullText.length} chars.`);
-                    return fullText;
-                }
-            } else {
-                console.log("[YoutubeUtils] No captionTracks found in HTML. Checking Bot wall...");
-                if (html.includes("Robot") || html.includes("captcha")) {
-                    throw new Error("YouTube blocked the server with a CAPTCHA. Please try again later.");
-                }
-            }
-        } catch (fallbackErr: any) {
-            console.error("Youtube Manual Fallback Error:", fallbackErr.message);
-            throw fallbackErr;
-        }
-
-        // FALLBACK 2: Piped API (Reliable third-party instance)
-        try {
-            console.log(`[YoutubeUtils] Starting Piped Fallback for ${videoId}...`);
-            const pipedEndpoints = ["https://pipedapi.kavin.rocks", "https://api.piped.io", "https://pipedapi.tokhmi.xyz"];
-            for (const api of pipedEndpoints) {
-                try {
-                    const res = await fetch(`${api}/streams/${videoId}`);
-                    if (!res.ok) continue;
-                    const data: any = await res.json();
-                    if (data.subtitles && data.subtitles.length > 0) {
-                        const enSub = data.subtitles.find((s: any) => s.code === 'en' || s.name === 'English') || data.subtitles[0];
-                        const subRes = await fetch(enSub.url);
-                        const text = await subRes.text();
-                        console.log(`[YoutubeUtils] Piped Success via ${api}: ${text.length} chars.`);
-                        return text;
-                    }
-                } catch (e) { continue; }
-            }
-        } catch (pipedErr) { console.error("Piped Fallback Error:", pipedErr); }
-
-        // FALLBACK 3: Invidious API
-        try {
-            console.log(`[YoutubeUtils] Starting Invidious Fallback for ${videoId}...`);
-            const invidiousEndpoints = ["https://yewtu.be", "https://inv.vern.cc", "https://invidious.snopyta.org"];
-            for (const api of invidiousEndpoints) {
-                try {
-                    const res = await fetch(`${api}/api/v1/captions/${videoId}?label=English`);
-                    if (res.ok) {
-                        const text = await res.text();
-                        console.log(`[YoutubeUtils] Invidious Success via ${api}: ${text.length} chars.`);
-                        return text;
-                    }
-                } catch (e) { continue; }
-            }
-        } catch (invErr) { console.error("Invidious Fallback Error:", invErr); }
-
-        throw new Error("No transcripts are available for this video. YouTube blocked all bypass layers or 'CC' is disabled.");
-
-    } catch (error: any) {
-        console.error("Youtube Ingestion Final Failure:", error.message);
-        throw error;
+      } catch (err) {
+        console.warn(`[YT-Utils] Innertube failed: ${err.message}`);
+      }
     }
+
+    // Timeout helper
+    const withTimeout = (promise, ms = 30000) =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
+        ),
+      ]);
+
+    // 2. Library attempt (with retry feel)
+    try {
+      console.log("[YT-Utils] Trying youtube-transcript-plus...");
+      const transcript = await withTimeout(
+        YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' })
+      );
+      if (transcript?.length > 0) {
+        const fullText = transcript.map(t => t.text).join(' ').trim();
+        console.log(`[YT-Utils] Library success (${fullText.length} chars)`);
+        return fullText;
+      }
+    } catch (err) {
+      console.warn(`[YT-Utils] Library failed: ${err.message}`);
+    }
+
+    // 3. Manual HTML parse (most reliable non-API method)
+    try {
+      console.log("[YT-Utils] Trying manual HTML parse...");
+      const res = await fetch(normalizedUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cookie': 'CONSENT=YES+cb.20250101-01-0',
+        },
+      });
+      const html = await res.text();
+
+      const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+meta|<\/script>)/s);
+      if (!match) throw new Error("No player response found");
+
+      const data = JSON.parse(match[1]);
+      const tracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+      if (!tracks?.length) throw new Error("No caption tracks available");
+
+      const track = tracks.find(t => t.languageCode.startsWith('en')) || tracks[0];
+      const url = `${track.baseUrl}&fmt=srv3`; // srv3 is usually clean XML
+
+      const xmlRes = await fetch(url);
+      const xml = await xmlRes.text();
+
+      const texts = xml.match(/<text[^>]*>(.*?)<\/text>/gs) || [];
+      const fullText = texts
+        .map(t => t.replace(/<text[^>]*>|<\/text>/g, ''))
+        .map(t => decodeURIComponent(t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")))
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (fullText.length > 50) {
+        console.log(`[YT-Utils] Manual parse success (${fullText.length} chars)`);
+        return fullText;
+      }
+    } catch (err) {
+      console.warn(`[YT-Utils] Manual fallback failed: ${err.message}`);
+    }
+
+    // 4. Piped fallback (public instances – rotate if one blocks)
+    const pipedBases = [
+      "https://pipedapi.kavin.rocks",
+      "https://piped-api.lunar.icu",
+      "https://pipedapi-libre.kavin.rocks",
+      "https://api-piped-proxy.ashwin.run",
+    ];
+
+    for (const base of pipedBases) {
+      try {
+        console.log(`[YT-Utils] Trying Piped: ${base}`);
+        const res = await withTimeout(fetch(`${base}/streams/${videoId}`), 12000);
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (json?.subtitles?.length) {
+          const sub = json.subtitles.find(s => s.code?.startsWith('en') || s.name?.toLowerCase().includes('english')) || json.subtitles[0];
+          const txt = await (await fetch(sub.url)).text();
+          console.log(`[YT-Utils] Piped success via ${base} (${txt.length} chars)`);
+          return txt.trim();
+        }
+      } catch {}
+    }
+
+    throw new Error("All methods failed. Video may have no captions, or YouTube blocked all requests.");
+  } catch (error) {
+    console.error("[YT-Utils] Final error:", error.message);
+    throw error;
+  }
+}
+
+// Quick test when running standalone
+if (import.meta.url === `file://${process.argv[1]}`) {
+  (async () => {
+    try {
+      const url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; // Rickroll test – has CC
+      const transcript = await fetchYoutubeTranscript(url);
+      console.log("Success! First 300 chars:\n", transcript.slice(0, 300));
+      console.log("\nTotal length:", transcript.length);
+    } catch (e) {
+      console.error("Test failed:", e);
+    }
+  })();
 }
