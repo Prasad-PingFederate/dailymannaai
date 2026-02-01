@@ -84,6 +84,7 @@ export default function NotebookWorkspace() {
     const [pastedText, setPastedText] = useState("");
     const [pastedTitle, setPastedTitle] = useState("");
     const [isIngesting, setIsIngesting] = useState(false);
+    const [ingestStatus, setIngestStatus] = useState<string>("");
     const [isGrammarChecking, setIsGrammarChecking] = useState(false);
     const [viewingSource, setViewingSource] = useState<any>(null);
     const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
@@ -263,7 +264,7 @@ export default function NotebookWorkspace() {
         } else {
             window.removeEventListener("mousemove", resize);
             window.removeEventListener("mouseup", stopResizing);
-        }
+        };
 
         return () => {
             window.removeEventListener("mousemove", resize);
@@ -336,6 +337,7 @@ export default function NotebookWorkspace() {
         };
 
         setIsIngesting(true);
+        setIngestStatus("Starting file upload...");
         showToast("Processing file...", "success");
 
         try {
@@ -345,6 +347,7 @@ export default function NotebookWorkspace() {
 
             // CLIENT-SIDE PDF PARSING (Bypass Vercel 4.5MB Limit)
             if (isPDF) {
+                setIngestStatus("Extracting text from PDF (client-side)...");
                 showToast("Extracting text from PDF...", "success");
                 try {
                     // Dynamic import to avoid SSR issues
@@ -384,14 +387,17 @@ export default function NotebookWorkspace() {
                     });
                     headers = { "Content-Type": "application/json" };
                     console.log("PDF parsed client-side. Size:", extractedText.length);
+                    setIngestStatus("PDF text extracted. Sending to AI for indexing...");
 
                 } catch (pdfErr: any) {
                     console.error("Client-side PDF parse failed / Scanned fallback:", pdfErr);
 
                     if (pdfErr.message.includes("Scanned")) {
                         showToast("Scanned PDF detected. Using Advanced AI Reading...", "success");
+                        setIngestStatus("Scanned PDF detected. Using Advanced AI Reading...");
                     } else {
                         showToast(`Client parse failed (${pdfErr.message}), trying server...`, "error");
+                        setIngestStatus(`Client parse failed (${pdfErr.message}), trying server...`);
                     }
                     // Fallback to standard upload
                     const formData = new FormData();
@@ -405,6 +411,7 @@ export default function NotebookWorkspace() {
                 formData.append("file", file);
                 formData.append("name", fileName);
                 body = formData;
+                setIngestStatus("Uploading file to server...");
             }
 
             const res = await fetch("/api/ingest", {
@@ -419,8 +426,11 @@ export default function NotebookWorkspace() {
 
             let data;
             try {
+                if (res.ok) {
+                    setIngestStatus("Success! Finalizing document...");
+                }
                 data = await res.json();
-            } catch (e) {
+            } catch (e: any) {
                 const text = await res.text();
                 throw new Error(`Server Error (${res.status}): ${text.substring(0, 50)}...`);
             }
@@ -1154,7 +1164,8 @@ export default function NotebookWorkspace() {
                             <div className="grid grid-cols-3 gap-4 mb-8">
                                 {[
                                     { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD, DOCX" },
-                                    { mode: 'website', icon: <Globe size={20} />, label: "Web / YouTube", sub: "Enter URL" },
+                                    { mode: 'youtube', icon: <Mic2 size={20} />, label: "YouTube Video", sub: "Transcribe CC" },
+                                    { mode: 'website', icon: <Globe size={20} />, label: "Website", sub: "Import Article" },
                                     { mode: 'text', icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
                                 ].map((option, i) => (
                                     <button
@@ -1395,12 +1406,55 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-border mt-auto">
+                <div className="p-4 border-t border-border mt-auto space-y-4">
+                    <div className="pt-2">
+                        <h4 className="text-[10px] font-bold text-muted uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <Sparkles size={10} className="text-accent" /> Research Tools
+                        </h4>
+                        <div className="space-y-2">
+                            <div className="relative group">
+                                <input
+                                    type="text"
+                                    placeholder="Paste YouTube Link..."
+                                    value={websiteUrl}
+                                    onChange={(e) => {
+                                        setWebsiteUrl(e.target.value);
+                                        if (e.target.value.includes("youtube.com") || e.target.value.includes("youtu.be")) {
+                                            setUploadMode('website');
+                                            if (!websiteTitle) setWebsiteTitle("YouTube Research");
+                                        }
+                                    }}
+                                    className="w-full bg-background border border-border rounded-xl py-2 pl-3 pr-10 text-xs focus:ring-1 focus:ring-accent outline-none transition-all"
+                                />
+                                <button
+                                    onClick={handleWebsiteIngest}
+                                    disabled={isIngesting || !websiteUrl}
+                                    className={`absolute right-1 top-1 p-1.5 rounded-lg transition-all ${isIngesting ? 'bg-accent/20 text-accent cursor-wait' : 'bg-accent text-white hover:scale-105 active:scale-95'}`}
+                                >
+                                    {isIngesting ? <div className="animate-spin h-3 w-3 border-2 border-accent border-t-transparent rounded-full" /> : <ArrowRight size={14} />}
+                                </button>
+                            </div>
+
+                            {isIngesting && websiteUrl.includes("youtube") && (
+                                <div className="bg-accent/10 rounded-lg p-2 animate-in fade-in duration-300">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[9px] font-bold text-accent uppercase">Transcribing...</span>
+                                        <span className="text-[9px] text-muted">Metric: Active</span>
+                                    </div>
+                                    <div className="h-1 bg-accent/20 rounded-full overflow-hidden">
+                                        <div className="h-full bg-accent animate-progress-fast w-[60%]"></div>
+                                    </div>
+                                    <p className="text-[8px] text-muted mt-1 italic">Bypassing restrictions via Manual Fallback...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <button
                         onClick={() => setUploadModalOpen(true)}
                         className="flex items-center gap-2 w-full p-2 bg-accent/10 text-accent rounded-lg text-sm font-bold hover:bg-accent/20 transition-colors"
                     >
-                        <Plus size={16} /> Add Source
+                        <Plus size={16} /> Add More Sources
                     </button>
                 </div>
             </aside>
