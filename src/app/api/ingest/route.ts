@@ -20,7 +20,15 @@ export async function POST(req: Request) {
                     // Use youtube-transcript-plus (more robust fork)
                     // @ts-ignore
                     const { YoutubeTranscript } = await import('youtube-transcript-plus');
-                    const transcriptItems = await YoutubeTranscript.fetchTranscript(url, { lang: 'en' });
+
+                    console.log(`[Ingest] Attempting to fetch transcript for ${url}...`);
+                    const transcriptItems = await YoutubeTranscript.fetchTranscript(url, {
+                        lang: 'en'
+                    });
+
+                    if (!transcriptItems || transcriptItems.length === 0) {
+                        throw new Error("No transcript data found for this video.");
+                    }
 
                     // Combine transcript parts
                     textContent = transcriptItems.map((item: { text: string }) => item.text).join(' ');
@@ -33,7 +41,13 @@ export async function POST(req: Request) {
 
                 } catch (ytError: any) {
                     console.error("YouTube Main Transcript Error:", ytError.message);
-                    return NextResponse.json({ error: `Failed to fetch YouTube transcript: ${ytError.message}` }, { status: 400 });
+
+                    // Fallback detailed error message for user
+                    let userErrorMessage = `Failed to fetch YouTube transcript: ${ytError.message}`;
+                    if (ytError.message.includes("404")) userErrorMessage = "Video not found or unavailable.";
+                    if (ytError.message.includes("Captions")) userErrorMessage = "No captions/transcript available for this video.";
+
+                    return NextResponse.json({ error: userErrorMessage }, { status: 400 });
                 }
             } else if (mode === "website") {
                 if (!url) return NextResponse.json({ error: "URL is required" }, { status: 400 });
