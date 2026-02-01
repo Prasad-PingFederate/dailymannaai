@@ -4,54 +4,54 @@ import { YoutubeTranscript } from 'youtube-transcript-plus';
 // Running in 'nodejs' runtime in Next.js is sufficient for this library.
 export async function fetchYoutubeTranscript(url: string): Promise<string> {
     try {
-        console.log(`[YoutubeUtils] Fetching transcript for ${url}`);
+        console.log(`[YoutubeUtils] Initializing fetch for ${url}`);
 
-        // Extract video ID (simple logic, library might handle url but safer to pass ID if possible, 
-        // strictly the library takes videoId or expected format. Let's parse ID.)
-        const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/|v\/)([^#\&\?]*).*/);
-        const videoId = videoIdMatch ? videoIdMatch[1] : url;
+        // Robust video ID extraction (handles 'walch', 'watch', 'embed', 'youtu.be', etc.)
+        const videoIdMatch = url.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/|v\/|walch\?v=)([^#\&\?]*)/);
+        const videoId = videoIdMatch ? videoIdMatch[1] : url.trim();
+        const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+        console.log(`[YoutubeUtils] Normalized ID: ${videoId}`);
 
         // Wrap in timeout to prevent hanging indefinitely
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error("YouTube ingestion timed out after 30 seconds")), 30000)
         );
 
-        const transcriptPromise = YoutubeTranscript.fetchTranscript(videoId);
+        // Attempt 1: Standard Library Fetch
+        const transcriptPromise = YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' });
 
-        const transcript: any = await Promise.race([transcriptPromise, timeoutPromise]);
-
-        if (!transcript || transcript.length === 0) {
-            console.log("[YoutubeUtils] First attempt empty. Retrying with lang='en'...");
-            const transcriptRetry = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'en' });
-            if (transcriptRetry && transcriptRetry.length > 0) {
-                const fullText = transcriptRetry.map((t: any) => t.text).join(' ');
+        try {
+            const transcript: any = await Promise.race([transcriptPromise, timeoutPromise]);
+            if (transcript && transcript.length > 0) {
+                const fullText = transcript.map((t: any) => t.text).join(' ');
+                console.log(`[YoutubeUtils] Library Success: ${fullText.length} chars.`);
                 return fullText;
             }
-            throw new Error("No transcript found for this video.");
+        } catch (libErr: any) {
+            console.log(`[YoutubeUtils] Library failed: ${libErr.message}. Trying Manual Fallback...`);
         }
 
-        const fullText = transcript.map((t: any) => t.text).join(' ');
-        return fullText;
-
-    } catch (error: any) {
-        console.error("Youtube Library Error:", error.message);
-
-        // FALLBACK: Manual HTML Parsing (Bypasses library limitations)
+        // FALLBACK: Manual HTML Parsing (Bypasses library/Bot limitations)
         try {
-            console.log(`[YoutubeUtils] Attempting Manual HTML Fallback for ${url}...`);
-            const res = await fetch(url, {
+            console.log(`[YoutubeUtils] Starting Manual HTML Fallback for ${normalizedUrl}...`);
+            const res = await fetch(normalizedUrl, {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Cookie': 'CONSENT=YES+cb.20210328-17-p0.en+FX+430' // Bypass consent wall
                 }
             });
             const html = await res.text();
 
+            // Broad capture for transcript list
             const regex = /"captionTracks":\s*(\[.*?\])/;
             const match = html.match(regex);
 
             if (match) {
                 const tracks = JSON.parse(match[1]);
-                const enTrack = tracks.find((t: any) => t.languageCode === 'en') || tracks[0];
+                // Prioritize English, then any
+                const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
                 console.log(`[YoutubeUtils] Found Manual Track: ${enTrack.baseUrl}`);
 
                 const transRes = await fetch(enTrack.baseUrl);
@@ -62,20 +62,28 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
                 if (textMatch) {
                     const fullText = textMatch
                         .map(t => t.replace(/<text.*?>|<\/text>/g, ''))
-                        .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
-                        .join(' ');
+                        .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'))
+                        .join(' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
                     console.log(`[YoutubeUtils] Manual Parse Success: ${fullText.length} chars.`);
                     return fullText;
+                }
+            } else {
+                console.log("[YoutubeUtils] No captionTracks found in HTML. Checking Bot wall...");
+                if (html.includes("Robot") || html.includes("captcha")) {
+                    throw new Error("YouTube blocked the server with a CAPTCHA. Please try again later.");
                 }
             }
         } catch (fallbackErr: any) {
             console.error("Youtube Manual Fallback Error:", fallbackErr.message);
+            throw fallbackErr;
         }
 
-        // Elevate specific error messages if fallback also fails
-        if (error.message.includes("Sign in")) throw new Error("Video requires sign-in (age restricted).");
-        if (error.message.includes("disabled")) throw new Error("Transcripts are disabled for this video.");
+        throw new Error("No transcripts are available for this video. Please ensure 'CC' is enabled.");
 
+    } catch (error: any) {
+        console.error("Youtube Ingestion Final Failure:", error.message);
         throw error;
     }
 }
