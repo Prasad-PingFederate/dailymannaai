@@ -1144,7 +1144,7 @@ export default function NotebookWorkspace() {
                             <div className="grid grid-cols-3 gap-4 mb-8">
                                 {[
                                     { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD, DOCX" },
-                                    { mode: 'website', icon: <Globe size={20} />, label: "Website", sub: "Enter URL" },
+                                    { mode: 'website', icon: <Globe size={20} />, label: "Web / YouTube", sub: "Enter URL" },
                                     { mode: 'text', icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
                                 ].map((option, i) => (
                                     <button
@@ -1187,20 +1187,20 @@ export default function NotebookWorkspace() {
                             ) : uploadMode === 'website' ? (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Site Name</label>
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Site / Video Name</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g., Sadhu Sundar Singh Biography"
+                                            placeholder="e.g., Pastor Pagadala Sermon"
                                             value={websiteTitle}
                                             onChange={(e) => setWebsiteTitle(e.target.value)}
                                             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Website URL</label>
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Website or YouTube URL</label>
                                         <input
                                             type="url"
-                                            placeholder="https://example.com/page"
+                                            placeholder="https://youtube.com/watch?v=..."
                                             value={websiteUrl}
                                             onChange={(e) => setWebsiteUrl(e.target.value)}
                                             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"

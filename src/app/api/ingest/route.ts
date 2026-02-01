@@ -13,7 +13,28 @@ export async function POST(req: Request) {
             const { url, text, name: inputName, mode } = body;
             name = inputName;
 
-            if (mode === "website") {
+            // YouTube Detection
+            if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
+                console.log(`[Ingest] Detected YouTube URL: ${url}`);
+                try {
+                    // @ts-ignore
+                    const { YoutubeTranscript } = await import('youtube-transcript');
+                    const transcriptItems = await YoutubeTranscript.fetchTranscript(url);
+
+                    // Combine transcript parts
+                    textContent = transcriptItems.map((item: { text: string }) => item.text).join(' ');
+
+                    console.log(`[Ingest] Fetched YouTube transcript: ${textContent.length} chars`);
+
+                    if (!name) {
+                        name = `YouTube Video (${url})`;
+                    }
+
+                } catch (ytError: any) {
+                    console.error("YouTube Transcript Error:", ytError);
+                    return NextResponse.json({ error: "Failed to fetch YouTube transcript. The video might not have captions." }, { status: 400 });
+                }
+            } else if (mode === "website") {
                 if (!url) return NextResponse.json({ error: "URL is required" }, { status: 400 });
 
                 console.log(`[Ingest] Fetching website: ${url}`);
