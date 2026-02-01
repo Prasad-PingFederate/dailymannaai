@@ -139,16 +139,16 @@ try {
     const xml = await xmlRes.text();
     // Use [\s\S] instead of . with /s flag → avoids ES2018 requirement
     const matches = xml.match(/<p[^>]*>([\s\S]*?)<\/p>/g) || [];
-    finalText = matches
-      .map(p => p.replace(/<[^>]+>/g, '').trim())
-      .filter(Boolean)
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+   finalText = matches
+  .map(p => p.replace(/<[^>]+>/g, '').trim())
+  .filter(Boolean)
+  .join(' ')
+  .replace(/\s+/g, ' ')
+  .trim();
 
-    if (finalText.length > 30) {
-      console.log(`[YT-Utils] TTML success (${finalText.length} chars)`);
-      return finalText;
+if (finalText.length > 30) {
+  console.log(`[YT-Utils] TTML success (${finalText.length} chars)`);
+  return finalText;
     }
   }
 } catch (xmlErr: any) {
