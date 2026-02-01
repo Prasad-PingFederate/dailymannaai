@@ -25,6 +25,23 @@ export async function POST(req: Request) {
                         ]);
                     };
 
+                    // 2. Patch Global Fetch for User-Agent (Bypass YouTube Bot Detection)
+                    // youtube-transcript uses node-fetch or global fetch internally but doesn't expose headers.
+                    // We monkey-patch it temporarily for this request scope.
+                    const originalFetch = global.fetch;
+                    global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+                        const urlStr = input.toString();
+                        if (urlStr.includes('youtube.com') || urlStr.includes('youtu.be')) {
+                            init = init || {};
+                            init.headers = init.headers || {};
+                            // @ts-ignore
+                            init.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+                            // @ts-ignore
+                            init.headers['Accept-Language'] = 'en-US,en;q=0.9';
+                        }
+                        return originalFetch(input, init);
+                    };
+
                     console.log(`[Ingest] Attempting to fetch transcript for ${url}...`);
 
                     let transcriptItems = null;
