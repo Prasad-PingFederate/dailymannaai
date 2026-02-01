@@ -79,9 +79,18 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
 
       const html = await res.text();
 
-      // More robust regex for ytInitialPlayerResponse (handles minified JS better)
-      const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?})(?:\s*;\s*(?:var|<\/script>))/s);
-      if (!match?.[1]) throw new Error("ytInitialPlayerResponse not found");
+      console.log("[YT-Utils] Fetching video page for captions...");
+const res = await withTimeout(fetch(watchUrl, { headers }));
+if (!res.ok) throw new Error(`YouTube page HTTP ${res.status}`);
+
+const html = await res.text();
+
+// More robust regex for ytInitialPlayerResponse (handles minified JS better)
+const match = html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]+?})(?:\s*;\s*(?:var|<\/script>))/);
+
+if (!match?.[1]) throw new Error("ytInitialPlayerResponse not found");
+
+const data = JSON.parse(match[1]) as any;
 
       const data = JSON.parse(match[1]) as any;
       const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks;
