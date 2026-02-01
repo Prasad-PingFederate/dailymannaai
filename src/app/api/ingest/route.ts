@@ -17,9 +17,10 @@ export async function POST(req: Request) {
             if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
                 console.log(`[Ingest] Detected YouTube URL: ${url}`);
                 try {
+                    // Use youtube-transcript-plus (more robust fork)
                     // @ts-ignore
-                    const { YoutubeTranscript } = await import('youtube-transcript');
-                    const transcriptItems = await YoutubeTranscript.fetchTranscript(url);
+                    const { YoutubeTranscript } = await import('youtube-transcript-plus');
+                    const transcriptItems = await YoutubeTranscript.fetchTranscript(url, { lang: 'en' });
 
                     // Combine transcript parts
                     textContent = transcriptItems.map((item: { text: string }) => item.text).join(' ');
@@ -31,8 +32,8 @@ export async function POST(req: Request) {
                     }
 
                 } catch (ytError: any) {
-                    console.error("YouTube Transcript Error:", ytError);
-                    return NextResponse.json({ error: "Failed to fetch YouTube transcript. The video might not have captions." }, { status: 400 });
+                    console.error("YouTube Main Transcript Error:", ytError.message);
+                    return NextResponse.json({ error: `Failed to fetch YouTube transcript: ${ytError.message}` }, { status: 400 });
                 }
             } else if (mode === "website") {
                 if (!url) return NextResponse.json({ error: "URL is required" }, { status: 400 });

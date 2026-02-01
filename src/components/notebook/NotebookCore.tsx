@@ -36,6 +36,11 @@ import {
     Volume2
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
+import { GODS_LOVE_VERSES } from "@/lib/data/gods_love";
+import { DEITY_OF_CHRIST_DOCTRINE } from "@/lib/data/deity_of_christ";
+import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
+import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
+import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
 
 interface Source {
     id: string;
@@ -58,7 +63,12 @@ export default function NotebookWorkspace() {
         { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true, fullContent: "Daily Manna AI is a spiritual growth platform..." },
         { id: "Historical-Missionaries-Pioneers", name: "Historical Missionaries", type: "text", selected: true, fullContent: "The history of missions is filled with pioneers like William Carey..." },
         { id: "Modern-Evangelists-Missionaries", name: "Modern Evangelists", type: "text", selected: true, fullContent: "Modern evangelism leverages technology to reach the unreached..." },
-        { id: "Joshua-Daniel-Doing-Gods-Will", name: "Joshua Daniel - Doing God's Will", type: "text", selected: true, fullContent: "Joshua Daniel's life was a testament to following God's calling..." }
+        { id: "Joshua-Daniel-Doing-Gods-Will", name: "Joshua Daniel - Doing God's Will", type: "text", selected: true, fullContent: "Joshua Daniel's life was a testament to following God's calling..." },
+        { id: "Gods-Love-Verses", name: "Scriptures on God's Love", type: "text", selected: true, fullContent: GODS_LOVE_VERSES },
+        { id: "Deity-Of-Christ", name: "Doctrine: Deity of Christ", type: "text", selected: true, fullContent: DEITY_OF_CHRIST_DOCTRINE },
+        { id: "Billy-Graham-Sermons", name: "Billy Graham: Key Sermons", type: "text", selected: true, fullContent: BILLY_GRAHAM_SERMONS },
+        { id: "John-Wesley-Sermons", name: "John Wesley: Key Sermons", type: "text", selected: true, fullContent: JOHN_WESLEY_SERMONS },
+        { id: "Apostolic-Teachings", name: "Apostolic Teachings (Acts/Paul)", type: "text", selected: true, fullContent: APOSTOLIC_TEACHINGS }
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
