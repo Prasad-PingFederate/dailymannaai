@@ -123,37 +123,20 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
       console.warn(`[YT-Utils] JSON3 failed: ${jsonErr.message}`);
     }
 
-    // Fallback to XML/TTML
+    // Fallback to XML/TTML (only one clean block)
     try {
       const xmlUrl = `${baseCaptionUrl}&fmt=ttml`;
       console.log("[YT-Utils] Trying TTML/XML fallback...");
       const xmlRes = await fetch(xmlUrl, { headers });
 
-    // Fallback to XML/TTML
-try {
-  const xmlUrl = `${baseCaptionUrl}&fmt=ttml`;
-  console.log("[YT-Utils] Trying TTML/XML fallback...");
-  const xmlRes = await fetch(xmlUrl, { headers });
+      if (xmlRes.ok) {
+        const xml = await xmlRes.text();
+        // Safe regex without /s flag
+        const matches = xml.match(/<p[^>]*>([\s\S]*?)<\/p>/g) || [];
 
-  if (xmlRes.ok) {
-    const xml = await xmlRes.text();
-    // Use [\s\S] instead of . with /s flag → avoids ES2018 requirement
-    const matches = xml.match(/<p[^>]*>([\s\S]*?)<\/p>/g) || [];
-   finalText = matches
-  .map(p => p.replace(/<[^>]+>/g, '').trim())
-  .filter(Boolean)
-  .join(' ')
-  .replace(/\s+/g, ' ')
-  .trim();
-
-if (finalText.length > 30) {
-  console.log(`[YT-Utils] TTML success (${finalText.length} chars)`);
-  return finalText;
-    }
-  }
-} catch (xmlErr: any) {
-  console.warn(`[YT-Utils] TTML failed: ${xmlErr.message}`);
-}
+        finalText = matches
+          .map(p => p.replace(/<[^>]+>/g, '').trim())
+          .filter(Boolean)
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim();
@@ -186,6 +169,7 @@ if (finalText.length > 30) {
           if (subs.length) {
             const sub = subs.find((s: any) => s.code?.startsWith('en') || /english/i.test(s.name || '')) || subs[0];
             const txtRes = await fetch(sub.url);
+
             if (txtRes.ok) {
               const text = (await txtRes.text()).trim();
               if (text.length > 30) {
@@ -195,7 +179,9 @@ if (finalText.length > 30) {
             }
           }
         }
-      } catch {}
+      } catch {
+        // silent fail → next instance
+      }
     }
 
     throw new Error("All methods failed. Video may have no captions or YouTube blocked access.");
