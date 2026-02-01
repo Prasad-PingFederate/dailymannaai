@@ -1678,7 +1678,7 @@ export default function NotebookWorkspace() {
             {/* 3. AI Assistant (Right) */}
             <section
                 style={{ width: `${chatSidebarWidth}px` }}
-                className="border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative"
+                className="border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden"
             >
                 {/* Resize Handle (Hit Area) */}
                 <div
