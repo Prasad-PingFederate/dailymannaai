@@ -85,7 +85,9 @@ export default function NotebookWorkspace() {
     const [isBarHovered, setIsBarHovered] = useState(false);
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
+    const [showScrollButton, setShowScrollButton] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -114,6 +116,40 @@ export default function NotebookWorkspace() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
     const isPlayingRef = useRef(false);
+
+    // Auto-scroll to bottom when new messages arrive
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    // Handle scroll to show/hide scroll button
+    const handleChatScroll = () => {
+        if (chatContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+            const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+            setShowScrollButton(!isNearBottom);
+        }
+    };
+
+    // Scroll to bottom function
+    const scrollToBottom = () => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    // Clear chat function
+    const clearChat = () => {
+        setMessages([{ role: "assistant", content: "How can I assist your research today?" }]);
+        setSuggestions([]);
+        localStorage.removeItem("notebook_messages");
+        showToast("Chat history cleared", "success");
+    };
 
     // Load available voices
     React.useEffect(() => {
@@ -1655,10 +1691,21 @@ export default function NotebookWorkspace() {
                     <div className="text-accent-secondary">
                         <MessageSquare size={20} />
                     </div>
-                    <h3 className="font-bold">Spiritual Disciple Assistant</h3>
+                    <h3 className="font-bold flex-1">Spiritual Disciple Assistant</h3>
+                    <button
+                        onClick={clearChat}
+                        className="p-2 hover:bg-red-500/10 rounded-lg text-muted hover:text-red-500 transition-all"
+                        title="Clear Chat History"
+                    >
+                        <Trash2 size={18} />
+                    </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div
+                    ref={chatContainerRef}
+                    onScroll={handleChatScroll}
+                    className="flex-1 overflow-y-auto p-4 space-y-4 relative"
+                >
                     <div className="bg-accent/5 border border-accent/10 rounded-2xl p-4 text-sm leading-relaxed shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
                         <p className="font-bold text-accent mb-2 flex items-center gap-2">
                             <Sparkles size={14} /> Apostolic Discovery Guide
@@ -1816,6 +1863,18 @@ export default function NotebookWorkspace() {
                             );
                         })}
                     </div>
+
+                    {/* Scroll to Bottom Button */}
+                    {showScrollButton && (
+                        <button
+                            onClick={scrollToBottom}
+                            className="sticky bottom-2 left-1/2 transform -translate-x-1/2 bg-accent text-white px-4 py-2 rounded-full shadow-lg shadow-accent/30 hover:bg-accent/90 transition-all flex items-center gap-2 text-xs font-bold animate-in slide-in-from-bottom-2 z-10"
+                            title="Scroll to latest messages"
+                        >
+                            <ChevronRight size={14} className="rotate-90" />
+                            New Messages
+                        </button>
+                    )}
                 </div>
 
                 {/* Recommended Actions (Help Me Create) */}
