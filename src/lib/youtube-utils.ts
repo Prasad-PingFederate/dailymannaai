@@ -1,34 +1,32 @@
-import { createRequire } from "module";
-import path from 'path';
+import { YoutubeTranscript } from 'youtube-transcript-plus';
 
-export async function runYoutubeWorker(url: string): Promise<string> {
-    // const require = createRequire(import.meta.url);
-    // const cpModule = 'child_process';
-    // const { execFile } = require(cpModule);
+// Direct implementation without child_process to avoid build issues.
+// Running in 'nodejs' runtime in Next.js is sufficient for this library.
+export async function fetchYoutubeTranscript(url: string): Promise<string> {
+    try {
+        console.log(`[YoutubeUtils] Fetching transcript for ${url}`);
 
-    // We need to resolve the worker script path. 
-    // process.cwd() in Next.js usually points to the root of the project.
-    // const workerScript = path.join(process.cwd(), 'src', 'workers', 'youtube-ingest.js');
+        // Extract video ID (simple logic, library might handle url but safer to pass ID if possible, 
+        // strictly the library takes videoId or expected format. Let's parse ID.)
+        const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/|v\/)([^#\&\?]*).*/);
+        const videoId = videoIdMatch ? videoIdMatch[1] : url;
 
-    /*
-    const result: string = await new Promise((resolve, reject) => {
-        execFile('node', [workerScript, url], { timeout: 45000, encoding: 'utf8' }, (error: any, stdout: string, stderr: string) => {
-            if (error) {
-                // Try to extract error json from stderr if possible
-                try {
-                    const errObj = JSON.parse(stderr as string);
-                    reject(new Error(errObj.error || error.message));
-                } catch {
-                    reject(error);
-                }
-                return;
-            }
-            if (stderr) console.error(`[Worker Error] ${stderr}`);
-            resolve(stdout as string);
-        });
-    });
+        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
 
-    return result;
-    */
-    throw new Error("YouTube ingestion is temporarily disabled due to Vercel/Next.js build constraints with child_process.");
+        if (!transcript || transcript.length === 0) {
+            throw new Error("No transcript found for this video.");
+        }
+
+        const fullText = transcript.map((t: any) => t.text).join(' ');
+        return fullText;
+
+    } catch (error: any) {
+        console.error("Youtube Transcript Error:", error.message);
+
+        // Elevate specific error messages
+        if (error.message.includes("Sign in")) throw new Error("Video requires sign-in (age restricted).");
+        if (error.message.includes("disabled")) throw new Error("Transcripts are disabled for this video.");
+
+        throw error;
+    }
 }

@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { ingestDocuments } from "@/lib/storage/vector-store";
 import mammoth from "mammoth";
-
-
-
 import path from 'path';
-import { runYoutubeWorker } from "@/lib/youtube-utils";
+import { fetchYoutubeTranscript } from "@/lib/youtube-utils";
 
 export const runtime = 'nodejs';
 
@@ -24,31 +21,12 @@ export async function POST(req: Request) {
             if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
                 console.log(`[Ingest] Detected YouTube URL: ${url}`);
                 try {
-                    // Use isolated worker process to bypass Next.js fetch restrictions and ensure robust patching
-                    console.log(`[Ingest] Spawning worker for ${url}...`);
+                    console.log(`[Ingest] Fetching transcript directly for ${url}...`);
 
-                    // const { execFile } = require('child_process');
-                    // const path = require('path');
+                    // Refactored to use youtube-transcript-plus directly (no child_process)
+                    textContent = await fetchYoutubeTranscript(url);
 
-
-                    // Refactored to use isolated utility for better build compatibility
-                    const result = await runYoutubeWorker(url);
-
-
-                    let output;
-                    try {
-                        output = JSON.parse(result);
-                    } catch (e) {
-                        throw new Error("Invalid response from worker process");
-                    }
-
-                    if (output.error) {
-                        throw new Error(output.error);
-                    }
-
-                    textContent = output.text;
-
-                    console.log(`[Ingest] Worker success. Fetched ${textContent.length} chars.`);
+                    console.log(`[Ingest] Success. Fetched ${textContent.length} chars.`);
 
                     if (!name) {
                         name = `YouTube Video (${url})`;
