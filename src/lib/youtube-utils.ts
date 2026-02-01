@@ -129,12 +129,31 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
       console.log("[YT-Utils] Trying TTML/XML fallback...");
       const xmlRes = await fetch(xmlUrl, { headers });
 
-      if (xmlRes.ok) {
-        const xml = await xmlRes.text();
-        const matches = xml.match(/<p[^>]*>(.*?)<\/p>/gs) || [];
-        finalText = matches
-          .map(p => p.replace(/<[^>]+>/g, '').trim())
-          .filter(Boolean)
+    // Fallback to XML/TTML
+try {
+  const xmlUrl = `${baseCaptionUrl}&fmt=ttml`;
+  console.log("[YT-Utils] Trying TTML/XML fallback...");
+  const xmlRes = await fetch(xmlUrl, { headers });
+
+  if (xmlRes.ok) {
+    const xml = await xmlRes.text();
+    // Use [\s\S] instead of . with /s flag → avoids ES2018 requirement
+    const matches = xml.match(/<p[^>]*>([\s\S]*?)<\/p>/g) || [];
+    finalText = matches
+      .map(p => p.replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (finalText.length > 30) {
+      console.log(`[YT-Utils] TTML success (${finalText.length} chars)`);
+      return finalText;
+    }
+  }
+} catch (xmlErr: any) {
+  console.warn(`[YT-Utils] TTML failed: ${xmlErr.message}`);
+}
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim();
