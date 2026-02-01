@@ -17,14 +17,51 @@ export async function POST(req: Request) {
             if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
                 console.log(`[Ingest] Detected YouTube URL: ${url}`);
                 try {
-                    // Use youtube-transcript-plus (more robust fork)
-                    // @ts-ignore
-                    const { YoutubeTranscript } = await import('youtube-transcript-plus');
+                    // 1. Setup Timeout Wrapper
+                    const fetchWithTimeout = (promise: Promise<any>, ms: number) => {
+                        return Promise.race([
+                            promise,
+                            new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms))
+                        ]);
+                    };
 
                     console.log(`[Ingest] Attempting to fetch transcript for ${url}...`);
-                    const transcriptItems = await YoutubeTranscript.fetchTranscript(url, {
-                        lang: 'en'
-                    });
+
+                    let transcriptItems = null;
+                    let usedMethod = "";
+
+                    // 2. Dynamic Imports
+                    // @ts-ignore
+                    const { YoutubeTranscript: YtPlus } = await import('youtube-transcript-plus');
+                    // @ts-ignore
+                    const { YoutubeTranscript: YtStd } = await import('youtube-transcript');
+
+                    // 3. Strategy A: Try youtube-transcript-plus (Better for auto-captions)
+                    try {
+                        console.log("[Ingest] Strategy A: youtube-transcript-plus");
+                        transcriptItems = await fetchWithTimeout(
+                            YtPlus.fetchTranscript(url, { lang: 'en' }),
+                            15000 // 15s timeout for first attempt
+                        );
+                        usedMethod = "youtube-transcript-plus";
+                    } catch (errA: any) {
+                        console.warn(`[Ingest] Strategy A failed: ${errA.message}. Switching to Strategy B...`);
+                    }
+
+                    // 4. Strategy B: Try youtube-transcript (Standard, fallback)
+                    if (!transcriptItems) {
+                        try {
+                            console.log("[Ingest] Strategy B: youtube-transcript (Standard)");
+                            transcriptItems = await fetchWithTimeout(
+                                YtStd.fetchTranscript(url),
+                                15000 // Another 15s
+                            );
+                            usedMethod = "youtube-transcript";
+                        } catch (errB: any) {
+                            console.warn(`[Ingest] Strategy B failed: ${errB.message}`);
+                            throw new Error(`All transcript fetch strategies failed. Last error: ${errB.message}`);
+                        }
+                    }
 
                     if (!transcriptItems || transcriptItems.length === 0) {
                         throw new Error("No transcript data found for this video.");
@@ -33,7 +70,7 @@ export async function POST(req: Request) {
                     // Combine transcript parts
                     textContent = transcriptItems.map((item: { text: string }) => item.text).join(' ');
 
-                    console.log(`[Ingest] Fetched YouTube transcript: ${textContent.length} chars`);
+                    console.log(`[Ingest] Success via ${usedMethod}. Fetched ${textContent.length} chars.`);
 
                     if (!name) {
                         name = `YouTube Video (${url})`;
@@ -45,7 +82,8 @@ export async function POST(req: Request) {
                     // Fallback detailed error message for user
                     let userErrorMessage = `Failed to fetch YouTube transcript: ${ytError.message}`;
                     if (ytError.message.includes("404")) userErrorMessage = "Video not found or unavailable.";
-                    if (ytError.message.includes("Captions")) userErrorMessage = "No captions/transcript available for this video.";
+                    if (ytError.message.includes("Captions") || ytError.message.includes("Could not retrieve")) userErrorMessage = "No English captions available for this video.";
+                    if (ytError.message.includes("Timeout")) userErrorMessage = "The video is too long or YouTube is responding slowly. Please try again.";
 
                     return NextResponse.json({ error: userErrorMessage }, { status: 400 });
                 }
