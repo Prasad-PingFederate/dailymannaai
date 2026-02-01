@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     // Definitive fix for canvas dependencies during bundling
     config.resolve.alias.canvas = false;
     config.resolve.alias.encoding = false;
+
+    // Ignore native node modules
+    config.externals.push('child_process', 'node:child_process');
+
     return config;
   }
 };

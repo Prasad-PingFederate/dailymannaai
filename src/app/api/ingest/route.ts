@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { ingestDocuments } from "@/lib/storage/vector-store";
 import mammoth from "mammoth";
 
+
+
+import path from 'path';
+import { runYoutubeWorker } from "@/lib/youtube-utils";
+
+export const runtime = 'nodejs';
+
 export async function POST(req: Request) {
     try {
         const contentType = req.headers.get("content-type") || "";
@@ -20,27 +27,13 @@ export async function POST(req: Request) {
                     // Use isolated worker process to bypass Next.js fetch restrictions and ensure robust patching
                     console.log(`[Ingest] Spawning worker for ${url}...`);
 
-                    const { execFile } = await import('child_process');
-                    const path = await import('path');
+                    // const { execFile } = require('child_process');
+                    // const path = require('path');
 
-                    const workerScript = path.join(process.cwd(), 'src', 'workers', 'youtube-ingest.js');
 
-                    const result: string = await new Promise((resolve, reject) => {
-                        execFile('node', [workerScript, url], { timeout: 45000 }, (error, stdout, stderr) => {
-                            if (error) {
-                                // Try to extract error json from stderr if possible
-                                try {
-                                    const errObj = JSON.parse(stderr);
-                                    reject(new Error(errObj.error || error.message));
-                                } catch {
-                                    reject(error);
-                                }
-                                return;
-                            }
-                            if (stderr) console.error(`[Worker Error] ${stderr}`);
-                            resolve(stdout);
-                        });
-                    });
+                    // Refactored to use isolated utility for better build compatibility
+                    const result = await runYoutubeWorker(url);
+
 
                     let output;
                     try {
@@ -54,6 +47,7 @@ export async function POST(req: Request) {
                     }
 
                     textContent = output.text;
+
                     console.log(`[Ingest] Worker success. Fetched ${textContent.length} chars.`);
 
                     if (!name) {
