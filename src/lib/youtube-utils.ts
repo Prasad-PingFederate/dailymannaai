@@ -95,23 +95,64 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
 
       let captionUrl = track.baseUrl;
       // Try modern JSON format first (more reliable parsing)
-      const jsonUrl = `${captionUrl}&fmt=json3`;
-      console.log("[YT-Utils] Trying json3 format...");
+      // ─── Try modern JSON3 format first (most reliable in 2025–2026) ────────
+const jsonUrl = `${captionUrl}&fmt=json3`;
+console.log(`[YT-Utils] Trying JSON3: ${jsonUrl.substring(0, 80)}...`);
 
-      let text = '';
-      try {
-        const jsonRes = await fetch(jsonUrl, { headers });
-        if (jsonRes.ok) {
-          const json = await jsonRes.json();
-          if (json.events) {
-            text = json.events
-              .map((e: any) => e.segs?.map((s: any) => s.utf8 || '').join('') || '')
-              .filter(Boolean)
-              .join(' ')
-              .trim();
-          }
-        }
-      } catch {}
+let text = '';
+
+try {
+  const jsonRes = await fetch(jsonUrl, { headers, redirect: 'follow' });
+  
+  if (!jsonRes.ok) {
+    console.warn(`[YT-Utils] JSON3 fetch failed: ${jsonRes.status} ${jsonRes.statusText}`);
+    throw new Error(`JSON3 HTTP ${jsonRes.status}`);
+  }
+
+  const json = await jsonRes.json();
+
+  // ─── More robust event → text extraction ─────────────────────────────
+  if (json?.events && Array.isArray(json.events)) {
+    const segments: string[] = [];
+
+    for (const event of json.events) {
+      // Some events have 'segs', others have direct 't' or 'utf8'
+      if (event.segs && Array.isArray(event.segs)) {
+        const segText = event.segs
+          .map((seg: any) => seg.utf8 || seg.t || '')
+          .filter(Boolean)
+          .join('');
+        if (segText) segments.push(segText);
+      } else if (event.t || event.utf8) {
+        segments.push(event.t || event.utf8 || '');
+      } else if (event.w) { // rare variant seen in some auto-captions
+        segments.push(event.w);
+      }
+    }
+
+    text = segments
+      .join(' ')
+      .replace(/\s+/g, ' ')                    // normalize spaces
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/<[^>]+>/g, '')                 // strip any leftover tags
+      .trim();
+
+    if (text.length > 30) {
+      console.log(`[YT-Utils] JSON3 success (${text.length} chars)`);
+      return text;  // ← early return if good
+    } else {
+      console.warn(`[YT-Utils] JSON3 text too short (${text.length} chars)`);
+    }
+  } else {
+    console.warn("[YT-Utils] No valid 'events' array in JSON3 response");
+  }
+} catch (jsonErr: any) {
+  console.warn(`[YT-Utils] JSON3 parsing failed: ${jsonErr.message || jsonErr}`);
+}
+
+// If JSON3 didn't work → continue to XML fallback (your existing code)
 
       // Fallback to XML if json3 fails
       if (!text) {
