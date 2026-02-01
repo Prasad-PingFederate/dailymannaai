@@ -1,4 +1,5 @@
 import { YoutubeTranscript } from 'youtube-transcript-plus';
+import { Innertube } from 'youtubei.js';
 
 // Direct implementation without child_process to avoid build issues.
 // Running in 'nodejs' runtime in Next.js is sufficient for this library.
@@ -9,9 +10,33 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         // Robust video ID extraction (handles 'walch', 'watch', 'embed', 'youtu.be', etc.)
         const videoIdMatch = url.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/|v\/|walch\?v=)([^#\&\?]*)/);
         const videoId = videoIdMatch ? videoIdMatch[1] : url.trim();
+        console.log(`[YoutubeUtils] Normalized ID: ${videoId}`);
         const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-        console.log(`[YoutubeUtils] Normalized ID: ${videoId}`);
+        // WELL MECHANISM: YouTubei.js with Session Cookies (Inspired by X Automation)
+        const cookies = process.env.YT_COOKIES || "";
+        if (cookies) {
+            try {
+                console.log(`[YoutubeUtils] Found YT_COOKIES. Using YouTubei.js Session Bypass...`);
+                // generate_session_locally helps bypass some environment-specific blocks
+                const yt = await Innertube.create({
+                    cookie: cookies,
+                    generate_session_locally: true
+                });
+                const info = await yt.getInfo(videoId);
+                const transcriptData = await info.getTranscript();
+
+                if (transcriptData?.transcript?.content?.body?.initial_segments) {
+                    const text = transcriptData.transcript.content.body.initial_segments
+                        .map((s: any) => s.snippet.text)
+                        .join(' ');
+                    console.log(`[YoutubeUtils] YouTubei.js Session Success: ${text.length} chars.`);
+                    return text;
+                }
+            } catch (ytErr: any) {
+                console.warn(`[YoutubeUtils] YouTubei.js Session failed: ${ytErr.message}`);
+            }
+        }
 
         // Wrap in timeout to prevent hanging indefinitely
         const timeoutPromise = new Promise((_, reject) =>
