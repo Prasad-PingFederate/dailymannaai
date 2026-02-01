@@ -493,39 +493,76 @@ export default function NotebookWorkspace() {
                 const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
                 try {
-                    // 1. Fetch HTML to find caption tracks through CORS Proxy
-                    // Using corsproxy.io because it handles YouTube specifically well
-                    const proxyUrl = (target: string) => `https://corsproxy.io/?${encodeURIComponent(target)}`;
+                    const proxyUrl = (target: string) => `https://corsproxy.io/?url=${encodeURIComponent(target)}`;
 
-                    const htmlRes = await fetch(proxyUrl(normalizedUrl));
-                    const html = await htmlRes.text();
+                    // Layer 1: CORS Proxy + Regex
+                    setIngestStatus("Trying fast bypass (Layer 1)...");
+                    try {
+                        const htmlRes = await fetch(proxyUrl(normalizedUrl));
+                        const html = await htmlRes.text();
+                        const regex = /"captionTracks":\s*(\[.*?\])/;
+                        const match = html.match(regex);
 
-                    const regex = /"captionTracks":\s*(\[.*?\])/;
-                    const match = html.match(regex);
-
-                    if (match) {
-                        setIngestStatus("Extracting transcript data...");
-                        const tracks = JSON.parse(match[1]);
-                        const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
-
-                        const transRes = await fetch(proxyUrl(enTrack.baseUrl));
-                        const xml = await transRes.text();
-
-                        // Parse XML to Text
-                        const textMatch = xml.match(/<text.*?>([\s\S]*?)<\/text>/g);
-                        if (textMatch) {
-                            finalContent = textMatch
-                                .map(t => t.replace(/<text.*?>|<\/text>/g, ''))
-                                .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'))
-                                .join(' ')
-                                .replace(/\s+/g, ' ')
-                                .trim();
-
-                            finalMode = "text"; // Send as raw text to bypass server yt fetch
-                            setIngestStatus("Transcript captured! Saving to profile...");
+                        if (match) {
+                            const tracks = JSON.parse(match[1]);
+                            const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
+                            const transRes = await fetch(proxyUrl(enTrack.baseUrl));
+                            const xml = await transRes.text();
+                            const textMatch = xml.match(/<text.*?>([\s\S]*?)<\/text>/g);
+                            if (textMatch) {
+                                finalContent = textMatch
+                                    .map(t => t.replace(/<text.*?>|<\/text>/g, ''))
+                                    .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'))
+                                    .join(' ')
+                                    .replace(/\s+/g, ' ')
+                                    .trim();
+                                finalMode = "text";
+                            }
                         }
+                    } catch (l1Err) { console.warn("L1 Fail:", l1Err); }
+
+                    // Layer 2: Piped API (Very reliable)
+                    if (!finalContent) {
+                        setIngestStatus("Trying alternative route (Layer 2)...");
+                        const pipedEndpoints = ["https://pipedapi.kavin.rocks", "https://api.piped.io", "https://pipedapi.tokhmi.xyz", "https://pipedapi.nexus-it.pt"];
+                        for (const api of pipedEndpoints) {
+                            try {
+                                const res = await fetch(`${api}/streams/${videoId}`);
+                                if (!res.ok) continue;
+                                const data = await res.json();
+                                const subtitles = data.subtitles;
+                                if (subtitles && subtitles.length > 0) {
+                                    const enSub = subtitles.find((s: any) => s.code === 'en' || s.name === 'English') || subtitles[0];
+                                    const subRes = await fetch(enSub.url);
+                                    finalContent = await subRes.text();
+                                    finalMode = "text";
+                                    break;
+                                }
+                            } catch (e) { continue; }
+                        }
+                    }
+
+                    // Layer 3: Invidious API
+                    if (!finalContent) {
+                        setIngestStatus("Trying deep search (Layer 3)...");
+                        const invidiousEndpoints = ["https://yewtu.be", "https://inv.vern.cc", "https://invidious.snopyta.org", "https://vid.priv.au"];
+                        for (const api of invidiousEndpoints) {
+                            try {
+                                const res = await fetch(`${api}/api/v1/captions/${videoId}?label=English`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    finalContent = typeof data === 'string' ? data : JSON.stringify(data);
+                                    finalMode = "text";
+                                    break;
+                                }
+                            } catch (e) { continue; }
+                        }
+                    }
+
+                    if (finalContent) {
+                        setIngestStatus("Transcript captured! Finalizing...");
                     } else {
-                        throw new Error("YouTube blocked client fetch or video has no CC. Trying server fallback...");
+                        throw new Error("All bypass layers failed. YouTube is heavily restricted.");
                     }
                 } catch (clientErr: any) {
                     console.warn("Client-side YT fetch failed, falling back to server:", clientErr.message);

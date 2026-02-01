@@ -80,7 +80,43 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
             throw fallbackErr;
         }
 
-        throw new Error("No transcripts are available for this video. Please ensure 'CC' is enabled.");
+        // FALLBACK 2: Piped API (Reliable third-party instance)
+        try {
+            console.log(`[YoutubeUtils] Starting Piped Fallback for ${videoId}...`);
+            const pipedEndpoints = ["https://pipedapi.kavin.rocks", "https://api.piped.io", "https://pipedapi.tokhmi.xyz"];
+            for (const api of pipedEndpoints) {
+                try {
+                    const res = await fetch(`${api}/streams/${videoId}`);
+                    if (!res.ok) continue;
+                    const data: any = await res.json();
+                    if (data.subtitles && data.subtitles.length > 0) {
+                        const enSub = data.subtitles.find((s: any) => s.code === 'en' || s.name === 'English') || data.subtitles[0];
+                        const subRes = await fetch(enSub.url);
+                        const text = await subRes.text();
+                        console.log(`[YoutubeUtils] Piped Success via ${api}: ${text.length} chars.`);
+                        return text;
+                    }
+                } catch (e) { continue; }
+            }
+        } catch (pipedErr) { console.error("Piped Fallback Error:", pipedErr); }
+
+        // FALLBACK 3: Invidious API
+        try {
+            console.log(`[YoutubeUtils] Starting Invidious Fallback for ${videoId}...`);
+            const invidiousEndpoints = ["https://yewtu.be", "https://inv.vern.cc", "https://invidious.snopyta.org"];
+            for (const api of invidiousEndpoints) {
+                try {
+                    const res = await fetch(`${api}/api/v1/captions/${videoId}?label=English`);
+                    if (res.ok) {
+                        const text = await res.text();
+                        console.log(`[YoutubeUtils] Invidious Success via ${api}: ${text.length} chars.`);
+                        return text;
+                    }
+                } catch (e) { continue; }
+            }
+        } catch (invErr) { console.error("Invidious Fallback Error:", invErr); }
+
+        throw new Error("No transcripts are available for this video. YouTube blocked all bypass layers or 'CC' is disabled.");
 
     } catch (error: any) {
         console.error("Youtube Ingestion Final Failure:", error.message);
