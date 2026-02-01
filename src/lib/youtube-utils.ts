@@ -11,7 +11,14 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/|v\/)([^#\&\?]*).*/);
         const videoId = videoIdMatch ? videoIdMatch[1] : url;
 
-        const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+        // Wrap in timeout to prevent hanging indefinitely
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("YouTube ingestion timed out after 30 seconds")), 30000)
+        );
+
+        const transcriptPromise = YoutubeTranscript.fetchTranscript(videoId);
+
+        const transcript: any = await Promise.race([transcriptPromise, timeoutPromise]);
 
         if (!transcript || transcript.length === 0) {
             throw new Error("No transcript found for this video.");
