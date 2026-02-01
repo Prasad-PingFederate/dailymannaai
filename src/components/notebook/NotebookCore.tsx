@@ -493,8 +493,11 @@ export default function NotebookWorkspace() {
                 const normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
                 try {
-                    // 1. Fetch HTML to find caption tracks
-                    const htmlRes = await fetch(normalizedUrl);
+                    // 1. Fetch HTML to find caption tracks through CORS Proxy
+                    // Using corsproxy.io because it handles YouTube specifically well
+                    const proxyUrl = (target: string) => `https://corsproxy.io/?${encodeURIComponent(target)}`;
+
+                    const htmlRes = await fetch(proxyUrl(normalizedUrl));
                     const html = await htmlRes.text();
 
                     const regex = /"captionTracks":\s*(\[.*?\])/;
@@ -505,7 +508,7 @@ export default function NotebookWorkspace() {
                         const tracks = JSON.parse(match[1]);
                         const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
 
-                        const transRes = await fetch(enTrack.baseUrl);
+                        const transRes = await fetch(proxyUrl(enTrack.baseUrl));
                         const xml = await transRes.text();
 
                         // Parse XML to Text
