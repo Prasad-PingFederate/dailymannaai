@@ -1721,70 +1721,10 @@ export default function NotebookWorkspace() {
                                     >
                                         {msg.role === 'user' ? 'U' : <Sparkles size={16} />}
                                     </div>
-                                    <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm max-w-[90%] group relative flex flex-col gap-3 shadow-sm select-text`}>
-                                        <div className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">
-                                            {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
-                                                if (/^\[\d+\]$/.test(part)) {
-                                                    return (
-                                                        <span key={partIndex} className="inline-flex items-center justify-center bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold rounded px-1 min-w-[18px] h-[18px] mx-0.5 cursor-pointer hover:bg-accent hover:text-white transition-colors" title="View Source">
-                                                            {part.replace(/[\[\]]/g, '')}
-                                                        </span>
-                                                    );
-                                                }
-                                                return part;
-                                            })}
-                                        </div>
-
-                                        {portrait && (
-                                            <div className="mt-2 rounded-xl overflow-hidden border border-border bg-card-bg shadow-lg animate-in zoom-in-95 duration-500">
-                                                <img
-                                                    src={portrait.imageUrl}
-                                                    alt={portrait.name}
-                                                    className="w-full h-40 object-cover"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = FALLBACK_IMAGE;
-                                                    }}
-                                                />
-                                                <div className="p-3 bg-accent/5">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Inspirational Figure</p>
-                                                        {portrait.attribution && (
-                                                            <a
-                                                                href={portrait.sourceUrl}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-[10px] text-muted-foreground hover:text-accent flex items-center gap-1"
-                                                            >
-                                                                <ExternalLink size={10} /> {portrait.attribution}
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                    <p className="font-bold text-sm">{portrait.name}</p>
-                                                    <p className="text-[11px] text-muted">{portrait.description}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {situationalImg && (
-                                            <div className="mt-2 rounded-xl overflow-hidden border border-border shadow-md animate-in fade-in duration-700">
-                                                <img
-                                                    src={situationalImg}
-                                                    alt="Spiritual reflection"
-                                                    className="w-full h-32 object-cover"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = FALLBACK_IMAGE;
-                                                    }}
-                                                />
-                                                <div className="p-1 px-2 text-[9px] text-muted-foreground bg-background/50 text-right">
-                                                    Source: Unsplash
-                                                </div>
-                                            </div>
-                                        )}
-
+                                    <div className="flex flex-col gap-1 max-w-[90%]">
+                                        {/* Audio Controls - Positioned above message bubble */}
                                         {msg.role === 'assistant' && (
-                                            <div className="absolute right-2 top-2 flex items-center gap-1.5 bg-background shadow-md backdrop-blur-md p-1.5 rounded-2xl border border-accent/20 z-20 transition-all duration-300">
+                                            <div className="flex items-center gap-1.5 self-start bg-background shadow-md backdrop-blur-md p-1.5 rounded-2xl border border-accent/20 transition-all duration-300 opacity-0 group-hover:opacity-100">
                                                 <button
                                                     onClick={() => handleSpeakMessage(msg.content, i)}
                                                     className={`p-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${isSpeakingMap[i] ? 'bg-blue-600 text-white animate-divine-pulse' : 'hover:bg-blue-100/50 text-blue-600 bg-blue-50'}`}
@@ -1809,6 +1749,68 @@ export default function NotebookWorkspace() {
                                                 </button>
                                             </div>
                                         )}
+                                        <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm group relative flex flex-col gap-3 shadow-sm select-text`}>
+                                            <div className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">
+                                                {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
+                                                    if (/^\[\d+\]$/.test(part)) {
+                                                        return (
+                                                            <span key={partIndex} className="inline-flex items-center justify-center bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold rounded px-1 min-w-[18px] h-[18px] mx-0.5 cursor-pointer hover:bg-accent hover:text-white transition-colors" title="View Source">
+                                                                {part.replace(/[\[\]]/g, '')}
+                                                            </span>
+                                                        );
+                                                    }
+                                                    return part;
+                                                })}
+                                            </div>
+
+                                            {portrait && (
+                                                <div className="mt-2 rounded-xl overflow-hidden border border-border bg-card-bg shadow-lg animate-in zoom-in-95 duration-500">
+                                                    <img
+                                                        src={portrait.imageUrl}
+                                                        alt={portrait.name}
+                                                        className="w-full h-40 object-cover"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = FALLBACK_IMAGE;
+                                                        }}
+                                                    />
+                                                    <div className="p-3 bg-accent/5">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Inspirational Figure</p>
+                                                            {portrait.attribution && (
+                                                                <a
+                                                                    href={portrait.sourceUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[10px] text-muted-foreground hover:text-accent flex items-center gap-1"
+                                                                >
+                                                                    <ExternalLink size={10} /> {portrait.attribution}
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                        <p className="font-bold text-sm">{portrait.name}</p>
+                                                        <p className="text-[11px] text-muted">{portrait.description}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {situationalImg && (
+                                                <div className="mt-2 rounded-xl overflow-hidden border border-border shadow-md animate-in fade-in duration-700">
+                                                    <img
+                                                        src={situationalImg}
+                                                        alt="Spiritual reflection"
+                                                        className="w-full h-32 object-cover"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = FALLBACK_IMAGE;
+                                                        }}
+                                                    />
+                                                    <div className="p-1 px-2 text-[9px] text-muted-foreground bg-background/50 text-right">
+                                                        Source: Unsplash
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             );
