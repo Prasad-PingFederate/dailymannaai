@@ -2,7 +2,7 @@ const { YoutubeTranscript } = require('youtube-transcript-plus');
 
 (async () => {
     try {
-        const videoId = "MeaDrmNk4NE"; // User reported failure
+        const videoId = "_3tUSPGhvPY"; // Video from user screenshot
         console.log(`[Plus] Fetching transcript for: ${videoId}`);
 
         const transcript = await YoutubeTranscript.fetchTranscript(videoId);

@@ -34,9 +34,45 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         return fullText;
 
     } catch (error: any) {
-        console.error("Youtube Transcript Error:", error.message);
+        console.error("Youtube Library Error:", error.message);
 
-        // Elevate specific error messages
+        // FALLBACK: Manual HTML Parsing (Bypasses library limitations)
+        try {
+            console.log(`[YoutubeUtils] Attempting Manual HTML Fallback for ${url}...`);
+            const res = await fetch(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            });
+            const html = await res.text();
+
+            const regex = /"captionTracks":\s*(\[.*?\])/;
+            const match = html.match(regex);
+
+            if (match) {
+                const tracks = JSON.parse(match[1]);
+                const enTrack = tracks.find((t: any) => t.languageCode === 'en') || tracks[0];
+                console.log(`[YoutubeUtils] Found Manual Track: ${enTrack.baseUrl}`);
+
+                const transRes = await fetch(enTrack.baseUrl);
+                const xml = await transRes.text();
+
+                // Simple XML to Plain Text conversion
+                const textMatch = xml.match(/<text.*?>([\s\S]*?)<\/text>/g);
+                if (textMatch) {
+                    const fullText = textMatch
+                        .map(t => t.replace(/<text.*?>|<\/text>/g, ''))
+                        .map(t => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
+                        .join(' ');
+                    console.log(`[YoutubeUtils] Manual Parse Success: ${fullText.length} chars.`);
+                    return fullText;
+                }
+            }
+        } catch (fallbackErr: any) {
+            console.error("Youtube Manual Fallback Error:", fallbackErr.message);
+        }
+
+        // Elevate specific error messages if fallback also fails
         if (error.message.includes("Sign in")) throw new Error("Video requires sign-in (age restricted).");
         if (error.message.includes("disabled")) throw new Error("Transcripts are disabled for this video.");
 
