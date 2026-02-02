@@ -1,6 +1,0 @@
-{}
-TypeError: Cannot read properties of null (reading 'as')
-    at new VideoInfo (file:///C:/Users/Infobell/.gemini/antigravity/scratch/notebookllm_ai/node_modules/youtubei.js/dist/src/parser/youtube/VideoInfo.js:66:47)
-    at Innertube.getInfo (file:///C:/Users/Infobell/.gemini/antigravity/scratch/notebookllm_ai/node_modules/youtubei.js/dist/src/Innertube.js:67:16)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async run (C:\Users\Infobell\.gemini\antigravity\scratch\notebookllm_ai\test_youtubei.js:15:22)
