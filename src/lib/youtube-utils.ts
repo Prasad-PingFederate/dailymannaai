@@ -3,6 +3,8 @@
 import { YoutubeTranscript as YtPlus } from 'youtube-transcript-plus';
 import { YoutubeTranscript as YtStd } from 'youtube-transcript';
 import { Innertube, UniversalCache } from 'youtubei.js';
+import { performWebSearch } from './tools/web-search';
+import { getProviderManager } from './ai/gemini';
 
 const YT_COOKIES = process.env.YT_COOKIES || '';
 
@@ -57,18 +59,23 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         client_type: client as any,
       });
 
-      const info = await fetchWithTimeout(yt.getBasicInfo(videoId));
-      const transcriptData = await info.getTranscript();
+      console.log(`[YT-Utils] Innertube (${client}) initialized, fetching info...`);
+      const info = await fetchWithTimeout(yt.getBasicInfo(videoId), 20000);
 
-      if (transcriptData?.transcript?.content?.body?.initial_segments) {
-        const text = formatTranscript(transcriptData.transcript.content.body.initial_segments);
-        if (text) {
-          console.log(`[YT-Utils] Innertube success with ${client} (${text.length} chars)`);
-          return text;
+      try {
+        const transcriptData = await info.getTranscript();
+        if (transcriptData?.transcript?.content?.body?.initial_segments) {
+          const text = formatTranscript(transcriptData.transcript.content.body.initial_segments);
+          if (text) {
+            console.log(`[YT-Utils] Innertube success with ${client} (${text.length} chars)`);
+            return text;
+          }
         }
+      } catch (transcriptErr: any) {
+        console.warn(`[YT-Utils] Innertube (${client}) getTranscript failed: ${transcriptErr.message}`);
       }
     } catch (err: any) {
-      console.warn(`[YT-Utils] Innertube ${client} failed: ${err.message}`);
+      console.warn(`[YT-Utils] Innertube (${client}) failed: ${err.message}`);
     }
   }
 
@@ -96,29 +103,52 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   try {
     console.log('[YT-Utils] Strategy 4: Manual HTML parse');
     const headers = {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'Cookie': YT_COOKIES,
     };
     const res = await fetch(normalizedUrl, { headers });
     const html = await res.text();
-    const match = html.match(/"captionTracks":(\[.*?\])/);
-    if (match) {
-      const tracks = JSON.parse(match[1]);
+
+    let tracks: any[] = [];
+    const captionMatch = html.match(/"captionTracks":(\[.*?\])/);
+    if (captionMatch) {
+      tracks = JSON.parse(captionMatch[1]);
+    } else {
+      const playerResMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/) ||
+        html.match(/window\["ytInitialPlayerResponse"\]\s*=\s*(\{[\s\S]*?\});/);
+      if (playerResMatch) {
+        try {
+          const playerRes = JSON.parse(playerResMatch[1].trim());
+          tracks = playerRes.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+        } catch (e) {
+          console.warn('[YT-Utils] Manual parse: Failed to parse ytInitialPlayerResponse JSON');
+        }
+      }
+    }
+
+    if (tracks.length > 0) {
+      console.log(`[YT-Utils] Manual parse found ${tracks.length} caption tracks`);
       const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
       if (enTrack) {
-        const transcriptUrl = `${enTrack.baseUrl}&fmt=json3`;
+        const transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
         const transcriptRes = await fetch(transcriptUrl, { headers });
         const json = (await transcriptRes.json()) as any;
-        const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
-        if (text) return text;
+        if (json.events) {
+          const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
+          if (text) {
+            console.log(`[YT-Utils] Manual parse success (${text.length} chars)`);
+            return text;
+          }
+        }
       }
     }
   } catch (err: any) {
     console.warn(`[YT-Utils] Manual failed: ${err.message}`);
   }
 
-  // --- Strategy 5: Piped API Proxies (Expanded) ---
+  // --- Strategy 5: Piped API Proxies ---
   const pipedInstances = [
     'https://pipedapi.kavin.rocks',
     'https://api.piped.io',
@@ -145,7 +175,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     } catch { }
   }
 
-  // --- Strategy 6: Invidious API Proxies (Expanded) ---
+  // --- Strategy 6: Invidious API Proxies ---
   const invidiousInstances = [
     'https://invidious.jing.rocks',
     'https://inv.tux.pizza',
@@ -172,6 +202,86 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         if (text && text.length > 10) return text;
       }
     } catch { }
+  }
+
+  // --- Strategy 7: Direct YouTube Player API (Guest) ---
+  try {
+    console.log('[YT-Utils] Strategy 7: Direct Player API (Guest)');
+    const playerUrl = 'https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2Sl_6VpUvTkvmId4T5uJ_tC1B57k';
+    const payload = {
+      videoId: videoId,
+      context: {
+        client: {
+          clientName: 'WEB',
+          clientVersion: '2.20240125.01.00',
+          hl: 'en',
+          gl: 'US',
+          utcOffsetMinutes: 0,
+        },
+      },
+    };
+    const res = await fetch(playerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Referer': 'https://www.youtube.com/',
+        'Origin': 'https://www.youtube.com',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as any;
+      const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+      console.log(`[YT-Utils] Strategy 7 found ${tracks.length} tracks`);
+      const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
+      if (enTrack) {
+        const transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
+        const transcriptRes = await fetch(transcriptUrl);
+        const json = (await transcriptRes.json()) as any;
+        if (json.events) {
+          const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
+          if (text) {
+            console.log(`[YT-Utils] Strategy 7 success (${text.length} chars)`);
+            return text;
+          }
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[YT-Utils] Strategy 7 failed: ${err.message}`);
+  }
+
+  // --- Strategy 8: Search-based Fallback ---
+  try {
+    console.log('[YT-Utils] Strategy 8: Search-based Fallback');
+    const searchResults = await performWebSearch(`${videoId} transcript`);
+    for (const result of searchResults) {
+      if (result.url.includes('youtube.com') || result.url.includes('youtu.be')) continue;
+      try {
+        const res = await fetch(result.url);
+        const text = await res.text();
+        if (text.length > 1000 && !text.includes('<!DOCTYPE html>')) {
+          console.log(`[YT-Utils] Strategy 8 success from ${result.url}`);
+          return text.substring(0, 50000);
+        }
+      } catch { }
+    }
+  } catch (err: any) {
+    console.warn(`[YT-Utils] Strategy 8 failed: ${err.message}`);
+  }
+
+  // --- Strategy 9: AI-based Multimodal Transcription (Ultimate Fallback) ---
+  try {
+    console.log('[YT-Utils] Strategy 9: AI-based Transcription (Ultimate Fallback)');
+    const transcript = await getProviderManager().transcribeVideo(normalizedUrl);
+    if (transcript && transcript.length > 50) {
+      console.log(`[YT-Utils] Strategy 9 success (${transcript.length} chars)`);
+      return transcript;
+    }
+  } catch (err: any) {
+    console.warn(`[YT-Utils] Strategy 9 failed: ${err.message}`);
   }
 
   throw new Error('All ultra-robust strategies failed. YouTube is blocking all known extraction paths from this server.');

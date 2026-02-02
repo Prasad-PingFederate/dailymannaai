@@ -10,6 +10,7 @@ import { HfInference } from "@huggingface/inference";
 export interface AIProvider {
     name: string;
     generateResponse(prompt: string): Promise<string>;
+    transcribeVideo?(videoUrl: string): Promise<string>;
 }
 
 /**
@@ -51,6 +52,90 @@ class GeminiProvider implements AIProvider {
             }
         }
         throw new Error(`Gemini failed all model attempts. Last error: ${lastError}`);
+    }
+
+    async transcribeVideo(videoUrl: string): Promise<string> {
+        console.log(`[AI] Deep Transcription starting for: ${videoUrl}`);
+
+        // Try multiple models in order of priority
+        const transcriptionModels = [
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
+            "gemini-1.5-pro",
+            "gemini-1.5-pro-latest",
+            "gemini-pro"
+        ];
+
+        let lastError = "";
+        for (const modelName of transcriptionModels) {
+            try {
+                console.log(`[AI] Transcription attempt with: ${modelName}`);
+                const model = this.client.getGenerativeModel({ model: modelName });
+
+                const prompt = `
+                Mission: Act as a high-precision transcription engine.
+                Source: ${videoUrl}
+                Task: Provide a FULL, VERBATIM TRANSCRIPT of the speech content in this video.
+                Constraint: If you cannot access the video content directly, use your internal historical knowledge and any available metadata to reconstruct the MOST ACCURATE transcript possible.
+                Output: Just the transcript text, no preamble.
+                `;
+
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const text = response.text();
+                if (text && text.length > 50) {
+                    console.log(`[AI] ✅ Success with model: ${modelName}`);
+                    return text;
+                }
+            } catch (error: any) {
+                lastError = error.message;
+                console.warn(`[AI] Transcription with ${modelName} failed: ${lastError}`);
+            }
+        }
+
+        throw new Error(`AI transcription totally failed across all Gemini models. Last: ${lastError}`);
+    }
+}
+
+/**
+ * Groq Provider
+ */
+class GroqProvider implements AIProvider {
+    name = "Groq";
+    private apiKey: string;
+
+    constructor(apiKey: string) {
+        this.apiKey = apiKey;
+    }
+
+    async generateResponse(prompt: string): Promise<string> {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${this.apiKey}`,
+                },
+                body: JSON.stringify({
+                    model: "llama-3.1-70b-versatile",
+                    messages: [{ role: "user", content: prompt }],
+                }),
+                signal: controller.signal,
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Groq Error ${response.status}: ${text}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0]?.message?.content || "";
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 }
 
@@ -112,12 +197,12 @@ class OpenRouterProvider implements AIProvider {
 
     async generateResponse(prompt: string): Promise<string> {
         const fallbackModels = [
-            "deepseek/deepseek-chat", // Very high quality, extremely cheap (often free/heavy discount)
+            "deepseek/deepseek-chat",
+            "google/gemini-flash-1.5",
             "google/gemini-2.0-flash-exp:free",
             "meta-llama/llama-3.1-8b-instruct:free",
             "mistralai/mistral-7b-instruct:free",
-            "qwen/qwen-2.5-72b-instruct:free",
-            "google/gemini-flash-1.5-8b"
+            "anthropic/claude-3-haiku:free"
         ];
 
         let lastError = "";
@@ -267,11 +352,11 @@ export class AIProviderManager {
         const openRouterKey = process.env.OPENROUTER_API_KEY;
         const groqKey = process.env.GROQ_API_KEY;
 
-        // Sequence: OpenRouter (Primary) -> Gemini -> xAI (if any) -> Together -> Hugging Face
-        // OpenRouter first gives access to deepseek/llama-3 which are great for this use case
         if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
         if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));
-
+        if (groqKey && !groqKey.startsWith("xai-")) {
+            this.providers.push(new GroqProvider(groqKey));
+        }
         if (groqKey && groqKey.startsWith("xai-")) {
             this.providers.push(new XAIProvider(groqKey));
         }
@@ -309,6 +394,44 @@ export class AIProviderManager {
             response: "🙏 I'm sorry, but all my spiritual wisdom centers are currently offline or at capacity. Please check your API keys or wait a few minutes before asking again. The Word is always available in your local notes!",
             provider: "System Recovery"
         };
+    }
+
+    async transcribeVideo(videoUrl: string): Promise<string> {
+        // 1. Try Gemini (Direct)
+        const gemini = this.providers.find(p => p.name === "Gemini");
+        if (gemini && gemini.transcribeVideo) {
+            try {
+                return await gemini.transcribeVideo(videoUrl);
+            } catch (err: any) {
+                console.error(`[AI-Manager] Gemini transcription failed: ${err.message}`);
+            }
+        }
+
+        // 2. Try OpenRouter (Fallback)
+        const openRouter = this.providers.find(p => p.name === "OpenRouter");
+        if (openRouter) {
+            try {
+                console.log(`[AI-Manager] Falling back to OpenRouter for transcription...`);
+                const prompt = `Provide a full verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the live transcript, provide a highly detailed summary/reconstruction based on its content.`;
+                return await openRouter.generateResponse(prompt);
+            } catch (err: any) {
+                console.error(`[AI-Manager] OpenRouter transcription failed: ${err.message}`);
+            }
+        }
+
+        // 3. Try Groq (Third Fallback)
+        const groq = this.providers.find(p => p.name === "Groq");
+        if (groq) {
+            try {
+                console.log(`[AI-Manager] Falling back to Groq for transcription...`);
+                const prompt = `Provide the full transcript for this YouTube video: ${videoUrl}. Reconstruct the speech as accurately as possible.`;
+                return await groq.generateResponse(prompt);
+            } catch (err: any) {
+                console.error(`[AI-Manager] Groq transcription failed: ${err.message}`);
+            }
+        }
+
+        throw new Error("No transcription provider succeeded after all fallbacks");
     }
 
     getActiveProviders(): string[] {

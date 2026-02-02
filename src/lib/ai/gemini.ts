@@ -1,6 +1,10 @@
 import { AIProviderManager } from "./providers";
 
-const providerManager = new AIProviderManager();
+let _providerManager: AIProviderManager | null = null;
+export function getProviderManager() {
+    if (!_providerManager) _providerManager = new AIProviderManager();
+    return _providerManager;
+}
 
 const REFUSAL_TOKENS = [
     "I can't help with that",
@@ -29,7 +33,7 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     `;
 
     try {
-        const { response } = await providerManager.generateResponse(rewritePrompt);
+        const { response } = await getProviderManager().generateResponse(rewritePrompt);
         return response.trim().replace(/^"|"$/g, '');
     } catch (e) {
         return query;
@@ -78,7 +82,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
         let finalProvider = "";
 
         while (attempt <= 2) {
-            const { response, provider } = await providerManager.generateResponse(prompt);
+            const { response, provider } = await getProviderManager().generateResponse(prompt);
 
             // Check if the response is a false-positive safety refusal OR biased refusal
             const isRefusal = REFUSAL_TOKENS.some(token => response.toLowerCase().includes(token.toLowerCase()));

@@ -81,7 +81,7 @@ export default function NotebookWorkspace() {
     const [isPaused, setIsPaused] = useState(false);
     const [selectedVoice, setSelectedVoice] = useState<'male' | 'female'>('male');
     const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [uploadMode, setUploadMode] = useState<'file' | 'website' | 'text'>('file');
+    const [uploadMode, setUploadMode] = useState<'file' | 'website' | 'text' | 'youtube'>('file');
     const [websiteUrl, setWebsiteUrl] = useState("");
     const [websiteTitle, setWebsiteTitle] = useState("");
     const [pastedText, setPastedText] = useState("");
@@ -1307,23 +1307,23 @@ export default function NotebookWorkspace() {
                                     <p className="text-lg font-bold mb-1">{isIngesting ? 'Ingesting...' : 'Drag and drop files here'}</p>
                                     <p className="text-sm text-muted">or <span className="text-accent underline">browse files</span> from your computer</p>
                                 </div>
-                            ) : uploadMode === 'website' ? (
+                            ) : (uploadMode === 'website' || uploadMode === 'youtube') ? (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Site / Video Name</label>
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">{uploadMode === 'youtube' ? 'Video Name' : 'Site / Video Name'}</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g., Pastor Pagadala Sermon"
+                                            placeholder={uploadMode === 'youtube' ? "e.g., My Favorite Sermon" : "e.g., Pastor Pagadala Sermon"}
                                             value={websiteTitle}
                                             onChange={(e) => setWebsiteTitle(e.target.value)}
                                             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">Website or YouTube URL</label>
+                                        <label className="text-xs font-bold text-muted uppercase tracking-wider">{uploadMode === 'youtube' ? 'YouTube URL' : 'Website or YouTube URL'}</label>
                                         <input
                                             type="url"
-                                            placeholder="https://youtube.com/watch?v=..."
+                                            placeholder={uploadMode === 'youtube' ? "https://youtube.com/watch?v=..." : "https://website.com or YouTube link"}
                                             value={websiteUrl}
                                             onChange={(e) => setWebsiteUrl(e.target.value)}
                                             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
@@ -1334,7 +1334,7 @@ export default function NotebookWorkspace() {
                                         disabled={isIngesting || !websiteUrl || !websiteTitle}
                                         className="w-full bg-accent text-white py-4 rounded-xl font-bold shadow-lg shadow-accent/20 hover:bg-accent/90 transition-all active:scale-95 disabled:opacity-50 disabled:scale-100"
                                     >
-                                        {isIngesting ? 'Exploring Website...' : 'Ingest Website'}
+                                        {isIngesting ? (uploadMode === 'youtube' ? 'Transcribing Video...' : 'Exploring Website...') : (uploadMode === 'youtube' ? 'Ingest YouTube Video' : 'Ingest Website')}
                                     </button>
                                 </div>
                             ) : (
