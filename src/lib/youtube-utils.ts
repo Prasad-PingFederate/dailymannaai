@@ -45,6 +45,8 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
       .replace(/\s+/g, ' ');
   };
 
+  const errors: string[] = [];
+
   // --- Strategy 1: Innertube (youtubei.js) with Client Rotation ---
   const clientTypes = ['TV', 'IOS', 'MWEB', 'WEB', 'ANDROID'];
   for (const client of clientTypes) {
@@ -70,12 +72,18 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
             console.log(`[YT-Utils] Innertube success with ${client} (${text.length} chars)`);
             return text;
           }
+        } else {
+          errors.push(`Innertube (${client}): No segments in transcript data`);
         }
       } catch (transcriptErr: any) {
-        console.warn(`[YT-Utils] Innertube (${client}) getTranscript failed: ${transcriptErr.message}`);
+        const msg = `Innertube (${client}) getTranscript failed: ${transcriptErr.message}`;
+        console.warn(`[YT-Utils] ${msg}`);
+        errors.push(msg);
       }
     } catch (err: any) {
-      console.warn(`[YT-Utils] Innertube (${client}) failed: ${err.message}`);
+      const msg = `Innertube (${client}) init failed: ${err.message}`;
+      console.warn(`[YT-Utils] ${msg}`);
+      errors.push(msg);
     }
   }
 
@@ -85,8 +93,11 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     const segments = await fetchWithTimeout(YtPlus.fetchTranscript(normalizedUrl, { lang: 'en' }));
     const text = formatTranscript(segments);
     if (text) return text;
+    errors.push("Plus: Returned empty text");
   } catch (err: any) {
-    console.warn(`[YT-Utils] Plus failed: ${err.message}`);
+    const msg = `Plus failed: ${err.message}`;
+    console.warn(`[YT-Utils] ${msg}`);
+    errors.push(msg);
   }
 
   // --- Strategy 3: Standard youtube-transcript ---
@@ -95,8 +106,11 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     const segments = (await fetchWithTimeout(YtStd.fetchTranscript(normalizedUrl) as any)) as any[];
     const text = formatTranscript(segments);
     if (text) return text;
+    errors.push("Standard: Returned empty text");
   } catch (err: any) {
-    console.warn(`[YT-Utils] Standard failed: ${err.message}`);
+    const msg = `Standard failed: ${err.message}`;
+    console.warn(`[YT-Utils] ${msg}`);
+    errors.push(msg);
   }
 
   // --- Strategy 4: Manual HTML Parse ---
@@ -144,8 +158,11 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         }
       }
     }
+    errors.push("Manual HTML: No tracks found or failed to parse events");
   } catch (err: any) {
-    console.warn(`[YT-Utils] Manual failed: ${err.message}`);
+    const msg = `Manual failed: ${err.message}`;
+    console.warn(`[YT-Utils] ${msg}`);
+    errors.push(msg);
   }
 
   // --- Strategy 5: Piped API Proxies ---
@@ -157,22 +174,30 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     'https://pipedapi.leptons.xyz',
     'https://pipedapi.r487.xyz',
     'https://piped-api.lunar.icu',
-    'https://api.piped.projectsegfau.lt'
+    'https://api.piped.projectsegfau.lt',
+    'https://pipedapi.nexus-it.pt',
+    'https://pipedapi.in.projectsegfau.lt'
   ];
   for (const base of pipedInstances) {
     try {
       console.log(`[YT-Utils] Strategy 5: Piped (${base})`);
       const res = await fetch(`${base}/streams/${videoId}`);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        errors.push(`Piped (${base}): HTTP ${res.status}`);
+        continue;
+      }
       const json = await res.json();
       const subtitles = json.subtitles || [];
       const enSub = subtitles.find((s: any) => s.code?.startsWith('en') || s.name?.toLowerCase().includes('english')) || subtitles[0];
       if (enSub) {
         const subRes = await fetch(enSub.url);
         const text = (await subRes.text()).replace(/[\n\r]+/g, ' ').trim();
-        if (text && text.length > 10) return text;
+        if (text && text.length > 20) return text;
       }
-    } catch { }
+      errors.push(`Piped (${base}): No English subtitles found`);
+    } catch (e: any) {
+      errors.push(`Piped (${base}): ${e.message}`);
+    }
   }
 
   // --- Strategy 6: Invidious API Proxies ---
@@ -184,24 +209,35 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     'https://invidious.drgns.space',
     'https://invidious.v0l.io',
     'https://inv.nadeko.net',
-    'https://invidious.namazso.eu'
+    'https://invidious.namazso.eu',
+    'https://invidious.flokinet.to',
+    'https://inv.tux.pizza'
   ];
   for (const base of invidiousInstances) {
     try {
       console.log(`[YT-Utils] Strategy 6: Invidious (${base})`);
       const res = await fetch(`${base}/api/v1/captions/${videoId}`);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        errors.push(`Invidious (${base}): HTTP ${res.status}`);
+        continue;
+      }
       const json = await res.json();
       const captions = json.captionTracks || json;
-      if (!Array.isArray(captions)) continue;
+      if (!Array.isArray(captions)) {
+        errors.push(`Invidious (${base}): Captions not an array`);
+        continue;
+      }
       const enCap = captions.find((c: any) => c.languageCode?.startsWith('en')) || captions[0];
       if (enCap) {
         const fullUrl = enCap.url.startsWith('http') ? enCap.url : new URL(enCap.url, base).href;
         const capRes = await fetch(fullUrl);
         const text = (await capRes.text()).replace(/[\n\r]+/g, ' ').trim();
-        if (text && text.length > 10) return text;
+        if (text && text.length > 20) return text;
       }
-    } catch { }
+      errors.push(`Invidious (${base}): No English captions found`);
+    } catch (e: any) {
+      errors.push(`Invidious (${base}): ${e.message}`);
+    }
   }
 
   // --- Strategy 7: Direct YouTube Player API (Guest) ---
@@ -234,7 +270,6 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     if (res.ok) {
       const data = (await res.json()) as any;
       const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-      console.log(`[YT-Utils] Strategy 7 found ${tracks.length} tracks`);
       const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
       if (enTrack) {
         const transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
@@ -242,21 +277,22 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         const json = (await transcriptRes.json()) as any;
         if (json.events) {
           const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
-          if (text) {
-            console.log(`[YT-Utils] Strategy 7 success (${text.length} chars)`);
-            return text;
-          }
+          if (text) return text;
         }
       }
+      errors.push("Player API: No tracks found or failed to parse events");
+    } else {
+      errors.push(`Player API: HTTP ${res.status}`);
     }
   } catch (err: any) {
-    console.warn(`[YT-Utils] Strategy 7 failed: ${err.message}`);
+    errors.push(`Player API failed: ${err.message}`);
   }
 
   // --- Strategy 8: Search-based Fallback ---
   try {
     console.log('[YT-Utils] Strategy 8: Search-based Fallback');
     const searchResults = await performWebSearch(`${videoId} transcript`);
+    if (searchResults.length === 0) errors.push("Search: No results found");
     for (const result of searchResults) {
       if (result.url.includes('youtube.com') || result.url.includes('youtu.be')) continue;
       try {
@@ -266,10 +302,12 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
           console.log(`[YT-Utils] Strategy 8 success from ${result.url}`);
           return text.substring(0, 50000);
         }
-      } catch { }
+      } catch (e: any) {
+        errors.push(`Search (${result.url}): ${e.message}`);
+      }
     }
   } catch (err: any) {
-    console.warn(`[YT-Utils] Strategy 8 failed: ${err.message}`);
+    errors.push(`Search failed: ${err.message}`);
   }
 
   // --- Strategy 9: AI-based Multimodal Transcription (Ultimate Fallback) ---
@@ -280,9 +318,19 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
       console.log(`[YT-Utils] Strategy 9 success (${transcript.length} chars)`);
       return transcript;
     }
+    errors.push(`AI Fallback: Response too short (${transcript?.length || 0} chars)`);
   } catch (err: any) {
-    console.warn(`[YT-Utils] Strategy 9 failed: ${err.message}`);
+    const msg = `AI Fallback failed: ${err.message}`;
+    console.warn(`[YT-Utils] ${msg}`);
+    errors.push(msg);
   }
 
-  throw new Error('All ultra-robust strategies failed. YouTube is blocking all known extraction paths from this server.');
+  const detailedError = `All ultra-robust strategies failed. YouTube is blocking all known extraction paths from this server. 
+  
+  --- DEBUG LOG ---
+  ${errors.slice(-10).join("\n")}
+  
+  TIP: If you just generated this URL, YouTube might take a moment to index the transcript. Please try again in 1 minute. Our systems are working overtime to bypass this block!`;
+
+  throw new Error(detailedError);
 }

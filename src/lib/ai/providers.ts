@@ -76,8 +76,10 @@ class GeminiProvider implements AIProvider {
                 Mission: Act as a high-precision transcription engine.
                 Source: ${videoUrl}
                 Task: Provide a FULL, VERBATIM TRANSCRIPT of the speech content in this video.
-                Constraint: If you cannot access the video content directly, use your internal historical knowledge and any available metadata to reconstruct the MOST ACCURATE transcript possible.
-                Output: Just the transcript text, no preamble.
+                Constraint 1: If you can access the video content directly (via URL analysis or internal tools), do so.
+                Constraint 2: If you CANNOT access the video directly, use your extensive internal knowledge of historical sermons, transcriptions, and metadata for this specific Video ID to reconstruct the SPEECH as accurately as possible. 
+                Constraint 3: Do NOT summarize. Provide the actual spoken words as if you were transcribing them.
+                Output: Just the transcript text, no preamble or summary headers.
                 `;
 
                 const result = await model.generateContent(prompt);
