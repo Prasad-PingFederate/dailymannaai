@@ -33,7 +33,8 @@ import {
     Wand2,
     FileAudio,
     CheckCircle2,
-    Volume2
+    Volume2,
+    Menu
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 import { GODS_LOVE_VERSES } from "@/lib/data/gods_love";
@@ -52,6 +53,8 @@ interface Source {
 
 export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isChatOpen, setChatOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("sources"); // sources, chat
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [messages, setMessages] = useState([
@@ -1259,25 +1262,25 @@ export default function NotebookWorkspace() {
                             </button>
                         </header>
 
-                        <div className="p-8">
-                            <div className="grid grid-cols-3 gap-4 mb-8">
+                        <div className="p-4 md:p-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
                                 {[
-                                    { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD, DOCX" },
-                                    { mode: 'youtube', icon: <Mic2 size={20} />, label: "YouTube Video", sub: "Transcribe CC" },
-                                    { mode: 'website', icon: <Globe size={20} />, label: "Website", sub: "Import Article" },
+                                    { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD" },
+                                    { mode: 'youtube', icon: <Mic2 size={20} />, label: "YouTube Video", sub: "Transcribe" },
+                                    { mode: 'website', icon: <Globe size={20} />, label: "Website", sub: "Import Link" },
                                     { mode: 'text', icon: <LinkIcon size={20} />, label: "Copy-Paste", sub: "Direct text" }
                                 ].map((option, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setUploadMode(option.mode as any)}
-                                        className={`flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border transition-all group ${uploadMode === option.mode ? 'bg-accent/10 border-accent text-accent' : 'bg-background border-border hover:bg-accent/5'}`}
+                                        className={`flex flex-row sm:flex-col items-center sm:justify-center gap-3 p-4 md:p-6 rounded-2xl border transition-all group ${uploadMode === option.mode ? 'bg-accent/10 border-accent text-accent' : 'bg-background border-border hover:bg-accent/5'}`}
                                     >
-                                        <div className={`p-3 rounded-xl transition-colors ${uploadMode === option.mode ? 'bg-accent/20 text-accent' : 'bg-muted/10 text-muted group-hover:text-accent group-hover:bg-accent/10'}`}>
+                                        <div className={`p-2 md:p-3 rounded-xl transition-colors ${uploadMode === option.mode ? 'bg-accent/20 text-accent' : 'bg-muted/10 text-muted group-hover:text-accent group-hover:bg-accent/10'}`}>
                                             {option.icon}
                                         </div>
-                                        <div className="text-center">
+                                        <div className="text-left sm:text-center">
                                             <div className="text-sm font-bold">{option.label}</div>
-                                            <div className="text-[10px] text-muted uppercase tracking-tight">{option.sub}</div>
+                                            <div className="text-[9px] md:text-[10px] text-muted uppercase tracking-tight">{option.sub}</div>
                                         </div>
                                     </button>
                                 ))}
@@ -1400,7 +1403,7 @@ export default function NotebookWorkspace() {
                                 <X size={20} />
                             </button>
                         </header>
-                        <div className="flex-1 overflow-y-auto p-8 leading-relaxed text-foreground select-text custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 leading-relaxed text-foreground select-text custom-scrollbar">
                             <div className="max-w-3xl mx-auto space-y-4">
                                 {viewingSource.name.toLowerCase().endsWith(".mp3") ? (
                                     <div className="p-6 bg-accent/5 rounded-2xl border border-accent/20">
@@ -1434,8 +1437,18 @@ export default function NotebookWorkspace() {
                 onDragLeave={() => setIsDraggingToSidebar(false)}
                 onDrop={handleSidebarDrop}
                 className={`${isSidebarOpen ? "w-[300px]" : "w-0"
-                    } transition-all duration-300 border-r border-border flex flex-col glass-morphism relative overflow-hidden ${isDraggingToSidebar ? 'bg-accent/10 ring-2 ring-inset ring-accent' : ''}`}
+                    } transition-all duration-300 border-r border-border flex flex-col glass-morphism relative overflow-hidden ${isDraggingToSidebar ? 'bg-accent/10 ring-2 ring-inset ring-accent' : ''} 
+                    md:relative md:translate-x-0
+                    ${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-[60] translate-x-0 w-[280px] shadow-2xl' : 'fixed -translate-x-full md:translate-x-0'}`}
             >
+                {/* Mobile Close Button */}
+                <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="md:hidden absolute top-4 right-4 z-10 p-2 bg-card-bg rounded-full shadow-lg hover:bg-border/50 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+
                 <div className="p-4 border-b border-border flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="bg-accent h-7 w-7 rounded flex items-center justify-center text-white">
@@ -1505,50 +1518,7 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-border mt-auto space-y-4">
-                    <div className="pt-2">
-                        <h4 className="text-[10px] font-bold text-muted uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <Sparkles size={10} className="text-accent" /> Research Tools
-                        </h4>
-                        <div className="space-y-2">
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    placeholder="Paste YouTube Link..."
-                                    value={websiteUrl}
-                                    onChange={(e) => {
-                                        setWebsiteUrl(e.target.value);
-                                        if (e.target.value.includes("youtube.com") || e.target.value.includes("youtu.be")) {
-                                            setUploadMode('website');
-                                            if (!websiteTitle) setWebsiteTitle("YouTube Research");
-                                        }
-                                    }}
-                                    className="w-full bg-background border border-border rounded-xl py-2 pl-3 pr-10 text-xs focus:ring-1 focus:ring-accent outline-none transition-all"
-                                />
-                                <button
-                                    onClick={handleWebsiteIngest}
-                                    disabled={isIngesting || !websiteUrl}
-                                    className={`absolute right-1 top-1 p-1.5 rounded-lg transition-all ${isIngesting ? 'bg-accent/20 text-accent cursor-wait' : 'bg-accent text-white hover:scale-105 active:scale-95'}`}
-                                >
-                                    {isIngesting ? <div className="animate-spin h-3 w-3 border-2 border-accent border-t-transparent rounded-full" /> : <ArrowRight size={14} />}
-                                </button>
-                            </div>
-
-                            {isIngesting && websiteUrl.includes("youtube") && (
-                                <div className="bg-accent/10 rounded-lg p-2 animate-in fade-in duration-300">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="text-[9px] font-bold text-accent uppercase">Transcribing...</span>
-                                        <span className="text-[9px] text-muted">Metric: Active</span>
-                                    </div>
-                                    <div className="h-1 bg-accent/20 rounded-full overflow-hidden">
-                                        <div className="h-full bg-accent animate-progress-fast w-[60%]"></div>
-                                    </div>
-                                    <p className="text-[8px] text-muted mt-1 italic">Bypassing restrictions via Manual Fallback...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
+                <div className="p-4 border-t border-border mt-auto">
                     <button
                         onClick={() => setUploadModalOpen(true)}
                         className="flex items-center gap-2 w-full p-2 bg-accent/10 text-accent rounded-lg text-sm font-bold hover:bg-accent/20 transition-colors"
@@ -1558,10 +1528,18 @@ export default function NotebookWorkspace() {
                 </div>
             </aside>
 
-            {/* Collapse/Expand Toggle */}
+            {/* Mobile Sidebar Backdrop */}
+            {isMobileMenuOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/50 z-[59] backdrop-blur-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Collapse/Expand Toggle - Hidden on mobile */}
             <button
                 onClick={() => setSidebarOpen(!isSidebarOpen)}
-                className="absolute left-[288px] top-4 z-50 bg-card-bg border border-border rounded-full p-1 shadow-md hover:bg-accent hover:text-white transition-all transform"
+                className="hidden md:block absolute left-[288px] top-4 z-50 bg-card-bg border border-border rounded-full p-1 shadow-md hover:bg-accent hover:text-white transition-all transform"
                 style={{ left: isSidebarOpen ? '288px' : '12px' }}
             >
                 {isSidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
@@ -1569,15 +1547,38 @@ export default function NotebookWorkspace() {
 
             {/* 2. Main Editor/Viewer (Middle) */}
             <main className="flex-1 flex flex-col bg-background relative">
-                <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-card-bg/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                        <h2 className="font-bold text-lg">My Research Workspace</h2>
-                        <div className="px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Saved</div>
+                <header className="h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="md:hidden p-2 hover:bg-border/50 rounded-lg transition-colors"
+                            title="Open Sources"
+                        >
+                            <Menu size={20} />
+                        </button>
+
+                        <h2 className="font-bold text-base md:text-lg truncate">My Research Workspace</h2>
+                        <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Saved</div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                         <button className="p-2 hover:bg-border/50 rounded-full transition-colors"><Edit3 size={18} /></button>
-                        <button className="p-2 hover:bg-border/50 rounded-full transition-colors"><Share2 size={18} /></button>
-                        <button className="p-2 hover:bg-border/50 rounded-full transition-colors"><Settings size={18} /></button>
+                        <button className="hidden sm:block p-2 hover:bg-border/50 rounded-full transition-colors"><Share2 size={18} /></button>
+                        <button className="hidden sm:block p-2 hover:bg-border/50 rounded-full transition-colors"><Settings size={18} /></button>
+
+                        {/* Mobile Chat Toggle */}
+                        <button
+                            onClick={() => setChatOpen(!isChatOpen)}
+                            className="md:hidden p-2 hover:bg-border/50 rounded-lg transition-colors relative"
+                            title="Toggle Chat"
+                        >
+                            <MessageSquare size={20} />
+                            {messages.length > 1 && (
+                                <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                                    {messages.length - 1}
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </header>
 
@@ -1716,7 +1717,7 @@ export default function NotebookWorkspace() {
                     </div>
                 )}
 
-                <div className="flex-1 p-10 overflow-y-auto bg-card-bg/10">
+                <div className="flex-1 p-4 md:p-10 overflow-y-auto bg-card-bg/10">
                     <div className="max-w-3xl mx-auto space-y-6">
                         <div className="space-y-2">
                             <input
@@ -1748,91 +1749,91 @@ export default function NotebookWorkspace() {
                 </div>
 
                 {/* Dynamic Action Bar (Bottom Middle) - Stabilized */}
-                <div className="absolute bottom-10 inset-x-0 flex justify-center z-[100] pointer-events-none">
+                <div className="absolute bottom-6 md:bottom-10 inset-x-0 flex justify-center z-[50] pointer-events-none px-4">
                     <div
                         onMouseEnter={() => setIsBarHovered(true)}
                         onMouseLeave={() => setIsBarHovered(false)}
-                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto 
-                            ${isBarHovered ? 'w-max' : 'w-auto max-w-[400px]'}`}
+                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto 
+                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-[400px] hover:md:max-w-none'}`}
                     >
                         {/* Summarize - Works on SOURCES */}
                         <button
                             onClick={handleSummarize}
                             disabled={isSummarizing}
                             title="Summarize selected sources and add to notes"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
                         >
                             <div className="flex items-center gap-2">
-                                <FileStack size={16} className="text-blue-500" />
-                                <span className="text-xs font-bold">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
+                                <FileStack size={14} className="md:size-4 text-blue-500" />
+                                <span className="text-[10px] md:text-xs font-bold">{isSummarizing ? '...' : 'Summarize'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">From Sources</span>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Sources</span>
                         </button>
 
-                        <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
                         {/* Refine - Works on NOTES */}
                         <button
                             onClick={handleRefine}
                             disabled={isRefining}
                             title="Refine and improve your notes"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
                         >
                             <div className="flex items-center gap-2">
-                                <Wand2 size={16} className="text-purple-500" />
-                                <span className="text-xs font-bold">{isRefining ? 'Refining...' : 'Refine'}</span>
+                                <Wand2 size={14} className="md:size-4 text-purple-500" />
+                                <span className="text-[10px] md:text-xs font-bold">{isRefining ? '...' : 'Refine'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">Polish Notes</span>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Polish</span>
                         </button>
 
-                        <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
                         {/* Divine Reflection - Highlighted */}
                         <button
                             onClick={handleDivineMeditation}
                             disabled={isMeditating}
                             title="Transform research into a prayerful meditation"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
                         >
-                            <div className="feature-badge">DIVINE ✨</div>
+                            <div className="feature-badge hidden md:block">DIVINE ✨</div>
                             <div className="flex items-center gap-2 text-yellow-500">
-                                <Sparkles size={16} />
-                                <span className="text-xs font-bold">{isMeditating ? 'Meditating...' : 'Divine Reflection'}</span>
+                                <Sparkles size={14} className="md:size-4" />
+                                <span className="text-[10px] md:text-xs font-bold">{isMeditating ? '...' : 'Divine'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">Glorify God</span>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Reflection</span>
                         </button>
 
-                        <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
                         {/* Audio Overview - Highlighted */}
                         <button
                             onClick={generateAudioOverview}
                             disabled={isGeneratingAudio}
                             title="Generate podcast-style overview"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
                         >
-                            <div className="feature-badge">NEW ✨</div>
+                            <div className="feature-badge hidden md:block">NEW ✨</div>
                             <div className="flex items-center gap-2">
-                                <Mic2 size={16} className="text-accent" />
-                                <span className="text-xs font-bold">{isGeneratingAudio ? 'Generating...' : 'Audio Overview'}</span>
+                                <Mic2 size={14} className="md:size-4 text-accent" />
+                                <span className="text-[10px] md:text-xs font-bold">{isGeneratingAudio ? '...' : 'Podcast'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">Podcast Script</span>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Audio</span>
                         </button>
 
-                        <div className="w-px h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
                         {/* Grammar Check - NEW */}
                         <button
                             onClick={handleGrammarCheck}
                             disabled={isGrammarChecking}
                             title="Identify grammar mistakes and explain rules"
-                            className={`group relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
                         >
                             <div className="flex items-center gap-2">
-                                <CheckCircle2 size={16} className="text-green-500" />
-                                <span className="text-xs font-bold">{isGrammarChecking ? 'Verifying...' : 'Check Grammar'}</span>
+                                <CheckCircle2 size={14} className="md:size-4 text-green-500" />
+                                <span className="text-[10px] md:text-xs font-bold">{isGrammarChecking ? '...' : 'Check'}</span>
                             </div>
-                            <span className="text-[9px] text-muted uppercase tracking-wider">Verify Rules</span>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Grammar</span>
                         </button>
                     </div>
                 </div>
@@ -1840,13 +1841,23 @@ export default function NotebookWorkspace() {
 
             {/* 3. AI Assistant (Right) */}
             <section
-                style={{ width: `${chatSidebarWidth}px` }}
-                className="border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden"
+                style={{ width: isChatOpen || window.innerWidth >= 768 ? `${chatSidebarWidth}px` : '0' }}
+                className={`border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden
+                    md:relative md:translate-x-0
+                    ${isChatOpen ? 'fixed inset-y-0 right-0 z-[60] translate-x-0 w-full max-w-md shadow-2xl' : 'fixed translate-x-full md:translate-x-0'}`}
             >
-                {/* Resize Handle (Hit Area) */}
+                {/* Mobile Close Button */}
+                <button
+                    onClick={() => setChatOpen(false)}
+                    className="md:hidden absolute top-4 left-4 z-10 p-2 bg-card-bg rounded-full shadow-lg hover:bg-border/50 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+
+                {/* Resize Handle (Hit Area) - Desktop only */}
                 <div
                     onMouseDown={startResizing}
-                    className="absolute left-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-accent/30 transition-all z-50 group-hover:bg-accent/10"
+                    className="hidden md:block absolute left-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-accent/30 transition-all z-50 group-hover:bg-accent/10"
                     title="Drag to resize chat"
                 />
 
@@ -1854,7 +1865,7 @@ export default function NotebookWorkspace() {
                     <div className="text-accent-secondary">
                         <MessageSquare size={20} />
                     </div>
-                    <h3 className="font-bold flex-1">Spiritual Disciple Assistant</h3>
+                    <h3 className="font-bold flex-1 text-sm md:text-base">Spiritual Disciple Assistant</h3>
                     <button
                         onClick={clearChat}
                         className="p-2 hover:bg-red-500/10 rounded-lg text-muted hover:text-red-500 transition-all"
@@ -2114,6 +2125,14 @@ export default function NotebookWorkspace() {
                     </div>
                 </div>
             </section>
+
+            {/* Mobile Chat Backdrop */}
+            {isChatOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/50 z-[59] backdrop-blur-sm"
+                    onClick={() => setChatOpen(false)}
+                />
+            )}
         </div>
     );
 }

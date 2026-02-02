@@ -15,12 +15,12 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground selection:bg-accent/30">
       {/* Navbar */}
       <nav className="fixed top-0 z-50 w-full border-b border-border glass-morphism">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white shadow-lg shadow-accent/20">
               <BookOpen size={20} />
             </div>
-            <span className="text-xl font-bold tracking-tight">christian-notebook<span className="text-accent">.ai</span></span>
+            <span className="text-lg md:text-xl font-bold tracking-tight truncate">christian-notebook<span className="text-accent">.ai</span></span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted">
@@ -29,11 +29,11 @@ export default function Home() {
             <Link href="#pricing" className="transition-colors hover:text-foreground">Sermon Analysis</Link>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/notebook" className="text-sm font-medium transition-colors hover:text-accent">Sign In</Link>
+          <div className="flex items-center gap-2 md:gap-4">
+            <Link href="/notebook" className="hidden sm:inline text-sm font-medium transition-colors hover:text-accent">Sign In</Link>
             <Link
               href="/notebook"
-              className="shine rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-transform active:scale-95 shadow-xl shadow-foreground/10"
+              className="shine rounded-full bg-foreground px-4 md:px-5 py-2 text-xs md:text-sm font-semibold text-background transition-transform active:scale-95 shadow-xl shadow-foreground/10"
             >
               Start Your Bible Study
             </Link>
