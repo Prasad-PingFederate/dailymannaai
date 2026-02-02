@@ -14,6 +14,30 @@ export interface AIProvider {
 }
 
 /**
+ * Utility to detect if an AI response is a "refusal" 
+ * (e.g. "I cannot access YouTube") rather than a transcript.
+ */
+export function isRefusalResponse(text: string): boolean {
+    const refusalPatterns = [
+        "cannot directly access",
+        "don't have access to",
+        "cannot transcribe",
+        "am an AI",
+        "unable to visit",
+        "I can't access",
+        "I am unable to access",
+        "as an AI language model",
+        "I don't have real-time",
+        "unfortunately, i cannot",
+        "sorry, i had trouble",
+        "3rd party tools",
+        "manual transcription"
+    ];
+    const lower = text.toLowerCase();
+    return refusalPatterns.some(p => lower.includes(p));
+}
+
+/**
  * Gemini Provider (Switching to v1 API)
  */
 class GeminiProvider implements AIProvider {
@@ -85,7 +109,12 @@ class GeminiProvider implements AIProvider {
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
                 const text = response.text();
+
                 if (text && text.length > 50) {
+                    if (isRefusalResponse(text)) {
+                        console.warn(`[AI] ${modelName} returned a refusal message. Treating as failure.`);
+                        continue;
+                    }
                     console.log(`[AI] ✅ Success with model: ${modelName}`);
                     return text;
                 }
@@ -425,7 +454,11 @@ export class AIProviderManager {
                 console.log(`[AI-Manager] Falling back to xAI (Grok) for transcription...`);
                 // Grok is very good at "external knowledge" reconstruction
                 const prompt = `Act as a high-precision transcription engine. Provide the FULL verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the audio directly, use your extensive real-time web knowledge and historical archives to provide the MOST ACCURATE transcript possible. Do NOT summarize.`;
-                return await xai.generateResponse(prompt);
+                const response = await xai.generateResponse(prompt);
+                if (response && response.length > 50 && !isRefusalResponse(response)) {
+                    return response;
+                }
+                console.warn(`[AI-Manager] xAI returned refusal or empty response.`);
             } catch (err: any) {
                 console.error(`[AI-Manager] xAI transcription failed: ${err.message}`);
             }
@@ -437,7 +470,11 @@ export class AIProviderManager {
             try {
                 console.log(`[AI-Manager] Falling back to OpenRouter...`);
                 const prompt = `Provide a full verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the live transcript, provide a highly detailed speech reconstruction.`;
-                return await openRouter.generateResponse(prompt);
+                const response = await openRouter.generateResponse(prompt);
+                if (response && response.length > 50 && !isRefusalResponse(response)) {
+                    return response;
+                }
+                console.warn(`[AI-Manager] OpenRouter returned refusal or empty response.`);
             } catch (err: any) {
                 console.error(`[AI-Manager] OpenRouter transcription failed: ${err.message}`);
             }
