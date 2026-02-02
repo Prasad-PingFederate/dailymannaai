@@ -888,7 +888,7 @@ It's now part of my collective wisdom!`
         }
     };
 
-    const handleGenerateGuide = async (type: "study-guide" | "faq" | "timeline" | "briefing doc") => {
+    const handleGenerateGuide = async (type: "study-guide" | "faq" | "timeline" | "briefing doc" | "transcription") => {
         const selectedSources = sources.filter(s => s.selected);
         if (selectedSources.length === 0) {
             alert("Please select at least one source to generate from.");
@@ -914,7 +914,8 @@ It's now part of my collective wisdom!`
 
             const label = type === "study-guide" ? "Study Guide" :
                 type === "faq" ? "FAQ" :
-                    type === "timeline" ? "Timeline" : "Briefing Doc";
+                    type === "timeline" ? "Timeline" :
+                        type === "transcription" ? "Full Transcription" : "Briefing Doc";
 
             setMessages(prev => [...prev, {
                 role: "assistant",
@@ -2089,7 +2090,8 @@ It's now part of my collective wisdom!`
                             { id: "study-guide", label: "🙏 Study Guide" },
                             { id: "faq", label: "❓ FAQ" },
                             { id: "timeline", label: "📅 Timeline" },
-                            { id: "briefing doc", label: "📝 Briefing Doc" }
+                            { id: "briefing doc", label: "📝 Briefing Doc" },
+                            { id: "transcription", label: "📜 Full Transcription" }
                         ].map((action, i) => (
                             <button
                                 key={i}

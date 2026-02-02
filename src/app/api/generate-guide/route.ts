@@ -45,6 +45,12 @@ export async function POST(req: Request) {
             SOURCES:
             ${sourceContext}
             FORMAT: Professional list with years/dates first. Label eras if applicable.`;
+        } else if (type === "transcription") {
+            prompt = `TASK: Provide the FULL TRANSCRIPTION / CONTENT of the provided sources. 
+            Requirement: Present the text verbatim as it appears in the sources. Do not summarize or change the words. Use headers to separate different sources if multiple are provided.
+            SOURCES:
+            ${sourceContext}
+            FORMAT: Clean Markdown.`;
         } else {
             prompt += `
             Requirement: Generate a high-level EXECUTIVE BRIEF capturing the essence, message, and takeaways of the material.

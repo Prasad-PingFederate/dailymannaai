@@ -353,14 +353,20 @@ export class AIProviderManager {
         const geminiKey = process.env.GEMINI_API_KEY;
         const openRouterKey = process.env.OPENROUTER_API_KEY;
         const groqKey = process.env.GROQ_API_KEY;
+        const xaiKey = process.env.XAI_API_KEY;
 
         if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
         if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));
-        if (groqKey && !groqKey.startsWith("xai-")) {
+
+        // Handle Groq (should start with gsk_)
+        if (groqKey && groqKey.startsWith("gsk_")) {
             this.providers.push(new GroqProvider(groqKey));
         }
-        if (groqKey && groqKey.startsWith("xai-")) {
-            this.providers.push(new XAIProvider(groqKey));
+
+        // Handle xAI (should start with xai- or provided as XAI_API_KEY)
+        const activeXaiKey = xaiKey || (groqKey && groqKey.startsWith("xai-") ? groqKey : null);
+        if (activeXaiKey) {
+            this.providers.push(new XAIProvider(activeXaiKey));
         }
 
         if (process.env.TOGETHER_API_KEY && !process.env.TOGETHER_API_KEY.includes("your_together")) {
@@ -399,41 +405,45 @@ export class AIProviderManager {
     }
 
     async transcribeVideo(videoUrl: string): Promise<string> {
-        // 1. Try Gemini (Direct)
+        console.log(`[AI-Manager] Starting multimodal transcription for: ${videoUrl}`);
+
+        // 1. Try Gemini (Primary Multi-modal Brain)
         const gemini = this.providers.find(p => p.name === "Gemini");
         if (gemini && gemini.transcribeVideo) {
             try {
+                console.log(`[AI-Manager] Attempting Gemini Multimodal...`);
                 return await gemini.transcribeVideo(videoUrl);
             } catch (err: any) {
-                console.error(`[AI-Manager] Gemini transcription failed: ${err.message}`);
+                console.error(`[AI-Manager] Gemini multimodal failed: ${err.message}`);
             }
         }
 
-        // 2. Try OpenRouter (Fallback)
+        // 2. Try xAI / Grok (Aggressive fallback)
+        const xai = this.providers.find(p => p.name.includes("xAI"));
+        if (xai) {
+            try {
+                console.log(`[AI-Manager] Falling back to xAI (Grok) for transcription...`);
+                // Grok is very good at "external knowledge" reconstruction
+                const prompt = `Act as a high-precision transcription engine. Provide the FULL verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the audio directly, use your extensive real-time web knowledge and historical archives to provide the MOST ACCURATE transcript possible. Do NOT summarize.`;
+                return await xai.generateResponse(prompt);
+            } catch (err: any) {
+                console.error(`[AI-Manager] xAI transcription failed: ${err.message}`);
+            }
+        }
+
+        // 3. Try OpenRouter (Broad fallback)
         const openRouter = this.providers.find(p => p.name === "OpenRouter");
         if (openRouter) {
             try {
-                console.log(`[AI-Manager] Falling back to OpenRouter for transcription...`);
-                const prompt = `Provide a full verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the live transcript, provide a highly detailed summary/reconstruction based on its content.`;
+                console.log(`[AI-Manager] Falling back to OpenRouter...`);
+                const prompt = `Provide a full verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the live transcript, provide a highly detailed speech reconstruction.`;
                 return await openRouter.generateResponse(prompt);
             } catch (err: any) {
                 console.error(`[AI-Manager] OpenRouter transcription failed: ${err.message}`);
             }
         }
 
-        // 3. Try Groq (Third Fallback)
-        const groq = this.providers.find(p => p.name === "Groq");
-        if (groq) {
-            try {
-                console.log(`[AI-Manager] Falling back to Groq for transcription...`);
-                const prompt = `Provide the full transcript for this YouTube video: ${videoUrl}. Reconstruct the speech as accurately as possible.`;
-                return await groq.generateResponse(prompt);
-            } catch (err: any) {
-                console.error(`[AI-Manager] Groq transcription failed: ${err.message}`);
-            }
-        }
-
-        throw new Error("No transcription provider succeeded after all fallbacks");
+        throw new Error("No AI providers could generate a transcript for this video.");
     }
 
     getActiveProviders(): string[] {

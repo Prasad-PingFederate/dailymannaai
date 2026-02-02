@@ -47,7 +47,22 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
 
   const errors: string[] = [];
 
-  // --- Strategy 1: Innertube (youtubei.js) with Client Rotation ---
+  // --- Strategy 1: AI-based Multimodal Transcription (PRIMARY Strategy) ---
+  try {
+    console.log('[YT-Utils] Strategy 1: AI-based Transcription (Primary)');
+    const transcript = await getProviderManager().transcribeVideo(normalizedUrl);
+    if (transcript && transcript.length > 50) {
+      console.log(`[YT-Utils] Strategy 1 success (${transcript.length} chars)`);
+      return transcript;
+    }
+    errors.push(`AI Primary: Response too short (${transcript?.length || 0} chars)`);
+  } catch (err: any) {
+    const msg = `AI Primary failed: ${err.message}`;
+    console.warn(`[YT-Utils] ${msg}`);
+    errors.push(msg);
+  }
+
+  // --- Strategy 2: Innertube (youtubei.js) with Client Rotation ---
   const clientTypes = ['TV', 'IOS', 'MWEB', 'WEB', 'ANDROID'];
   for (const client of clientTypes) {
     try {
@@ -87,7 +102,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     }
   }
 
-  // --- Strategy 2: youtube-transcript-plus ---
+  // --- Strategy 3: youtube-transcript-plus ---
   try {
     console.log('[YT-Utils] Strategy 2: youtube-transcript-plus');
     const segments = await fetchWithTimeout(YtPlus.fetchTranscript(normalizedUrl, { lang: 'en' }));
@@ -100,9 +115,9 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 3: Standard youtube-transcript ---
+  // --- Strategy 4: Standard youtube-transcript ---
   try {
-    console.log('[YT-Utils] Strategy 3: youtube-transcript standard');
+    console.log('[YT-Utils] Strategy 4: Standard youtube-transcript');
     const segments = (await fetchWithTimeout(YtStd.fetchTranscript(normalizedUrl) as any)) as any[];
     const text = formatTranscript(segments);
     if (text) return text;
@@ -113,9 +128,9 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 4: Manual HTML Parse ---
+  // --- Strategy 5: Manual HTML Parse ---
   try {
-    console.log('[YT-Utils] Strategy 4: Manual HTML parse');
+    console.log('[YT-Utils] Strategy 5: Manual HTML parse');
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       'Accept-Language': 'en-US,en;q=0.9',
@@ -165,7 +180,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 5: Piped API Proxies ---
+  // --- Strategy 6: Piped API Proxies ---
   const pipedInstances = [
     'https://pipedapi.kavin.rocks',
     'https://api.piped.io',
@@ -180,7 +195,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   ];
   for (const base of pipedInstances) {
     try {
-      console.log(`[YT-Utils] Strategy 5: Piped (${base})`);
+      console.log(`[YT-Utils] Strategy 6: Piped (${base})`);
       const res = await fetch(`${base}/streams/${videoId}`);
       if (!res.ok) {
         errors.push(`Piped (${base}): HTTP ${res.status}`);
@@ -200,7 +215,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     }
   }
 
-  // --- Strategy 6: Invidious API Proxies ---
+  // --- Strategy 7: Invidious API Proxies ---
   const invidiousInstances = [
     'https://invidious.jing.rocks',
     'https://inv.tux.pizza',
@@ -215,7 +230,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   ];
   for (const base of invidiousInstances) {
     try {
-      console.log(`[YT-Utils] Strategy 6: Invidious (${base})`);
+      console.log(`[YT-Utils] Strategy 7: Invidious (${base})`);
       const res = await fetch(`${base}/api/v1/captions/${videoId}`);
       if (!res.ok) {
         errors.push(`Invidious (${base}): HTTP ${res.status}`);
@@ -240,9 +255,9 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     }
   }
 
-  // --- Strategy 7: Direct YouTube Player API (Guest) ---
+  // --- Strategy 8: Direct YouTube Player API (Guest) ---
   try {
-    console.log('[YT-Utils] Strategy 7: Direct Player API (Guest)');
+    console.log('[YT-Utils] Strategy 8: Direct Player API (Guest)');
     const playerUrl = 'https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2Sl_6VpUvTkvmId4T5uJ_tC1B57k';
     const payload = {
       videoId: videoId,
@@ -288,7 +303,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(`Player API failed: ${err.message}`);
   }
 
-  // --- Strategy 8: Search-based Fallback ---
+  // --- Strategy 9: Search-based Fallback ---
   try {
     console.log('[YT-Utils] Strategy 8: Search-based Fallback');
     const searchResults = await performWebSearch(`${videoId} transcript`);
@@ -310,25 +325,10 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(`Search failed: ${err.message}`);
   }
 
-  // --- Strategy 9: AI-based Multimodal Transcription (Ultimate Fallback) ---
-  try {
-    console.log('[YT-Utils] Strategy 9: AI-based Transcription (Ultimate Fallback)');
-    const transcript = await getProviderManager().transcribeVideo(normalizedUrl);
-    if (transcript && transcript.length > 50) {
-      console.log(`[YT-Utils] Strategy 9 success (${transcript.length} chars)`);
-      return transcript;
-    }
-    errors.push(`AI Fallback: Response too short (${transcript?.length || 0} chars)`);
-  } catch (err: any) {
-    const msg = `AI Fallback failed: ${err.message}`;
-    console.warn(`[YT-Utils] ${msg}`);
-    errors.push(msg);
-  }
-
   const detailedError = `All ultra-robust strategies failed. YouTube is blocking all known extraction paths from this server. 
   
-  --- DEBUG LOG ---
-  ${errors.slice(-10).join("\n")}
+  --- DEBUG LOG (TOP 5 FAILURES) ---
+  ${errors.slice(0, 5).join("\n")}
   
   TIP: If you just generated this URL, YouTube might take a moment to index the transcript. Please try again in 1 minute. Our systems are working overtime to bypass this block!`;
 
