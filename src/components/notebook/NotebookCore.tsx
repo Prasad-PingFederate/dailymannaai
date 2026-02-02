@@ -454,9 +454,13 @@ export default function NotebookWorkspace() {
             setUploadModalOpen(false);
             showToast(`Successfully uploaded "${fileName}"`, 'success');
 
-            const assistanceMessage = isMP3
-                ? `I've finished transcribing and "listening" to the sermon "${fileName}". I can now answer questions about the message and the scriptures mentioned in it!`
-                : `I've finished reading and indexing "${fileName}". I have "learned" its spiritual content and can now answer any questions about it!`;
+            const contentToShow = data.preview || "Text content extracted successfully.";
+            const assistanceMessage = `I've finished indexing "${fileName}". Here is the content I've captured:
+
+### 📝 Content from ${fileName}
+${contentToShow}
+
+I'm ready to answer any questions about it!`;
 
             setMessages(prev => [...prev, {
                 role: "assistant",
@@ -600,9 +604,15 @@ export default function NotebookWorkspace() {
                 setWebsiteUrl("");
                 setWebsiteTitle("");
                 showToast("Content added successfully", 'success');
+                const contentToShow = data.preview || finalContent || "Content extracted successfully.";
                 setMessages(prev => [...prev, {
                     role: "assistant",
-                    content: `I've finished indexing "${websiteTitle}". I'm ready to answer any questions about it!`
+                    content: `I've finished indexing "${websiteTitle}". Here is the transcript/content:
+
+### 📑 Transcription: ${websiteTitle}
+${contentToShow}
+
+I'm ready to answer any questions about it!`
                 }]);
             } else {
                 const data = await res.json();
@@ -653,7 +663,12 @@ export default function NotebookWorkspace() {
 
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `I've learned from your pasted note "${pastedTitle}". It's now part of my collective wisdom!`
+                content: `I've learned from your pasted note "${pastedTitle}". Here is the text I've added:
+
+### 🗒️ Note: ${pastedTitle}
+${pastedText}
+
+It's now part of my collective wisdom!`
             }]);
         } catch (error: any) {
             console.error("Text Ingest Error:", error);
