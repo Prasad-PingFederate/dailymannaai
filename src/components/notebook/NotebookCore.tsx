@@ -100,6 +100,7 @@ export default function NotebookWorkspace() {
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -137,6 +138,16 @@ export default function NotebookWorkspace() {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    // Hydration-safe mobile detection
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Handle scroll to show/hide scroll button
     const handleChatScroll = () => {
@@ -1871,9 +1882,9 @@ It's now part of my collective wisdom!`
 
             {/* 3. AI Assistant (Right) */}
             <section
-                style={{ width: isChatOpen || window.innerWidth >= 768 ? `${chatSidebarWidth}px` : '0' }}
+                style={{ width: isChatOpen || !isMobile ? `${chatSidebarWidth}px` : '0' }}
                 className={`border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden
-                    md:relative md:translate-x-0
+                    md:relative md:translate-x-0 transition-all duration-300
                     ${isChatOpen ? 'fixed inset-y-0 right-0 z-[60] translate-x-0 w-full max-w-md shadow-2xl' : 'fixed translate-x-full md:translate-x-0'}`}
             >
                 {/* Mobile Close Button */}
