@@ -1618,10 +1618,11 @@ It's now part of my collective wisdom!`
                         {/* Mobile Chat Toggle (Moved/Redesigned) */}
                         <button
                             onClick={() => setChatOpen(!isChatOpen)}
-                            className={`md:hidden p-2 rounded-xl transition-all relative ${isChatOpen ? 'bg-accent text-white scale-105' : 'bg-accent-secondary/5 text-accent-secondary hover:bg-accent-secondary/10'}`}
+                            className={`md:hidden px-3 py-2 rounded-xl transition-all relative flex items-center gap-2 ${isChatOpen ? 'bg-accent text-white scale-105' : 'bg-accent-secondary/5 text-accent-secondary hover:bg-accent-secondary/10'}`}
                             title="Toggle Assistant"
                         >
-                            <MessageSquare size={20} />
+                            <MessageSquare size={18} />
+                            <span className="text-xs font-bold uppercase tracking-tight">Assistant</span>
                             {messages.length > 1 && !isChatOpen && (
                                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-extrabold rounded-full h-4 w-4 flex items-center justify-center border-2 border-background">
                                     {messages.length - 1}
