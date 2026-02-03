@@ -1563,7 +1563,7 @@ It's now part of my collective wisdom!`
 
             {/* 2. Main Editor/Viewer (Middle) */}
             <main className="flex-1 flex flex-col bg-background relative">
-                <header className="h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/50 backdrop-blur-sm">
+                <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md">
                     <div className="flex items-center gap-2 md:gap-4">
                         {/* Mobile Menu Button */}
                         <button
@@ -1770,8 +1770,22 @@ It's now part of my collective wisdom!`
                         onMouseEnter={() => setIsBarHovered(true)}
                         onMouseLeave={() => setIsBarHovered(false)}
                         className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto 
-                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-[400px] hover:md:max-w-none'}`}
+                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-[500px] hover:md:max-w-none'}`}
                     >
+                        {/* Assistant Toggle - NEW for Mobile Accessibility */}
+                        <button
+                            onClick={() => setChatOpen(!isChatOpen)}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isChatOpen ? 'bg-accent/20 ring-1 ring-accent' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <MessageSquare size={14} className={`md:size-4 ${isChatOpen ? 'text-accent' : 'text-accent-secondary'}`} />
+                                <span className="text-[10px] md:text-xs font-bold">Assistant</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Help</span>
+                        </button>
+
+                        <div className="w-px h-8 md:h-12 bg-border" />
+
                         {/* Summarize - Works on SOURCES */}
                         <button
                             onClick={handleSummarize}
