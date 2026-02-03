@@ -1282,7 +1282,7 @@ It's now part of my collective wisdom!`
             {/* Upload Modal Overlay */}
             {isUploadModalOpen && (
                 <div className="absolute inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm transition-all animate-in fade-in">
-                    <div className="relative w-full max-w-2xl bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200">
+                    <div className="relative w-full max-w-2xl max-h-[90dvh] flex flex-col bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200">
                         <header className="p-6 border-b border-border flex items-center justify-between">
                             <div>
                                 <h3 className="text-xl font-bold">Add Sources</h3>
@@ -1296,7 +1296,7 @@ It's now part of my collective wisdom!`
                             </button>
                         </header>
 
-                        <div className="p-4 md:p-8">
+                        <div className="p-4 md:p-8 overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
                                 {[
                                     { mode: 'file', icon: <Upload size={20} />, label: "Upload Files", sub: "PDF, TXT, MD" },
@@ -1592,6 +1592,13 @@ It's now part of my collective wisdom!`
                             >
                                 <BookOpen size={20} />
                             </button>
+                            <button
+                                onClick={() => setUploadModalOpen(true)}
+                                className="p-2 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 active:scale-95 transition-all"
+                                title="Add Source"
+                            >
+                                <Plus size={20} />
+                            </button>
                         </div>
 
                         <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none">Daily Manna AI</h2>
@@ -1791,6 +1798,19 @@ It's now part of my collective wisdom!`
                         className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto custom-scrollbar 
                             ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-none hover:md:max-w-none'}`}
                     >
+                        {/* Add Source - NEW for Mobile */}
+                        <button
+                            onClick={() => setUploadModalOpen(true)}
+                            className="group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all hover:bg-accent/10"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Plus size={14} className="md:size-4 text-accent" />
+                                <span className="text-[10px] md:text-xs font-bold">Add</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Source</span>
+                        </button>
+
+                        <div className="w-px h-8 md:h-12 bg-border" />
                         {/* Assistant Toggle - NEW for Mobile Accessibility */}
                         <button
                             onClick={() => setChatOpen(!isChatOpen)}
