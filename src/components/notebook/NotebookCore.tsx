@@ -98,37 +98,12 @@ export default function NotebookWorkspace() {
     const [isMeditating, setIsMeditating] = useState(false);
     const [isBarHovered, setIsBarHovered] = useState(false);
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const actionBarRef = useRef<HTMLDivElement>(null);
-
     const [isMobile, setIsMobile] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
     const [showScrollButton, setShowScrollButton] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
     const chatContainerRef = useRef<HTMLDivElement>(null);
-
-    // Track Action Bar Scroll
-    useEffect(() => {
-        const handleScroll = () => {
-            if (actionBarRef.current) {
-                const { scrollLeft, scrollWidth, clientWidth } = actionBarRef.current;
-                setCanScrollLeft(scrollLeft > 5);
-                setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
-            }
-        };
-
-        const bar = actionBarRef.current;
-        if (bar) {
-            bar.addEventListener("scroll", handleScroll);
-            handleScroll();
-            const timer = setTimeout(handleScroll, 1000);
-            return () => {
-                bar.removeEventListener("scroll", handleScroll);
-                clearTimeout(timer);
-            };
-        }
-    }, [isMobile]);
+    const actionBarRef = useRef<HTMLDivElement>(null);
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
@@ -1824,137 +1799,121 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
 
-                {/* Dynamic Action Bar (Bottom Middle) - Stabilized Centering */}
+                {/* Dynamic Action Bar (Bottom Middle) - Stabilized */}
                 <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-full flex justify-center z-[50] pointer-events-none px-4">
-                    <div className="relative pointer-events-auto">
-                        {/* Scroll Fades/Hints for Mobile */}
-                        {canScrollLeft && (
-                            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-card-bg to-transparent z-[2] rounded-l-2xl pointer-events-none md:hidden" />
-                        )}
-                        {canScrollRight && (
-                            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-card-bg via-card-bg/80 to-transparent z-[2] rounded-r-2xl pointer-events-none md:hidden flex items-center justify-end pr-2">
-                                <div className="flex flex-col items-center gap-0.5 animate-pulse">
-                                    <ChevronRight size={14} className="text-accent" />
-                                    <span className="text-[7px] font-bold text-accent uppercase">More</span>
-                                </div>
-                            </div>
-                        )}
-
-                        <div
-                            ref={actionBarRef}
-                            onMouseEnter={() => setIsBarHovered(true)}
-                            onMouseLeave={() => setIsBarHovered(false)}
-                            className={`transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto custom-scrollbar 
-                                ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-none hover:md:max-w-none'}`}
+                    <div
+                        onMouseEnter={() => setIsBarHovered(true)}
+                        onMouseLeave={() => setIsBarHovered(false)}
+                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 whitespace-nowrap overflow-x-auto custom-scrollbar 
+                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-none hover:md:max-w-none'}`}
+                    >
+                        {/* Add Source - NEW for Mobile */}
+                        <button
+                            onClick={() => setUploadModalOpen(true)}
+                            className="group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all hover:bg-accent/10"
                         >
-                            {/* Add Source - NEW for Mobile */}
-                            <button
-                                onClick={() => setUploadModalOpen(true)}
-                                className="group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all hover:bg-accent/10"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Plus size={14} className="md:size-4 text-accent" />
-                                    <span className="text-[10px] md:text-xs font-bold">Add</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Source</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <Plus size={14} className="md:size-4 text-accent" />
+                                <span className="text-[10px] md:text-xs font-bold">Add</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Source</span>
+                        </button>
 
-                            <div className="w-px h-8 md:h-12 bg-border" />
-                            {/* Assistant Toggle - NEW for Mobile Accessibility */}
-                            <button
-                                onClick={() => setChatOpen(!isChatOpen)}
-                                className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isChatOpen ? 'bg-accent/20 ring-1 ring-accent' : 'hover:bg-accent/10'}`}
-                            >
-                                <div className="feature-badge block md:hidden mb-1">AI</div>
-                                <div className="flex items-center gap-2">
-                                    <MessageSquare size={14} className={`md:size-4 ${isChatOpen ? 'text-accent' : 'text-accent-secondary'}`} />
-                                    <span className="text-[10px] md:text-xs font-bold">Assistant</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Help</span>
-                            </button>
+                        <div className="w-px h-8 md:h-12 bg-border" />
+                        {/* Assistant Toggle - NEW for Mobile Accessibility */}
+                        <button
+                            onClick={() => setChatOpen(!isChatOpen)}
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isChatOpen ? 'bg-accent/20 ring-1 ring-accent' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="feature-badge block md:hidden mb-1">AI</div>
+                            <div className="flex items-center gap-2">
+                                <MessageSquare size={14} className={`md:size-4 ${isChatOpen ? 'text-accent' : 'text-accent-secondary'}`} />
+                                <span className="text-[10px] md:text-xs font-bold">Assistant</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Help</span>
+                        </button>
 
-                            <div className="w-px h-8 md:h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
-                            {/* Summarize - Works on SOURCES */}
-                            <button
-                                onClick={handleSummarize}
-                                disabled={isSummarizing}
-                                title="Summarize selected sources and add to notes"
-                                className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <FileStack size={14} className="md:size-4 text-blue-500" />
-                                    <span className="text-[10px] md:text-xs font-bold">{isSummarizing ? '...' : 'Summarize'}</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Sources</span>
-                            </button>
+                        {/* Summarize - Works on SOURCES */}
+                        <button
+                            onClick={handleSummarize}
+                            disabled={isSummarizing}
+                            title="Summarize selected sources and add to notes"
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <FileStack size={14} className="md:size-4 text-blue-500" />
+                                <span className="text-[10px] md:text-xs font-bold">{isSummarizing ? '...' : 'Summarize'}</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Sources</span>
+                        </button>
 
-                            <div className="w-px h-8 md:h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
-                            {/* Refine - Works on NOTES */}
-                            <button
-                                onClick={handleRefine}
-                                disabled={isRefining}
-                                title="Refine and improve your notes"
-                                className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Wand2 size={14} className="md:size-4 text-purple-500" />
-                                    <span className="text-[10px] md:text-xs font-bold">{isRefining ? '...' : 'Refine'}</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Polish</span>
-                            </button>
+                        {/* Refine - Works on NOTES */}
+                        <button
+                            onClick={handleRefine}
+                            disabled={isRefining}
+                            title="Refine and improve your notes"
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Wand2 size={14} className="md:size-4 text-purple-500" />
+                                <span className="text-[10px] md:text-xs font-bold">{isRefining ? '...' : 'Refine'}</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Polish</span>
+                        </button>
 
-                            <div className="w-px h-8 md:h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
-                            {/* Divine Reflection - Highlighted */}
-                            <button
-                                onClick={handleDivineMeditation}
-                                disabled={isMeditating}
-                                title="Transform research into a prayerful meditation"
-                                className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
-                            >
-                                <div className="feature-badge hidden md:block">DIVINE ✨</div>
-                                <div className="flex items-center gap-2 text-yellow-500">
-                                    <Sparkles size={14} className="md:size-4" />
-                                    <span className="text-[10px] md:text-xs font-bold">{isMeditating ? '...' : 'Divine'}</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Reflection</span>
-                            </button>
+                        {/* Divine Reflection - Highlighted */}
+                        <button
+                            onClick={handleDivineMeditation}
+                            disabled={isMeditating}
+                            title="Transform research into a prayerful meditation"
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
+                        >
+                            <div className="feature-badge hidden md:block">DIVINE ✨</div>
+                            <div className="flex items-center gap-2 text-yellow-500">
+                                <Sparkles size={14} className="md:size-4" />
+                                <span className="text-[10px] md:text-xs font-bold">{isMeditating ? '...' : 'Divine'}</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Reflection</span>
+                        </button>
 
-                            <div className="w-px h-8 md:h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
-                            {/* Audio Overview - Highlighted */}
-                            <button
-                                onClick={generateAudioOverview}
-                                disabled={isGeneratingAudio}
-                                title="Generate podcast-style overview"
-                                className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
-                            >
-                                <div className="feature-badge hidden md:block">NEW ✨</div>
-                                <div className="flex items-center gap-2">
-                                    <Mic2 size={14} className="md:size-4 text-accent" />
-                                    <span className="text-[10px] md:text-xs font-bold">{isGeneratingAudio ? '...' : 'Podcast'}</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Audio</span>
-                            </button>
+                        {/* Audio Overview - Highlighted */}
+                        <button
+                            onClick={generateAudioOverview}
+                            disabled={isGeneratingAudio}
+                            title="Generate podcast-style overview"
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
+                        >
+                            <div className="feature-badge hidden md:block">NEW ✨</div>
+                            <div className="flex items-center gap-2">
+                                <Mic2 size={14} className="md:size-4 text-accent" />
+                                <span className="text-[10px] md:text-xs font-bold">{isGeneratingAudio ? '...' : 'Podcast'}</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Audio</span>
+                        </button>
 
-                            <div className="w-px h-8 md:h-12 bg-border" />
+                        <div className="w-px h-8 md:h-12 bg-border" />
 
-                            {/* Grammar Check - NEW */}
-                            <button
-                                onClick={handleGrammarCheck}
-                                disabled={isGrammarChecking}
-                                title="Identify grammar mistakes and explain rules"
-                                className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={14} className="md:size-4 text-green-500" />
-                                    <span className="text-[10px] md:text-xs font-bold">{isGrammarChecking ? '...' : 'Check'}</span>
-                                </div>
-                                <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Grammar</span>
-                            </button>
-                        </div>
+                        {/* Grammar Check - NEW */}
+                        <button
+                            onClick={handleGrammarCheck}
+                            disabled={isGrammarChecking}
+                            title="Identify grammar mistakes and explain rules"
+                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 size={14} className="md:size-4 text-green-500" />
+                                <span className="text-[10px] md:text-xs font-bold">{isGrammarChecking ? '...' : 'Check'}</span>
+                            </div>
+                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Grammar</span>
+                        </button>
                     </div>
                 </div>
             </main>
