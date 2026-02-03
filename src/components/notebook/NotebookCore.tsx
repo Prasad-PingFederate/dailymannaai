@@ -1601,7 +1601,14 @@ It's now part of my collective wisdom!`
                             </button>
                         </div>
 
-                        <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none">Daily Manna AI</h2>
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                            <div className="text-red-600 flex-shrink-0" title="The Holy Cross">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
+                                </svg>
+                            </div>
+                            <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none">Daily Manna AI</h2>
+                        </div>
                         <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
                     </div>
                     <div className="flex items-center gap-2 md:gap-3">
