@@ -1470,10 +1470,10 @@ It's now part of my collective wisdom!`
                 onDragOver={(e) => { e.preventDefault(); setIsDraggingToSidebar(true); }}
                 onDragLeave={() => setIsDraggingToSidebar(false)}
                 onDrop={handleSidebarDrop}
-                className={`${isSidebarOpen ? "w-[300px]" : "w-0"
+                className={`${(isSidebarOpen && !isMobile) ? "w-[300px]" : "w-0"
                     } transition-all duration-300 border-r border-border flex flex-col glass-morphism relative overflow-hidden ${isDraggingToSidebar ? 'bg-accent/10 ring-2 ring-inset ring-accent' : ''} 
                     md:relative md:translate-x-0
-                    ${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-[150] translate-x-0 w-full md:w-[280px] shadow-2xl pt-safe' : 'fixed -translate-x-full md:translate-x-0'}`}
+                    ${isMobileMenuOpen ? 'fixed inset-0 z-[150] translate-x-0 w-full shadow-2xl pt-safe' : 'fixed -translate-x-full md:translate-x-0'}`}
             >
                 {/* Mobile Close Button */}
                 <button
@@ -1580,7 +1580,7 @@ It's now part of my collective wisdom!`
             </button>
 
             {/* 2. Main Editor/Viewer (Middle) */}
-            <main className="flex-1 flex flex-col bg-background relative">
+            <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden">
                 <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md pt-safe">
                     <div className="flex items-center gap-2 md:gap-4">
                         {/* Mobile Components Shortcut Group */}
@@ -1783,8 +1783,8 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
 
-                {/* Dynamic Action Bar (Bottom Middle) - Stabilized */}
-                <div className="absolute bottom-6 md:bottom-10 inset-x-0 flex justify-center z-[50] pointer-events-none px-4">
+                {/* Dynamic Action Bar (Bottom Middle) - Stabilized Centering */}
+                <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-full flex justify-center z-[50] pointer-events-none px-4">
                     <div
                         onMouseEnter={() => setIsBarHovered(true)}
                         onMouseLeave={() => setIsBarHovered(false)}
@@ -1891,7 +1891,7 @@ It's now part of my collective wisdom!`
 
             {/* 3. AI Assistant (Right) */}
             <section
-                style={{ width: isChatOpen || !isMobile ? `${chatSidebarWidth}px` : '0' }}
+                style={{ width: (isChatOpen || !isMobile) ? `${chatSidebarWidth}px` : '0' }}
                 className={`border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden
                     md:relative md:translate-x-0 transition-all duration-300
                     ${isChatOpen ? 'fixed inset-0 z-[150] translate-x-0 w-full shadow-2xl pt-safe' : 'fixed translate-x-full md:translate-x-0'}`}

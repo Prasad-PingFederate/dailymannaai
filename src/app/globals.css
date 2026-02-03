@@ -42,6 +42,12 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal scroll from accidental swipes */
+  overflow-x: hidden;
+  /* Fix for mobile tap highlights */
+  -webkit-tap-highlight-color: transparent;
+  /* Standard touch behavior */
+  touch-action: manipulation;
 }
 
 .glass-morphism {
