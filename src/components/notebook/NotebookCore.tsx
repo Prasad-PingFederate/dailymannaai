@@ -1271,7 +1271,14 @@ It's now part of my collective wisdom!`
     };
 
     return (
-        <div className="flex h-screen w-full bg-background text-foreground overflow-hidden relative">
+        <div className="flex bg-background text-foreground overflow-hidden relative h-screen-safe w-full">
+            {/* Notification Toast */}
+            {notification && (
+                <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-4 py-2 rounded-full shadow-lg border animate-in slide-in-from-top-4 duration-300 text-sm font-bold flex items-center gap-2 ${notification.type === 'success' ? 'bg-green-500/90 text-white border-green-400' : 'bg-red-500/90 text-white border-red-400'}`}>
+                    {notification.type === 'success' ? <CheckCircle2 size={16} /> : <X size={16} />}
+                    {notification.message}
+                </div>
+            )}
             {/* Upload Modal Overlay */}
             {isUploadModalOpen && (
                 <div className="absolute inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm transition-all animate-in fade-in">
@@ -1466,7 +1473,7 @@ It's now part of my collective wisdom!`
                 className={`${isSidebarOpen ? "w-[300px]" : "w-0"
                     } transition-all duration-300 border-r border-border flex flex-col glass-morphism relative overflow-hidden ${isDraggingToSidebar ? 'bg-accent/10 ring-2 ring-inset ring-accent' : ''} 
                     md:relative md:translate-x-0
-                    ${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-[60] translate-x-0 w-[280px] shadow-2xl' : 'fixed -translate-x-full md:translate-x-0'}`}
+                    ${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-[150] translate-x-0 w-full md:w-[280px] shadow-2xl pt-safe' : 'fixed -translate-x-full md:translate-x-0'}`}
             >
                 {/* Mobile Close Button */}
                 <button
@@ -1574,34 +1581,35 @@ It's now part of my collective wisdom!`
 
             {/* 2. Main Editor/Viewer (Middle) */}
             <main className="flex-1 flex flex-col bg-background relative">
-                <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md">
+                <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md pt-safe">
                     <div className="flex items-center gap-2 md:gap-4">
-                        {/* Mobile Menu Button */}
-                        <button
-                            onClick={() => setMobileMenuOpen(true)}
-                            className="md:hidden p-2 hover:bg-border/50 rounded-lg transition-colors"
-                            title="Open Sources"
-                        >
-                            <Menu size={20} />
-                        </button>
+                        {/* Mobile Components Shortcut Group */}
+                        <div className="flex md:hidden items-center gap-1.5">
+                            <button
+                                onClick={() => setMobileMenuOpen(true)}
+                                className="p-2 bg-accent/5 text-accent hover:bg-accent/10 rounded-xl transition-colors"
+                                title="Open Sources"
+                            >
+                                <BookOpen size={20} />
+                            </button>
+                        </div>
 
-                        <h2 className="font-bold text-base md:text-lg truncate">My Research Workspace</h2>
-                        <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Saved</div>
+                        <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none">Daily Manna AI</h2>
+                        <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
                     </div>
                     <div className="flex items-center gap-2 md:gap-3">
-                        <button className="p-2 hover:bg-border/50 rounded-full transition-colors"><Edit3 size={18} /></button>
+                        <button className="hidden xs:block p-2 hover:bg-border/50 rounded-full transition-colors"><Edit3 size={18} /></button>
                         <button className="hidden sm:block p-2 hover:bg-border/50 rounded-full transition-colors"><Share2 size={18} /></button>
-                        <button className="hidden sm:block p-2 hover:bg-border/50 rounded-full transition-colors"><Settings size={18} /></button>
 
-                        {/* Mobile Chat Toggle */}
+                        {/* Mobile Chat Toggle (Moved/Redesigned) */}
                         <button
                             onClick={() => setChatOpen(!isChatOpen)}
-                            className="md:hidden p-2 hover:bg-border/50 rounded-lg transition-colors relative"
-                            title="Toggle Chat"
+                            className={`md:hidden p-2 rounded-xl transition-all relative ${isChatOpen ? 'bg-accent text-white scale-105' : 'bg-accent-secondary/5 text-accent-secondary hover:bg-accent-secondary/10'}`}
+                            title="Toggle Assistant"
                         >
                             <MessageSquare size={20} />
-                            {messages.length > 1 && (
-                                <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                            {messages.length > 1 && !isChatOpen && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-extrabold rounded-full h-4 w-4 flex items-center justify-center border-2 border-background">
                                     {messages.length - 1}
                                 </span>
                             )}
@@ -1780,14 +1788,15 @@ It's now part of my collective wisdom!`
                     <div
                         onMouseEnter={() => setIsBarHovered(true)}
                         onMouseLeave={() => setIsBarHovered(false)}
-                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto 
-                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-[500px] hover:md:max-w-none'}`}
+                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 no-scrollbar whitespace-nowrap overflow-x-auto custom-scrollbar 
+                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-none hover:md:max-w-none'}`}
                     >
                         {/* Assistant Toggle - NEW for Mobile Accessibility */}
                         <button
                             onClick={() => setChatOpen(!isChatOpen)}
                             className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isChatOpen ? 'bg-accent/20 ring-1 ring-accent' : 'hover:bg-accent/10'}`}
                         >
+                            <div className="feature-badge block md:hidden mb-1">AI</div>
                             <div className="flex items-center gap-2">
                                 <MessageSquare size={14} className={`md:size-4 ${isChatOpen ? 'text-accent' : 'text-accent-secondary'}`} />
                                 <span className="text-[10px] md:text-xs font-bold">Assistant</span>
@@ -1885,7 +1894,7 @@ It's now part of my collective wisdom!`
                 style={{ width: isChatOpen || !isMobile ? `${chatSidebarWidth}px` : '0' }}
                 className={`border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden
                     md:relative md:translate-x-0 transition-all duration-300
-                    ${isChatOpen ? 'fixed inset-y-0 right-0 z-[60] translate-x-0 w-full max-w-md shadow-2xl' : 'fixed translate-x-full md:translate-x-0'}`}
+                    ${isChatOpen ? 'fixed inset-0 z-[150] translate-x-0 w-full shadow-2xl pt-safe' : 'fixed translate-x-full md:translate-x-0'}`}
             >
                 {/* Mobile Close Button */}
                 <button
