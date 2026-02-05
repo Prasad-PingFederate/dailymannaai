@@ -2132,7 +2132,7 @@ It's now part of my collective wisdom!`
                                             <span className="h-1.5 w-1.5 bg-accent-secondary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                                             <span className="h-1.5 w-1.5 bg-accent-secondary rounded-full animate-bounce"></span>
                                         </div>
-                                        Daily Manna AI is reflecting...
+                                        Daily Manna AI is meditating...
                                     </div>
                                 </div>
                             </div>
