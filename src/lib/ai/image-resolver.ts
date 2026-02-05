@@ -29,10 +29,10 @@ const PERSONALITIES: Record<string, PersonalityPortrait> = {
     },
     "billy graham": {
         name: "Billy Graham",
-        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Billy_Graham_bw_photo%2C_April_11%2C_1966.jpg/800px-Billy_Graham_bw_photo%2C_April_11%2C_1966.jpg",
-        description: "Prominent 20th-century evangelist and advisor to presidents.",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Billy_Graham_bw_photo%2C_April_11%2C_1966.jpg/640px-Billy_Graham_bw_photo%2C_April_11%2C_1966.jpg",
+        description: "Prominent 20th-century American evangelist and advisor to multiple US presidents.",
         attribution: "Wikimedia Commons",
-        sourceUrl: "https://commons.wikimedia.org/wiki/File:Billy_Graham_bw_photo,_April_11,_1966.jpg"
+        sourceUrl: "https://en.wikipedia.org/wiki/Billy_Graham"
     },
     "reinhard bonnke": {
         name: "Reinhard Bonnke",
@@ -175,11 +175,11 @@ const PERSONALITIES: Record<string, PersonalityPortrait> = {
         sourceUrl: "https://commons.wikimedia.org/wiki/File:Corrie_ten_Boom_1921.jpg"
     },
     "jesus": {
-        name: "The Name of Jesus",
-        imageUrl: "https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&q=80&w=800",
-        description: "Central figure of Christianity.",
-        attribution: "Unsplash",
-        sourceUrl: "https://unsplash.com/photos/cross-on-top-of-mountain-SST_X8p7F3k"
+        name: "Jesus Christ",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Christ_in_the_Wilderness_-_Ivan_Kramskoy_-_Google_Art_Project.jpg",
+        description: "Central figure of Christianity, depicted in 'Christ in the Wilderness' by Ivan Kramskoy.",
+        attribution: "Wikimedia Commons / Google Art Project",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Christ_in_the_Wilderness_-_Ivan_Kramskoy_-_Google_Art_Project.jpg"
     },
     "richard baxter": {
         name: "Richard Baxter",
@@ -187,6 +187,20 @@ const PERSONALITIES: Record<string, PersonalityPortrait> = {
         description: "English Puritan church leader and theologian (1615–1691), author of 'The Saints' Everlasting Rest'.",
         attribution: "Wikimedia Commons",
         sourceUrl: "https://commons.wikimedia.org/wiki/File:Richard_Baxter.jpg"
+    },
+    "graham stains": {
+        name: "Graham Stains",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/en/2/2a/Graham_Stains.jpg",
+        description: "Australian Christian missionary who, along with his two sons, was martyred in India in 1999.",
+        attribution: "Wikipedia (Fair Use)",
+        sourceUrl: "https://en.wikipedia.org/wiki/Graham_Stains"
+    },
+    "grahan stains": {
+        name: "Graham Stains",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/en/2/2a/Graham_Stains.jpg",
+        description: "Australian Christian missionary who, along with his two sons, was martyred in India in 1999.",
+        attribution: "Wikipedia (Fair Use)",
+        sourceUrl: "https://en.wikipedia.org/wiki/Graham_Stains"
     }
 };
 
@@ -194,7 +208,7 @@ const KEYWORD_IMAGES: Record<string, string> = {
     "anxiety": "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&q=80&w=800",
     "peace": "https://images.unsplash.com/photo-1499209974431-9dac3adaf477?auto=format&fit=crop&q=80&w=800",
     "faith": "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=800",
-    "prayer": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&q=80&w=800",
+    "prayer": "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800",
     "bible": "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&q=80&w=800"
 };
 

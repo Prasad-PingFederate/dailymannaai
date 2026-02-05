@@ -62,42 +62,67 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 2: Tactiq-Style TimedText Extraction (High Reliability) ---
+  // --- Strategy 2: Expert Stealth TimedText Extraction (No. 1 Programmer Level) ---
   try {
-    console.log('[YT-Utils] Strategy 2: Tactiq-Style extraction (Official TimedText)');
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    console.log('[YT-Utils] Strategy 2: Expert Stealth TimedText Extraction');
+    const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    const stealthHeaders = {
+      'User-Agent': ua,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9',
-      'Cookie': YT_COOKIES,
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+      'Referer': 'https://www.google.com/',
+      'Upgrade-Insecure-Requests': '1',
+      'Cookie': YT_COOKIES
     };
-    const res = await fetch(normalizedUrl, { headers });
-    const html = await res.text();
 
-    let transcriptUrl = '';
-    const playerResMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/);
-    if (playerResMatch) {
-      const playerRes = JSON.parse(playerResMatch[1].trim());
-      const captionTracks = playerRes.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-      const enTrack = captionTracks.find((t: any) => t.languageCode?.startsWith('en')) || captionTracks[0];
-      if (enTrack?.baseUrl) {
-        transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
-      }
+    // Attempt 1: Direct Fetch with Stealth Headers
+    let response = await fetch(normalizedUrl, { headers: stealthHeaders, cache: 'no-store' }).catch(() => null);
+
+    // Attempt 2: Proxy Fallback (Highly reliable if IP is flagged)
+    if (!response || !response.ok || response.status === 403 || response.status === 401) {
+      console.warn(`[YT-Utils] Direct fetch blocked or failed (${response?.status}). Engaging Proxy Layer...`);
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(normalizedUrl)}`;
+      response = await fetch(proxyUrl, { cache: 'no-store' }).catch(() => null);
     }
 
-    if (transcriptUrl) {
-      const transRes = await fetch(transcriptUrl, { headers });
-      const json = await transRes.json();
-      if (json.events) {
-        const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
-        if (text && text.length > 50) {
-          console.log(`[YT-Utils] Strategy 2 success (${text.length} chars)`);
-          return text;
+    if (response && response.ok) {
+      const html = await response.text();
+      let transcriptUrl = '';
+      const playerResMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/);
+
+      if (playerResMatch) {
+        const playerRes = JSON.parse(playerResMatch[1].trim());
+        const captionTracks = playerRes.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+        const enTrack = captionTracks.find((t: any) => t.languageCode?.startsWith('en')) || captionTracks[0];
+
+        if (enTrack?.baseUrl) {
+          transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
+
+          // Fetch the actual transcript JSON (with proxy fallback)
+          let transRes = await fetch(transcriptUrl, { headers: stealthHeaders }).catch(() => null);
+          if (!transRes || !transRes.ok) {
+            const proxyTransUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(transcriptUrl)}`;
+            transRes = await fetch(proxyTransUrl).catch(() => null);
+          }
+
+          if (transRes && transRes.ok) {
+            const json = await transRes.json();
+            if (json.events) {
+              const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
+              if (text && text.length > 50) {
+                console.log(`[YT-Utils] Strategy 2 success (${text.length} chars)`);
+                return text;
+              }
+            }
+          }
         }
       }
     }
-    errors.push("Tactiq-Style: No transcript found in player response");
+    errors.push("Stealth-TimedText: Failed to resolve valid transcript from player response");
   } catch (err: any) {
-    errors.push(`Tactiq-Style failed: ${err.message}`);
+    errors.push(`Stealth-TimedText failed: ${err.message}`);
   }
 
   // --- Strategy 3: Innertube (youtubei.js) with Client Rotation ---
