@@ -62,57 +62,64 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 2: Expert Stealth TimedText Extraction (No. 1 Programmer Level) ---
+  // --- Strategy 2: Absolute Stealth TimedText Extraction ---
   try {
-    console.log('[YT-Utils] Strategy 2: Expert Stealth TimedText Extraction');
-    const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+    console.log('[YT-Utils] Strategy 2: Absolute Stealth Extraction');
     const stealthHeaders = {
-      'User-Agent': ua,
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
-      'Referer': 'https://www.google.com/',
-      'Upgrade-Insecure-Requests': '1',
       'Cookie': YT_COOKIES
     };
 
-    // Attempt 1: Direct Fetch with Stealth Headers
-    let response = await fetch(normalizedUrl, { headers: stealthHeaders, cache: 'no-store' }).catch(() => null);
+    const fetchHtml = async (target: string) => {
+      let r = await fetch(target, { headers: stealthHeaders, cache: 'no-store' }).catch(() => null);
+      if (!r || !r.ok) {
+        // Proxy Fallback 1: AllOrigins
+        const p1 = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+        r = await fetch(p1, { cache: 'no-store' }).catch(() => null);
+      }
+      if (!r || !r.ok) {
+        // Proxy Fallback 2: Codetabs (Bypass for AllOrigins rate limits)
+        const p2 = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`;
+        r = await fetch(p2, { cache: 'no-store' }).catch(() => null);
+      }
+      return r && r.ok ? await r.text() : null;
+    };
 
-    // Attempt 2: Proxy Fallback (Highly reliable if IP is flagged)
-    if (!response || !response.ok || response.status === 403 || response.status === 401) {
-      console.warn(`[YT-Utils] Direct fetch blocked or failed (${response?.status}). Engaging Proxy Layer...`);
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(normalizedUrl)}`;
-      response = await fetch(proxyUrl, { cache: 'no-store' }).catch(() => null);
-    }
+    const html = await fetchHtml(normalizedUrl);
+    if (html) {
+      let tracks: any[] = [];
+      const captionMatch = html.match(/"captionTracks":(\[.*?\])/);
+      if (captionMatch) {
+        tracks = JSON.parse(captionMatch[1]);
+      } else {
+        // Search inside ytInitialPlayerResponse
+        const playerMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/);
+        if (playerMatch) {
+          const pr = JSON.parse(playerMatch[1].trim());
+          tracks = pr.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+        }
+      }
 
-    if (response && response.ok) {
-      const html = await response.text();
-      let transcriptUrl = '';
-      const playerResMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/);
-
-      if (playerResMatch) {
-        const playerRes = JSON.parse(playerResMatch[1].trim());
-        const captionTracks = playerRes.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-        const enTrack = captionTracks.find((t: any) => t.languageCode?.startsWith('en')) || captionTracks[0];
+      if (tracks.length > 0) {
+        // Prioritize English manual (.en), then English auto (a.en), then any English
+        const enTrack = tracks.find((t: any) => t.vssId === '.en') ||
+          tracks.find((t: any) => t.vssId === 'a.en') ||
+          tracks.find((t: any) => t.languageCode?.startsWith('en')) ||
+          tracks[0];
 
         if (enTrack?.baseUrl) {
-          transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
-
-          // Fetch the actual transcript JSON (with proxy fallback)
-          let transRes = await fetch(transcriptUrl, { headers: stealthHeaders }).catch(() => null);
-          if (!transRes || !transRes.ok) {
-            const proxyTransUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(transcriptUrl)}`;
-            transRes = await fetch(proxyTransUrl).catch(() => null);
-          }
-
-          if (transRes && transRes.ok) {
-            const json = await transRes.json();
+          const tUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
+          const tHtml = await fetchHtml(tUrl);
+          if (tHtml) {
+            const json = JSON.parse(tHtml) as { events?: any[] };
             if (json.events) {
-              const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
+              const text = formatTranscript(json.events.map((e: any) => ({
+                text: e.segs?.map((s: any) => s.utf8).join('') || ''
+              })));
               if (text && text.length > 50) {
-                console.log(`[YT-Utils] Strategy 2 success (${text.length} chars)`);
+                console.log(`[YT-Utils] Absolute Strategy success (${text.length} chars)`);
                 return text;
               }
             }
@@ -120,9 +127,9 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         }
       }
     }
-    errors.push("Stealth-TimedText: Failed to resolve valid transcript from player response");
+    errors.push("Absolute-Stealth: Failed to resolve tracks or transcript payload");
   } catch (err: any) {
-    errors.push(`Stealth-TimedText failed: ${err.message}`);
+    errors.push(`Absolute-Stealth failed: ${err.message}`);
   }
 
   // --- Strategy 3: Innertube (youtubei.js) with Client Rotation ---
@@ -168,7 +175,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   // --- Strategy 4: youtube-transcript-plus ---
   try {
     console.log('[YT-Utils] Strategy 4: youtube-transcript-plus');
-    const segments = await fetchWithTimeout(YtPlus.fetchTranscript(normalizedUrl, { lang: 'en' }));
+    const segments = await fetchWithTimeout(YtPlus.fetchTranscript(normalizedUrl, { lang: 'en' })) as any[];
     const text = formatTranscript(segments);
     if (text) return text;
     errors.push("Plus: Returned empty text");
@@ -191,41 +198,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 6: Manual HTML Parse (Extended) ---
-  try {
-    console.log('[YT-Utils] Strategy 6: Manual HTML parse');
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Cookie': YT_COOKIES,
-    };
-    const res = await fetch(normalizedUrl, { headers });
-    const html = await res.text();
-
-    let tracks: any[] = [];
-    const captionMatch = html.match(/"captionTracks":(\[.*?\])/);
-    if (captionMatch) {
-      tracks = JSON.parse(captionMatch[1]);
-    }
-
-    if (tracks.length > 0) {
-      const enTrack = tracks.find((t: any) => t.languageCode === 'en' || t.languageCode?.startsWith('en')) || tracks[0];
-      if (enTrack) {
-        const transcriptUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
-        const transcriptRes = await fetch(transcriptUrl, { headers });
-        const json = await transcriptRes.json();
-        if (json.events) {
-          const text = formatTranscript(json.events.map((e: any) => ({ text: e.segs?.map((s: any) => s.utf8).join('') || '' })));
-          if (text) return text;
-        }
-      }
-    }
-    errors.push("Manual HTML: No tracks found");
-  } catch (err: any) {
-    errors.push(`Manual failed: ${err.message}`);
-  }
-
-  // --- Strategy 7: Piped API Proxies ---
+  // --- Strategy 6: Piped API Proxies ---
   const pipedInstances = [
     'https://pipedapi.kavin.rocks',
     'https://api.piped.io',
