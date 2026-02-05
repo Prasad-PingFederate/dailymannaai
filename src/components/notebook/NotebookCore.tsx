@@ -89,6 +89,7 @@ export default function NotebookWorkspace() {
     const [isIngesting, setIsIngesting] = useState(false);
     const [ingestStatus, setIngestStatus] = useState<string>("");
     const [isGrammarChecking, setIsGrammarChecking] = useState(false);
+    const [isChatting, setIsChatting] = useState(false);
     const [viewingSource, setViewingSource] = useState<any>(null);
     const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -707,6 +708,7 @@ It's now part of my collective wisdom!`
         setMessages(prev => [...prev, userMessage]);
         setInput("");
         setSuggestions([]); // Clear previous suggestions
+        setIsChatting(true);
 
         try {
             const res = await fetch("/api/chat", {
@@ -735,6 +737,8 @@ It's now part of my collective wisdom!`
                 role: "assistant",
                 content: "I'm having trouble connecting to my brain. Please try again later."
             }]);
+        } finally {
+            setIsChatting(false);
         }
     };
 
@@ -2115,6 +2119,24 @@ It's now part of my collective wisdom!`
                                 </div>
                             );
                         })}
+
+                        {isChatting && (
+                            <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                <div className="h-8 w-8 rounded-full bg-accent-secondary flex-shrink-0 flex items-center justify-center text-white animate-pulse">
+                                    <Sparkles size={16} />
+                                </div>
+                                <div className="flex flex-col gap-1 max-w-[90%]">
+                                    <div className="bg-muted/10 rounded-2xl p-4 text-sm shadow-sm italic text-muted-foreground flex items-center gap-2">
+                                        <div className="flex gap-1">
+                                            <span className="h-1.5 w-1.5 bg-accent-secondary rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                            <span className="h-1.5 w-1.5 bg-accent-secondary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                            <span className="h-1.5 w-1.5 bg-accent-secondary rounded-full animate-bounce"></span>
+                                        </div>
+                                        Daily Manna AI is reflecting...
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Scroll to Bottom Button */}
