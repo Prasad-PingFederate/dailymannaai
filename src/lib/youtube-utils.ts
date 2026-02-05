@@ -62,9 +62,9 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(msg);
   }
 
-  // --- Strategy 2: Absolute Stealth TimedText Extraction ---
+  // --- Strategy 2: Absolute Stealth TimedText Extraction (v3) ---
   try {
-    console.log('[YT-Utils] Strategy 2: Absolute Stealth Extraction');
+    console.log('[YT-Utils] Strategy 2: Absolute Stealth Extraction (v3)');
     const stealthHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -73,15 +73,20 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     };
 
     const fetchHtml = async (target: string) => {
+      // Direct fetch attempt
       let r = await fetch(target, { headers: stealthHeaders, cache: 'no-store' }).catch(() => null);
-      if (!r || !r.ok) {
-        // Proxy Fallback 1: AllOrigins
-        const p1 = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+
+      if (!r || !r.ok || r.status === 429 || r.status >= 500) {
+        // Proxy Fallback 1: Codetabs (Best for bypass)
+        console.warn(`[YT-Utils] Direct fetch restricted. Using Codetabs Proxy for: ${target.substring(0, 40)}...`);
+        const p1 = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`;
         r = await fetch(p1, { cache: 'no-store' }).catch(() => null);
       }
+
       if (!r || !r.ok) {
-        // Proxy Fallback 2: Codetabs (Bypass for AllOrigins rate limits)
-        const p2 = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`;
+        // Proxy Fallback 2: AllOrigins
+        console.warn(`[YT-Utils] Proxy 1 failed. Using AllOrigins Proxy...`);
+        const p2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
         r = await fetch(p2, { cache: 'no-store' }).catch(() => null);
       }
       return r && r.ok ? await r.text() : null;
@@ -94,26 +99,31 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
       if (captionMatch) {
         tracks = JSON.parse(captionMatch[1]);
       } else {
-        // Search inside ytInitialPlayerResponse
         const playerMatch = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]*?\});/);
         if (playerMatch) {
-          const pr = JSON.parse(playerMatch[1].trim());
-          tracks = pr.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+          try {
+            const pr = JSON.parse(playerMatch[1].trim());
+            tracks = pr.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+          } catch (e) { }
         }
       }
 
       if (tracks.length > 0) {
-        // Prioritize English manual (.en), then English auto (a.en), then any English
-        const enTrack = tracks.find((t: any) => t.vssId === '.en') ||
+        // ROBUST MATCHING: Support localized labels (e.g. "Anglais") and ASR tracks
+        const enTrack =
+          tracks.find((t: any) => t.vssId === '.en') ||
           tracks.find((t: any) => t.vssId === 'a.en') ||
           tracks.find((t: any) => t.languageCode?.startsWith('en')) ||
+          tracks.find((t: any) => t.name?.simpleText?.toLowerCase().includes('english') || t.name?.simpleText?.toLowerCase().includes('anglais')) ||
           tracks[0];
 
         if (enTrack?.baseUrl) {
           const tUrl = enTrack.baseUrl.includes('fmt=json3') ? enTrack.baseUrl : `${enTrack.baseUrl}&fmt=json3`;
-          const tHtml = await fetchHtml(tUrl);
-          if (tHtml) {
-            const json = JSON.parse(tHtml) as { events?: any[] };
+          console.log(`[YT-Utils] Resolving transcript from: ${tUrl.substring(0, 50)}...`);
+          const tData = await fetchHtml(tUrl);
+
+          if (tData) {
+            const json = JSON.parse(tData) as { events?: any[] };
             if (json.events) {
               const text = formatTranscript(json.events.map((e: any) => ({
                 text: e.segs?.map((s: any) => s.utf8).join('') || ''
@@ -127,7 +137,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
         }
       }
     }
-    errors.push("Absolute-Stealth: Failed to resolve tracks or transcript payload");
+    errors.push("Absolute-Stealth: Failed to resolve tracks or payload through proxies");
   } catch (err: any) {
     errors.push(`Absolute-Stealth failed: ${err.message}`);
   }
