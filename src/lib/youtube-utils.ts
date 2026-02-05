@@ -321,21 +321,29 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     console.warn(`[YT-Utils] Strategy 11 failed: ${err.message}`);
   }
 
-  // --- Strategy 12: Brute-Force Audio-to-Text (v6 - Final Frontier) ---
+  // --- STEP 1: Video to MP3 Extraction (Strategy 12) ---
   try {
-    console.log('[YT-Utils] Strategy 12: Brute-Force Audio Extraction');
-    const audioUrl = await extractAudioStream(videoId);
+    console.log('[YT-Utils] STEP 1: Video to MP3 Extraction');
+    const audioUrl = await step1_extractAudioStream(videoId);
+
     if (audioUrl) {
-      console.log(`[YT-Utils] Audio stream resolved. Sending to Whisper...`);
+      console.log(`[YT-Utils] SUCCESS: Audio stream resolved. Moving to STEP 2...`);
+
+      // --- STEP 2: MP3 to Text Transcription (Strategy 13) ---
+      console.log('[YT-Utils] STEP 2: MP3 to Text Transcription (Whisper)');
       const transcript = await getProviderManager().transcribeAudio(audioUrl);
+
       if (transcript && transcript.length > 50) {
-        console.log(`[YT-Utils] Strategy 12 success via Whisper (${transcript.length} chars)`);
+        console.log(`[YT-Utils] STEP 2 SUCCESS via Whisper (${transcript.length} chars)`);
         return transcript;
+      } else {
+        errors.push("STEP 2 Failed: AI transcription returned empty or short text.");
       }
+    } else {
+      errors.push("STEP 1 Failed: Could not resolve direct audio stream.");
     }
-    errors.push("Brute-Force: Failed to resolve audio stream or transcribe it.");
   } catch (err: any) {
-    errors.push(`Brute-Force Error: ${err.message}`);
+    errors.push(`Brute-Force (v6) Error: ${err.message}`);
   }
 
   // --- Strategy 10: Search-based Fallback ---
@@ -357,7 +365,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   --- DEBUG LOG (TOP 5 FAILURES) ---
   ${errors.slice(0, 5).join("\n")}
   
-  TIP: The v5 "Absolute" system is now live. If you see this, the latest build may still be deploying. Our Strategy 11 is now strictly grounded to prevent hallucinations for scripture/sermons.`;
+  TIP: The v6 "Absolute" system is now live. If you see this, the latest build may still be deploying. Our Strategy 11 is now strictly grounded, and Strategy 12/13 handles audio-to-text.`;
 
   throw new Error(detailedError);
 }
@@ -369,9 +377,10 @@ function isRefusalResponse(text: string): boolean {
 }
 
 /**
- * 🛠️ MEDIA RESOLVER: Extracts direct audio stream from YouTube via managed bypass APIs.
+ * 🛠️ STEP 1: Video to MP3 Extraction
+ * Extracts direct audio stream from YouTube via managed bypass APIs.
  */
-async function extractAudioStream(videoId: string): Promise<string | null> {
+async function step1_extractAudioStream(videoId: string): Promise<string | null> {
   const url = `https://www.youtube.com/watch?v=${videoId}`;
   const resolvers = [
     `https://api.vkrdownloader.com/server?v=${encodeURIComponent(url)}`,
