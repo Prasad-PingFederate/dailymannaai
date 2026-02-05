@@ -35,43 +35,75 @@ export async function POST(req: Request) {
 
                 console.log(`[Ingest] Fetching website: ${url}`);
 
-                // Advanced headers to bypass aggressive bot protection (Cloudflare, etc.)
-                const headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache',
-                    'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-                    'Sec-Ch-Ua-Mobile': '?0',
-                    'Sec-Ch-Ua-Platform': '"Windows"',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'none',
-                    'Sec-Fetch-User': '?1',
-                    'Upgrade-Insecure-Requests': '1',
-                    'Referer': 'https://www.google.com/'
-                };
+                async function robustFetch(targetUrl: string) {
+                    const userAgents = [
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+                    ];
 
-                const response = await fetch(url, { headers });
+                    const strategy = async (ua: string) => {
+                        const headers: any = {
+                            'User-Agent': ua,
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                            'Accept-Language': 'en-US,en;q=0.9',
+                            'Accept-Encoding': 'gzip, deflate, br',
+                            'Connection': 'keep-alive',
+                            'Upgrade-Insecure-Requests': '1',
+                            'Sec-Fetch-Dest': 'document',
+                            'Sec-Fetch-Mode': 'navigate',
+                            'Sec-Fetch-Site': 'none',
+                            'Sec-Fetch-User': '?1',
+                            'Cache-Control': 'max-age=0',
+                            'Referer': 'https://www.google.com/'
+                        };
+                        return await fetch(targetUrl, { headers });
+                    };
+
+                    let response = await strategy(userAgents[0]);
+
+                    // If blocked (403/401), try a different UA or a simpler approach
+                    if (!response.ok && (response.status === 403 || response.status === 401)) {
+                        console.warn(`[Ingest] Strategy 1 failed (${response.status}). Retrying with alternate UA...`);
+                        response = await strategy(userAgents[1]);
+                    }
+
+                    // Last resort: Try a proxy-less broad fetch (some environments handle this better)
+                    if (!response.ok) {
+                        console.warn(`[Ingest] All direct strategies failed (${response.status}). Attempting clean fetch...`);
+                        response = await fetch(targetUrl).catch(() => response);
+                    }
+
+                    return response;
+                }
+
+                const response = await robustFetch(url);
 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch website: ${response.status} ${response.statusText}.`);
+                    throw new Error(`The website ${url} blocked our connection (${response.status}). This often happens with strict anti-bot settings.`);
                 }
 
                 const html = await response.text();
 
-                // Extraction: Improved script/style stripping
+                // Advanced Extraction: Semantic Content Isolation
+                // We strip heavy noise while preserving structure
                 textContent = html
-                    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gmi, "")
-                    .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gmi, "")
-                    .replace(/<nav\b[^>]*>([\s\S]*?)<\/nav>/gmi, "") // Strip nav
-                    .replace(/<footer\b[^>]*>([\s\S]*?)<\/footer>/gmi, "") // Strip footer
+                    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gm, "")
+                    .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gm, "")
+                    .replace(/<svg\b[^>]*>([\s\S]*?)<\/svg>/gm, "")
+                    .replace(/<header\b[^>]*>([\s\S]*?)<\/header>/gm, "") // Strip header
+                    .replace(/<footer\b[^>]*>([\s\S]*?)<\/footer>/gm, "") // Strip footer
+                    .replace(/<nav\b[^>]*>([\s\S]*?)<\/nav>/gm, "")     // Strip navigation
+                    .replace(/<aside\b[^>]*>([\s\S]*?)<\/aside>/gm, "") // Strip sidebars
+                    .replace(/<iframe\b[^>]*>([\s\S]*?)<\/iframe>/gm, "")
                     .replace(/<[^>]+>/g, " ")
+                    .replace(/&nbsp;/g, " ")
+                    .replace(/&quot;/g, '"')
+                    .replace(/&amp;/g, '&')
                     .replace(/\s+/g, " ")
                     .trim();
 
-                console.log(`[Ingest] Successfully extracted ${textContent.length} characters from ${url}`);
+                console.log(`[Ingest] Expert extraction success: ${textContent.length} characters.`);
             } else if (mode === "text") {
                 if (!text) return NextResponse.json({ error: "Text is required" }, { status: 400 });
                 textContent = text;
