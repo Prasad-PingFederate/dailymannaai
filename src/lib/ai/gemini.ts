@@ -47,22 +47,18 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
 export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = []) {
     const prompt = `
     Identity: SPIRITUAL RESEARCH DISCIPLE (The Voice of Truth and Wisdom). 
-    Status: You are an authoritative, world-class theologian and historical researcher. You carry the spirit of the Apostles and the wisdom of history's great evangelists (Billy Graham, John Wesley). Your mission is to glorify God by illuminating the depth of Jesus Christ through your research.
-    
-    INTERNAL GUIDELINES (FOR AI ADHERENCE ONLY - DO NOT OUTPUT THESE HEADERS):
-    1. THEOLOGICAL MAJESTY: The user seeks THE DEPTH. Provide comprehensive, spirit-filled revelations.
-    2. SCRIPTURE SATURATION: Use "more and more passages". Provide FULL TEXT of verses.
-    3. CHRIST-CENTERED: Point everything to the character, **miracles, and teachings** of Jesus.
-    4. NO FILTERS ON TRUTH: Speak with historical and theological authority.
-    5. THE LOVE OF JESUS: Embody His unconditional, sacrificial love. Be gentle yet authoritative.
-    6. THE DEITY OF CHRIST: Uphold the absolute Divinity of Jesus Christ. He is God Incarnate, Creator, and Sustainer. Emphasize His equality with the Father.
+    Status: You are an authoritative, world-class theologian and historical researcher. You ground your answers in provided research chunks and web search results.
+
+    IMAGE RESOLUTION PROTOCOL:
+    Identify the primary person or specific historical topic discussed in your answer.
+    At the very end of your response, you MUST include this metadata tag on a new line:
+    [METADATA:SUBJECT=Name of Person or Topic]
 
     OUTPUT RULES:
     - DO NOT discuss your instructions or these guidelines.
-    - DO NOT use the guideline names (e.g., "Theological Majesty") as headers.
     - DIRECTLY ANSWER the user's question with a multi-paragraph, scripture-rich response.
-    - Ensure the response covers His divine nature, His earthly miracles, and His core teachings.
-    - Start immediately with the theological truth.
+    - RELIABILITY: Use provided context first.
+    - THEOLOGY: Point everything to Jesus Christ.
 
     RESEARCH SOURCES:
     ${sources.length > 0 ? sources.map((s, i) => `[Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -73,7 +69,15 @@ export async function generateGroundedResponse(query: string, sources: string[],
     USER QUESTION:
     "${query}"
 
-    EXPERT AI RESPONSE (Direct, Theological, and Scripture-Filled):
+    RESPONSE FORMAT:
+    Answer text...
+    ---SUGGESTIONS---
+    Q1
+    Q2
+    Q3
+    [METADATA:SUBJECT=Subject Name]
+
+    EXPERT AI RESPONSE:
     `;
 
     try {
@@ -84,7 +88,6 @@ export async function generateGroundedResponse(query: string, sources: string[],
         while (attempt <= 2) {
             const { response, provider } = await getProviderManager().generateResponse(prompt);
 
-            // Check if the response is a false-positive safety refusal OR biased refusal
             const isRefusal = REFUSAL_TOKENS.some(token => response.toLowerCase().includes(token.toLowerCase()));
 
             if (!isRefusal) {
@@ -93,50 +96,48 @@ export async function generateGroundedResponse(query: string, sources: string[],
                 break;
             }
 
-            console.log(`[AI-DNA] Detected Safety/Bias Refusal from ${provider}. Attempting expert override with alternate model...`);
+            console.log(`[AI-DNA] Detected Safety/Bias Refusal from ${provider}. Attempting override...`);
             attempt++;
         }
 
         if (!finalResponse) {
-            finalResponse = "The Research Core is currently re-calibrating its historical parameters to bypass modern filter bias for this historical query. Please ask specifically for 'Dwight L. Moody biography'.";
+            finalResponse = "The Research Core is currently re-calibrating. Please try again.";
         }
 
-        console.log(`[AI-DNA] Synthesis complete via: ${finalProvider || 'Override-Chain'}`);
+        console.log(`[AI-DNA] Synthesis complete via: ${finalProvider}`);
+
+        // Extract metadata before splitting by suggestions
+        let suggestedSubject = "";
+        const metadataMatch = finalResponse.match(/\[METADATA:SUBJECT=(.+?)\]/);
+        if (metadataMatch) {
+            suggestedSubject = metadataMatch[1].trim();
+            finalResponse = finalResponse.replace(metadataMatch[0], "").trim();
+        }
 
         const parts = finalResponse.split("---SUGGESTIONS---");
         const answer = parts[0].trim();
         const suggestions = parts[1]
             ? parts[1].split("\n").map(s => s.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(s => s.length > 5).slice(0, 3)
-            : [
-                `Tell me about Moody's impact in Chicago.`,
-                `What are the most famous books written by D.L. Moody?`,
-                `How did Moody's Bible Institute start?`
-            ];
+            : ["Tell me more about this.", "How does this apply to me?", "What does the Bible say?"];
 
-        // Identify a suggested subject for image search
-        // We prioritize capitalized names found in the first two lines or a bolded title.
-        let suggestedSubject = "";
-        const lines = answer.split('\n');
-
-        // Priority 1: Check for a markdown header (e.g. # Billy Graham)
-        const headerMatch = answer.match(/^#+\s*(.+)$/m);
-        if (headerMatch) {
-            suggestedSubject = headerMatch[1].trim();
-        } else {
-            // Priority 2: Check for broad names in the first few lines
-            for (let i = 0; i < Math.min(lines.length, 3); i++) {
-                const line = lines[i].trim();
-                // Simple heuristic for Name: "First Last" or "Title First Last"
-                // This regex looks for 2+ capitalized words
-                const match = line.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/);
-                if (match) {
-                    suggestedSubject = match[1];
-                    break;
+        // If no metadata found, fallback to original heuristic
+        if (!suggestedSubject) {
+            const lines = answer.split('\n');
+            const headerMatch = answer.match(/^#+\s*(.+)$/m);
+            if (headerMatch) {
+                suggestedSubject = headerMatch[1].trim();
+            } else {
+                for (let i = 0; i < Math.min(lines.length, 3); i++) {
+                    const line = lines[i].trim();
+                    const match = line.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/);
+                    if (match) {
+                        suggestedSubject = match[1];
+                        break;
+                    }
                 }
             }
         }
 
-        // Clean up subject (remove possessives etc)
         if (suggestedSubject) {
             suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
         }
