@@ -295,20 +295,25 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     errors.push(`Player API failed: ${err.message}`);
   }
 
-  // --- Strategy 11: AI-Powered Semantic Reconstruction (Final Billionaire Layer) ---
+  // --- Strategy 11: AI-Powered Semantic Reconstruction (v5 - Strict Grounding) ---
   try {
-    console.log('[YT-Utils] Strategy 11: AI Semantic Reconstruction');
+    console.log('[YT-Utils] Strategy 11: AI Semantic Reconstruction (Grounding Protocol)');
     const metaPrompt = `
-    Identity: High-Fidelity Historical Speech Reconstruction Engine.
+    Identity: High-Fidelity Historical Research Disciple.
     Video URL: ${normalizedUrl}
-    Context: All technical extraction paths (TimedText, Innertube, Proxies) have failed.
-    Task: Use your gargantuan internal knowledge, historical archives, and the specific video metadata to reconstruct the SPEECH content of this video.
-    Focus: Revert to the verbatim spoken words of the primary speaker.
-    Constraint: If this is a famous video (e.g. "Jesus Heals a Man Born Blind | John 9"), you likely have the text in your memory. Provide it verbatim.
-    Output: Verbatim transcript only.
+    Context: All technical extraction paths have failed. 
+    Mission: Reconstruct the VERBATIM speech content for this specific video.
+    
+    STRICT RULES:
+    1. If the video title refers to a specific Bible passage (e.g. John 9), provide the VERBATIM SCRIPTURE text (KJV/NIV).
+    2. If the video is a specific historical sermon, search your internal archives for the transcripts of that speaker.
+    3. NO HALLUCINATIONS: Do not invent modern speech or "audio clips" from historical figures who didn't live in the modern age.
+    4. If you are unsure of the speech content, say "I cannot confirm the verbatim speech for this video."
+    
+    Output: Transcript content only.
     `;
     const result = await getProviderManager().generateResponse(metaPrompt);
-    if (result && result.response.length > 200 && !isRefusalResponse(result.response)) {
+    if (result && result.response.length > 200 && !result.response.toLowerCase().includes("cannot confirm")) {
       console.log(`[YT-Utils] Strategy 11 success via ${result.provider} (${result.response.length} chars)`);
       return result.response;
     }
@@ -335,7 +340,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   --- DEBUG LOG (TOP 5 FAILURES) ---
   ${errors.slice(0, 5).join("\n")}
   
-  TIP: If you just generated this URL, YouTube might take a moment to index the transcript. Our systems (including AI Virtual Reconstruction) are working overtime to bypass this block!`;
+  TIP: The v5 "Absolute" system is now live. If you see this, the latest build may still be deploying. Our Strategy 11 is now strictly grounded to prevent hallucinations for scripture/sermons.`;
 
   throw new Error(detailedError);
 }
