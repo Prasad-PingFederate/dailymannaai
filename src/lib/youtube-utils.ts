@@ -321,6 +321,23 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
     console.warn(`[YT-Utils] Strategy 11 failed: ${err.message}`);
   }
 
+  // --- Strategy 12: Brute-Force Audio-to-Text (v6 - Final Frontier) ---
+  try {
+    console.log('[YT-Utils] Strategy 12: Brute-Force Audio Extraction');
+    const audioUrl = await extractAudioStream(videoId);
+    if (audioUrl) {
+      console.log(`[YT-Utils] Audio stream resolved. Sending to Whisper...`);
+      const transcript = await getProviderManager().transcribeAudio(audioUrl);
+      if (transcript && transcript.length > 50) {
+        console.log(`[YT-Utils] Strategy 12 success via Whisper (${transcript.length} chars)`);
+        return transcript;
+      }
+    }
+    errors.push("Brute-Force: Failed to resolve audio stream or transcribe it.");
+  } catch (err: any) {
+    errors.push(`Brute-Force Error: ${err.message}`);
+  }
+
   // --- Strategy 10: Search-based Fallback ---
   try {
     console.log('[YT-Utils] Strategy 10: Search-based Fallback');
@@ -349,4 +366,25 @@ function isRefusalResponse(text: string): boolean {
   const refusalPatterns = ["cannot access", "don't have access", "cannot transcribe", "AI language model", "unable to provide"];
   const lower = text.toLowerCase();
   return refusalPatterns.some(p => lower.includes(p));
+}
+
+/**
+ * 🛠️ MEDIA RESOLVER: Extracts direct audio stream from YouTube via managed bypass APIs.
+ */
+async function extractAudioStream(videoId: string): Promise<string | null> {
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  const resolvers = [
+    `https://api.vkrdownloader.com/server?v=${encodeURIComponent(url)}`,
+    `https://api.diceytips.info/yt/download?id=${videoId}`
+  ];
+  for (const api of resolvers) {
+    try {
+      const res = await fetch(api);
+      if (!res.ok) continue;
+      const json = await res.json();
+      if (json.data?.url) return json.data.url; // vkrdownloader
+      if (json.url) return json.url;           // diceytips
+    } catch (e) { }
+  }
+  return null;
 }

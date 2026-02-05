@@ -11,6 +11,7 @@ export interface AIProvider {
     name: string;
     generateResponse(prompt: string): Promise<string>;
     transcribeVideo?(videoUrl: string): Promise<string>;
+    transcribeAudio?(audioUrl: string): Promise<string>;
 }
 
 /**
@@ -166,6 +167,42 @@ class GroqProvider implements AIProvider {
             return data.choices[0]?.message?.content || "";
         } finally {
             clearTimeout(timeoutId);
+        }
+    }
+
+    async transcribeAudio(audioUrl: string): Promise<string> {
+        console.log(`[AI] Groq (Whisper) transcription for: ${audioUrl.substring(0, 50)}...`);
+        try {
+            // 1. Fetch the audio file
+            const audioRes = await fetch(audioUrl);
+            if (!audioRes.ok) throw new Error(`Failed to fetch audio: ${audioRes.status}`);
+            const blob = await audioRes.blob();
+
+            // 2. Prepare multipart form data
+            const formData = new FormData();
+            formData.append('file', blob, 'audio.mp3');
+            formData.append('model', 'whisper-large-v3');
+            formData.append('response_format', 'json');
+
+            // 3. Call Groq's transcription endpoint
+            const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Groq Whisper Error: ${errText}`);
+            }
+
+            const data = await response.json();
+            return data.text || "";
+        } catch (error: any) {
+            console.error(`[AI] Groq transcription failed: ${error.message}`);
+            throw error;
         }
     }
 }
@@ -481,6 +518,22 @@ export class AIProviderManager {
         }
 
         throw new Error("No AI providers could generate a transcript for this video.");
+    }
+
+    async transcribeAudio(audioUrl: string): Promise<string> {
+        console.log(`[AI-Manager] Starting audio stream transcription: ${audioUrl.substring(0, 40)}...`);
+
+        // Try Groq (Whisper) first for raw audio
+        const groq = this.providers.find(p => p.name === "Groq");
+        if (groq && groq.transcribeAudio) {
+            try {
+                return await groq.transcribeAudio(audioUrl);
+            } catch (err: any) {
+                console.error(`[AI-Manager] Groq Whisper failed: ${err.message}`);
+            }
+        }
+
+        throw new Error("No AI providers could transcribe this audio stream.");
     }
 
     getActiveProviders(): string[] {
