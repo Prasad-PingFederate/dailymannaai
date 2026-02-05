@@ -113,14 +113,32 @@ export async function generateGroundedResponse(query: string, sources: string[],
                 `How did Moody's Bible Institute start?`
             ];
 
-        // Identify a suggested subject for image search (simple heuristic for now)
-        // We look for capitalized names or terms that might be the main focus.
-        // In a more complex version, we'd ask the AI for this explicitly.
+        // Identify a suggested subject for image search
+        // We prioritize capitalized names found in the first two lines or a bolded title.
         let suggestedSubject = "";
         const lines = answer.split('\n');
-        if (lines[0]) {
-            const match = lines[0].match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
-            if (match) suggestedSubject = match[0];
+
+        // Priority 1: Check for a markdown header (e.g. # Billy Graham)
+        const headerMatch = answer.match(/^#+\s*(.+)$/m);
+        if (headerMatch) {
+            suggestedSubject = headerMatch[1].trim();
+        } else {
+            // Priority 2: Check for broad names in the first few lines
+            for (let i = 0; i < Math.min(lines.length, 3); i++) {
+                const line = lines[i].trim();
+                // Simple heuristic for Name: "First Last" or "Title First Last"
+                // This regex looks for 2+ capitalized words
+                const match = line.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/);
+                if (match) {
+                    suggestedSubject = match[1];
+                    break;
+                }
+            }
+        }
+
+        // Clean up subject (remove possessives etc)
+        if (suggestedSubject) {
+            suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
         }
 
         return { answer, suggestions, suggestedSubject };

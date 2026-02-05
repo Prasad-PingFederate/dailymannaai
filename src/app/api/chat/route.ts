@@ -78,13 +78,13 @@ export async function POST(req: Request) {
         let dynamicImage = null;
 
         if (!portrait && suggestedSubject) {
-            console.log(`[ChatAPI-DNA] No hardcoded portrait for "${suggestedSubject}". Searching web...`);
-            const images = await performImageSearch(`${suggestedSubject} portrait christian`);
+            console.log(`[ChatAPI-DNA] No hardcoded portrait for "${suggestedSubject}". Searching Wikipedia/Wikimedia...`);
+            const images = await performImageSearch(suggestedSubject);
             if (images.length > 0) {
                 dynamicImage = {
                     name: suggestedSubject,
                     imageUrl: images[0].image,
-                    description: `Dynamic portrait found for ${suggestedSubject}.`,
+                    description: `Encyclopedic portrait found for ${suggestedSubject}.`,
                     attribution: images[0].source,
                     sourceUrl: images[0].url
                 };

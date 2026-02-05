@@ -57,30 +57,31 @@ export async function performWebSearch(query: string): Promise<SearchResult[]> {
 
 export async function performImageSearch(query: string): Promise<ImageResult[]> {
     try {
-        console.log(`[ImageSearch] Searching for: ${query}`);
+        // Force Wikipedia/Wikimedia for high-quality, relevant portraits
+        const specificQuery = `${query} portrait site:wikimedia.org OR site:wikipedia.org`;
+        console.log(`[ImageSearch] Searching for: ${specificQuery}`);
 
-        // 5 second timeout
         const response = await withTimeout(
-            searchImages(query, { safeSearch: SafeSearchType.STRICT }),
+            searchImages(specificQuery, { safeSearch: SafeSearchType.STRICT }),
             5000,
             'Image search timeout (5s)'
         );
 
         if (!response.results || response.results.length === 0) {
-            console.log('[ImageSearch] No images found');
+            console.log('[ImageSearch] No images found on wiki. Skipping fallback to maintain quality.');
             return [];
         }
 
-        // Map to our interface (limit to 5)
-        const formattedResults: ImageResult[] = response.results.slice(0, 5).map((result: any) => ({
+        // Map wiki results
+        const wikiResults: ImageResult[] = response.results.slice(0, 5).map((result: any) => ({
             title: result.title,
             image: result.image,
             url: result.url,
             source: result.source
         }));
 
-        console.log(`[ImageSearch] Found ${formattedResults.length} images`);
-        return formattedResults;
+        console.log(`[ImageSearch] Found ${wikiResults.length} high-quality wiki images`);
+        return wikiResults;
 
     } catch (error: any) {
         console.warn('[ImageSearch] Image search failed:', error.message);
