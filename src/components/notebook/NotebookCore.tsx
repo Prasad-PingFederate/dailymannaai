@@ -725,7 +725,8 @@ It's now part of my collective wisdom!`
             if (data.role === "assistant") {
                 setMessages(prev => [...prev, {
                     role: "assistant",
-                    content: data.content
+                    content: data.content,
+                    portrait: data.portrait
                 }]);
                 if (data.suggestions) {
                     setSuggestions(data.suggestions);
@@ -2003,8 +2004,8 @@ It's now part of my collective wisdom!`
                     </div>
 
                     <div className="space-y-4">
-                        {messages.map((msg, i) => {
-                            const portrait = msg.role === 'assistant' ? resolvePortrait(msg.content) : null;
+                        {messages.map((msg: any, i) => {
+                            const portrait = msg.portrait || (msg.role === 'assistant' ? resolvePortrait(msg.content) : null);
                             const situationalImg = msg.role === 'assistant' && !portrait ? resolveSituationalImage(msg.content) : null;
 
                             return (
@@ -2055,7 +2056,7 @@ It's now part of my collective wisdom!`
                                         )}
                                         <div className={`${msg.role === 'user' ? 'bg-accent/10' : 'bg-muted/10'} rounded-2xl p-4 text-sm group relative flex flex-col gap-3 shadow-sm select-text`}>
                                             <div className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">
-                                                {msg.content.split(/(\[\d+\])/g).map((part, partIndex) => {
+                                                {msg.content.split(/(\[\d+\])/g).map((part: string, partIndex: number) => {
                                                     if (/^\[\d+\]$/.test(part)) {
                                                         return (
                                                             <span key={partIndex} className="inline-flex items-center justify-center bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold rounded px-1 min-w-[18px] h-[18px] mx-0.5 cursor-pointer hover:bg-accent hover:text-white transition-colors" title="View Source">

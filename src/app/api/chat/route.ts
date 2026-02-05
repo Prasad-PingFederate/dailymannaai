@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { generateGroundedResponse, rewriteQuery } from "@/lib/ai/gemini";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
-import { performWebSearch, formatSearchResults } from "@/lib/tools/web-search";
+import { performWebSearch, formatSearchResults, performImageSearch } from "@/lib/tools/web-search";
 import { lookupBibleReference } from "@/lib/bible/lookup";
+import { resolvePortrait } from "@/lib/ai/image-resolver";
 
 export async function POST(req: Request) {
     try {
@@ -16,12 +17,8 @@ export async function POST(req: Request) {
 
         // Check for Bible Verse Lookup
         const bibleResult = lookupBibleReference(query);
-        const parsed = bibleResult ? (query as any) : null; // This is a bit hacky, I'll fix it by returning the parsed object from lookup
 
         if (bibleResult) {
-            // Check if it's a "Direct" lookup (show/read/lookup or just the reference)
-            // I need to update lookupBibleReference to return more info. 
-            // For now, let's assume if it matches, we can decide based on query length/content.
             const isDirect = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(query.trim());
 
             if (isDirect) {
@@ -58,7 +55,6 @@ export async function POST(req: Request) {
         }
 
         // 🧬 DNA LOGIC: Proactive Retry
-        // If we find nothing local AND nothing on the web, broaden the query
         if (relevantChunks.length === 0 && webResults.length === 0) {
             console.log(`[ChatAPI-DNA] Pass 1 yielded 0 results. Broadening query...`);
             const words = standaloneQuery.split(" ");
@@ -66,7 +62,7 @@ export async function POST(req: Request) {
 
             relevantChunks = searchRelevantChunks(broaderQuery);
             webResults = await performWebSearch(`${broaderQuery} biography christian history`);
-            standaloneQuery = broaderQuery; // Update for logging/ref
+            standaloneQuery = broaderQuery;
         }
 
         const sourcesText = relevantChunks.map(c => `[${c.sourceId}] ${c.content}`);
@@ -75,12 +71,31 @@ export async function POST(req: Request) {
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
 
         // 3. Grounded Synthesis with Expert Persona
-        const { answer, suggestions } = await generateGroundedResponse(query, sourcesText, webContext, history);
+        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, sourcesText, webContext, history);
+
+        // 4. Resolve Portrait (Hardcoded or Dynamic)
+        let portrait = resolvePortrait(answer);
+        let dynamicImage = null;
+
+        if (!portrait && suggestedSubject) {
+            console.log(`[ChatAPI-DNA] No hardcoded portrait for "${suggestedSubject}". Searching web...`);
+            const images = await performImageSearch(`${suggestedSubject} portrait christian`);
+            if (images.length > 0) {
+                dynamicImage = {
+                    name: suggestedSubject,
+                    imageUrl: images[0].image,
+                    description: `Dynamic portrait found for ${suggestedSubject}.`,
+                    attribution: images[0].source,
+                    sourceUrl: images[0].url
+                };
+            }
+        }
 
         return NextResponse.json({
             role: "assistant",
             content: answer,
             suggestions: suggestions,
+            portrait: portrait || dynamicImage,
             citations: relevantChunks.map(c => ({
                 id: c.id,
                 source: c.sourceId,

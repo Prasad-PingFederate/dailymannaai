@@ -113,26 +113,25 @@ export async function generateGroundedResponse(query: string, sources: string[],
                 `How did Moody's Bible Institute start?`
             ];
 
-        return { answer, suggestions };
+        // Identify a suggested subject for image search (simple heuristic for now)
+        // We look for capitalized names or terms that might be the main focus.
+        // In a more complex version, we'd ask the AI for this explicitly.
+        let suggestedSubject = "";
+        const lines = answer.split('\n');
+        if (lines[0]) {
+            const match = lines[0].match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+            if (match) suggestedSubject = match[0];
+        }
+
+        return { answer, suggestions, suggestedSubject };
     } catch (error: any) {
         console.error('[AI-DNA] Core synthesis error:', error.message);
 
-        // Provide specific, helpful error messages
-        let userMessage = "I encountered an issue processing your request. ";
-
-        if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
-            userMessage += "The AI service took too long to respond. Please try again with a shorter question.";
-        } else if (error.message?.includes('API key') || error.message?.includes('401') || error.message?.includes('403')) {
-            userMessage += "There's an authentication issue with the AI service. Please contact support.";
-        } else if (error.message?.includes('rate') || error.message?.includes('429') || error.message?.includes('quota')) {
-            userMessage += "The AI service is currently at capacity. Please wait a moment and try again.";
-        } else if (error.message?.includes('offline') || error.message?.includes('network')) {
-            userMessage += "Unable to connect to AI services. Please check your connection.";
-        } else {
-            userMessage += "Please try rephrasing your question or try again in a few moments.";
-        }
-
-        return { answer: userMessage, suggestions: ["Try asking: Who is Jesus?", "Try asking: John 3:16"] };
+        return {
+            answer: "I encountered an issue processing your request. Please try again.",
+            suggestions: ["Try asking: Who is Jesus?", "Try asking: John 3:16"],
+            suggestedSubject: ""
+        };
     }
 }
 

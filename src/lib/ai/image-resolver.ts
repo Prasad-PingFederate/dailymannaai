@@ -205,7 +205,12 @@ export const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1507692049790-d
 
 export function resolvePortrait(text: string): PersonalityPortrait | null {
     const lower = text.toLowerCase();
-    for (const key in PERSONALITIES) {
+
+    // Sort keys by length descending to match specific names (e.g. "Charles Spurgeon") 
+    // before generic ones (e.g. "Jesus") if both appear or are sub-strings.
+    const sortedKeys = Object.keys(PERSONALITIES).sort((a, b) => b.length - a.length);
+
+    for (const key of sortedKeys) {
         if (lower.includes(key)) {
             return PERSONALITIES[key];
         }
