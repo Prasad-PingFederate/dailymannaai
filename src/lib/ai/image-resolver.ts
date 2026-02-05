@@ -180,6 +180,13 @@ const PERSONALITIES: Record<string, PersonalityPortrait> = {
         description: "Central figure of Christianity.",
         attribution: "Unsplash",
         sourceUrl: "https://unsplash.com/photos/cross-on-top-of-mountain-SST_X8p7F3k"
+    },
+    "richard baxter": {
+        name: "Richard Baxter",
+        imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Richard_Baxter.jpg",
+        description: "English Puritan church leader and theologian (1615–1691), author of 'The Saints' Everlasting Rest'.",
+        attribution: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Richard_Baxter.jpg"
     }
 };
 
