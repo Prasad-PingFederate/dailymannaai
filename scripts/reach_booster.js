@@ -1,13 +1,3 @@
-/**
- * DailyMannaAI Advanced Reach Booster
- * 
- * Features:
- * 1. Trend Discovery: Scrapes trends24.in for real-time engagement opportunities (with fallback).
- * 2. SimCluster Matching: Aligns trends with devotional/faith keywords for targeted reach.
- * 3. Robust Automation: Uses Playwright with Cookie Persistence and Challenge Bypassing.
- * 4. Algorithm Optimized: Posts 3-part threads with 30x Like boost CTAs.
- */
-
 const { chromium } = require('playwright');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
@@ -25,31 +15,26 @@ const LOCATIONS = [
 ];
 
 async function getTrends(locationPath = 'india/') {
-    console.log(`🔍 Discovering trends for ${locationPath || 'Global'}...`);
-    let browser;
+    console.log(`Starting Trend Discovery for ${locationPath || 'Global'} via Playwright...`);
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+
     try {
-        browser = await chromium.launch({ headless: true });
-        const context = await browser.newContext();
-        const page = await context.newPage();
+        await page.goto(`https://trends24.in/${locationPath}`, { waitUntil: 'domcontentloaded' });
+        await page.waitForSelector('.trend-card__list', { timeout: 10000 });
 
-        await page.goto(`https://trends24.in/${locationPath}`, {
-            waitUntil: 'domcontentloaded',
-            timeout: 15000
-        });
-
-        await page.waitForSelector('.trend-link', { timeout: 10000 });
         const trends = await page.evaluate(() => {
             const listItems = document.querySelectorAll('.list-container:first-child .trend-link');
             return Array.from(listItems).map(item => item.textContent.trim());
         });
 
-        console.log(`✅ Fetched ${trends.length} trends.`);
+        console.log(`Trends found:`, trends.length > 0 ? trends.slice(0, 5).join(', ') + '...' : 'None');
         return trends;
     } catch (error) {
-        console.warn(`⚠️ Trend discovery failed for ${locationPath}: ${error.message}. Using fallback.`);
+        console.error(`Error fetching trends for ${locationPath}:`, error.message);
         return [];
     } finally {
-        if (browser) await browser.close();
+        await browser.close();
     }
 }
 
@@ -63,26 +48,6 @@ function findDevotionalTrend(trends) {
         }
     }
     return trends.length > 0 ? { trend: trends[0], keyword: 'General' } : null;
-}
-
-async function generateThreadContent(match) {
-    const verses = [
-        {
-            ref: "Psalm 46:10",
-            text: "Be still, and know that I am God.",
-            meditation: "In the rush of a busy morning, find peace in His sovereignty. He is in control of your situation.",
-            prayer: "Lord, help me to rest in Your presence today and trust Your plan."
-        }
-    ];
-
-    const v = verses[0];
-    const trendTag = match ? `#${match.trend.replace(/\s/g, '').replace(/#/g, '')}` : "#FaithOverFear";
-
-    return [
-        `📖 Daily Manna: ${v.ref}\n\n"${v.text}"\n\n${trendTag} #DailyMannaAI #BibleVerse #Faith`,
-        `💡 Morning Meditation:\n\n${v.meditation}\n\nTake this truth with you today as you step into your purpose. ✨`,
-        `🙏 Prayer Of The Day:\n\n${v.prayer}\n\n(Tap the ❤️ if you agree! Your engagement helps this Word reach someone who needs it most today.)`
-    ];
 }
 
 async function postTweetViaPlaywright(threadItems) {
@@ -150,7 +115,7 @@ async function postTweetViaPlaywright(threadItems) {
                     await passwordInput.fill(process.env.X_PASSWORD);
                     await page.keyboard.press('Enter');
 
-                    // Fallback for "Log in" button
+                    // Fallback for Log in button
                     const loginBtn = page.locator('button:has-text("Log in"), [data-testid="LoginForm_Login_Button"]').first();
                     if (await loginBtn.isVisible()) await loginBtn.click();
 
@@ -161,29 +126,27 @@ async function postTweetViaPlaywright(threadItems) {
                 // 2. Identity Verification (Email/Username/Phone)
                 if (bodyText.includes('verification') || bodyText.includes('identity') || bodyText.includes('suspicious') || bodyText.includes('phone or email') || bodyText.includes('check your email') || bodyText.includes('confirm your email') || bodyText.includes('enter your email')) {
                     console.log('Identity challenge detected. Attempting to solve...');
-                    if (process.env.X_EMAIL) {
-                        const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
-                        if (await idInput.first().isVisible()) {
-                            // Use X_EMAIL as default, but X_USERNAME if email fails
-                            const challengeAnswer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
-                            await idInput.first().fill(challengeAnswer);
-                            await page.keyboard.press('Enter');
-                            console.log(`Submitted answer (${challengeAnswer}) for verification.`);
-                            await page.waitForTimeout(5000);
-                            continue;
-                        }
-                    } else {
-                        console.error('X_EMAIL missing - cannot solve challenge.');
+                    const challengeInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
+
+                    if (await challengeInput.first().isVisible()) {
+                        // Pattern: Try X_EMAIL first, then X_USERNAME as backup in later steps
+                        const answer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
+                        console.log(`Submitting challenge answer: ${answer}`);
+                        await challengeInput.first().fill(answer);
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(5000);
+                        continue;
                     }
                 }
 
-                // 3. Just another Username prompt
-                const secondUsernameInput = page.locator('input[autocomplete="username"]');
-                if (await secondUsernameInput.isVisible()) {
-                    console.log('Username requested again. Filling...');
-                    await secondUsernameInput.fill(process.env.X_USERNAME);
-                    await page.keyboard.press('Enter');
-                    continue;
+                // 3. Resilience: Stuck on Login page? Click "Next"
+                if (currentUrl.includes('/login') && !bodyText.includes('password')) {
+                    const nextBtn = page.locator('button:has-text("Next"), [role="button"]:has-text("Next")').first();
+                    if (await nextBtn.isVisible()) {
+                        console.log('Stuck on login page. Clicking "Next" button...');
+                        await nextBtn.click();
+                        await page.waitForTimeout(3000);
+                    }
                 }
 
                 // 4. Check for success
@@ -213,8 +176,8 @@ async function postTweetViaPlaywright(threadItems) {
         // X Selector Fallback strategy for opening composer
         const openComposerSelectors = [
             '[data-testid="SideNav_NewTweet_Button"]',
-            '[data-testid="tweetButtonInline"]',
-            'button:has(span:text-is("Post"))',
+            '[data-testid="AppTabBar_Post_Link"]',
+            'a[href="/compose/post"]',
             'button:has-text("Post")'
         ];
 
@@ -248,7 +211,7 @@ async function postTweetViaPlaywright(threadItems) {
                 const addBtn = page.locator('[data-testid="add-tweet-button"]').first();
                 if (await addBtn.isVisible()) {
                     await addBtn.click();
-                    await page.waitForTimeout(5000);
+                    await page.waitForTimeout(2000);
                 } else {
                     console.warn('⚠️ Threading button (+) not found. Posting as single tweet.');
                     break;
@@ -287,7 +250,7 @@ async function postTweetViaPlaywright(threadItems) {
         const isStillThere = await page.locator('[data-testid="tweetTextarea_0"]').first().isVisible();
 
         if (!isStillThere) {
-            console.log('🎊 Tweet/Thread posted successfully! Editor box is gone.');
+            console.log('🎊 Tweet/Thread posted successfully!');
             await page.screenshot({ path: 'reach-booster-success.png', fullPage: true });
         } else {
             console.log('Warning: Editor box is still visible. Retrying Control+Enter...');
@@ -307,7 +270,7 @@ async function postTweetViaPlaywright(threadItems) {
 
 async function main() {
     try {
-        console.log('🚀 Starting DailyMannaAI Reach Booster...');
+        console.log('🚀 Starting DailyMannaAI Reach Booster (Robust Sync)...');
 
         // 1. Trend Discovery
         let match = null;
@@ -320,11 +283,16 @@ async function main() {
             }
         }
 
-        const threadItems = await generateThreadContent(match);
+        // Content generation
+        const threadItems = [
+            `📖 Daily Manna: Trust in the Lord with all your heart.\n\nToday's meditation is centered on Faith. ${match ? '#' + match.trend.replace(/\s/g, '') : '#Faith'} #BibleVerse #DailyMannaAI`,
+            `💡 Faith is not just a word, it's a foundation. Let's walk in His light today. ✨`,
+            `🙏 Prayer: Lord, lead me in Your truth and teach me. (Tap ❤️ to agree!)`
+        ];
 
         if (process.env.DRY_RUN === 'true') {
-            console.log('🧪 DRY_RUN active. Script would have posted the following thread:');
-            threadItems.forEach((t, idx) => console.log(`[Tweet ${idx + 1}]:\n${t}\n`));
+            console.log('🧪 DRY_RUN active. Would have posted:');
+            threadItems.forEach((t, i) => console.log(`[${i + 1}]: ${t}`));
             return;
         }
 
