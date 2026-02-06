@@ -251,4 +251,12 @@ async function runBooster() {
     }
 }
 
-runBooster();
+(async () => {
+    try {
+        await runBooster();
+        console.log('✅ Script execution finished.');
+    } catch (err) {
+        console.error('❌ Fatal Script Error:', err);
+        process.exit(1);
+    }
+})();
