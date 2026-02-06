@@ -52,7 +52,7 @@ async function main() {
         console.log('📈 Scoping trends directly from Twitter Explore...');
         try {
             await page.goto('https://twitter.com/explore/tabs/trending', { waitUntil: 'domcontentloaded' });
-            await page.waitForSelector('[data-testid="trend"]', { timeout: 30000 });
+            await page.waitForSelector('[data-testid="trend"]', { timeout: 60000 });
             trends = await page.evaluate(() => {
                 const elements = document.querySelectorAll('[data-testid="trend"]');
                 return Array.from(elements).slice(0, 15).map(el => el.querySelector('[dir="ltr"]')?.textContent?.trim() || '').filter(t => t);
@@ -121,7 +121,7 @@ async function main() {
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
             const usernameInput = page.locator('input[autocomplete="username"]');
-            await usernameInput.waitFor({ timeout: 45000 });
+            await usernameInput.waitFor({ timeout: 60000 });
             await usernameInput.fill(process.env.X_USERNAME);
             await page.keyboard.press('Enter');
 
