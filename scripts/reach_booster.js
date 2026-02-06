@@ -58,8 +58,8 @@ async function findTrendingHashtagsDirect() {
     const page = await browser.newPage();
     try {
         // Note: Twitter often requires login for /explore, but sometimes it works for public view
-        await page.goto('https://twitter.com/explore/tabs/trending', { waitUntil: 'networkidle', timeout: 30000 });
-        await page.waitForSelector('[data-testid="trend"]', { timeout: 10000 });
+        await page.goto('https://twitter.com/explore/tabs/trending', { waitUntil: 'domcontentloaded', timeout: 120000 });
+        await page.waitForSelector('[data-testid="trend"]', { timeout: 30000 });
         const trends = await page.evaluate(() => {
             const elements = document.querySelectorAll('[data-testid="trend"]');
             return Array.from(elements).slice(0, 15).map(el => {
@@ -89,8 +89,8 @@ async function searchTwitterPosts(searchQuery, maxResults = 5) {
     const page = await context.newPage();
     try {
         const searchUrl = `https://twitter.com/search?q=${encodeURIComponent(searchQuery)}&src=typed_query&f=live`;
-        await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 30000 });
-        await page.waitForSelector('article[data-testid="tweet"]', { timeout: 15000 });
+        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
+        await page.waitForSelector('article[data-testid="tweet"]', { timeout: 60000 });
 
         const tweets = await page.$$eval('article[data-testid="tweet"]', (articles, max) => {
             return articles.slice(0, max).map(article => {
@@ -166,7 +166,7 @@ async function postTweetViaPlaywright(threadItems) {
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 120000 });
 
             const usernameInput = page.locator('input[autocomplete="username"]');
-            await usernameInput.waitFor({ timeout: 30000 });
+            await usernameInput.waitFor({ timeout: 60000 });
             await usernameInput.fill(process.env.X_USERNAME);
             await page.keyboard.press('Enter');
 
