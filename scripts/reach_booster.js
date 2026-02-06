@@ -143,7 +143,7 @@ async function runBooster() {
             await page.keyboard.press('Enter');
             await page.waitForTimeout(3000);
 
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < 10; i++) {
                 const passwordInput = page.locator('input[name="password"]');
                 const emailChallenge = page.locator('input[data-testid="challenge_response"], input[name="text"]');
                 const usernameChallenge = page.locator('input[autocomplete="username"]');
@@ -160,7 +160,6 @@ async function runBooster() {
                         await emailChallenge.fill(process.env.X_EMAIL);
                         await page.keyboard.press('Enter');
                         await page.waitForTimeout(2000);
-                        // Fallback click for "Next" button
                         if (await nextButton.isVisible()) await nextButton.click();
                         await page.waitForTimeout(5000);
                     } else {
@@ -175,8 +174,11 @@ async function runBooster() {
                     await page.waitForTimeout(5000);
                 }
 
-                // Check if we reached the home page
-                if (await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]').first().isVisible() || page.url().includes('/home')) {
+                // Enhanced Home Page Detection
+                const isHome = await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="tweetTextarea_0"]').first().isVisible() ||
+                    page.url().includes('/home');
+
+                if (isHome) {
                     console.log('✅ Success: Login confirmed.');
                     break;
                 }
@@ -185,62 +187,66 @@ async function runBooster() {
         }
 
         // --- Handle Posting ---
-        await page.waitForTimeout(5000); // Give it a moment to load
-        const inlineEditor = page.locator('[data-testid="tweetTextarea_0"]').first();
-        const sidebarPostBtn = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Post_Link"]').first();
+        console.log('Final confirmation of home page...');
+        await page.waitForTimeout(3000);
 
-        console.log('Checking for post elements...');
+        // 1. Check Sidebar Post Button (Preferred for threads)
+        const sidebarPostBtn = page.locator('[data-testid="SideNav_NewTweet_Button"]').first();
+        // 2. Check Inline Composer
+        const inlineEditorPlaceholder = page.locator('[data-testid="tweetTextarea_0_label"], .public-DraftEditorPlaceholder-root').first();
+        const inlinePostBtn = page.locator('[data-testid="tweetButtonInline"]').first();
+        // 3. Check General Post Buttons (by text)
+        const postButtonsByText = page.getByRole('button', { name: /Post|Tweet/i });
 
-        // If we see an editor already (inline), use it!
-        if (await inlineEditor.isVisible()) {
-            console.log('Using inline editor.');
-        } else if (await sidebarPostBtn.isVisible()) {
-            console.log('Clicking sidebar post button.');
+        console.log('Searching for post trigger...');
+
+        if (await sidebarPostBtn.isVisible()) {
+            console.log('Clicking sidebar "Post" button...');
             await sidebarPostBtn.click();
+        } else if (await inlineEditorPlaceholder.isVisible()) {
+            console.log('Inline placeholder found. Clicking to expand...');
+            await inlineEditorPlaceholder.click();
+        } else if (await postButtonsByText.count() > 0) {
+            console.log(`Found ${await postButtonsByText.count()} buttons named Post/Tweet. Trying the first one...`);
+            await postButtonsByText.first().click();
         } else {
-            console.log('Post buttons not found. Pressing "n" to open composer...');
+            console.log('No elements found. Pressing "n" to open composer...');
             await page.keyboard.press('n');
         }
 
         // Wait for ANY editor to be visible (modal or inline)
-        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 20000 });
+        console.log('Waiting for tweet editor box...');
+        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 30000 });
 
         for (let i = 0; i < threadItems.length; i++) {
             const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
-            await editor.waitFor({ timeout: 5000 });
+            await editor.waitFor({ timeout: 10000 });
+            await editor.focus();
             await editor.fill(threadItems[i]);
 
             if (i < threadItems.length - 1) {
                 const addBtn = page.locator('[data-testid="add-tweet-button"]').first();
                 if (await addBtn.isVisible()) {
                     await addBtn.click();
+                    await page.waitForTimeout(500);
                 } else {
-                    console.warn('⚠️ Threading not supported in this view. Posting only first part.');
+                    console.warn('⚠️ Threading button (+) not found. Posting as single tweet.');
                     break;
                 }
-                await page.waitForTimeout(1000);
             }
         }
 
-        // Final Post/Tweet button
-        const postButtonSelectors = [
-            '[data-testid="tweetButton"]',
-            '[data-testid="tweetButtonInline"]',
-            'button:has-text("Post")',
-            'button:has-text("Tweet all")'
-        ];
-
-        for (const selector of postButtonSelectors) {
-            const btn = page.locator(selector).first();
-            if (await btn.isVisible()) {
-                console.log(`Clicking post button (${selector})...`);
-                await btn.click({ force: true });
-                console.log('🎊 Thread successfully posted!');
-                return;
-            }
+        // Final click to post
+        const finalPostBtn = page.locator('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]').getByText(/Post|Tweet|all/i).first();
+        if (!(await finalPostBtn.isVisible())) {
+            // Fallback for button without text match
+            const backupBtn = page.locator('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]').first();
+            await backupBtn.click({ force: true });
+        } else {
+            await finalPostBtn.click({ force: true });
         }
 
-        throw new Error('Could not find the final Post/Tweet button.');
+        console.log('🎊 Thread successfully posted!');
 
     } catch (error) {
         console.error('❌ Reach Booster Error:', error);
