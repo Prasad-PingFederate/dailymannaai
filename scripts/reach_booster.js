@@ -141,11 +141,23 @@ async function runBooster() {
             console.log('Session expired or missing. Logging in manually...');
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-            await page.fill('input[autocomplete="username"]', process.env.X_USERNAME);
+            console.log('Filling username...');
+            const usernameInput = page.locator('input[autocomplete="username"]');
+            await usernameInput.waitFor({ timeout: 30000 });
+            await usernameInput.fill(process.env.X_USERNAME);
+
+            // Try pressing Enter and clicking "Next" button
             await page.keyboard.press('Enter');
+            await page.waitForTimeout(2000);
+            const nextButton = page.locator('button:has-text("Next"), [role="button"]:has-text("Next")').first();
+            if (await nextButton.isVisible()) {
+                console.log('Clicking "Next" button after username...');
+                await nextButton.click();
+            }
+
             await page.waitForTimeout(3000);
 
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < 10; i++) {
                 await page.waitForTimeout(5000);
                 const currentUrl = page.url();
                 const bodyText = await page.innerText('body').catch(() => '');
@@ -157,6 +169,9 @@ async function runBooster() {
                     console.log('Password field detected. Entering password...');
                     await passwordInput.fill(process.env.X_PASSWORD);
                     await page.keyboard.press('Enter');
+                    // Fallback for password screen "Next/Log in"
+                    const loginBtn = page.locator('button:has-text("Log in"), [data-testid="LoginForm_Login_Button"]').first();
+                    if (await loginBtn.isVisible()) await loginBtn.click();
                     await page.waitForTimeout(5000);
                     continue;
                 }
