@@ -89,8 +89,8 @@ async function runBooster() {
     console.log('🚀 Starting Advanced Reach Booster...');
 
     if (!process.env.X_USERNAME || !process.env.X_PASSWORD) {
-        console.error('Error: X_USERNAME and X_PASSWORD are required.');
-        return;
+        console.error('❌ Error: X_USERNAME and X_PASSWORD secrets are missing or empty in GitHub.');
+        process.exit(1);
     }
 
     // 1. Trend Discovery
