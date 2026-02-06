@@ -85,79 +85,59 @@ async function generateThreadContent(match) {
     ];
 }
 
-async function runBooster() {
-    console.log('🚀 Starting Advanced Reach Booster...');
+async function postTweetViaPlaywright(threadItems) {
+    console.log('Attempting to post via Playwright (Browser Automation)...');
 
     if (!process.env.X_USERNAME || !process.env.X_PASSWORD) {
-        console.error('❌ Error: X_USERNAME and X_PASSWORD secrets are missing or empty in GitHub.');
-        process.exit(1);
+        throw new Error('X_USERNAME and X_PASSWORD environment variables are required.');
     }
 
-    // 1. Trend Discovery
-    let match = null;
-    for (const loc of LOCATIONS) {
-        const trends = await getTrends(loc.path);
-        match = findDevotionalTrend(trends);
-        if (match) {
-            console.log(`✅ Matched Trend: ${match.trend}`);
-            break;
-        }
-    }
-
-    const threadItems = await generateThreadContent(match);
-
-    if (process.env.DRY_RUN === 'true') {
-        console.log('🧪 DRY_RUN active. Script would have posted the following thread:');
-        threadItems.forEach((t, idx) => console.log(`[Tweet ${idx + 1}]:\n${t}\n`));
-        return;
-    }
-
-    // 2. Browser Automation
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     });
     const page = await context.newPage();
 
+    let loginSuccess = false;
+
     try {
+        // --- 1. Session Persistence (Cookie Injection) ---
         if (process.env.X_COOKIES) {
-            console.log('Injecting session cookies...');
+            console.log('X_COOKIES detected. Attempting to inject session...');
             try {
                 const cookies = JSON.parse(process.env.X_COOKIES);
                 await context.addCookies(cookies);
-            } catch (e) {
-                console.error('Invalid X_COOKIES format.');
+                console.log('Session cookies injected successfully.');
+            } catch (cookieError) {
+                console.error('Failed to parse X_COOKIES. Ensure it is a valid JSON array.');
             }
         }
 
-        await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await page.waitForTimeout(5000);
+        // Relaxed navigation for slow CI environments
+        await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 120000 });
+        console.log('Page navigation to x.com/home initiated. Waiting for specific elements...');
+        await page.waitForTimeout(10000); // 10s wait for dynamic content
 
-        const isLoggedIn = await page.locator('[data-testid="SideNav_NewTweet_Button"]').isVisible();
+        // Check if we are already logged in
+        const tweetButtonLocator = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="AppTabBar_Post_Link"]');
+        if (await tweetButtonLocator.first().isVisible()) {
+            console.log('Successfully bypassed login using session cookies!');
+            loginSuccess = true;
+        } else {
+            console.log('Session cookies expired or missing. Proceeding to standard login...');
+            await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 120000 });
 
-        let loginSuccess = !(!isLoggedIn);
-
-        if (!isLoggedIn) {
-            console.log('Session expired or missing. Logging in manually...');
-            await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
-
+            // Wait for input (username)
             console.log('Filling username...');
             const usernameInput = page.locator('input[autocomplete="username"]');
             await usernameInput.waitFor({ timeout: 30000 });
             await usernameInput.fill(process.env.X_USERNAME);
-
-            // Try pressing Enter and clicking "Next" button
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(2000);
-            const nextButton = page.locator('button:has-text("Next"), [role="button"]:has-text("Next")').first();
-            if (await nextButton.isVisible()) {
-                console.log('Clicking "Next" button after username...');
-                await nextButton.click();
-            }
 
-            await page.waitForTimeout(3000);
+            // Multi-stage login handler
+            console.log('Username submitted. Entering multi-stage login handler...');
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 7; i++) {
                 await page.waitForTimeout(5000);
                 const currentUrl = page.url();
                 const bodyText = await page.innerText('body').catch(() => '');
@@ -169,69 +149,77 @@ async function runBooster() {
                     console.log('Password field detected. Entering password...');
                     await passwordInput.fill(process.env.X_PASSWORD);
                     await page.keyboard.press('Enter');
-                    // Fallback for password screen "Next/Log in"
+
+                    // Fallback for "Log in" button
                     const loginBtn = page.locator('button:has-text("Log in"), [data-testid="LoginForm_Login_Button"]').first();
                     if (await loginBtn.isVisible()) await loginBtn.click();
+
                     await page.waitForTimeout(5000);
                     continue;
                 }
 
                 // 2. Identity Verification (Email/Username/Phone)
-                if (bodyText.toLowerCase().includes('verification') || bodyText.toLowerCase().includes('identity') ||
-                    bodyText.toLowerCase().includes('suspicious') || bodyText.toLowerCase().includes('check your email') ||
-                    bodyText.toLowerCase().includes('enter your email') || bodyText.toLowerCase().includes('phone or email')) {
-
-                    console.log(`Identity challenge detected (attempt ${i + 1}). Solving...`);
-                    const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
-
-                    if (await idInput.first().isVisible()) {
-                        const challengeAnswer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
-                        await idInput.first().fill(challengeAnswer);
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000);
-                        continue;
+                if (bodyText.includes('verification') || bodyText.includes('identity') || bodyText.includes('suspicious') || bodyText.includes('phone or email') || bodyText.includes('check your email') || bodyText.includes('confirm your email') || bodyText.includes('enter your email')) {
+                    console.log('Identity challenge detected. Attempting to solve...');
+                    if (process.env.X_EMAIL) {
+                        const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
+                        if (await idInput.first().isVisible()) {
+                            // Use X_EMAIL as default, but X_USERNAME if email fails
+                            const challengeAnswer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
+                            await idInput.first().fill(challengeAnswer);
+                            await page.keyboard.press('Enter');
+                            console.log(`Submitted answer (${challengeAnswer}) for verification.`);
+                            await page.waitForTimeout(5000);
+                            continue;
+                        }
+                    } else {
+                        console.error('X_EMAIL missing - cannot solve challenge.');
                     }
                 }
 
-                // 3. Fallback for "Next" buttons
-                const nextBtn = page.locator('button:has-text("Next"), [data-testid="LoginForm_Login_Button"]').first();
-                if (await nextBtn.isVisible()) {
-                    await nextBtn.click();
-                    await page.waitForTimeout(3000);
+                // 3. Just another Username prompt
+                const secondUsernameInput = page.locator('input[autocomplete="username"]');
+                if (await secondUsernameInput.isVisible()) {
+                    console.log('Username requested again. Filling...');
+                    await secondUsernameInput.fill(process.env.X_USERNAME);
+                    await page.keyboard.press('Enter');
+                    continue;
                 }
 
                 // 4. Check for success
-                if (await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]').first().isVisible() || currentUrl.includes('/home')) {
-                    console.log('✅ Success: Login confirmed.');
+                if (await tweetButtonLocator.first().isVisible() || currentUrl.includes('/home')) {
+                    console.log('Login successful! Home screen detected.');
                     loginSuccess = true;
                     break;
                 }
             }
-        } else {
-            loginSuccess = true;
+
+            if (!loginSuccess) {
+                console.log('Waiting for Twitter Home feed (final check)...');
+                await page.waitForSelector('[data-testid="SideNav_NewTweet_Button"]', { timeout: 30000 }).catch(() => {
+                    console.log('Final wait for Tweet Button timed out.');
+                });
+            }
         }
 
-        if (!loginSuccess) {
-            console.error('❌ Error: Login failed after 7 steps. Check reach-booster-failure.png');
-            await page.screenshot({ path: 'reach-booster-failure.png', fullPage: true });
-            process.exit(1);
+        if (!loginSuccess && !(await tweetButtonLocator.first().isVisible())) {
+            throw new Error('Login failed. Could not reach home screen.');
         }
 
-        // --- 3. Handle Posting ---
+        // --- 2. Post Tweet ---
         console.log('✅ Moving to posting...');
         await page.waitForTimeout(5000);
 
-        // X Selector Fallback strategy
-        const tweetButtonSelectors = [
-            '[data-testid="SideNav_NewTweet_Button"]', // Sidebar (Preferred)
-            '[data-testid="tweetButtonInline"]', // Inline (Middle)
-            'a[href="/compose/post"]',
-            'button:has(span:text-is("Post"))', // From user's screenshot
+        // X Selector Fallback strategy for opening composer
+        const openComposerSelectors = [
+            '[data-testid="SideNav_NewTweet_Button"]',
+            '[data-testid="tweetButtonInline"]',
+            'button:has(span:text-is("Post"))',
             'button:has-text("Post")'
         ];
 
         let openedComposer = false;
-        for (const selector of tweetButtonSelectors) {
+        for (const selector of openComposerSelectors) {
             const btn = page.locator(selector).first();
             if (await btn.isVisible()) {
                 console.log(`Opening composer via: ${selector}`);
@@ -242,11 +230,11 @@ async function runBooster() {
         }
 
         if (!openedComposer) {
-            console.log('Button not found. Trying keyboard shortcut "n"...');
+            console.log('Composer button not found. Trying keyboard shortcut "n"...');
             await page.keyboard.press('n');
         }
 
-        // Wait for ANY editor to be visible (modal or inline)
+        // Wait for editor
         console.log('Waiting for tweet editor box...');
         await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 30000 });
 
@@ -260,7 +248,7 @@ async function runBooster() {
                 const addBtn = page.locator('[data-testid="add-tweet-button"]').first();
                 if (await addBtn.isVisible()) {
                     await addBtn.click();
-                    await page.waitForTimeout(500);
+                    await page.waitForTimeout(5000);
                 } else {
                     console.warn('⚠️ Threading button (+) not found. Posting as single tweet.');
                     break;
@@ -294,31 +282,60 @@ async function runBooster() {
         }
 
         // Verification
-        await page.waitForTimeout(5000);
+        console.log('Post action triggered. Verifying send...');
+        await page.waitForTimeout(10000);
         const isStillThere = await page.locator('[data-testid="tweetTextarea_0"]').first().isVisible();
-        if (isStillThere) {
-            console.log('Editor still visible. Final retry with Control+Enter...');
-            await page.keyboard.press('Control+Enter');
-            await page.waitForTimeout(5000);
-        }
 
-        console.log('🎊 Thread successfully posted!');
+        if (!isStillThere) {
+            console.log('🎊 Tweet/Thread posted successfully! Editor box is gone.');
+            await page.screenshot({ path: 'reach-booster-success.png', fullPage: true });
+        } else {
+            console.log('Warning: Editor box is still visible. Retrying Control+Enter...');
+            await page.keyboard.press('Control+Enter');
+            await page.waitForTimeout(10000);
+            await page.screenshot({ path: 'reach-booster-unsure.png', fullPage: true });
+        }
 
     } catch (error) {
         console.error('❌ Reach Booster Error:', error);
         await page.screenshot({ path: 'reach-booster-failure.png', fullPage: true });
-        process.exit(1);
+        throw error;
     } finally {
         await browser.close();
     }
 }
 
-(async () => {
+async function main() {
     try {
-        await runBooster();
+        console.log('🚀 Starting DailyMannaAI Reach Booster...');
+
+        // 1. Trend Discovery
+        let match = null;
+        for (const loc of LOCATIONS) {
+            const trends = await getTrends(loc.path);
+            match = findDevotionalTrend(trends);
+            if (match) {
+                console.log(`✅ Matched Trend: ${match.trend}`);
+                break;
+            }
+        }
+
+        const threadItems = await generateThreadContent(match);
+
+        if (process.env.DRY_RUN === 'true') {
+            console.log('🧪 DRY_RUN active. Script would have posted the following thread:');
+            threadItems.forEach((t, idx) => console.log(`[Tweet ${idx + 1}]:\n${t}\n`));
+            return;
+        }
+
+        // 2. Browser Automation
+        await postTweetViaPlaywright(threadItems);
+
         console.log('✅ Script execution finished.');
     } catch (err) {
         console.error('❌ Fatal Script Error:', err);
         process.exit(1);
     }
-})();
+}
+
+main();

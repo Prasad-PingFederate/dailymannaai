@@ -4,7 +4,7 @@ on:
   schedule:
     # Runs at 04:30 UTC (10:00 AM IST) and 12:30 UTC (6:00 PM IST) daily
     - cron: '30 4,12 * * *'
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual triggering from the Actions tab
 
 jobs:
   promote:
@@ -20,7 +20,7 @@ jobs:
         node-version: '20'
 
     - name: Install Dependencies
-      run: npm install playwright dotenv
+      run: npm install
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
@@ -29,6 +29,6 @@ jobs:
       env:
         X_USERNAME: ${{ secrets.X_USERNAME }}
         X_PASSWORD: ${{ secrets.X_PASSWORD }}
-        X_EMAIL: ${{ secrets.X_EMAIL }}
-        X_COOKIES: ${{ secrets.X_COOKIES }}
+        X_EMAIL: ${{ secrets.X_EMAIL }} # For verification challenges
+        X_COOKIES: ${{ secrets.X_COOKIES }} # For session persistence
       run: npm run promote
