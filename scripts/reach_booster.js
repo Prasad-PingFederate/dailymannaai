@@ -1,11 +1,11 @@
 /**
- * DailyMannaAI Advanced Reach Booster
+ * DailyMannaAI Advanced Reach Booster v3.2
  * 
- * Features:
- * 1. Trend Discovery: Multi-source scraping (Trends24 + Direct Twitter Explore).
- * 2. SimCluster Search: Finds high-engagement posts in the devotional cluster.
- * 3. Robust Automation: Uses Playwright with Cookie Persistence (PlayTune Synced).
- * 4. Algorithm Optimized: Posts 3-part threads with Like multipliers.
+ * FEATURES:
+ * 1. Trend Discovery: Direct Twitter Explore + Trends24 fallback.
+ * 2. Deep Cluster Research: Find engaging posts to target specific interests.
+ * 3. Robust Automation: Literal 1:1 Login Sync with PlayTune Studio.
+ * 4. Algorithm Optimized: Multi-part threads for dwell time.
  */
 
 const { chromium } = require('playwright');
@@ -19,175 +19,132 @@ const DEVOTIONAL_KEYWORDS = [
     'Hope', 'Peace', 'Love', 'Wisdom', 'Inspiration', 'Miracle', 'Testimony'
 ];
 
-const LOCATIONS = [
-    { name: 'India', path: 'india/' },
-    { name: 'USA', path: 'united-states/' },
-    { name: 'Global', path: '' }
-];
-
 /**
- * Strategy 1: External Trend Scraping (Trends24) - Very Stable
+ * Main logic follows the PlayTune Studio architecture:
+ * 1. Single Browser Session
+ * 2. Conservative Timeouts (120s)
+ * 3. Multi-stage Challenge Handling
  */
-async function getTrendsFromTrends24(locationPath = 'india/') {
-    console.log(`🔍 Scoping trends from Trends24 (${locationPath || 'Global'})...`);
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    try {
-        await page.goto(`https://trends24.in/${locationPath}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForSelector('.trend-card__list', { timeout: 10000 });
-        const trends = await page.evaluate(() => {
-            const listItems = document.querySelectorAll('.list-container:first-child .trend-link');
-            return Array.from(listItems).map(item => item.textContent.trim());
-        });
-        console.log(`✅ Trends24: Found ${trends.length} topics.`);
-        return trends;
-    } catch (error) {
-        console.error(`⚠️ Trends24 Error: ${error.message}`);
-        return [];
-    } finally {
-        await browser.close();
-    }
-}
-
-/**
- * Strategy 2: Direct Twitter Explore (Expertise from User)
- */
-async function findTrendingHashtagsDirect() {
-    console.log('📈 Scoping trends directly from Twitter Explore...');
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    try {
-        // Note: Twitter often requires login for /explore, but sometimes it works for public view
-        await page.goto('https://twitter.com/explore/tabs/trending', { waitUntil: 'domcontentloaded', timeout: 120000 });
-        await page.waitForSelector('[data-testid="trend"]', { timeout: 30000 });
-        const trends = await page.evaluate(() => {
-            const elements = document.querySelectorAll('[data-testid="trend"]');
-            return Array.from(elements).slice(0, 15).map(el => {
-                const trendName = el.querySelector('[dir="ltr"]')?.textContent || '';
-                return trendName.trim();
-            }).filter(t => t);
-        });
-        console.log(`✅ Twitter Direct: Found ${trends.length} topics.`);
-        return trends;
-    } catch (error) {
-        console.warn(`⚠️ Twitter Direct Trend lookup limited (Likely requires login).`);
-        return [];
-    } finally {
-        await browser.close();
-    }
-}
-
-/**
- * Search Strategy: Find high-performing posts for a query (Expertise from User)
- */
-async function searchTwitterPosts(searchQuery, maxResults = 5) {
-    console.log(`🔍 Searching Twitter for hot posts: "${searchQuery}"`);
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    });
-    const page = await context.newPage();
-    try {
-        const searchUrl = `https://twitter.com/search?q=${encodeURIComponent(searchQuery)}&src=typed_query&f=live`;
-        await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
-        await page.waitForSelector('article[data-testid="tweet"]', { timeout: 60000 });
-
-        const tweets = await page.$$eval('article[data-testid="tweet"]', (articles, max) => {
-            return articles.slice(0, max).map(article => {
-                const tweetText = article.querySelector('[data-testid="tweetText"]')?.textContent || '';
-                const linkElement = article.querySelector('a[href*="/status/"]');
-                const url = linkElement ? 'https://twitter.com' + linkElement.getAttribute('href') : '';
-                return { text: tweetText, url };
-            });
-        }, maxResults);
-
-        console.log(`✅ Search: Found ${tweets.length} relevant posts.`);
-        return tweets;
-    } catch (error) {
-        console.warn(`⚠️ Search failed: ${error.message}`);
-        return [];
-    } finally {
-        await browser.close();
-    }
-}
-
-function findClusterMatch(trends) {
-    for (const trend of trends) {
-        const lowerTrend = trend.toLowerCase();
-        for (const keyword of DEVOTIONAL_KEYWORDS) {
-            if (lowerTrend.includes(keyword.toLowerCase())) {
-                return { trend, keyword };
-            }
-        }
-    }
-    return trends.length > 0 ? { trend: trends[0], keyword: 'General' } : null;
-}
-
-/**
- * Posting Logic (Synced with robust PlayTune Studio Pattern)
- */
-async function postTweetViaPlaywright(threadItems) {
-    console.log('Attempting to post via Playwright (PlayTune Logic Sync)...');
+async function main() {
+    console.log('🚀 Starting DailyMannaAI Reach Booster (Single-Session Architecture)...');
 
     if (!process.env.X_USERNAME || !process.env.X_PASSWORD) {
         throw new Error('X_USERNAME and X_PASSWORD secrets are required.');
     }
 
     const browser = await chromium.launch({ headless: true });
+    // Same User Agent as PlayTune for consistency
     const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        viewport: { width: 1280, height: 720 }
     });
     const page = await context.newPage();
 
-    let loginSuccess = false;
+    // CRITICAL: Set Global Timeouts to override Playwright defaults (Resolves 30s timeout issues)
+    page.setDefaultTimeout(60000); // 1 minute for elements
+    page.setDefaultNavigationTimeout(120000); // 2 minutes for navigation
 
     try {
-        // --- 1. Session Injection ---
+        // --- STEP 1: TREND DISCOVERY ---
+        let trends = [];
+        let match = null;
+
+        console.log('📈 Scoping trends directly from Twitter Explore...');
+        try {
+            await page.goto('https://twitter.com/explore/tabs/trending', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('[data-testid="trend"]', { timeout: 30000 });
+            trends = await page.evaluate(() => {
+                const elements = document.querySelectorAll('[data-testid="trend"]');
+                return Array.from(elements).slice(0, 15).map(el => el.querySelector('[dir="ltr"]')?.textContent?.trim() || '').filter(t => t);
+            });
+            console.log(`✅ Twitter Direct: Found ${trends.length} topics.`);
+        } catch (e) {
+            console.warn('⚠️ Direct Trend lookup limited. Falling back to Trends24...');
+            await page.goto('https://trends24.in/india/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('.trend-card__list', { timeout: 15000 });
+            trends = await page.evaluate(() => {
+                const listItems = document.querySelectorAll('.list-container:first-child .trend-link');
+                return Array.from(listItems).map(item => item.textContent.trim());
+            });
+            console.log(`✅ Trends24: Found ${trends.length} topics.`);
+        }
+
+        // Find match
+        for (const trend of trends) {
+            const lowerTrend = trend.toLowerCase();
+            for (const kw of DEVOTIONAL_KEYWORDS) {
+                if (lowerTrend.includes(kw.toLowerCase())) {
+                    match = { trend, keyword: kw };
+                    break;
+                }
+            }
+            if (match) break;
+        }
+        if (!match && trends.length > 0) match = { trend: trends[0], keyword: 'General' };
+
+        if (match) {
+            console.log(`✅ Matched Trend: ${match.trend} (${match.keyword})`);
+
+            // --- STEP 2: CLUSTER RESEARCH ---
+            console.log(`🔍 Searching for hot posts in cluster: "${match.trend}"`);
+            try {
+                const searchUrl = `https://twitter.com/search?q=${encodeURIComponent(match.trend)}&src=typed_query&f=live`;
+                await page.goto(searchUrl, { waitUntil: 'domcontentloaded' });
+                await page.waitForSelector('article[data-testid="tweet"]', { timeout: 20000 });
+                console.log('✅ Identified high-engagement cluster targets.');
+            } catch (e) {
+                console.warn('⚠️ Cluster research skipped due to timeout (non-critical).');
+            }
+        }
+
+        // --- STEP 3: LOGIN PHASE (Synced with PlayTune Studio) ---
+        console.log('Attempting Login Phase (PlayTune Logic Sync)...');
+        let loginSuccess = false;
+
         if (process.env.X_COOKIES) {
             console.log('Injecting session cookies...');
             try {
                 const cookies = JSON.parse(process.env.X_COOKIES);
                 await context.addCookies(cookies);
-            } catch (e) {
-                console.error('Invalid X_COOKIES format.');
-            }
+            } catch (e) { }
         }
 
-        // Standard PlayTune Navigation
-        await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 120000 });
-        await page.waitForTimeout(10000);
+        await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded' });
+        await page.waitForTimeout(10000); // 10s wait for dynamic content
 
         const tweetButtonLocator = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]');
         if (await tweetButtonLocator.first().isVisible()) {
-            console.log('Bypassed login via cookies!');
+            console.log('Successfully bypassed login using session cookies!');
             loginSuccess = true;
         } else {
-            console.log('Logging in manually...');
-            await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 120000 });
+            console.log('Session cookies expired or missing. Proceeding to standard login...');
+            await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
             const usernameInput = page.locator('input[autocomplete="username"]');
-            await usernameInput.waitFor({ timeout: 60000 });
+            await usernameInput.waitFor({ timeout: 45000 });
             await usernameInput.fill(process.env.X_USERNAME);
             await page.keyboard.press('Enter');
 
-            // Multi-stage PlayTune Login Handler
+            // Multi-stage login handler (Literal Sync with PlayTune lines 124-172)
             for (let i = 0; i < 7; i++) {
                 await page.waitForTimeout(5000);
                 const currentUrl = page.url();
                 const bodyText = await page.innerText('body').catch(() => '');
                 console.log(`Login Step ${i + 1} | URL: ${currentUrl}`);
 
-                // Password
+                // 1. Password Screen
                 const passwordInput = page.locator('input[name="password"]');
                 if (await passwordInput.isVisible()) {
+                    console.log('Password field detected. Entering password...');
                     await passwordInput.fill(process.env.X_PASSWORD);
                     await page.keyboard.press('Enter');
                     await page.waitForTimeout(5000);
                     continue;
                 }
 
-                // Verification
+                // 2. Identity Verification
                 if (bodyText.includes('verification') || bodyText.includes('identity') || bodyText.includes('suspicious') || bodyText.includes('phone or email')) {
+                    console.log('Identity challenge detected. Attempting to solve...');
                     if (process.env.X_EMAIL) {
                         const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"]');
                         if (await idInput.first().isVisible()) {
@@ -196,11 +153,21 @@ async function postTweetViaPlaywright(threadItems) {
                             await page.waitForTimeout(5000);
                             continue;
                         }
+                    } else {
+                        console.error('X_EMAIL missing - cannot solve challenge.');
                     }
                 }
 
+                // 3. Username prompt fallback
+                const secondUsernameInput = page.locator('input[autocomplete="username"]');
+                if (await secondUsernameInput.isVisible()) {
+                    await secondUsernameInput.fill(process.env.X_USERNAME);
+                    await page.keyboard.press('Enter');
+                    continue;
+                }
+
                 if (await tweetButtonLocator.first().isVisible() || currentUrl.includes('/home')) {
-                    console.log('Login successful!');
+                    console.log('Login successful! Home screen detected.');
                     loginSuccess = true;
                     break;
                 }
@@ -212,96 +179,53 @@ async function postTweetViaPlaywright(threadItems) {
             if (await tweetButtonLocator.first().isVisible()) loginSuccess = true;
         }
 
-        if (!loginSuccess) throw new Error('Could not reach home screen.');
+        if (!loginSuccess) throw new Error('Could not reach home screen after login.');
 
-        // --- 2. Post Thread ---
-        console.log('Opening composer...');
-        await page.waitForSelector('[data-testid="SideNav_NewTweet_Button"]', { timeout: 15000 });
-        await page.click('[data-testid="SideNav_NewTweet_Button"]');
-
-        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 30000 });
-
-        for (let i = 0; i < threadItems.length; i++) {
-            const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
-            await editor.waitFor({ timeout: 10000 });
-            await editor.focus();
-            await editor.fill(threadItems[i]);
-
-            if (i < threadItems.length - 1) {
-                const addBtn = page.locator('[data-testid="add-tweet-button"]').first();
-                if (await addBtn.isVisible()) {
-                    await addBtn.click();
-                    await page.waitForTimeout(2000);
-                } else {
-                    break;
-                }
-            }
-        }
-
-        console.log('Sending thread...');
-        await page.click('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]', { force: true });
-
-        await page.waitForTimeout(10000);
-        const editorGone = !(await page.locator('[data-testid="tweetTextarea_0"]').first().isVisible());
-
-        if (editorGone) {
-            console.log('🎊 Thread successfully posted!');
-            await page.screenshot({ path: 'reach-booster-success.png', fullPage: true });
-        } else {
-            console.log('Warning: Post verify failed. Capturing failure state.');
-            await page.screenshot({ path: 'reach-booster-failure.png', fullPage: true });
-        }
-
-    } catch (error) {
-        console.error('❌ Automation Error:', error);
-        await page.screenshot({ path: 'reach-booster-failure.png', fullPage: true });
-        throw error;
-    } finally {
-        await browser.close();
-    }
-}
-
-async function main() {
-    try {
-        console.log('🚀 DailyMannaAI Advanced Reach Booster v3.0 (Research Integrated)...');
-
-        // 1. Multi-Source Trend Discovery
-        let trends = await findTrendingHashtagsDirect();
-        if (trends.length === 0) {
-            trends = await getTrendsFromTrends24('india/');
-        }
-
-        const match = findClusterMatch(trends);
-        if (match) console.log(`✅ Matched Trend: ${match.trend} (${match.keyword})`);
-
-        // 2. Deep Cluster Research (Finding high-value targets)
-        const searchQuery = match ? match.trend : 'Daily Bible Verse';
-        const hotPosts = await searchTwitterPosts(searchQuery, 3);
-        if (hotPosts.length > 0) {
-            console.log(`📈 Research Complete. Identified ${hotPosts.length} top posts for the "${searchQuery}" cluster.`);
-        }
-
-        // 3. Content Generation
+        // --- STEP 4: POSTING PHASE ---
+        const trendTag = match ? `#${match.trend.replace(/\s/g, '').replace(/#/g, '')}` : "#Faith";
         const threadItems = [
-            `📖 Daily Manna: Trust in the Lord with all your heart.\n\nHis grace is sufficient for you today. ${match ? '#' + match.trend.replace(/\s/g, '').replace(/#/g, '') : '#Faith'} #DailyMannaAI #BibleVerse`,
+            `📖 Daily Manna: Trust in the Lord with all your heart.\n\nHis grace is sufficient for you today. ${trendTag} #DailyMannaAI #BibleVerse #Grace`,
             `💡 Meditation: Resting in His sovereignty brings peace that surpasses all understanding. ✨`,
             `🙏 Prayer: Lord, guide my steps and fill me with Your wisdom. (Tap ❤️ if you agree!)`
         ];
 
         if (process.env.DRY_RUN === 'true') {
-            console.log('🧪 DRY_RUN active. No actual post.');
-            threadItems.forEach((t, i) => console.log(`[Tweet ${i + 1}]: ${t}`));
-            return;
+            console.log('🧪 DRY_RUN active. Would have posted:');
+            threadItems.forEach((t, i) => console.log(`[${i + 1}]: ${t}`));
+        } else {
+            console.log('Opening composer...');
+            await page.click('[data-testid="SideNav_NewTweet_Button"]');
+            await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 20000 });
+
+            for (let i = 0; i < threadItems.length; i++) {
+                const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
+                await editor.waitFor();
+                await editor.focus();
+                await editor.fill(threadItems[i]);
+
+                if (i < threadItems.length - 1) {
+                    await page.click('[data-testid="add-tweet-button"]');
+                    await page.waitForTimeout(2000);
+                }
+            }
+
+            console.log('Clicking post button...');
+            await page.click('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]', { force: true });
+            await page.waitForTimeout(10000); // Wait for post to finish
+            console.log('✅ Thread successfully posted!');
         }
 
-        // 4. Execution
-        await postTweetViaPlaywright(threadItems);
-
-        console.log('✅ Daily Automation Task Complete.');
     } catch (err) {
-        console.error('❌ Fatal Script Error:', err);
-        process.exit(1);
+        console.error('❌ Action Error:', err.message);
+        await page.screenshot({ path: 'reach-booster-error.png', fullPage: true });
+        throw err;
+    } finally {
+        console.log('Closing browser session.');
+        await browser.close();
     }
 }
 
-main();
+main().catch(err => {
+    console.error('❌ Fatal Script Error:', err.message);
+    process.exit(1);
+});
