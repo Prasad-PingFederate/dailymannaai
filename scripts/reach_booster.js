@@ -84,7 +84,7 @@ async function postTweetViaPlaywright(threadItems) {
         await page.waitForTimeout(10000); // 10s wait for dynamic content
 
         // Check if we are already logged in
-        const tweetButtonLocator = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="AppTabBar_Post_Link"]');
+        const tweetButtonLocator = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]');
         if (await tweetButtonLocator.first().isVisible()) {
             console.log('Successfully bypassed login using session cookies!');
             loginSuccess = true;
@@ -93,7 +93,6 @@ async function postTweetViaPlaywright(threadItems) {
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 120000 });
 
             // Wait for input (username)
-            console.log('Filling username...');
             const usernameInput = page.locator('input[autocomplete="username"]');
             await usernameInput.waitFor({ timeout: 30000 });
             await usernameInput.fill(process.env.X_USERNAME);
@@ -114,39 +113,34 @@ async function postTweetViaPlaywright(threadItems) {
                     console.log('Password field detected. Entering password...');
                     await passwordInput.fill(process.env.X_PASSWORD);
                     await page.keyboard.press('Enter');
-
-                    // Fallback for Log in button
-                    const loginBtn = page.locator('button:has-text("Log in"), [data-testid="LoginForm_Login_Button"]').first();
-                    if (await loginBtn.isVisible()) await loginBtn.click();
-
                     await page.waitForTimeout(5000);
                     continue;
                 }
 
                 // 2. Identity Verification (Email/Username/Phone)
-                if (bodyText.includes('verification') || bodyText.includes('identity') || bodyText.includes('suspicious') || bodyText.includes('phone or email') || bodyText.includes('check your email') || bodyText.includes('confirm your email') || bodyText.includes('enter your email')) {
+                if (bodyText.includes('verification') || bodyText.includes('identity') || bodyText.includes('suspicious') || bodyText.includes('phone or email') || bodyText.includes('check your email') || bodyText.includes('confirm your email')) {
                     console.log('Identity challenge detected. Attempting to solve...');
-                    const challengeInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
-
-                    if (await challengeInput.first().isVisible()) {
-                        // Pattern: Try X_EMAIL first, then X_USERNAME as backup in later steps
-                        const answer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
-                        console.log(`Submitting challenge answer: ${answer}`);
-                        await challengeInput.first().fill(answer);
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000);
-                        continue;
+                    if (process.env.X_EMAIL) {
+                        const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"]');
+                        if (await idInput.first().isVisible()) {
+                            await idInput.first().fill(process.env.X_EMAIL);
+                            await page.keyboard.press('Enter');
+                            console.log('Submitted X_EMAIL for verification.');
+                            await page.waitForTimeout(5000);
+                            continue;
+                        }
+                    } else {
+                        console.error('X_EMAIL missing - cannot solve challenge.');
                     }
                 }
 
-                // 3. Resilience: Stuck on Login page? Click "Next"
-                if (currentUrl.includes('/login') && !bodyText.includes('password')) {
-                    const nextBtn = page.locator('button:has-text("Next"), [role="button"]:has-text("Next")').first();
-                    if (await nextBtn.isVisible()) {
-                        console.log('Stuck on login page. Clicking "Next" button...');
-                        await nextBtn.click();
-                        await page.waitForTimeout(3000);
-                    }
+                // 3. Just another Username prompt
+                const secondUsernameInput = page.locator('input[autocomplete="username"]');
+                if (await secondUsernameInput.isVisible()) {
+                    console.log('Username requested again. Filling...');
+                    await secondUsernameInput.fill(process.env.X_USERNAME);
+                    await page.keyboard.press('Enter');
+                    continue;
                 }
 
                 // 4. Check for success
@@ -170,34 +164,10 @@ async function postTweetViaPlaywright(threadItems) {
         }
 
         // --- 2. Post Tweet ---
-        console.log('✅ Moving to posting...');
-        await page.waitForTimeout(5000);
+        console.log('Moving to posting phase...');
+        await page.waitForSelector('[data-testid="SideNav_NewTweet_Button"]', { timeout: 15000 });
+        await page.click('[data-testid="SideNav_NewTweet_Button"]');
 
-        // X Selector Fallback strategy for opening composer
-        const openComposerSelectors = [
-            '[data-testid="SideNav_NewTweet_Button"]',
-            '[data-testid="AppTabBar_Post_Link"]',
-            'a[href="/compose/post"]',
-            'button:has-text("Post")'
-        ];
-
-        let openedComposer = false;
-        for (const selector of openComposerSelectors) {
-            const btn = page.locator(selector).first();
-            if (await btn.isVisible()) {
-                console.log(`Opening composer via: ${selector}`);
-                await btn.click();
-                openedComposer = true;
-                break;
-            }
-        }
-
-        if (!openedComposer) {
-            console.log('Composer button not found. Trying keyboard shortcut "n"...');
-            await page.keyboard.press('n');
-        }
-
-        // Wait for editor
         console.log('Waiting for tweet editor box...');
         await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 30000 });
 
@@ -253,10 +223,8 @@ async function postTweetViaPlaywright(threadItems) {
             console.log('🎊 Tweet/Thread posted successfully!');
             await page.screenshot({ path: 'reach-booster-success.png', fullPage: true });
         } else {
-            console.log('Warning: Editor box is still visible. Retrying Control+Enter...');
-            await page.keyboard.press('Control+Enter');
-            await page.waitForTimeout(10000);
-            await page.screenshot({ path: 'reach-booster-unsure.png', fullPage: true });
+            console.log('Warning: Editor box is still visible. Capturing screenshot.');
+            await page.screenshot({ path: 'reach-booster-failure.png', fullPage: true });
         }
 
     } catch (error) {
@@ -270,7 +238,7 @@ async function postTweetViaPlaywright(threadItems) {
 
 async function main() {
     try {
-        console.log('🚀 Starting DailyMannaAI Reach Booster (Robust Sync)...');
+        console.log('🚀 Starting DailyMannaAI Reach Booster (Manual Sync with PlayTune)...');
 
         // 1. Trend Discovery
         let match = null;
@@ -284,10 +252,22 @@ async function main() {
         }
 
         // Content generation
+        const verses = [
+            {
+                ref: "Psalm 46:10",
+                text: "Be still, and know that I am God.",
+                meditation: "In the rush of a busy morning, find peace in His sovereignty. He is in control.",
+                prayer: "Lord, help me to rest in Your presence today. (Tap ❤️ if you agree!)"
+            }
+        ];
+
+        const v = verses[0];
+        const trendTag = match ? `#${match.trend.replace(/\s/g, '').replace(/#/g, '')}` : "#Faith";
+
         const threadItems = [
-            `📖 Daily Manna: Trust in the Lord with all your heart.\n\nToday's meditation is centered on Faith. ${match ? '#' + match.trend.replace(/\s/g, '') : '#Faith'} #BibleVerse #DailyMannaAI`,
-            `💡 Faith is not just a word, it's a foundation. Let's walk in His light today. ✨`,
-            `🙏 Prayer: Lord, lead me in Your truth and teach me. (Tap ❤️ to agree!)`
+            `📖 Daily Manna: ${v.ref}\n\n"${v.text}"\n\n${trendTag} #DailyMannaAI #BibleVerse #Faith`,
+            `💡 Meditation: ${v.meditation} ✨`,
+            `🙏 Prayer: ${v.prayer}`
         ];
 
         if (process.env.DRY_RUN === 'true') {
