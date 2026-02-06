@@ -178,17 +178,41 @@ async function runBooster() {
             }
         }
 
-        console.log('✅ Ready to post.');
-        // --- Post the Thread ---
-        const tweetButton = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Post_Link"], a[href="/compose/tweet"]').first();
+        // Check if we reached the home page or a state where we can post
+        const inlineEditor = page.locator('[data-testid="tweetTextarea_0"]').first();
+        const sidebarPostBtn = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Post_Link"]').first();
 
-        if (await tweetButton.isVisible()) {
-            await tweetButton.click();
+        let canPost = await inlineEditor.isVisible() || await sidebarPostBtn.isVisible();
+
+        if (!canPost) {
+            console.log('Still not seeing post elements. Waiting a bit more...');
+            await page.waitForTimeout(5000);
+            canPost = await inlineEditor.isVisible() || await sidebarPostBtn.isVisible();
+        }
+
+        if (!canPost) {
+            console.error('❌ Error: Could not confirm login or find post button. Check reach-booster-failure.png');
+            throw new Error('Login/Navigation failed');
+        }
+
+        console.log('✅ Ready to post.');
+
+        // --- Post the Thread ---
+        // 1. If inline editor is visible and we only have 1 tweet, we can use it.
+        // 2. BUT since we are doing threads, it's safer to always open the Modal composer.
+
+        if (await sidebarPostBtn.isVisible()) {
+            await sidebarPostBtn.click();
+        } else if (await inlineEditor.isVisible()) {
+            console.log('Inline editor found. Opening full composer for thread...');
+            // Clicking the inline editor often expands it or we can just use keyboard 'n'
+            await page.keyboard.press('n');
         } else {
-            console.log('Tweet button not found by testid. Attempting keyboard shortcut "n"...');
+            console.log('Attempting keyboard shortcut "n" as last resort...');
             await page.keyboard.press('n');
         }
 
+        // Wait for the modal editor to be definitely visible
         await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 15000 });
 
         for (let i = 0; i < threadItems.length; i++) {
@@ -196,12 +220,19 @@ async function runBooster() {
             await editor.fill(threadItems[i]);
             if (i < threadItems.length - 1) {
                 const addBtn = page.locator('[data-testid="add-tweet-button"]').first();
-                await addBtn.click();
+                if (await addBtn.isVisible()) {
+                    await addBtn.click();
+                } else {
+                    console.log('Add-tweet button not found. The UI might not support threads in this view.');
+                    break;
+                }
                 await page.waitForTimeout(1000);
             }
         }
 
-        await page.click('[data-testid="tweetButton"]', { force: true });
+        // Click the main tweet button (often has data-testid="tweetButton")
+        const finalPostBtn = page.locator('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]').first();
+        await finalPostBtn.click({ force: true });
         console.log('🎊 Thread successfully posted!');
 
     } catch (error) {
