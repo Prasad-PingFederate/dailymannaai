@@ -143,46 +143,52 @@ async function runBooster() {
             await page.keyboard.press('Enter');
             await page.waitForTimeout(3000);
 
-            for (let i = 0; i < 10; i++) {
-                const passwordInput = page.locator('input[name="password"]');
-                const emailChallenge = page.locator('input[data-testid="challenge_response"], input[name="text"]');
-                const usernameChallenge = page.locator('input[autocomplete="username"]');
-                const nextButton = page.locator('button:has-text("Next"), button:has-text("Log in"), [data-testid="LoginForm_Login_Button"]').first();
+            for (let i = 0; i < 7; i++) {
+                await page.waitForTimeout(5000);
+                const currentUrl = page.url();
+                const bodyText = await page.innerText('body').catch(() => '');
+                console.log(`Login Step ${i + 1} | URL: ${currentUrl}`);
 
+                // 1. Password Screen
+                const passwordInput = page.locator('input[name="password"]');
                 if (await passwordInput.isVisible()) {
-                    console.log('Entering password...');
+                    console.log('Password field detected. Entering password...');
                     await passwordInput.fill(process.env.X_PASSWORD);
-                    await passwordInput.press('Enter');
-                    await page.waitForTimeout(5000);
-                } else if (await emailChallenge.isVisible()) {
-                    if (process.env.X_EMAIL) {
-                        console.log(`Solving challenge (attempt ${i + 1})...`);
-                        await emailChallenge.fill(process.env.X_EMAIL);
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(2000);
-                        if (await nextButton.isVisible()) await nextButton.click();
-                        await page.waitForTimeout(5000);
-                    } else {
-                        throw new Error('X_EMAIL required for challenge.');
-                    }
-                } else if (await usernameChallenge.isVisible()) {
-                    console.log('Username requested again. Filling...');
-                    await usernameChallenge.fill(process.env.X_USERNAME);
                     await page.keyboard.press('Enter');
-                    await page.waitForTimeout(2000);
-                    if (await nextButton.isVisible()) await nextButton.click();
                     await page.waitForTimeout(5000);
+                    continue;
                 }
 
-                // Enhanced Home Page Detection
-                const isHome = await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"], [data-testid="tweetTextarea_0"]').first().isVisible() ||
-                    page.url().includes('/home');
+                // 2. Identity Verification (Email/Username/Phone)
+                if (bodyText.toLowerCase().includes('verification') || bodyText.toLowerCase().includes('identity') ||
+                    bodyText.toLowerCase().includes('suspicious') || bodyText.toLowerCase().includes('check your email') ||
+                    bodyText.toLowerCase().includes('enter your email') || bodyText.toLowerCase().includes('phone or email')) {
 
-                if (isHome) {
+                    console.log(`Identity challenge detected (attempt ${i + 1}). Solving...`);
+                    const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
+
+                    if (await idInput.first().isVisible()) {
+                        // Use X_EMAIL as default, but X_USERNAME if email fails
+                        const challengeAnswer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
+                        await idInput.first().fill(challengeAnswer);
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(5000);
+                        continue;
+                    }
+                }
+
+                // 3. Fallback for "Next" buttons that appear
+                const nextBtn = page.locator('button:has-text("Next"), [data-testid="LoginForm_Login_Button"]').first();
+                if (await nextBtn.isVisible()) {
+                    await nextBtn.click();
+                    await page.waitForTimeout(3000);
+                }
+
+                // 4. Check if we reached the home page
+                if (await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]').first().isVisible() || currentUrl.includes('/home')) {
                     console.log('✅ Success: Login confirmed.');
                     break;
                 }
-                await page.waitForTimeout(2000);
             }
         }
 
@@ -236,14 +242,38 @@ async function runBooster() {
             }
         }
 
-        // Final click to post
-        const finalPostBtn = page.locator('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]').getByText(/Post|Tweet|all/i).first();
-        if (!(await finalPostBtn.isVisible())) {
-            // Fallback for button without text match
-            const backupBtn = page.locator('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]').first();
-            await backupBtn.click({ force: true });
-        } else {
-            await finalPostBtn.click({ force: true });
+        // Final Post/Tweet button
+        const postButtonSelectors = [
+            '[data-testid="tweetButton"]',
+            '[data-testid="tweetButtonInline"]',
+            'button:has-text("Post")',
+            'button:has-text("Tweet all")'
+        ];
+
+        let posted = false;
+        for (const selector of postButtonSelectors) {
+            const btn = page.locator(selector).first();
+            if (await btn.isVisible()) {
+                console.log(`Clicking post button (${selector})...`);
+                await btn.click({ force: true });
+                posted = true;
+                break;
+            }
+        }
+
+        if (!posted) {
+            console.log('Post buttons not interactive. Trying Control+Enter fallback...');
+            await page.keyboard.press('Control+Enter');
+            posted = true;
+        }
+
+        // Final verification (box should disappear)
+        await page.waitForTimeout(5000);
+        const isStillThere = await page.locator('[data-testid="tweetTextarea_0"]').first().isVisible();
+        if (isStillThere) {
+            console.log('Editor still visible. Retrying Control+Enter...');
+            await page.keyboard.press('Control+Enter');
+            await page.waitForTimeout(5000);
         }
 
         console.log('🎊 Thread successfully posted!');
