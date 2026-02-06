@@ -143,37 +143,60 @@ async function runBooster() {
             await page.keyboard.press('Enter');
             await page.waitForTimeout(3000);
 
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 7; i++) {
                 const passwordInput = page.locator('input[name="password"]');
                 const emailChallenge = page.locator('input[data-testid="challenge_response"], input[name="text"]');
+                const usernameChallenge = page.locator('input[autocomplete="username"]');
 
                 if (await passwordInput.isVisible()) {
+                    console.log('Entering password...');
                     await passwordInput.fill(process.env.X_PASSWORD);
-                    await page.keyboard.press('Enter');
+                    await passwordInput.press('Enter');
                     await page.waitForTimeout(5000);
                 } else if (await emailChallenge.isVisible()) {
                     if (process.env.X_EMAIL) {
-                        console.log('Solving identity challenge...');
+                        console.log(`Solving challenge (attempt ${i + 1})...`);
                         await emailChallenge.fill(process.env.X_EMAIL);
-                        await page.keyboard.press('Enter');
+                        await emailChallenge.press('Enter');
                         await page.waitForTimeout(5000);
                     } else {
                         throw new Error('X_EMAIL required for challenge.');
                     }
+                } else if (await usernameChallenge.isVisible()) {
+                    console.log('Username requested again. Filling...');
+                    await usernameChallenge.fill(process.env.X_USERNAME);
+                    await usernameChallenge.press('Enter');
+                    await page.waitForTimeout(5000);
                 }
 
-                if (await page.locator('[data-testid="SideNav_NewTweet_Button"]').isVisible()) break;
+                // Check if we reached the home page
+                if (await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]').first().isVisible()) {
+                    console.log('✅ Success: Login confirmed.');
+                    break;
+                }
                 await page.waitForTimeout(2000);
             }
         }
 
         console.log('✅ Ready to post.');
+        // --- Post the Thread ---
+        const tweetButton = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Post_Link"], a[href="/compose/tweet"]').first();
 
-        await page.click('[data-testid="SideNav_NewTweet_Button"]');
+        if (await tweetButton.isVisible()) {
+            await tweetButton.click();
+        } else {
+            console.log('Tweet button not found by testid. Attempting keyboard shortcut "n"...');
+            await page.keyboard.press('n');
+        }
+
+        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 15000 });
+
         for (let i = 0; i < threadItems.length; i++) {
-            await page.fill(`[data-testid="tweetTextarea_${i}"]`, threadItems[i]);
+            const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
+            await editor.fill(threadItems[i]);
             if (i < threadItems.length - 1) {
-                await page.click('[data-testid="add-tweet-button"]');
+                const addBtn = page.locator('[data-testid="add-tweet-button"]').first();
+                await addBtn.click();
                 await page.waitForTimeout(1000);
             }
         }
