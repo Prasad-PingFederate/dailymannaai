@@ -135,9 +135,11 @@ async function runBooster() {
 
         const isLoggedIn = await page.locator('[data-testid="SideNav_NewTweet_Button"]').isVisible();
 
+        let loginSuccess = !(!isLoggedIn);
+
         if (!isLoggedIn) {
             console.log('Session expired or missing. Logging in manually...');
-            await page.goto('https://x.com/i/flow/login');
+            await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
 
             await page.fill('input[autocomplete="username"]', process.env.X_USERNAME);
             await page.keyboard.press('Enter');
@@ -168,7 +170,6 @@ async function runBooster() {
                     const idInput = page.locator('input[name="text"], input[data-testid="challenge_response"], input[autocomplete="email"], input[autocomplete="username"]');
 
                     if (await idInput.first().isVisible()) {
-                        // Use X_EMAIL as default, but X_USERNAME if email fails
                         const challengeAnswer = (i < 3 && process.env.X_EMAIL) ? process.env.X_EMAIL : process.env.X_USERNAME;
                         await idInput.first().fill(challengeAnswer);
                         await page.keyboard.press('Enter');
@@ -177,46 +178,56 @@ async function runBooster() {
                     }
                 }
 
-                // 3. Fallback for "Next" buttons that appear
+                // 3. Fallback for "Next" buttons
                 const nextBtn = page.locator('button:has-text("Next"), [data-testid="LoginForm_Login_Button"]').first();
                 if (await nextBtn.isVisible()) {
                     await nextBtn.click();
                     await page.waitForTimeout(3000);
                 }
 
-                // 4. Check if we reached the home page
+                // 4. Check for success
                 if (await page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]').first().isVisible() || currentUrl.includes('/home')) {
                     console.log('✅ Success: Login confirmed.');
+                    loginSuccess = true;
                     break;
                 }
             }
+        } else {
+            loginSuccess = true;
         }
 
-        // --- Handle Posting ---
-        console.log('Final confirmation of home page...');
-        await page.waitForTimeout(3000);
+        if (!loginSuccess) {
+            console.error('❌ Error: Login failed after 7 steps. Check reach-booster-failure.png');
+            await page.screenshot({ path: 'reach-booster-failure.png', fullPage: true });
+            process.exit(1);
+        }
 
-        // 1. Check Sidebar Post Button (Preferred for threads)
-        const sidebarPostBtn = page.locator('[data-testid="SideNav_NewTweet_Button"]').first();
-        // 2. Check Inline Composer
-        const inlineEditorPlaceholder = page.locator('[data-testid="tweetTextarea_0_label"], .public-DraftEditorPlaceholder-root').first();
-        const inlinePostBtn = page.locator('[data-testid="tweetButtonInline"]').first();
-        // 3. Check General Post Buttons (by text)
-        const postButtonsByText = page.getByRole('button', { name: /Post|Tweet/i });
+        // --- 3. Handle Posting ---
+        console.log('✅ Moving to posting...');
+        await page.waitForTimeout(5000);
 
-        console.log('Searching for post trigger...');
+        // X Selector Fallback strategy
+        const tweetButtonSelectors = [
+            '[data-testid="SideNav_NewTweet_Button"]', // Sidebar (Preferred)
+            '[data-testid="tweetButtonInline"]', // Inline (Middle)
+            'a[href="/compose/post"]',
+            'button:has(span:text-is("Post"))', // From user's screenshot
+            'button:has-text("Post")'
+        ];
 
-        if (await sidebarPostBtn.isVisible()) {
-            console.log('Clicking sidebar "Post" button...');
-            await sidebarPostBtn.click();
-        } else if (await inlineEditorPlaceholder.isVisible()) {
-            console.log('Inline placeholder found. Clicking to expand...');
-            await inlineEditorPlaceholder.click();
-        } else if (await postButtonsByText.count() > 0) {
-            console.log(`Found ${await postButtonsByText.count()} buttons named Post/Tweet. Trying the first one...`);
-            await postButtonsByText.first().click();
-        } else {
-            console.log('No elements found. Pressing "n" to open composer...');
+        let openedComposer = false;
+        for (const selector of tweetButtonSelectors) {
+            const btn = page.locator(selector).first();
+            if (await btn.isVisible()) {
+                console.log(`Opening composer via: ${selector}`);
+                await btn.click();
+                openedComposer = true;
+                break;
+            }
+        }
+
+        if (!openedComposer) {
+            console.log('Button not found. Trying keyboard shortcut "n"...');
             await page.keyboard.press('n');
         }
 
@@ -254,7 +265,7 @@ async function runBooster() {
         for (const selector of postButtonSelectors) {
             const btn = page.locator(selector).first();
             if (await btn.isVisible()) {
-                console.log(`Clicking post button (${selector})...`);
+                console.log(`Clicking final post button (${selector})...`);
                 await btn.click({ force: true });
                 posted = true;
                 break;
@@ -267,11 +278,11 @@ async function runBooster() {
             posted = true;
         }
 
-        // Final verification (box should disappear)
+        // Verification
         await page.waitForTimeout(5000);
         const isStillThere = await page.locator('[data-testid="tweetTextarea_0"]').first().isVisible();
         if (isStillThere) {
-            console.log('Editor still visible. Retrying Control+Enter...');
+            console.log('Editor still visible. Final retry with Control+Enter...');
             await page.keyboard.press('Control+Enter');
             await page.waitForTimeout(5000);
         }
