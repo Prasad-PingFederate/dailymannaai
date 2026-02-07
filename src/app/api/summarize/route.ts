@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         const { response } = await providerManager.generateResponse(prompt);
 
         // 🧠 Global Training Log: Summary Synthesis
-        TrainingLogger.log({
+        await TrainingLogger.log({
             timestamp: new Date().toISOString(),
             request: {
                 query: "Summarization Request",

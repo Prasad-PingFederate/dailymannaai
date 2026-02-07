@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         const { query, history = [] } = await req.json();
 
         // 🧠 Catch-All MongoDB Logging: Entry Audit
-        TrainingLogger.log({
+        await TrainingLogger.log({
             timestamp: new Date().toISOString(),
             request: {
                 query,

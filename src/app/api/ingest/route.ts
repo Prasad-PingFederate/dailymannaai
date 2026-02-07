@@ -176,7 +176,7 @@ export async function POST(req: Request) {
         const chunks = ingestDocuments(textContent, name);
 
         // 🧠 Global Training Log: Data Ingestion (Audit for RAG training)
-        TrainingLogger.log({
+        await TrainingLogger.log({
             timestamp: new Date().toISOString(),
             request: {
                 query: `Ingest: ${name}`,

@@ -471,7 +471,7 @@ export class AIProviderManager {
                 console.log(`[AI] ✅ SUCCESS with ${provider.name} (${latency}ms)`);
 
                 // 📊 Global Training Log: Success
-                TrainingLogger.log({
+                await TrainingLogger.log({
                     timestamp: new Date().toISOString(),
                     request: { query: prompt, provider: provider.name, model: "auto" },
                     response: { answer: response, latency, modelUsed: "auto" },
@@ -484,7 +484,7 @@ export class AIProviderManager {
                 errors.push({ provider: provider.name, error });
 
                 // 📊 Global Training Log: Failure
-                TrainingLogger.log({
+                await TrainingLogger.log({
                     timestamp: new Date().toISOString(),
                     request: { query: prompt, provider: provider.name, model: "auto" },
                     response: { answer: error.message, latency: Date.now() - startTime, modelUsed: "auto" },
