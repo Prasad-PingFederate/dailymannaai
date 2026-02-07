@@ -20,12 +20,20 @@ export async function getDatabase(): Promise<Db> {
         throw new Error(`MONGODB_URI is INVALID. It starts with "${preview}...". It MUST start with exactly 'mongodb://' or 'mongodb+srv://'. (Did you accidentally include the variable name in the value box?)`);
     }
 
-    const client = await MongoClient.connect(uri);
-    const db = client.db(dbName);
+    try {
+        const client = await MongoClient.connect(uri, {
+            serverSelectionTimeoutMS: 5000, // 5 second timeout
+            connectTimeoutMS: 5000
+        });
+        const db = client.db(dbName);
 
-    cachedClient = client;
-    cachedDb = db;
+        cachedClient = client;
+        cachedDb = db;
 
-    console.log(`✅ [MongoDB] Connection established to database: ${dbName}`);
-    return db;
+        console.log(`✅ [MongoDB] Connection established to database: ${dbName}`);
+        return db;
+    } catch (error: any) {
+        console.error(`❌ [MongoDB] Connection failed: ${error.message}`);
+        throw new Error(`MONGODB_CONNECTION_ERROR: ${error.message}. (Check if Vercel IP is whitelisted in Atlas)`);
+    }
 }
