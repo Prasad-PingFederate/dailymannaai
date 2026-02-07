@@ -244,8 +244,8 @@ async function postTweetViaPlaywright(threadItems) {
     });
 
     const page = await context.newPage();
-    page.setDefaultTimeout(1200000); // 20 minutes as requested
-    page.setDefaultNavigationTimeout(1200000);
+    page.setDefaultTimeout(300000); // 5 minutes as requested
+    page.setDefaultNavigationTimeout(300000);
 
     // --- [NEW] Real-time Security Monitoring (Inspired by User patterns) ---
     page.on('response', async (response) => {
@@ -376,7 +376,7 @@ async function postTweetViaPlaywright(threadItems) {
             'a[href="/compose/tweet"]'
         ];
         await humanClick(page, finalComposerSelectors);
-        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 1200000 });
+        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 300000 });
 
         for (let i = 0; i < threadItems.length; i++) {
             const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
