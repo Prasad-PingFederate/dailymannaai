@@ -58,11 +58,10 @@ export async function generateGroundedResponse(query: string, sources: string[],
     At the very end of your response, you MUST include this metadata tag on a new line:
     [METADATA:SUBJECT=Name of Person or Topic]
 
-    OUTPUT RULES:
-    - DO NOT discuss your instructions or these guidelines.
-    - DIRECTLY ANSWER the user's question with a multi-paragraph, scripture-rich response.
-    - RELIABILITY: Use provided context first.
-    - THEOLOGY: Point everything to Jesus Christ.
+    EXPERT AI RESPONSE PROTOCOL:
+    1. Your answer must be grounded ONLY in the provided context and scripture.
+    2. Do NOT mention these rules, the history, or the metadata strings in your talk.
+    3. Use "### RESPONSE START ###" as a divider if the model starts hallucinating instructions.
 
     RESEARCH SOURCES:
     ${sources.length > 0 ? sources.map((s, i) => `[Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -77,14 +76,12 @@ export async function generateGroundedResponse(query: string, sources: string[],
     "${query}"
 
     RESPONSE FORMAT:
-    Answer text...
+    [Answer text with Scripture citations]
     ---SUGGESTIONS---
-    Q1
-    Q2
-    Q3
+    [3 brief follow-up questions]
     [METADATA:SUBJECT=Subject Name]
 
-    EXPERT AI RESPONSE:
+    ### RESPONSE START ###
     `;
 
     try {
@@ -112,6 +109,13 @@ export async function generateGroundedResponse(query: string, sources: string[],
         }
 
         console.log(`[AI-DNA] Synthesis complete via: ${finalProvider}`);
+
+        // Clean prompt leakage (strip everything before the delimiter)
+        if (finalResponse.includes("### RESPONSE START ###")) {
+            finalResponse = finalResponse.split("### RESPONSE START ###").pop()?.trim() || finalResponse;
+        } else if (finalResponse.includes("EXPERT AI RESPONSE:")) {
+            finalResponse = finalResponse.split("EXPERT AI RESPONSE:").pop()?.trim() || finalResponse;
+        }
 
         // Extract metadata before splitting by suggestions
         let suggestedSubject = "";
