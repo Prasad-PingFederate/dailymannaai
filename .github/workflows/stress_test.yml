@@ -1,0 +1,46 @@
+name: Assistant Stress Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'The URL to test (e.g., https://dailymannaai.com)'
+        required: true
+        default: 'https://dailymannaai.com'
+
+jobs:
+  stress-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Run Playwright Stress Test
+      env:
+        TEST_TARGET_URL: ${{ github.event.inputs.target_url }}
+        # Include API keys if the test needs to bypass local limits
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      run: node scripts/stress_test.js
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: stress-test-results
+        path: |
+          ./*.png
+          stress-test-report.json
+        if-no-files-found: ignore
