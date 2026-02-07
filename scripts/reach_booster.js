@@ -292,7 +292,13 @@ async function postTweetViaPlaywright(threadItems) {
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
             await page.waitForTimeout(Math.random() * 3000 + 2000);
-            await humanType(page, 'input[autocomplete="username"]', process.env.X_USERNAME);
+            const loginIdentifier = process.env.X_USERNAME || 'prasadsonofchrist@gmail.com';
+            console.log(`🤖 Entering Profile Identifier: ${loginIdentifier.substring(0, 3)}... (Masked)`);
+
+            const usernameInput = page.locator('input[autocomplete="username"], input[name="text"]');
+            await usernameInput.first().click(); // Explicit click before typing
+            await usernameInput.first().fill(''); // Clear if anything exists
+            await humanType(page, 'input[autocomplete="username"], input[name="text"]', loginIdentifier);
             await page.screenshot({ path: 'login-username-entered.png' });
 
             // Try Enter first, then look for "Next" button just in case
