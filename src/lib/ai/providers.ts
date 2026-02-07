@@ -294,7 +294,10 @@ class OpenRouterProvider implements AIProvider {
                     body: JSON.stringify({
                         model: modelId,
                         messages: [{ role: "user", content: prompt }],
-                        max_tokens: 4096, // Increased for full detailed answers
+                        max_tokens: 4096,
+                        temperature: 0.7,
+                        repetition_penalty: 1.1,
+                        top_p: 0.9,
                     }),
                     signal: controller.signal,
                 });
@@ -349,6 +352,8 @@ class HuggingFaceProvider implements AIProvider {
                     model: model,
                     messages: [{ role: "user", content: prompt }],
                     max_tokens: 2048,
+                    temperature: 0.7,
+                    repetition_penalty: 1.1
                 });
                 return response.choices[0]?.message?.content || "";
             } catch (error: any) {
@@ -392,6 +397,9 @@ class TogetherProvider implements AIProvider {
                         model: model,
                         messages: [{ role: "user", content: prompt }],
                         max_tokens: 2048,
+                        temperature: 0.7,
+                        repetition_penalty: 1.1,
+                        top_p: 0.9
                     }),
                 });
 

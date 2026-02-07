@@ -37,7 +37,10 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     
     NEW USER INPUT: "${query}"
     
-    TASK: Rewrite the NEW USER INPUT into a standalone search query. Resolve pronouns ONLY if they refer to something in the RECENT history.
+    TASK: Rewrite the NEW USER INPUT into a standalone search query. 
+    
+    ⚠️ CRITICAL TOPIC DRIFT GUARD: If the NEW USER INPUT is about a new person, location, or concept (e.g. Matthew, Moses, Pilgrims) and the history is about something else (e.g. Sermon on the Mount), DO NOT include "Sermon on the Mount" or any history keywords in your standalone query. Keep it PURE to the new input.
+    
     STANDALONE QUERY:
     `;
 
@@ -130,7 +133,23 @@ export async function generateGroundedResponse(query: string, sources: string[],
         }
 
         const parts = finalResponse.split("---SUGGESTIONS---");
-        const answer = parts[0].trim();
+        let answer = parts[0].trim();
+
+        // 🧪 ANTI-REPETITION POLISH: Detect and strip runaway headers
+        const answerLines = answer.split('\n');
+        if (answerLines.length > 10) {
+            const firstHeader = answerLines.find(l => l.startsWith('###'));
+            if (firstHeader) {
+                // If the same header repeats many times, take only the section up to the first repeat
+                const firstOccurence = answer.indexOf(firstHeader);
+                const secondOccurence = answer.indexOf(firstHeader, firstOccurence + firstHeader.length);
+                if (secondOccurence > -1) {
+                    console.warn("[AI-DNA] Repetitive loop detected in answer. Truncating...");
+                    answer = answer.substring(0, secondOccurence).trim();
+                }
+            }
+        }
+
         const suggestions = parts[1]
             ? parts[1].split("\n").map(s => s.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(s => s.length > 5).slice(0, 3)
             : ["Tell me more about this.", "How does this apply to me?", "What does the Bible say?"];
