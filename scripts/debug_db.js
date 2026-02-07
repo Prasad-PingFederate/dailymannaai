@@ -87,7 +87,7 @@ async function testMongoDB() {
 }
 
 async function runTests() {
-    await testSupabase();
+    console.log('--- DailyMannaAI: MongoDB Training Engine Health Check ---');
     await testMongoDB();
 }
 
