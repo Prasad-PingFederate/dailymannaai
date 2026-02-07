@@ -6,6 +6,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { HfInference } from "@huggingface/inference";
+import { prisma } from "../db";
 
 export interface AIProvider {
     name: string;
@@ -450,22 +451,36 @@ export class AIProviderManager {
         }
 
         const errors: Array<{ provider: string; error: any }> = [];
+        const startTime = Date.now();
 
         for (const provider of this.providers) {
             try {
                 console.log(`[AI] Attempting ${provider.name}...`);
                 const response = await provider.generateResponse(prompt);
-                console.log(`[AI] ✅ SUCCESS with ${provider.name}`);
+                const latency = Date.now() - startTime;
+
+                console.log(`[AI] ✅ SUCCESS with ${provider.name} (${latency}ms)`);
                 return { response, provider: provider.name };
             } catch (error: any) {
                 console.error(`[AI] ❌ FAILED ${provider.name}:`, error.message);
                 errors.push({ provider: provider.name, error });
+
+                // Log error to DB
+                prisma.errorLog.create({
+                    data: {
+                        provider: provider.name,
+                        error: error.message,
+                        stack: error.stack
+                    }
+                }).catch(e => console.error("[DB] Error logging failed:", e.message));
             }
         }
 
+        const errorDetails = errors.map(e => `${e.provider}: ${e.error.message}`).join(", ");
+
         // Special case: If ALL failed, provide a humble "busy" response instead of a crash
         return {
-            response: "🙏 I'm sorry, but all my spiritual wisdom centers are currently offline or at capacity. Please check your API keys or wait a few minutes before asking again. The Word is always available in your local notes!",
+            response: `🙏 I'm sorry, but all my spiritual wisdom centers are currently offline or at capacity [${errorDetails}]. Please wait a few minutes or check your connection. The Word is always available in your local notes!`,
             provider: "System Recovery"
         };
     }

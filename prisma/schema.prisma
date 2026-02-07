@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Interaction {
+  id        Int      @id @default(autoincrement())
+  query     String
+  answer    String
+  provider  String
+  subject   String?
+  latency   Int?     // in ms
+  createdAt DateTime @default(now())
+}
+
+model ErrorLog {
+  id        Int      @id @default(autoincrement())
+  provider  String
+  error     String
+  stack     String?
+  createdAt DateTime @default(now())
+}

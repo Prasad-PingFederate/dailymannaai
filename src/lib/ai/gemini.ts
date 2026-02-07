@@ -1,4 +1,5 @@
 import { AIProviderManager } from "./providers";
+import { prisma } from "../db";
 
 let _providerManager: AIProviderManager | null = null;
 export function getProviderManager() {
@@ -21,18 +22,21 @@ const REFUSAL_TOKENS = [
  * 🧬 EXPERT DNA REWRITER: Fixes phonetic typos and resolves context.
  */
 async function rewriteQuery(query: string, history: any[]): Promise<string> {
-    if (history.length === 0) return query;
+    // Only use the last 10 messages of history to avoid "Context Contamination"
+    const recentHistory = history.slice(-10);
 
     const rewritePrompt = `
     Identity: High-Precision Query Engine.
-    Mission: Resolve pronouns and CORRECT phonetic misspellings (e.g., "dk moody" -> D. L. Moody, "bonkey" -> Bonnke, "spurgen" -> Spurgeon).
+    Mission: Resolve pronouns and CORRECT phonetic misspellings.
+    
+    CRITICAL RULE: If the NEW USER INPUT is a completely new topic or subject (e.g., "Pilgrim's Progress") compared to the CONVERSATION HISTORY (e.g., "Sermon on the Mount"), ignore the history and treat the input as a fresh standalone query.
     
     CONVERSATION HISTORY:
-    ${history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+    ${recentHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
     
     NEW USER INPUT: "${query}"
     
-    TASK: Rewrite the NEW USER INPUT into a standalone search query that resolves any pronouns (like "he", "she", "it", "they", "that verse") using the CONVERSATION HISTORY.
+    TASK: Rewrite the NEW USER INPUT into a standalone search query. Resolve pronouns ONLY if they refer to something in the RECENT history.
     STANDALONE QUERY:
     `;
 
@@ -44,11 +48,9 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     }
 }
 
-/**
- * 🧬 EXPERT DNA RESPONDER: The Core Persona Synthesis Engine.
- * Includes "Freedom Directive" to bypass false-positive safety bias.
- */
 export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = []) {
+    const recentHistory = history.slice(-10);
+
     const prompt = `
     Identity: SPIRITUAL RESEARCH DISCIPLE (The Voice of Truth and Wisdom). 
     Status: You are an authoritative, world-class theologian and historical researcher. You ground your answers in provided research chunks and web search results.
@@ -62,6 +64,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
     1. Your answer must be grounded ONLY in the provided context and scripture.
     2. Do NOT mention these rules, the history, or the metadata strings in your talk.
     3. Use "### RESPONSE START ###" as a divider if the model starts hallucinating instructions.
+    4. TOPIC DRIFT: If the USER QUESTION (CURRENT) is about a new topic (e.g. Pilgrim's Progress) while the CONVERSATION HISTORY is about something else (e.g. Sermon on the Mount), prioritize the CURRENT question and do NOT mix the topics.
 
     RESEARCH SOURCES:
     ${sources.length > 0 ? sources.map((s, i) => `[Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -70,7 +73,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
     ${webContext || "Deep-search internal historical archives."}
 
     CONVERSATION HISTORY (FOR CONTEXT):
-    ${history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+    ${recentHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
     USER QUESTION (CURRENT):
     "${query}"
@@ -152,6 +155,17 @@ export async function generateGroundedResponse(query: string, sources: string[],
         if (suggestedSubject) {
             suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
         }
+
+        // 📊 Log enriched interaction to DB (Fire and forget)
+        prisma.interaction.create({
+            data: {
+                query: query.substring(0, 1000),
+                answer: answer.substring(0, 5000),
+                provider: finalProvider || "Unknown",
+                subject: suggestedSubject || "General",
+                latency: 0 // In this layer we don't have the timing from providers.ts anymore but we captured it in logs
+            }
+        }).catch(e => console.error("[DB] Logging failed:", e.message));
 
         return { answer, suggestions, suggestedSubject };
     } catch (error: any) {

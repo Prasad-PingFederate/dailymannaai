@@ -12,6 +12,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.10",
+    "@prisma/client": "^6.2.1",
     "dotenv": "^17.2.4",
     "duck-duck-scrape": "^2.2.7",
     "google-tts-api": "^2.0.2",
@@ -23,13 +24,14 @@
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "3.11.174",
     "playwright": "^1.58.1",
+    "prisma": "^6.2.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "together-ai": "^0.33.0",
+    "twitter-api-v2": "^1.21.0",
     "youtube-transcript": "^1.2.1",
     "youtube-transcript-plus": "^1.1.2",
-    "youtubei.js": "^16.0.1",
-    "twitter-api-v2": "^1.21.0"
+    "youtubei.js": "^16.0.1"
   },
   "overrides": {
     "pdfjs-dist": "3.11.174"
