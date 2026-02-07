@@ -16,7 +16,8 @@ export async function getDatabase(): Promise<Db> {
     }
 
     if (!uri.startsWith("mongodb://") && !uri.startsWith("mongodb+srv://")) {
-        throw new Error("MONGODB_URI is INVALID. It must start with 'mongodb://' or 'mongodb+srv://'. Check your Vercel settings.");
+        const preview = uri.substring(0, 15);
+        throw new Error(`MONGODB_URI is INVALID. It starts with "${preview}...". It MUST start with exactly 'mongodb://' or 'mongodb+srv://'. (Did you accidentally include the variable name in the value box?)`);
     }
 
     const client = await MongoClient.connect(uri);
