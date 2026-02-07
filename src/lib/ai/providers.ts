@@ -7,6 +7,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { HfInference } from "@huggingface/inference";
 import { prisma } from "../db";
+import { TrainingLogger } from "./training-logger";
 
 export interface AIProvider {
     name: string;
@@ -460,12 +461,29 @@ export class AIProviderManager {
                 const latency = Date.now() - startTime;
 
                 console.log(`[AI] ✅ SUCCESS with ${provider.name} (${latency}ms)`);
+
+                // 📊 Global Training Log: Success
+                TrainingLogger.log({
+                    timestamp: new Date().toISOString(),
+                    request: { query: prompt, provider: provider.name, model: "auto" },
+                    response: { answer: response, latency, modelUsed: "auto" },
+                    metadata: { status: "success" }
+                }).catch(e => console.error("[MongoDB] Logging failed:", e.message));
+
                 return { response, provider: provider.name };
             } catch (error: any) {
                 console.error(`[AI] ❌ FAILED ${provider.name}:`, error.message);
                 errors.push({ provider: provider.name, error });
 
-                // Log error to DB
+                // 📊 Global Training Log: Failure
+                TrainingLogger.log({
+                    timestamp: new Date().toISOString(),
+                    request: { query: prompt, provider: provider.name, model: "auto" },
+                    response: { answer: error.message, latency: Date.now() - startTime, modelUsed: "auto" },
+                    metadata: { status: "error", error_stack: error.stack }
+                }).catch(e => console.error("[MongoDB] Logging failed:", e.message));
+
+                // Log error to DB (Supabase)
                 if (prisma) {
                     prisma.errorLog.create({
                         data: {

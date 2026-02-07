@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
 import { AIProviderManager } from "@/lib/ai/providers";
+import { TrainingLogger } from "@/lib/ai/training-logger";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
 
 const providerManager = new AIProviderManager();
@@ -43,6 +44,23 @@ export async function POST(req: Request) {
         SUMMARY:`;
 
         const { response } = await providerManager.generateResponse(prompt);
+
+        // 🧠 Global Training Log: Summary Synthesis
+        TrainingLogger.log({
+            timestamp: new Date().toISOString(),
+            request: {
+                query: "Summarization Request",
+                provider: "Summarizer",
+                model: "Synthesizer-v1",
+                systemPrompt: prompt.substring(0, 500)
+            },
+            response: {
+                answer: response,
+                latency: 0,
+                modelUsed: "Auto-Provider"
+            },
+            metadata: { route: "/api/summarize", sourceCount: sources.length }
+        }).catch(e => console.error("[MongoDB] Logging failed:", e.message));
 
         return NextResponse.json({
             summary: response,

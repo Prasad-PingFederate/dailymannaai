@@ -5,6 +5,7 @@ import { ingestDocuments } from "@/lib/storage/vector-store";
 import mammoth from "mammoth";
 import path from 'path';
 import { fetchYoutubeTranscript } from "@/lib/youtube-utils";
+import { TrainingLogger } from "@/lib/ai/training-logger";
 
 export const runtime = 'nodejs';
 
@@ -174,11 +175,32 @@ export async function POST(req: Request) {
 
         const chunks = ingestDocuments(textContent, name);
 
+        // 🧠 Global Training Log: Data Ingestion (Audit for RAG training)
+        TrainingLogger.log({
+            timestamp: new Date().toISOString(),
+            request: {
+                query: `Ingest: ${name}`,
+                provider: "Ingestion-Hook",
+                model: "RAG-Feeder"
+            },
+            response: {
+                answer: `Success: Indexed ${chunks.length} segments.`,
+                latency: 0,
+                modelUsed: "N/A"
+            },
+            metadata: {
+                route: "/api/ingest",
+                docName: name,
+                contentSize: textContent.length,
+                chunkCount: chunks.length
+            }
+        }).catch(e => console.error("[MongoDB] Ingest audit failed:", e.message));
+
         return NextResponse.json({
             success: true,
             message: `Successfully learned ${chunks.length} segments from ${name}`,
             sourceId: name,
-            preview: textContent.substring(0, 1000) // Send larger preview for "Source Explorer"
+            preview: textContent.substring(0, 1000)
         });
     } catch (error: any) {
         console.error("Ingestion Error:", error.message);

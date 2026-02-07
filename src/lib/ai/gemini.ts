@@ -1,5 +1,6 @@
 import { AIProviderManager } from "./providers";
 import { prisma } from "../db";
+import { TrainingLogger } from "./training-logger";
 
 let _providerManager: AIProviderManager | null = null;
 export function getProviderManager() {
@@ -156,7 +157,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
             suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
         }
 
-        // 📊 Log enriched interaction to DB (Fire and forget)
+        // 📊 Log enriched interaction to DB (Supabase - User Data)
         if (prisma) {
             prisma.interaction.create({
                 data: {
@@ -164,10 +165,32 @@ export async function generateGroundedResponse(query: string, sources: string[],
                     answer: answer.substring(0, 5000),
                     provider: finalProvider || "Unknown",
                     subject: suggestedSubject || "General",
-                    latency: 0 // In this layer we don't have the timing from providers.ts anymore but we captured it in logs
+                    latency: 0
                 }
             }).catch(e => console.error("[DB] Logging failed:", e.message));
         }
+
+        // 🧠 Log high-fidelity RESEARCH DATA to MongoDB (AI Training)
+        TrainingLogger.log({
+            timestamp: new Date().toISOString(),
+            request: {
+                query: query,
+                provider: "Brain-Synthesizer",
+                model: finalProvider,
+                systemPrompt: "SPIRITUAL RESEARCH DISCIPLE",
+                historyContextCount: recentHistory.length
+            },
+            response: {
+                answer: answer,
+                latency: 0,
+                modelUsed: finalProvider
+            },
+            metadata: {
+                sources_count: sources.length,
+                has_web_context: !!webContext,
+                subject: suggestedSubject
+            }
+        }).catch(e => console.error("[MongoDB] Research logging failed:", e.message));
 
         return { answer, suggestions, suggestedSubject };
     } catch (error: any) {

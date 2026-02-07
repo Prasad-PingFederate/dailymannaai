@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
 import { generateGroundedResponse, rewriteQuery } from "@/lib/ai/gemini";
+import { TrainingLogger } from "@/lib/ai/training-logger";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
 import { performWebSearch, formatSearchResults, performImageSearch } from "@/lib/tools/web-search";
 import { lookupBibleReference } from "@/lib/bible/lookup";
@@ -10,6 +11,19 @@ import { resolvePortrait } from "@/lib/ai/image-resolver";
 export async function POST(req: Request) {
     try {
         const { query, history = [] } = await req.json();
+
+        // 🧠 Catch-All MongoDB Logging: Entry Audit
+        TrainingLogger.log({
+            timestamp: new Date().toISOString(),
+            request: {
+                query,
+                provider: "Chat-Entry-Hook",
+                model: "Audit-Only",
+                historyContextCount: history.length
+            },
+            response: { answer: "WAITING_FOR_SYNTHESIS", latency: 0, modelUsed: "N/A" },
+            metadata: { route: "/api/chat", type: "entry_audit" }
+        }).catch(e => console.error("[MongoDB] Entry audit failed:", e.message));
 
         if (!query) {
             return NextResponse.json({ error: "Query is required" }, { status: 400 });
