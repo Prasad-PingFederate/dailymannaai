@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from "next/server";
 import { AIProviderManager } from "@/lib/ai/providers";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
