@@ -28,7 +28,8 @@
     "together-ai": "^0.33.0",
     "youtube-transcript": "^1.2.1",
     "youtube-transcript-plus": "^1.1.2",
-    "youtubei.js": "^16.0.1"
+    "youtubei.js": "^16.0.1",
+    "twitter-api-v2": "^1.21.0"
   },
   "overrides": {
     "pdfjs-dist": "3.11.174"
