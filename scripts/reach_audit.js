@@ -14,6 +14,8 @@ class ReachAuditor {
         this.results = {
             ip_reputation: 'Unknown',
             ua_stealth: 'Unknown',
+            ua_blacklist_test: 'Unknown',
+            rate_limit_test: 'Unknown',
             arkose_threat_level: 'Low',
             vulnerabilities: []
         };
@@ -53,6 +55,24 @@ class ReachAuditor {
             const isBot = await page.evaluate(() => navigator.webdriver);
             this.results.ua_stealth = isBot ? '❌ DETECTED (WebDriver found)' : '✅ STEALTH (Hidden)';
 
+            // 4. [NEW] UA Blacklist Test (Positive Control)
+            console.log('🔍 Testing UA Blacklist detection...');
+            const botContext = await browser.newContext({ userAgent: 'python-requests/2.28.0' });
+            const botPage = await botContext.newPage();
+            const botResponse = await botPage.goto('https://x.com/robots.txt').catch(() => null);
+            this.results.ua_blacklist_test = (botResponse && botResponse.status() === 403) ? '✅ ACTIVE (X blocks bots)' : '⚠️ INACTIVE (X is wide open)';
+            await botContext.close();
+
+            // 5. [NEW] Rate Limit / Soft Block Test
+            console.log('🔍 Testing Rate Limiting (5 rapid hits)...');
+            let blocked = 0;
+            for (let i = 0; i < 5; i++) {
+                const res = await page.goto('https://x.com/robots.txt', { waitUntil: 'domcontentloaded' }).catch(() => null);
+                if (res && (res.status() === 429 || res.status() === 403)) blocked++;
+                await page.waitForTimeout(200);
+            }
+            this.results.rate_limit_test = blocked > 0 ? `⚠️ SENSITIVE (${blocked}/5 blocked)` : '✅ STABLE (No hits)';
+
             this.generateReport();
 
         } catch (err) {
@@ -68,6 +88,8 @@ class ReachAuditor {
         console.log('='.repeat(60));
         console.log(`📡 IP Reputation:  ${this.results.ip_reputation}`);
         console.log(`🕵️ UA Stealth:     ${this.results.ua_stealth}`);
+        console.log(`🛡️ UA Firewall:    ${this.results.ua_blacklist_test}`);
+        console.log(`⏱️ Rate Limiting:  ${this.results.rate_limit_test}`);
         console.log(`🧩 CAPTCHA Threat: ${this.results.arkose_threat_level}`);
 
         console.log('\n🚨 Critical Findings:');
