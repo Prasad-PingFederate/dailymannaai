@@ -126,11 +126,24 @@ async function postTweetViaAPI(threadItems) {
     });
 
     try {
+        // Test authentication first (User-provided logic)
+        const authTest = await client.v2.me();
+        console.log('✅ Authenticated as:', authTest.data.username);
+
         await client.v2.tweetThread(threadItems);
         console.log('✅ Thread successfully posted via Official API!');
         return true;
     } catch (error) {
-        console.error('❌ API Post Failed:', error.message);
+        console.error('❌ API Post Error:', error.code, error.message);
+
+        if (error.code === 402) {
+            console.log('💡 402 = Payment Required. Free tier may not support thread/tweet creation.');
+        } else if (error.code === 401) {
+            console.log('💡 401 = Invalid credentials. Check your GitHub Secrets.');
+        } else if (error.code === 403) {
+            console.log('💡 403 = Forbidden. Your App may not have "Read and Write" permissions.');
+        }
+
         return false;
     }
 }
