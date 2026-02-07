@@ -17,10 +17,23 @@ async function runStressTest() {
 
     try {
         // 1. Navigate to the App (Assuming local dev or Vercel preview)
-        const targetUrl = process.env.TEST_TARGET_URL || 'https://dailymannaai.com';
+        const baseUrl = process.env.TEST_TARGET_URL || 'https://dailymannaai.com';
+        const targetUrl = baseUrl.endsWith('/') ? baseUrl + 'notebook' : baseUrl + '/notebook';
         console.log(`📡 Target: ${targetUrl}`);
         await page.goto(targetUrl);
         await page.waitForLoadState('networkidle');
+
+        // 1.5 Handle "Initializing" screen or direct access
+        console.log('🛸 Waiting for AntiGravity Core to initialize...');
+        await page.waitForSelector('button:has-text("Chat"), textarea[placeholder*="Ask"]', { timeout: 30000 });
+
+        // If "Chat" tab is not active, click it
+        const chatTab = page.locator('button:has-text("Chat")');
+        if (await chatTab.isVisible()) {
+            console.log('👆 Clicking Chat Tab...');
+            await chatTab.click();
+        }
+        await page.waitForSelector('textarea[placeholder*="Ask"]', { timeout: 10000 });
 
         // 2. Inject "Seed Secret"
         const secretVerse = "Habakkuk 3:19 is my favorite verse.";
