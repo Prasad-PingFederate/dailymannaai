@@ -1,10 +1,10 @@
 /**
- * DailyMannaAI Advanced Reach Booster v3.5
+ * DailyMannaAI Advanced Reach Booster v4.0 (Human-Mimicry / Galileo Bypass)
  * 
  * FEATURES:
- * 1. Trend Discovery: Direct Twitter Explore + Trends24 fallback.
- * 2. API Primary: Uses Twitter API v2 for 100% reliable posting.
- * 3. Browser Fallback: Synced Playwright logic for when API is unavailable.
+ * 1. Authenticated Research: Uses X_BEARER_TOKEN for high-speed, safe trend/post search.
+ * 2. Human-Mimicry Module: Gaussian typing, Bezier curve mouse movements, and stealth fingerprints.
+ * 3. Two-Tier Success: API v2 Primary + "Passed Like Human" Playwright Fallback.
  */
 
 const { chromium } = require('playwright');
@@ -20,13 +20,75 @@ const DEVOTIONAL_KEYWORDS = [
 ];
 
 /**
- * Strategy 1: Twitter API v2 (Primary Posting Method)
+ * --- HUMAN-MIMICRY HELPERS ---
+ */
+
+// 1. Gaussian Human Typing (Uneven speed)
+async function humanType(page, selector, text) {
+    const element = page.locator(selector);
+    await element.focus();
+    for (const char of text) {
+        await page.keyboard.type(char, { delay: Math.random() * 200 + 50 }); // 50-250ms delay per char
+        if (Math.random() > 0.9) await page.waitForTimeout(Math.random() * 500); // Occasional pause
+    }
+}
+
+// 2. Bezier Mouse Pathing (Non-linear movement)
+async function humanClick(page, selector) {
+    const element = page.locator(selector).first();
+    const box = await element.boundingBox();
+    if (box) {
+        const x = box.x + box.width / 2;
+        const y = box.y + box.height / 2;
+        // Move mouse in a "jittery" human way to the point
+        await page.mouse.move(x + (Math.random() - 0.5) * 50, y + (Math.random() - 0.5) * 50, { steps: 5 });
+        await page.mouse.move(x, y, { steps: 10 });
+        await page.waitForTimeout(Math.random() * 500 + 200);
+        await element.click();
+    } else {
+        await element.click(); // Fallback
+    }
+}
+
+/**
+ * --- STRATEGY 1: API RESEARCH (High Speed & Safe) ---
+ */
+async function getTrendsAndPosts() {
+    console.log('🔍 Executing High-Speed Research via X Bearer Token...');
+
+    if (!process.env.X_BEARER_TOKEN) {
+        console.warn('⚠️ X_BEARER_TOKEN missing. Some research may be limited.');
+        return { match: null, posts: [] };
+    }
+
+    const client = new TwitterApi(process.env.X_BEARER_TOKEN);
+    let match = null;
+
+    try {
+        // In API v2, we usually search for keywords to find trends or "Popular" posts
+        console.log('📈 Searching for devotional clusters...');
+        const query = DEVOTIONAL_KEYWORDS[Math.floor(Math.random() * DEVOTIONAL_KEYWORDS.length)];
+        const search = await client.v2.search(query, { 'tweet.fields': 'public_metrics', max_results: 10 });
+
+        const posts = search.tweets.map(t => ({ text: t.text, id: t.id }));
+        match = { trend: query, keyword: query };
+
+        console.log(`✅ Research Complete. Cluster: ${query}. Found ${posts.length} top posts.`);
+        return { match, posts };
+    } catch (e) {
+        console.error('❌ API Research Failed:', e.message);
+        return { match: null, posts: [] };
+    }
+}
+
+/**
+ * --- STRATEGY 2: API POSTING (v2 Thread) ---
  */
 async function postTweetViaAPI(threadItems) {
-    console.log('Attempting to post via Twitter API (v2 Thread)...');
+    console.log('Attempting Primary Post via Twitter API (v2)...');
 
     if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_ACCESS_TOKEN) {
-        console.warn('⚠️ Twitter API credentials missing. Skipping API method.');
+        console.warn('⚠️ API Credentials missing.');
         return false;
     }
 
@@ -39,7 +101,7 @@ async function postTweetViaAPI(threadItems) {
 
     try {
         await client.v2.tweetThread(threadItems);
-        console.log('✅ Thread successfully posted via API!');
+        console.log('✅ Thread successfully posted via Official API!');
         return true;
     } catch (error) {
         console.error('❌ API Post Failed:', error.message);
@@ -48,19 +110,26 @@ async function postTweetViaAPI(threadItems) {
 }
 
 /**
- * Strategy 2: Browser Automation (Robust Fallback)
+ * --- STRATEGY 3: BROWSER FALLBACK (Human-Mimicry v4.0) ---
  */
 async function postTweetViaPlaywright(threadItems) {
-    console.log('Attempting Browser Automation (PlayTune Logic Sync)...');
+    console.log('Attempting Human-Like Fallback (Bypassing Bot Detection)...');
 
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        viewport: { width: 1280, height: 720 }
+        viewport: { width: 1280, height: 720 },
+        // Stealth Fingerprinting
+        javaScriptEnabled: true,
+        deviceScaleFactor: 1
     });
-    const page = await context.newPage();
 
-    // Global Timeouts
+    // Remove "WebDriver" flag to bypass basic bot tests
+    await context.addInitScript(() => {
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    });
+
+    const page = await context.newPage();
     page.setDefaultTimeout(60000);
     page.setDefaultNavigationTimeout(120000);
 
@@ -71,27 +140,25 @@ async function postTweetViaPlaywright(threadItems) {
         }
 
         await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(10000);
+        await page.waitForTimeout(Math.random() * 5000 + 5000); // Range 5-10s
 
         const tweetButtonLocator = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]');
 
         if (!(await tweetButtonLocator.first().isVisible())) {
-            console.log('Standard Login Required...');
+            console.log('Passage through Login Wall (Human Mode)...');
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
-            const userInp = page.locator('input[autocomplete="username"]');
-            await userInp.waitFor({ timeout: 60000 });
-            await userInp.fill(process.env.X_USERNAME);
+            await page.waitForTimeout(Math.random() * 3000 + 2000);
+            await humanType(page, 'input[autocomplete="username"]', process.env.X_USERNAME);
             await page.keyboard.press('Enter');
 
             for (let i = 0; i < 7; i++) {
-                await page.waitForTimeout(5000);
+                await page.waitForTimeout(Math.random() * 3000 + 4000);
                 const currentUrl = page.url();
                 const bodyText = await page.innerText('body').catch(() => '');
-                console.log(`Login Step ${i + 1} | URL: ${currentUrl}`);
 
                 if (await page.locator('input[name="password"]').isVisible()) {
-                    await page.locator('input[name="password"]').fill(process.env.X_PASSWORD);
+                    await humanType(page, 'input[name="password"]', process.env.X_PASSWORD);
                     await page.keyboard.press('Enter');
                     await page.waitForTimeout(5000);
                     continue;
@@ -101,7 +168,7 @@ async function postTweetViaPlaywright(threadItems) {
                     if (process.env.X_EMAIL) {
                         const idInp = page.locator('input[name="text"], input[autocomplete="email"]');
                         if (await idInp.first().isVisible()) {
-                            await idInp.first().fill(process.env.X_EMAIL);
+                            await humanType(page, 'input[name="text"]', process.env.X_EMAIL);
                             await page.keyboard.press('Enter');
                             await page.waitForTimeout(5000);
                             continue;
@@ -113,25 +180,31 @@ async function postTweetViaPlaywright(threadItems) {
             }
         }
 
-        // Final Wait for home
+        // Final Wait & Micro-scroll (Human interaction)
         await page.waitForSelector('[data-testid="SideNav_NewTweet_Button"]', { timeout: 30000 }).catch(() => { });
+        await page.evaluate(() => window.scrollBy(0, 300));
+        await page.waitForTimeout(2000);
 
-        console.log('Opening composer...');
-        await page.click('[data-testid="SideNav_NewTweet_Button"]');
+        console.log('Interacting with Composer (Human-Like Click)...');
+        await humanClick(page, '[data-testid="SideNav_NewTweet_Button"]');
         await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 20000 });
 
         for (let i = 0; i < threadItems.length; i++) {
             const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
-            await editor.fill(threadItems[i]);
+            await humanType(page, `[data-testid="tweetTextarea_${i}"]`, threadItems[i]);
+
             if (i < threadItems.length - 1) {
-                await page.click('[data-testid="add-tweet-button"]');
-                await page.waitForTimeout(2000);
+                await humanClick(page, '[data-testid="add-tweet-button"]');
+                await page.waitForTimeout(Math.random() * 1000 + 1000);
             }
         }
 
-        await page.click('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]', { force: true });
+        await page.waitForTimeout(Math.random() * 2000 + 1000);
+        console.log('Sending Post...');
+        await humanClick(page, '[data-testid="tweetButton"], [data-testid="tweetButtonInline"]');
+
         await page.waitForTimeout(10000);
-        console.log('✅ Post finished via Browser.');
+        console.log('✅ Post successfully completed via "Human-Mimicry" Browser.');
     } finally {
         await browser.close();
     }
@@ -139,22 +212,11 @@ async function postTweetViaPlaywright(threadItems) {
 
 async function main() {
     try {
-        console.log('🚀 DailyMannaAI Reach Booster (API Support Integrated)...');
+        console.log('🚀 DailyMannaAI v4.0: Human-Level Reach Booster Initiated...');
 
-        // 1. Trend Discovery (Using single lightweight launch)
-        const browser = await chromium.launch({ headless: true });
-        const page = await browser.newPage();
-        let trends = [];
-        try {
-            await page.goto('https://trends24.in/india/', { waitUntil: 'domcontentloaded', timeout: 30000 });
-            trends = await page.evaluate(() => Array.from(document.querySelectorAll('.list-container:first-child .trend-link')).map(t => t.textContent.trim()));
-        } catch (e) {
-            console.warn('Trends lookup failed, using general keywords.');
-        }
-        await browser.close();
-
-        let match = trends.find(t => DEVOTIONAL_KEYWORDS.some(kw => t.toLowerCase().includes(kw.toLowerCase())));
-        const trendTag = match ? `#${match.replace(/\s/g, '').replace(/#/g, '')}` : "#Faith";
+        // 1. Research Step
+        const { match, posts } = await getTrendsAndPosts();
+        const trendTag = match ? '#' + match.trend.replace(/\s/g, '').replace(/#/g, '') : "#Faith";
 
         // 2. Content Generation
         const threadItems = [
@@ -164,25 +226,28 @@ async function main() {
         ];
 
         if (process.env.DRY_RUN === 'true') {
-            console.log('🧪 DRY_RUN active. No post.');
-            threadItems.forEach((t, i) => console.log(`[${i + 1}]: ${t}`));
+            console.log('🧪 DRY_RUN active. No actual post.');
+            threadItems.forEach((t, i) => console.log(`[Tweet ${i + 1}]: ${t}`));
             return;
         }
 
-        // 3. Post Execution (API First, Fallback to Playwright)
+        // 3. Execution (API -> Human Mimicry Fallback)
         let success = await postTweetViaAPI(threadItems);
 
         if (!success && process.env.X_USERNAME) {
-            console.log('Using browser-based fallback...');
+            console.log('API Quota/Error. Transitioning to Human-Mimicry Fallback...');
             await postTweetViaPlaywright(threadItems);
             success = true;
         }
 
-        if (success) console.log('✅ Task Finished Correctly.');
-        else throw new Error('All posting methods failed.');
+        if (success) {
+            console.log('--- TASK COMPLETE: PASSED LIKE HUMAN 🌍 ---');
+        } else {
+            throw new Error('All posting strategies failed.');
+        }
 
     } catch (err) {
-        console.error('❌ Fatal Script Error:', err.message);
+        console.error('❌ Critical Error:', err.message);
         process.exit(1);
     }
 }
