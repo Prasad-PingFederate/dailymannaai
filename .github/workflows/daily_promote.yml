@@ -27,6 +27,11 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
 
+    - name: Run Security Audit
+      env:
+        CAPTCHA_SOLVER_API_KEY: ${{ secrets.TWO_CAPTCHA_API || secrets.TWO_CAPTCHA_APT || secrets.CAPTCHA_SOLVER_API_KEY }}
+      run: node scripts/reach_audit.js
+
     - name: Run Promotion Script
       env:
         # Check if API keys are available, otherwise fallback to Browser Automation creds

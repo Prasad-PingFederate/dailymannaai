@@ -247,6 +247,18 @@ async function postTweetViaPlaywright(threadItems) {
     page.setDefaultTimeout(60000);
     page.setDefaultNavigationTimeout(120000);
 
+    // --- [NEW] Real-time Security Monitoring (Inspired by User patterns) ---
+    page.on('response', async (response) => {
+        const url = response.url();
+        const status = response.status();
+        if (url.includes('arkoselabs') || url.includes('captcha')) {
+            console.log(`📡 [Security Monitor] CAPTCHA Endpoint Hit: ${url} (Status: ${status})`);
+        }
+        if (status === 403 || status === 429) {
+            console.warn(`📡 [Security Monitor] Potential Bot Block (${status}): ${url}`);
+        }
+    });
+
     try {
         if (process.env.X_COOKIES) {
             console.log('Injecting session cookies...');
