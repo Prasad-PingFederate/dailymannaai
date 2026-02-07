@@ -31,9 +31,9 @@ jobs:
         X_PASSWORD: ${{ secrets.X_PASSWORD }}
         X_EMAIL: ${{ secrets.X_EMAIL }} # For verification challenges
         X_COOKIES: ${{ secrets.X_COOKIES }} # For session persistence
-        TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-        TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
-        TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-        TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
-        X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        TWITTER_API_KEY: ${{ secrets.CONSUMER_KEY || secrets.TWITTER_API_KEY }}
+        TWITTER_API_SECRET: ${{ secrets.CONSUMER_KEY_SECRET || secrets.TWITTER_API_SECRET }}
+        TWITTER_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN || secrets.ACCESS_TOKEN || secrets.TWITTER_ACCESS_TOKEN }}
+        TWITTER_ACCESS_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET || secrets.TWITTER_ACCESS_SECRET }}
+        X_BEARER_TOKEN: ${{ secrets.X_B_TOKEN || secrets.X_BEARER_TOKEN }}
       run: npm run promote
