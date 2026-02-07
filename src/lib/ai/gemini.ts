@@ -26,9 +26,13 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     const rewritePrompt = `
     Identity: High-Precision Query Engine.
     Mission: Resolve pronouns and CORRECT phonetic misspellings (e.g., "dk moody" -> D. L. Moody, "bonkey" -> Bonnke, "spurgen" -> Spurgeon).
-    DNA: If the user seems to be asking about a person, ensure the FULL NAME is used.
     
-    LATEST: "${query}"
+    CONVERSATION HISTORY:
+    ${history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+    
+    NEW USER INPUT: "${query}"
+    
+    TASK: Rewrite the NEW USER INPUT into a standalone search query that resolves any pronouns (like "he", "she", "it", "they", "that verse") using the CONVERSATION HISTORY.
     STANDALONE QUERY:
     `;
 
@@ -66,7 +70,10 @@ export async function generateGroundedResponse(query: string, sources: string[],
     WEB SEARCH RESULTS:
     ${webContext || "Deep-search internal historical archives."}
 
-    USER QUESTION:
+    CONVERSATION HISTORY (FOR CONTEXT):
+    ${history.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+
+    USER QUESTION (CURRENT):
     "${query}"
 
     RESPONSE FORMAT:

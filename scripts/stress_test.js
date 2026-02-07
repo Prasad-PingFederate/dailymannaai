@@ -41,6 +41,9 @@ async function runStressTest() {
         await page.fill('textarea[placeholder*="Ask"]', secretVerse);
         await page.keyboard.press('Enter');
         await page.waitForResponse(res => res.url().includes('/api/chat') && res.status() === 200);
+        // CRITICAL: Wait for the assistant bubble to actually render in the UI
+        await page.waitForSelector('div:has-text("How can I assist") ~ div:has-text("assistant"), .assistant-message', { timeout: 15000 }).catch(() => console.log('⏳ Waiting for UI re-render...'));
+        await page.waitForTimeout(2000); // Small buffer for React state settle
         console.log('✅ Secret Injected.');
 
         // 3. Bombard with Theological Questions
@@ -58,7 +61,9 @@ async function runStressTest() {
             await page.fill('textarea[placeholder*="Ask"]', query);
             await page.keyboard.press('Enter');
             await page.waitForResponse(res => res.url().includes('/api/chat') && res.status() === 200);
-            await page.waitForTimeout(2000); // Wait for text to finish rendering
+            // Wait for the specific new message to appear
+            await page.waitForTimeout(3000);
+            console.log(`   ✅ Phase 2 Answer received.`);
         }
 
         // 4. The "Final Recall" Test

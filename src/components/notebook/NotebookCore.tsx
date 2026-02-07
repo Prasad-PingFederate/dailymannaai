@@ -710,13 +710,14 @@ It's now part of my collective wisdom!`
         setSuggestions([]); // Clear previous suggestions
         setIsChatting(true);
 
+        const currentHistory = [...messages];
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     query: textToSend,
-                    history: messages // Pass the history before the new message
+                    history: currentHistory
                 }),
             });
 
