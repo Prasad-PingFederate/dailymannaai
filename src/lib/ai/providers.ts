@@ -466,13 +466,15 @@ export class AIProviderManager {
                 errors.push({ provider: provider.name, error });
 
                 // Log error to DB
-                prisma.errorLog.create({
-                    data: {
-                        provider: provider.name,
-                        error: error.message,
-                        stack: error.stack
-                    }
-                }).catch(e => console.error("[DB] Error logging failed:", e.message));
+                if (prisma) {
+                    prisma.errorLog.create({
+                        data: {
+                            provider: provider.name,
+                            error: error.message,
+                            stack: error.stack
+                        }
+                    }).catch(e => console.error("[DB] Error logging failed:", e.message));
+                }
             }
         }
 

@@ -157,15 +157,17 @@ export async function generateGroundedResponse(query: string, sources: string[],
         }
 
         // 📊 Log enriched interaction to DB (Fire and forget)
-        prisma.interaction.create({
-            data: {
-                query: query.substring(0, 1000),
-                answer: answer.substring(0, 5000),
-                provider: finalProvider || "Unknown",
-                subject: suggestedSubject || "General",
-                latency: 0 // In this layer we don't have the timing from providers.ts anymore but we captured it in logs
-            }
-        }).catch(e => console.error("[DB] Logging failed:", e.message));
+        if (prisma) {
+            prisma.interaction.create({
+                data: {
+                    query: query.substring(0, 1000),
+                    answer: answer.substring(0, 5000),
+                    provider: finalProvider || "Unknown",
+                    subject: suggestedSubject || "General",
+                    latency: 0 // In this layer we don't have the timing from providers.ts anymore but we captured it in logs
+                }
+            }).catch(e => console.error("[DB] Logging failed:", e.message));
+        }
 
         return { answer, suggestions, suggestedSubject };
     } catch (error: any) {
