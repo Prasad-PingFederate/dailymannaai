@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from "next/server";
 import { AIProviderManager } from "@/lib/ai/providers";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
@@ -6,8 +8,6 @@ const providerManager = new AIProviderManager();
 
 export async function POST(req: Request) {
     try {
-        const { sourceIds } = await req.json();
-
         const { sources } = await req.json();
 
         if (!sources || sources.length === 0) {

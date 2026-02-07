@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from "next/server";
 import { ingestDocuments } from "@/lib/storage/vector-store";
 import mammoth from "mammoth";
