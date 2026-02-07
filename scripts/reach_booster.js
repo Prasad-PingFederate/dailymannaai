@@ -10,6 +10,7 @@
 const { chromium } = require('playwright');
 const { TwitterApi } = require('twitter-api-v2');
 const path = require('path');
+const { execSync } = require('child_process');
 require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
 
 // Religious & Devotional Cluster Keywords
@@ -58,6 +59,62 @@ async function humanClick(page, selectors) {
     } else {
         await element.click(); // Fallback
     }
+}
+
+// 3. CAPTCHA Solver Bridge (Autonomous)
+async function solveCaptchaIfPresent(page) {
+    console.log('🔍 Checking for Arkose Labs CAPTCHA...');
+    const arkoseFrame = page.frames().find(f => f.url().includes('arkoselabs.com'));
+
+    if (arkoseFrame || await page.locator('iframe[src*="arkoselabs"]').first().isVisible().catch(() => false)) {
+        console.log('🚨 CAPTCHA Detected! Initiating Python Solver Bridge...');
+        await page.screenshot({ path: 'captcha-detected.png' });
+
+        try {
+            // Extract SiteKey from the frame URL or element
+            const frameUrl = arkoseFrame ? arkoseFrame.url() : await page.locator('iframe[src*="arkoselabs"]').first().getAttribute('src');
+            const urlObj = new URL(frameUrl);
+            const siteKey = urlObj.searchParams.get('pk');
+
+            if (!siteKey) {
+                console.error('❌ Could not extract SiteKey from Arkose frame.');
+                return false;
+            }
+
+            console.log(`🧩 SiteKey: ${siteKey}. Solving via 2Captcha AI...`);
+            const pythonPath = 'python3'; // GH Actions uses python3
+            const solveScript = path.join(__dirname, 'solve_captcha.py');
+
+            const output = execSync(`${pythonPath} "${solveScript}" "${siteKey}" "${page.url()}"`, {
+                encoding: 'utf-8',
+                env: { ...process.env, CAPTCHA_SOLVER_API_KEY: process.env.CAPTCHA_SOLVER_API_KEY }
+            });
+
+            if (output.includes('SUCCESS_TOKEN:')) {
+                const token = output.split('SUCCESS_TOKEN:')[1].trim();
+                console.log('✅ CAPTCHA Solved! Injecting Token...');
+
+                await page.evaluate((t) => {
+                    const parent = document.querySelector('#arkose-iframe') || document.body;
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'arkose-token';
+                    input.id = 'fc-token';
+                    input.value = t;
+                    parent.appendChild(input);
+
+                    // Trigger X's callback if possible
+                    try { window.postMessage(JSON.stringify({ eventId: "challenge-complete", payload: { sessionToken: t } }), "*"); } catch (e) { }
+                }, token);
+
+                await page.waitForTimeout(5000);
+                return true;
+            }
+        } catch (err) {
+            console.error('❌ CAPTCHA Bridge Failed:', err.message);
+        }
+    }
+    return false;
 }
 
 /**
@@ -215,7 +272,10 @@ async function postTweetViaPlaywright(threadItems) {
         }
 
         if (!foundButton) {
-            console.log('Login likely required. Current page: ' + page.url());
+            console.log('Login likely required or Blocked. Checking for CAPTCHA...');
+            await solveCaptchaIfPresent(page);
+
+            console.log('Proceeding to Login Wall...');
             await page.screenshot({ path: 'login-required.png' });
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
@@ -236,6 +296,9 @@ async function postTweetViaPlaywright(threadItems) {
                 }
 
                 if (bodyText.includes('verification') || bodyText.includes('identity')) {
+                    console.log('Verification Checkpoint. Searching for CAPTCHA...');
+                    await solveCaptchaIfPresent(page);
+
                     if (process.env.X_EMAIL) {
                         const idInp = page.locator('input[name="text"], input[autocomplete="email"]');
                         if (await idInp.first().isVisible()) {
