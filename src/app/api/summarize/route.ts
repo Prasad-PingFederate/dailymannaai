@@ -46,13 +46,20 @@ export async function POST(req: Request) {
         const { response } = await providerManager.generateResponse(prompt);
 
         // 🧠 Global Training Log: Summary Synthesis
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const userAgent = req.headers.get('user-agent') || 'unknown';
+        const referer = req.headers.get('referer') || 'unknown';
+
         await TrainingLogger.log({
             timestamp: new Date().toISOString(),
             request: {
                 query: "Summarization Request",
                 provider: "Summarizer",
                 model: "Synthesizer-v1",
-                systemPrompt: prompt.substring(0, 500)
+                systemPrompt: prompt.substring(0, 500),
+                ip,
+                userAgent,
+                referer
             },
             response: {
                 answer: response,

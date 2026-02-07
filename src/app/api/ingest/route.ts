@@ -176,12 +176,19 @@ export async function POST(req: Request) {
         const chunks = ingestDocuments(textContent, name);
 
         // 🧠 Global Training Log: Data Ingestion (Audit for RAG training)
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const userAgent = req.headers.get('user-agent') || 'unknown';
+        const referer = req.headers.get('referer') || 'unknown';
+
         await TrainingLogger.log({
             timestamp: new Date().toISOString(),
             request: {
                 query: `Ingest: ${name}`,
                 provider: "Ingestion-Hook",
-                model: "RAG-Feeder"
+                model: "RAG-Feeder",
+                ip,
+                userAgent,
+                referer
             },
             response: {
                 answer: `Success: Indexed ${chunks.length} segments.`,

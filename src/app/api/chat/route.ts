@@ -13,13 +13,20 @@ export async function POST(req: Request) {
         const { query, history = [] } = await req.json();
 
         // 🧠 Catch-All MongoDB Logging: Entry Audit
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        const userAgent = req.headers.get('user-agent') || 'unknown';
+        const referer = req.headers.get('referer') || 'unknown';
+
         await TrainingLogger.log({
             timestamp: new Date().toISOString(),
             request: {
                 query,
                 provider: "Chat-Entry-Hook",
                 model: "Audit-Only",
-                historyContextCount: history.length
+                historyContextCount: history.length,
+                ip,
+                userAgent,
+                referer
             },
             response: { answer: "WAITING_FOR_SYNTHESIS", latency: 0, modelUsed: "N/A" },
             metadata: { route: "/api/chat", type: "entry_audit" }

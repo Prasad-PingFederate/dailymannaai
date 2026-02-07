@@ -8,6 +8,9 @@ export interface TrainingData {
         model: string;
         systemPrompt?: string;
         historyContextCount?: number;
+        ip?: string;
+        userAgent?: string;
+        referer?: string;
     };
     response: {
         answer: string;
