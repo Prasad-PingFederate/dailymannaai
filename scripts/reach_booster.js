@@ -299,6 +299,7 @@ async function postTweetViaPlaywright(threadItems) {
                 await page.waitForTimeout(Math.random() * 3000 + 4000);
                 const currentUrl = page.url();
                 const bodyText = await page.innerText('body').catch(() => '');
+                console.log(`📡 [Login Loop Step ${i + 1}] URL: ${currentUrl} | Page Sample: ${bodyText.substring(0, 100).replace(/\n/g, ' ')}...`);
 
                 if (await page.locator('input[name="password"]').isVisible()) {
                     await humanType(page, 'input[name="password"]', process.env.X_PASSWORD);

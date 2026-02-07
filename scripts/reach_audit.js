@@ -42,7 +42,11 @@ class ReachAuditor {
 
             // 2. Check for "Instant CAPTCHA" triggering
             console.log('🔍 Checking Arkose Threat Level...');
-            await page.goto('https://x.com/i/flow/login', { waitUntil: 'networkidle' });
+            await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 45000 });
+            await page.waitForTimeout(5000); // Wait for potential frames
+            const currentUrl = page.url();
+            const bodyText = await page.innerText('body').catch(() => '');
+            console.log(`Arkose Check: URL=${currentUrl}, Page Text Sample: ${bodyText.substring(0, 100).replace(/\n/g, ' ')}...`);
             const arkosePresent = await page.frames().find(f => f.url().includes('arkoselabs')) ||
                 await page.locator('iframe[src*="arkoselabs"]').first().isVisible().catch(() => false);
 
