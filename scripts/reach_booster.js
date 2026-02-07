@@ -76,8 +76,27 @@ async function getTrendsAndPosts() {
         console.log(`✅ Research Complete. Cluster: ${query}. Found ${posts.length} top posts.`);
         return { match, posts };
     } catch (e) {
-        console.error('❌ API Research Failed:', e.message);
-        return { match: null, posts: [] };
+        if (e.message.includes('402')) {
+            console.warn('⚠️ Twitter Research API requires Paid tier. Falling back to Trends24...');
+        } else {
+            console.error('❌ API Research Failed:', e.message);
+        }
+
+        // --- FALLBACK TO SCRAPING FOR FREE TIER ---
+        try {
+            console.log('📈 Attempting Trends24 fallback...');
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage();
+            await page.goto('https://trends24.in/india/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            const trends = await page.evaluate(() => Array.from(document.querySelectorAll('.list-container:first-child .trend-link')).map(t => t.textContent.trim()));
+            await browser.close();
+
+            const matchTrend = trends.find(t => DEVOTIONAL_KEYWORDS.some(kw => t.toLowerCase().includes(kw.toLowerCase()))) || trends[0];
+            return { match: { trend: matchTrend, keyword: 'Trend' }, posts: [] };
+        } catch (err) {
+            console.error('❌ Trends24 Fallback failed:', err.message);
+            return { match: null, posts: [] };
+        }
     }
 }
 
@@ -87,8 +106,15 @@ async function getTrendsAndPosts() {
 async function postTweetViaAPI(threadItems) {
     console.log('Attempting Primary Post via Twitter API (v2)...');
 
-    if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_ACCESS_TOKEN) {
-        console.warn('⚠️ API Credentials missing.');
+    const hasCreds = process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET &&
+        process.env.TWITTER_ACCESS_TOKEN && process.env.TWITTER_ACCESS_SECRET;
+
+    if (!hasCreds) {
+        console.warn('⚠️ API Credentials incomplete. Checking missing keys:');
+        if (!process.env.TWITTER_API_KEY) console.warn('   - Missing: TWITTER_API_KEY (CONSUMER_KEY)');
+        if (!process.env.TWITTER_API_SECRET) console.warn('   - Missing: TWITTER_API_SECRET (CONSUMER_KEY_SECRET)');
+        if (!process.env.TWITTER_ACCESS_TOKEN) console.warn('   - Missing: TWITTER_ACCESS_TOKEN (X_ACCESS_TOKEN)');
+        if (!process.env.TWITTER_ACCESS_SECRET) console.warn('   - Missing: TWITTER_ACCESS_SECRET (ACCESS_TOKEN_SECRET)');
         return false;
     }
 
