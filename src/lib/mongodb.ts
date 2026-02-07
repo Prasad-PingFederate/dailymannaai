@@ -25,5 +25,6 @@ export async function getDatabase(): Promise<Db> {
     cachedClient = client;
     cachedDb = db;
 
+    console.log(`✅ [MongoDB] Connection established to database: ${dbName}`);
     return db;
 }
