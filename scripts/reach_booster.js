@@ -33,9 +33,19 @@ async function humanType(page, selector, text) {
     }
 }
 
-// 2. Bezier Mouse Pathing (Non-linear movement)
-async function humanClick(page, selector) {
-    const element = page.locator(selector).first();
+// 2. Bezier Mouse Pathing / Robust Click
+async function humanClick(page, selectors) {
+    // If input is single string, make array
+    const selectorList = Array.isArray(selectors) ? selectors : [selectors];
+
+    let element = null;
+    for (const sel of selectorList) {
+        element = page.locator(sel).first();
+        if (await element.isVisible().catch(() => false)) break;
+    }
+
+    if (!element) throw new Error(`Could not find any of selectors: ${selectorList.join(', ')}`);
+
     const box = await element.boundingBox();
     if (box) {
         const x = box.x + box.width / 2;
@@ -105,6 +115,14 @@ async function getTrendsAndPosts() {
  */
 async function postTweetViaAPI(threadItems) {
     console.log('Attempting Primary Post via Twitter API (v2)...');
+
+    // Debugging which keys are reaching the environment
+    console.log('Credential Check (Masked):', {
+        CONSUMER_KEY: process.env.TWITTER_API_KEY ? '[SET]' : '[MISSING]',
+        CONSUMER_SECRET: process.env.TWITTER_API_SECRET ? '[SET]' : '[MISSING]',
+        ACCESS_TOKEN: process.env.TWITTER_ACCESS_TOKEN ? '[SET]' : '[MISSING]',
+        ACCESS_SECRET: process.env.TWITTER_ACCESS_SECRET ? '[SET]' : '[MISSING]'
+    });
 
     const hasCreds = process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET &&
         process.env.TWITTER_ACCESS_TOKEN && process.env.TWITTER_ACCESS_SECRET;
@@ -179,12 +197,26 @@ async function postTweetViaPlaywright(threadItems) {
         }
 
         await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(Math.random() * 5000 + 5000); // Range 5-10s
+        await page.waitForTimeout(10000);
+        await page.screenshot({ path: 'home-preview.png' });
 
-        const tweetButtonLocator = page.locator('[data-testid="SideNav_NewTweet_Button"], [data-testid="AppTabBar_Home_Link"]');
+        const tweetButtonSelectors = [
+            '[data-testid="SideNav_NewTweet_Button"]',
+            '[data-testid="AppTabBar_Home_Link"]', // Mobile view button
+            'a[href="/compose/tweet"]'
+        ];
 
-        if (!(await tweetButtonLocator.first().isVisible())) {
-            console.log('Passage through Login Wall (Human Mode)...');
+        let foundButton = false;
+        for (const sel of tweetButtonSelectors) {
+            if (await page.locator(sel).first().isVisible()) {
+                foundButton = true;
+                break;
+            }
+        }
+
+        if (!foundButton) {
+            console.log('Login likely required. Current page: ' + page.url());
+            await page.screenshot({ path: 'login-required.png' });
             await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
             await page.waitForTimeout(Math.random() * 3000 + 2000);
@@ -215,17 +247,31 @@ async function postTweetViaPlaywright(threadItems) {
                     }
                 }
 
-                if (await tweetButtonLocator.first().isVisible() || currentUrl.includes('/home')) break;
+                // Re-check the tweet button selectors after each login step
+                let loggedIn = false;
+                for (const sel of tweetButtonSelectors) {
+                    if (await page.locator(sel).first().isVisible()) {
+                        loggedIn = true;
+                        break;
+                    }
+                }
+                if (loggedIn || currentUrl.includes('/home')) break;
             }
         }
 
         // Final Wait & Micro-scroll (Human interaction)
-        await page.waitForSelector('[data-testid="SideNav_NewTweet_Button"]', { timeout: 30000 }).catch(() => { });
+        await page.waitForTimeout(5000);
         await page.evaluate(() => window.scrollBy(0, 300));
         await page.waitForTimeout(2000);
+        await page.screenshot({ path: 'home-pre-post.png' });
 
-        console.log('Interacting with Composer (Human-Like Click)...');
-        await humanClick(page, '[data-testid="SideNav_NewTweet_Button"]');
+        console.log('Interacting with Composer (Robust Multi-Selector)...');
+        const finalComposerSelectors = [
+            '[data-testid="SideNav_NewTweet_Button"]',
+            '[data-testid="AppTabBar_Home_Link"]',
+            'a[href="/compose/tweet"]'
+        ];
+        await humanClick(page, finalComposerSelectors);
         await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 20000 });
 
         for (let i = 0; i < threadItems.length; i++) {
