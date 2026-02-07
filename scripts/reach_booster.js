@@ -293,13 +293,32 @@ async function postTweetViaPlaywright(threadItems) {
 
             await page.waitForTimeout(Math.random() * 3000 + 2000);
             await humanType(page, 'input[autocomplete="username"]', process.env.X_USERNAME);
+            await page.screenshot({ path: 'login-username-entered.png' });
+
+            // Try Enter first, then look for "Next" button just in case
             await page.keyboard.press('Enter');
+            await page.waitForTimeout(3000);
+
+            const nextButton = page.locator('span:has-text("Next"), div[role="button"]:has-text("Next")').first();
+            if (await nextButton.isVisible()) {
+                console.log('ℹ️ Enter press didnt trigger navigation. Clicking "Next" button...');
+                await nextButton.click();
+            }
 
             for (let i = 0; i < 7; i++) {
                 await page.waitForTimeout(Math.random() * 3000 + 4000);
+                await page.screenshot({ path: `login-step-${i + 1}.png` });
                 const currentUrl = page.url();
                 const bodyText = await page.innerText('body').catch(() => '');
                 console.log(`📡 [Login Loop Step ${i + 1}] URL: ${currentUrl} | Page Sample: ${bodyText.substring(0, 100).replace(/\n/g, ' ')}...`);
+
+                // Check for CAPTCHA at EVERY step (it often pops up AFTER username)
+                const captchaSolved = await solveCaptchaIfPresent(page);
+                if (captchaSolved) {
+                    console.log('✅ CAPTCHA solved in loop. Waiting for redirect...');
+                    await page.waitForTimeout(5000);
+                    continue;
+                }
 
                 if (await page.locator('input[name="password"]').isVisible()) {
                     await humanType(page, 'input[name="password"]', process.env.X_PASSWORD);
