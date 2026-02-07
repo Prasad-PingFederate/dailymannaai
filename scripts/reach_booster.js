@@ -244,8 +244,8 @@ async function postTweetViaPlaywright(threadItems) {
     });
 
     const page = await context.newPage();
-    page.setDefaultTimeout(60000);
-    page.setDefaultNavigationTimeout(120000);
+    page.setDefaultTimeout(1200000); // 20 minutes as requested
+    page.setDefaultNavigationTimeout(1200000);
 
     // --- [NEW] Real-time Security Monitoring (Inspired by User patterns) ---
     page.on('response', async (response) => {
@@ -297,8 +297,11 @@ async function postTweetViaPlaywright(threadItems) {
 
             const usernameInput = page.locator('input[autocomplete="username"], input[name="text"]');
             await usernameInput.first().click(); // Explicit click before typing
+            await page.waitForTimeout(1000);
             await usernameInput.first().fill(''); // Clear if anything exists
+            await page.waitForTimeout(1000);
             await humanType(page, 'input[autocomplete="username"], input[name="text"]', loginIdentifier);
+            await page.waitForTimeout(2000);
             await page.screenshot({ path: 'login-username-entered.png' });
 
             // Try Enter first, then look for "Next" button just in case
@@ -373,7 +376,7 @@ async function postTweetViaPlaywright(threadItems) {
             'a[href="/compose/tweet"]'
         ];
         await humanClick(page, finalComposerSelectors);
-        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 20000 });
+        await page.waitForSelector('[data-testid="tweetTextarea_0"]', { timeout: 1200000 });
 
         for (let i = 0; i < threadItems.length; i++) {
             const editor = page.locator(`[data-testid="tweetTextarea_${i}"]`).first();
