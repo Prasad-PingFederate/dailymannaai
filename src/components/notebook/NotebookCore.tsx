@@ -1757,7 +1757,7 @@ It's now part of my collective wisdom!`
                             <div className="max-w-4xl mx-auto relative group">
                                 <div className="relative bg-card-bg/60 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] focus-within:ring-2 ring-accent/30 transition-all p-3 group-hover:border-accent/20">
                                     <textarea
-                                        placeholder="+ Search area  ASK Daily manna Ai about the scriptures or your research..."
+                                        placeholder="ASK Daily manna Ai about the scriptures or your research..."
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={(e) => {
