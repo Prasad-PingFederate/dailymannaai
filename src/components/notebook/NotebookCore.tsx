@@ -1584,17 +1584,17 @@ It's now part of my collective wisdom!`
                                                         <div className="space-y-4">
                                                             {/* Follow-up Suggestions (Only for the latest message) */}
                                                             {i === messages.length - 1 && suggestions.length > 0 && !isChatting && (
-                                                                <div className="mt-6 px-4 space-y-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
-                                                                    <div className="flex items-center gap-2 text-[11px] text-amber-500/80 font-black uppercase tracking-[0.2em]">
-                                                                        <Lightbulb size={14} className="text-amber-400" />
-                                                                        <span>Continue studying:</span>
+                                                                <div className="mt-8 px-4 space-y-5 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
+                                                                    <div className="flex items-center gap-3 text-[11px] text-accent/80 font-black uppercase tracking-[0.2em] mb-2">
+                                                                        <Sparkles size={14} className="text-accent animate-pulse" />
+                                                                        <span>Continue your study:</span>
                                                                     </div>
-                                                                    <div className="flex flex-wrap gap-2.5">
+                                                                    <div className="flex flex-wrap gap-3">
                                                                         {suggestions.map((suggestion, sIdx) => (
                                                                             <button
                                                                                 key={sIdx}
                                                                                 onClick={() => handleSendMessage(suggestion)}
-                                                                                className="px-6 py-3 bg-amber-500/5 border border-amber-500/20 rounded-full text-xs font-bold text-amber-200/90 hover:text-amber-100 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all shadow-sm hover:shadow-amber-500/10 hover:translate-y-[-2px] active:translate-y-0"
+                                                                                className="px-6 py-3.5 bg-accent/5 border border-accent/20 rounded-2xl text-[13px] font-bold text-foreground/90 hover:text-accent hover:border-accent/50 hover:bg-accent/10 hover:shadow-lg hover:shadow-accent/5 transition-all hover:-translate-y-1 active:scale-95 text-left max-w-sm"
                                                                             >
                                                                                 {suggestion}
                                                                             </button>
