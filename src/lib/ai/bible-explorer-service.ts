@@ -1,5 +1,5 @@
 // src/lib/ai/bible-explorer-service.ts
-import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
+import { HumanMessage, SystemMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { astraDb } from "./bible-explorer-db";
 import { BIBLE_EXPLORER_SYSTEM_PROMPT, BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX } from "./bible-explorer-prompt";
@@ -59,7 +59,7 @@ const BOOK_NAMES: Record<string, string> = {
 export async function askBibleQuestion(question: string, history: any[] = []) {
     const searchResult = await retryWithExponentialBackoff(() => performSimilaritySearch(question));
 
-    const langchainMessages = [
+    const langchainMessages: BaseMessage[] = [
         new SystemMessage(BIBLE_EXPLORER_SYSTEM_PROMPT),
     ];
 
