@@ -100,6 +100,7 @@ export default function NotebookWorkspace() {
     const [isBarHovered, setIsBarHovered] = useState(false);
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [uiMode, setUiMode] = useState<'notebook' | 'chat-focus'>('notebook'); // New UI Mode
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
     const [showScrollButton, setShowScrollButton] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
@@ -1622,7 +1623,22 @@ It's now part of my collective wisdom!`
                         <button className="hidden xs:block p-2 hover:bg-border/50 rounded-full transition-colors"><Edit3 size={18} /></button>
                         <button className="hidden sm:block p-2 hover:bg-border/50 rounded-full transition-colors"><Share2 size={18} /></button>
 
-                        {/* Mobile Chat Toggle (Moved/Redesigned) */}
+                        {/* UI Mode Toggle */}
+                        <div className="hidden md:flex bg-muted/10 border border-border p-1 rounded-xl items-center">
+                            <button
+                                onClick={() => setUiMode('notebook')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${uiMode === 'notebook' ? 'bg-card-bg text-accent shadow-sm' : 'text-muted hover:text-foreground'}`}
+                            >
+                                <FileText size={14} /> Notebook
+                            </button>
+                            <button
+                                onClick={() => setUiMode('chat-focus')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${uiMode === 'chat-focus' ? 'bg-card-bg text-accent shadow-sm' : 'text-muted hover:text-foreground'}`}
+                            >
+                                <MessageSquare size={14} /> Chat Focus
+                            </button>
+                        </div>
+
                         <button
                             onClick={() => setChatOpen(!isChatOpen)}
                             className={`md:hidden px-3 py-2 rounded-xl transition-all relative flex items-center gap-2 ${isChatOpen ? 'bg-accent text-white scale-105' : 'bg-accent-secondary/5 text-accent-secondary hover:bg-accent-secondary/10'}`}
@@ -1781,35 +1797,163 @@ It's now part of my collective wisdom!`
                     </div>
                 )}
 
-                <div className="flex-1 p-4 md:p-10 overflow-y-auto bg-card-bg/10">
-                    <div className="max-w-3xl mx-auto space-y-6">
-                        <div className="space-y-2">
-                            <input
-                                type="text"
-                                defaultValue="Research Strategy - Q1 2026"
-                                className="text-4xl font-extrabold bg-transparent border-none focus:outline-none w-full"
-                            />
-                            <p className="text-muted text-sm italic">Last updated 2 hours ago</p>
-                        </div>
+                {/* 2a. Main Content Area - Switches based on uiMode */}
+                <div className="flex-1 overflow-hidden relative flex flex-col">
+                    {uiMode === 'notebook' ? (
+                        /* Standard Notebook Editor */
+                        <div className="flex-1 p-4 md:p-10 overflow-y-auto bg-card-bg/10">
+                            <div className="max-w-3xl mx-auto space-y-6">
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        defaultValue="Research Strategy - Q1 2026"
+                                        className="text-4xl font-extrabold bg-transparent border-none focus:outline-none w-full"
+                                    />
+                                    <p className="text-muted text-sm italic">Last updated 2 hours ago</p>
+                                </div>
 
-                        <div
-                            className={`prose prose-zinc dark:prose-invert max-w-none relative group transition-all duration-300 ${isDraggingOver ? 'scale-[1.01]' : ''}`}
-                            onDrop={handleNoteDrop}
-                            onDragOver={handleNoteDragOver}
-                            onDragLeave={handleNoteDragLeave}
-                        >
-                            {/* Drag overlay indicator */}
-                            <div className={`absolute inset-x-[-20px] inset-y-[-20px] border-2 border-dashed rounded-3xl pointer-events-none transition-all duration-300 z-0 ${isDraggingOver ? 'border-accent/40 bg-accent/5' : 'border-transparent'}`} />
+                                <div
+                                    className={`prose prose-zinc dark:prose-invert max-w-none relative group transition-all duration-300 ${isDraggingOver ? 'scale-[1.01]' : ''}`}
+                                    onDrop={handleNoteDrop}
+                                    onDragOver={handleNoteDragOver}
+                                    onDragLeave={handleNoteDragLeave}
+                                >
+                                    {/* Drag overlay indicator */}
+                                    <div className={`absolute inset-x-[-20px] inset-y-[-20px] border-2 border-dashed rounded-3xl pointer-events-none transition-all duration-300 z-0 ${isDraggingOver ? 'border-accent/40 bg-accent/5' : 'border-transparent'}`} />
 
-                            <textarea
-                                placeholder="Start typing your research notes here... or drag a source here to analyze it."
-                                value={noteContent}
-                                onChange={(e) => setNoteContent(e.target.value)}
-                                className="w-full min-h-[500px] bg-transparent border-none focus:outline-none text-lg resize-none leading-relaxed relative z-10"
-                                rows={20}
-                            />
+                                    <textarea
+                                        placeholder="Start typing your research notes here... or drag a source here to analyze it."
+                                        value={noteContent}
+                                        onChange={(e) => setNoteContent(e.target.value)}
+                                        className="w-full min-h-[500px] bg-transparent border-none focus:outline-none text-lg resize-none leading-relaxed relative z-10"
+                                        rows={20}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        /* Chat Focus View (Claude/ChatGPT style) */
+                        <div className="flex-1 flex flex-col bg-background relative overflow-hidden">
+                            <div
+                                ref={chatContainerRef}
+                                onScroll={handleChatScroll}
+                                className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 relative"
+                            >
+                                <div className="max-w-3xl mx-auto">
+                                    <div className="chat-focus-messages space-y-6 pt-10">
+                                        {messages.length === 1 && (
+                                            <div className="text-center py-20 animate-in fade-in zoom-in duration-700">
+                                                <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent-secondary">What can I help with?</h1>
+                                                <p className="text-muted text-lg">Harness the power of AI grounded in your sacred sources.</p>
+                                            </div>
+                                        )}
+                                        <div className="space-y-12 pb-20">
+                                            {messages.map((msg: any, i) => (
+                                                <div key={i} className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
+                                                    <div className={`h-12 w-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-accent-secondary shadow-xl'}`}>
+                                                        {msg.role === 'user' ? 'U' : <Sparkles size={24} className="animate-pulse" />}
+                                                    </div>
+                                                    <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
+                                                        <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/50 backdrop-blur-sm border border-border/50'} rounded-3xl p-6 px-8 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/30`}>
+                                                            <div className="whitespace-pre-wrap break-words">
+                                                                {msg.content}
+                                                            </div>
+                                                        </div>
+                                                        {msg.role === 'assistant' && (
+                                                            <div className="flex items-center gap-6 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button onClick={() => handleSpeakMessage(msg.content, i)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                    <Volume2 size={14} /> Listen
+                                                                </button>
+                                                                <button onClick={() => addNoteAtCursor(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                    <Pin size={14} /> Pin to Note
+                                                                </button>
+                                                                <button onClick={() => navigator.clipboard.writeText(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                    <Copy size={14} /> Copy
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {isChatting && (
+                                                <div className="flex gap-6 animate-in fade-in duration-500">
+                                                    <div className="h-10 w-10 rounded-2xl bg-accent-secondary flex-shrink-0 flex items-center justify-center text-white animate-pulse">
+                                                        <Sparkles size={20} />
+                                                    </div>
+                                                    <div className="bg-muted/5 rounded-2xl p-6 text-muted-foreground italic flex items-center gap-3">
+                                                        <div className="flex gap-1.5">
+                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce"></div>
+                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                                                        </div>
+                                                        Daily Manna AI is thinking...
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Center Chat Input (Groq/Claude style) */}
+                            <div className="p-6 md:p-10 border-t border-border/10 bg-gradient-to-t from-background to-transparent pt-12">
+                                <div className="max-w-4xl mx-auto relative group">
+                                    <div className="relative bg-card-bg/60 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] focus-within:ring-2 ring-accent/30 transition-all p-3 group-hover:border-accent/20">
+                                        <textarea
+                                            placeholder="Ask Daily Manna AI about the scriptures or your research..."
+                                            value={input}
+                                            onChange={(e) => setInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleSendMessage();
+                                                }
+                                            }}
+                                            className="w-full bg-transparent border-none py-5 px-14 pr-20 text-xl focus:outline-none resize-none min-h-[70px] max-h-80 overflow-y-auto"
+                                            rows={1}
+                                        />
+                                        <div className="absolute left-4 top-4">
+                                            <button
+                                                onClick={() => setUploadModalOpen(true)}
+                                                className="p-3 bg-muted/5 hover:bg-accent/10 rounded-full text-muted hover:text-accent transition-all hover:scale-110 active:scale-90"
+                                                title="Add Source (PDF, Word, YT, URL)"
+                                            >
+                                                <Plus size={24} />
+                                            </button>
+                                        </div>
+                                        <div className="absolute right-4 top-4">
+                                            <button
+                                                onClick={() => handleSendMessage()}
+                                                disabled={!input.trim()}
+                                                className={`p-4 bg-accent text-white rounded-[1.5rem] shadow-2xl transition-all ${input.trim() ? 'hover:scale-110 active:scale-90 hover:rotate-2 shadow-accent/40' : 'opacity-10 cursor-not-allowed grayscale'}`}
+                                            >
+                                                <Send size={24} />
+                                            </button>
+                                        </div>
+                                        <div className="px-8 pb-3 flex items-center justify-between text-[11px] text-muted-foreground font-black uppercase tracking-[0.2em]">
+                                            <div className="flex items-center gap-4">
+                                                <span className="flex items-center gap-2 italic">
+                                                    <BookOpen size={12} className="text-accent" />
+                                                    {sources.filter(s => s.selected).length} SOURCES ACTIVE
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-accent/80">
+                                                <Sparkles size={12} className="animate-pulse" />
+                                                BORN AGAIN AI
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-5 flex flex-wrap justify-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
+                                        {['Summarize Sources', 'Divine Reflection', 'Bible Explorer', 'Podcast Overview'].map((tip, idx) => (
+                                            <span key={idx} className="px-3 py-1 bg-muted/5 border border-border/30 rounded-full text-[10px] font-bold text-muted cursor-default hover:bg-accent/10 hover:text-accent transition-colors">
+                                                {tip}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Dynamic Action Bar (Bottom Middle) - Stabilized */}
@@ -1936,6 +2080,7 @@ It's now part of my collective wisdom!`
                 style={{ width: (isChatOpen || !isMobile) ? `${chatSidebarWidth}px` : '0' }}
                 className={`border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden
                     md:relative md:translate-x-0 transition-all duration-300
+                    ${uiMode === 'chat-focus' ? 'w-0 border-none' : ''}
                     ${isChatOpen ? 'fixed inset-0 z-[150] translate-x-0 w-full shadow-2xl pt-safe' : 'fixed translate-x-full md:translate-x-0'}`}
             >
                 {/* Mobile Close Button */}
