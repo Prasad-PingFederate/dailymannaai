@@ -1558,6 +1558,23 @@ It's now part of my collective wisdom!`
                                                     )}
                                                 </div>
                                                 <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
+                                                    {msg.role === 'assistant' && (
+                                                        <div className="flex items-center gap-6 px-4 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleSpeakMessage(msg.content, i)}
+                                                                className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${isSpeakingMap[i] ? 'text-accent' : 'text-muted hover:text-accent'}`}
+                                                            >
+                                                                <Volume2 size={14} className={isSpeakingMap[i] ? 'animate-pulse' : ''} />
+                                                                {isSpeakingMap[i] ? 'Stop' : 'Listen'}
+                                                            </button>
+                                                            <button onClick={() => addNoteAtCursor(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                <Pin size={14} /> Pin to Note
+                                                            </button>
+                                                            <button onClick={() => navigator.clipboard.writeText(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                <Copy size={14} /> Copy
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                     <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/50 backdrop-blur-sm border border-border/50'} rounded-3xl p-6 px-6 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/30`}>
                                                         <div className="whitespace-pre-wrap break-words">
                                                             {msg.content}
@@ -1565,22 +1582,6 @@ It's now part of my collective wisdom!`
                                                     </div>
                                                     {msg.role === 'assistant' && (
                                                         <div className="space-y-4">
-                                                            <div className="flex items-center gap-6 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button
-                                                                    onClick={() => handleSpeakMessage(msg.content, i)}
-                                                                    className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${isSpeakingMap[i] ? 'text-accent' : 'text-muted hover:text-accent'}`}
-                                                                >
-                                                                    <Volume2 size={14} className={isSpeakingMap[i] ? 'animate-pulse' : ''} />
-                                                                    {isSpeakingMap[i] ? 'Stop' : 'Listen'}
-                                                                </button>
-                                                                <button onClick={() => addNoteAtCursor(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                    <Pin size={14} /> Pin to Note
-                                                                </button>
-                                                                <button onClick={() => navigator.clipboard.writeText(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                    <Copy size={14} /> Copy
-                                                                </button>
-                                                            </div>
-
                                                             {/* Follow-up Suggestions (Only for the latest message) */}
                                                             {i === messages.length - 1 && suggestions.length > 0 && !isChatting && (
                                                                 <div className="mt-6 px-4 space-y-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
