@@ -1853,7 +1853,7 @@ It's now part of my collective wisdom!`
                         </div>
 
                         {/* Center Chat Input (Groq/Claude style) */}
-                        <div className="p-6 md:p-10 border-t border-border/10 bg-gradient-to-t from-background to-transparent pt-12">
+                        <div className="p-6 md:p-10 border-t border-border/10 bg-gradient-to-t from-background to-transparent pt-6">
                             <div className="max-w-4xl mx-auto relative group">
                                 <div className="relative bg-card-bg/60 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] focus-within:ring-2 ring-accent/30 transition-all p-3 group-hover:border-accent/20">
                                     <textarea
@@ -1900,68 +1900,42 @@ It's now part of my collective wisdom!`
                                         </div>
                                     </div>
                                 </div>
-                                <div className="mt-8 grid grid-cols-3 md:grid-cols-5 gap-3 max-w-3xl mx-auto">
-                                    {[
-                                        { label: 'Add', sub: 'SOURCE', icon: <Plus size={16} />, action: () => setUploadModalOpen(true), color: 'text-blue-500' },
-                                        { label: 'Summarize', sub: 'SOURCES', icon: <FileStack size={16} />, action: handleSummarize, color: 'text-blue-400' },
-                                        { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={16} />, action: handleRefine, color: 'text-purple-400' },
-                                        { label: 'Divine', sub: 'REFLECTION', icon: <Sparkles size={16} />, action: handleDivineMeditation, color: 'text-yellow-500', badge: 'DIVINE ✨' },
-                                        { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={16} />, action: generateAudioOverview, color: 'text-accent', badge: 'NEW ✨' }
-                                    ].map((tool, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={tool.action}
-                                            className="group relative flex flex-col items-center justify-center p-4 bg-card-bg/40 backdrop-blur-md border border-border/50 rounded-2xl hover:border-accent/40 hover:bg-accent/5 transition-all hover:scale-105 active:scale-95 shadow-xl"
-                                        >
-                                            {tool.badge && (
-                                                <span className="absolute -top-2 px-1.5 py-0.5 bg-background border border-border rounded text-[8px] font-black text-accent uppercase tracking-tighter shadow-sm whitespace-nowrap">
-                                                    {tool.badge}
-                                                </span>
-                                            )}
-                                            <div className={`${tool.color} mb-1 group-hover:scale-110 transition-transform`}>
-                                                {tool.icon}
-                                            </div>
-                                            <span className="text-[10px] font-bold text-foreground">
-                                                {tool.label}
-                                            </span>
-                                            <span className="text-[8px] font-medium text-muted uppercase tracking-wider">
-                                                {tool.sub}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* New Fixed Action Bar (Box 2 Style) */}
-                <div className="border-t border-border bg-card-bg/40 backdrop-blur-xl px-1 py-1">
-                    <div className="flex divide-x divide-border overflow-x-auto no-scrollbar">
-                        <button
-                            onClick={() => setUploadModalOpen(true)}
-                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
-                        >
-                            Add
-                        </button>
-                        <button
-                            onClick={handleSummarize}
-                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
-                        >
-                            Summarize,
-                        </button>
-                        <button
-                            onClick={handleDivineMeditation}
-                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
-                        >
-                            Refine Divine
-                        </button>
-                        <button
-                            onClick={generateAudioOverview}
-                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
-                        >
-                            New podcast
-                        </button>
+                {/* New Fixed Action Bar (Merged Style) */}
+                <div className="border-t border-border bg-card-bg/40 backdrop-blur-xl px-4 py-4">
+                    <div className="max-w-4xl mx-auto grid grid-cols-3 md:grid-cols-5 gap-3">
+                        {[
+                            { label: 'Add', sub: 'SOURCE', icon: <Plus size={16} />, action: () => setUploadModalOpen(true), color: 'text-blue-500' },
+                            { label: 'Summarize', sub: 'SOURCES', icon: <FileStack size={16} />, action: handleSummarize, color: 'text-blue-400' },
+                            { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={16} />, action: handleRefine, color: 'text-purple-400' },
+                            { label: 'Divine', sub: 'REFLECTION', icon: <Sparkles size={16} />, action: handleDivineMeditation, color: 'text-yellow-500', badge: 'DIVINE ✨' },
+                            { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={16} />, action: generateAudioOverview, color: 'text-accent', badge: 'NEW ✨' }
+                        ].map((tool, idx) => (
+                            <button
+                                key={idx}
+                                onClick={tool.action}
+                                className="group relative flex flex-col items-center justify-center p-3 bg-card-bg/60 backdrop-blur-md border border-border/50 rounded-[1.25rem] hover:border-accent/40 hover:bg-accent/5 transition-all hover:scale-105 active:scale-95 shadow-md"
+                            >
+                                {tool.badge && (
+                                    <span className="absolute -top-2 px-1.5 py-0.5 bg-background border border-border rounded text-[7px] font-black text-accent uppercase tracking-tighter shadow-sm whitespace-nowrap">
+                                        {tool.badge}
+                                    </span>
+                                )}
+                                <div className={`${tool.color} mb-1 group-hover:scale-110 transition-transform`}>
+                                    {tool.icon}
+                                </div>
+                                <span className="text-[9px] font-bold text-foreground">
+                                    {tool.label}
+                                </span>
+                                <span className="text-[7px] font-medium text-muted uppercase tracking-wider">
+                                    {tool.sub}
+                                </span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             </main>
