@@ -1695,7 +1695,7 @@ It's now part of my collective wisdom!`
                         <div
                             ref={chatContainerRef}
                             onScroll={handleChatScroll}
-                            className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 relative"
+                            className="flex-1 overflow-y-auto p-4 md:px-10 md:py-6 space-y-6 relative"
                         >
                             <div className="max-w-3xl mx-auto">
                                 <div className="chat-focus-messages space-y-6 pt-10">
@@ -1705,7 +1705,7 @@ It's now part of my collective wisdom!`
                                             <p className="text-muted text-lg">Harness the power of AI grounded in your sacred sources.</p>
                                         </div>
                                     )}
-                                    <div className="space-y-12 pb-20">
+                                    <div className="space-y-8 pb-6">
                                         {messages.map((msg: any, i) => (
                                             <div key={i} className={`group flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
                                                 <div className={`h-12 w-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-accent-secondary shadow-xl'}`}>
@@ -1781,7 +1781,7 @@ It's now part of my collective wisdom!`
                         </div>
 
                         {/* Center Chat Input (Groq/Claude style) */}
-                        <div className="p-6 md:p-10 border-t border-border/10 bg-gradient-to-t from-background to-transparent pt-6">
+                        <div className="p-4 md:px-10 md:pb-8 md:pt-2 border-t border-border/10 bg-gradient-to-t from-background to-transparent">
                             <div className="max-w-4xl mx-auto relative group">
                                 <div className="relative bg-card-bg/60 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] focus-within:ring-2 ring-accent/30 transition-all p-3 group-hover:border-accent/20">
                                     <textarea
