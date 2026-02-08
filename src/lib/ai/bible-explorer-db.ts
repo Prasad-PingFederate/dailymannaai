@@ -1,23 +1,34 @@
 // src/lib/ai/bible-explorer-db.ts
 import { DataAPIClient } from "@datastax/astra-db-ts";
 
-// Initialize the client
-const token = process.env.ASTRA_DB_APPLICATION_TOKEN || process.env.ASTRA_DB_TOKEN;
-const endpoint = process.env.ASTRA_DB_API_ENDPOINT || process.env.ASTRA_DB_ENDPOINT;
+let dbInstance: any = null;
 
-const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN as string);
-const db = client.db(process.env.ASTRA_DB_API_ENDPOINT as string, {
-    keyspace: "default_keyspace"
-});
+export function getAstraDb() {
+    if (dbInstance) return dbInstance;
 
-export const astraDb = db;
+    const token = process.env.ASTRA_DB_APPLICATION_TOKEN || process.env.ASTRA_DB_TOKEN;
+    const endpoint = process.env.ASTRA_DB_API_ENDPOINT || process.env.ASTRA_DB_ENDPOINT;
+
+    // Use placeholder values during build if env vars are missing
+    const client = new DataAPIClient(token || "placeholder_token");
+    dbInstance = client.db(endpoint || "https://placeholder.astra.datastax.com", {
+        keyspace: "default_keyspace"
+    });
+    return dbInstance;
+}
+
+// Always use getAstraDb() to avoid top-level crashes
 
 export async function testAstraDbConnection() {
+    const token = process.env.ASTRA_DB_APPLICATION_TOKEN || process.env.ASTRA_DB_TOKEN;
+    const endpoint = process.env.ASTRA_DB_API_ENDPOINT || process.env.ASTRA_DB_ENDPOINT;
+
     if (!token || !endpoint) {
         console.warn("AstraDB credentials missing.");
         return false;
     }
     try {
+        const db = getAstraDb();
         const colls = await db.listCollections();
         console.log("Connected to AstraDB:", colls);
         return true;

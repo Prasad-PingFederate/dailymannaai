@@ -1,7 +1,6 @@
-// src/lib/ai/bible-explorer-service.ts
 import { HumanMessage, SystemMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-import { astraDb } from "./bible-explorer-db";
+import { getAstraDb } from "./bible-explorer-db";
 import { BIBLE_EXPLORER_SYSTEM_PROMPT, BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX } from "./bible-explorer-prompt";
 
 const model = new ChatOpenAI({
@@ -80,7 +79,8 @@ export async function askBibleQuestion(question: string, history: any[] = []) {
 
 async function performSimilaritySearch(query: string) {
     const queryVector = await embeddings.embedQuery(query);
-    const collection = astraDb.collection(process.env.ASTRA_DB_COLLECTION || "openai_embedding_collection");
+    const db = getAstraDb();
+    const collection = db.collection(process.env.ASTRA_DB_COLLECTION || "openai_embedding_collection");
 
     const results = await collection.find({}, {
         sort: { $vector: queryVector },
@@ -99,7 +99,7 @@ async function performSimilaritySearch(query: string) {
         return { reference: ref, similarity: doc.$similarity ?? 0 };
     });
 
-    const formatted = verses.map(v => `${v.reference} (Similarity: ${v.similarity.toFixed(2)})`).join("\n");
+    const formatted = verses.map((v: any) => `${v.reference} (Similarity: ${v.similarity.toFixed(2)})`).join("\n");
 
     return { formatted, verses };
 }

@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import { askBibleQuestion } from "@/lib/ai/bible-explorer-service";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
     try {
         const { question, history } = await req.json();
@@ -16,9 +18,6 @@ export async function POST(req: Request) {
         const readableStream = new ReadableStream({
             async start(controller) {
                 try {
-                    // In a real implementation, we would send the sources metadata first
-                    // like the original bible-ai-explorer does.
-
                     for await (const chunk of stream) {
                         const text = typeof chunk.content === 'string' ? chunk.content : '';
                         if (text) {
