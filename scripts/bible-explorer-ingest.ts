@@ -14,7 +14,7 @@ const embeddings = new OpenAIEmbeddings({
 
 const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN as string);
 const db = client.db(process.env.ASTRA_DB_API_ENDPOINT as string, {
-    namespace: "default_keyspace"
+    keyspace: "default_keyspace"
 });
 
 const BOOK_MAPPING: Record<string, number> = {
