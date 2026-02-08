@@ -34,7 +34,8 @@ import {
     FileAudio,
     CheckCircle2,
     Volume2,
-    Menu
+    Menu,
+    Lightbulb
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 import { GODS_LOVE_VERSES } from "@/lib/data/gods_love";
@@ -1736,17 +1737,17 @@ It's now part of my collective wisdom!`
 
                                                             {/* Follow-up Suggestions (Only for the latest message) */}
                                                             {i === messages.length - 1 && suggestions.length > 0 && !isChatting && (
-                                                                <div className="mt-4 px-4 space-y-3 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
-                                                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em]">
-                                                                        <MessageSquare size={12} className="text-accent/60" />
+                                                                <div className="mt-6 px-4 space-y-4 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
+                                                                    <div className="flex items-center gap-2 text-[11px] text-amber-500/80 font-black uppercase tracking-[0.2em]">
+                                                                        <Lightbulb size={14} className="text-amber-400" />
                                                                         <span>Continue studying:</span>
                                                                     </div>
-                                                                    <div className="flex flex-wrap gap-2">
+                                                                    <div className="flex flex-wrap gap-2.5">
                                                                         {suggestions.map((suggestion, sIdx) => (
                                                                             <button
                                                                                 key={sIdx}
                                                                                 onClick={() => handleSendMessage(suggestion)}
-                                                                                className="px-5 py-2.5 bg-card-bg/40 border border-border/60 rounded-full text-xs font-semibold text-foreground/80 hover:text-foreground hover:border-accent/40 hover:bg-accent/5 transition-all shadow-sm hover:translate-y-[-1px] active:translate-y-0"
+                                                                                className="px-6 py-3 bg-amber-500/5 border border-amber-500/20 rounded-full text-xs font-bold text-amber-200/90 hover:text-amber-100 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all shadow-sm hover:shadow-amber-500/10 hover:translate-y-[-2px] active:translate-y-0"
                                                                             >
                                                                                 {suggestion}
                                                                             </button>
