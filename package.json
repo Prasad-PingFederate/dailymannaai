@@ -11,8 +11,11 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@datastax/astra-db-ts": "^2.1.2",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.10",
+    "@langchain/core": "^1.1.19",
+    "@langchain/openai": "^1.2.5",
     "@prisma/client": "^6.19.2",
     "@supabase/supabase-js": "^2.39.0",
     "dotenv": "^17.2.4",
@@ -20,6 +23,7 @@
     "google-tts-api": "^2.0.2",
     "googlethis": "^1.8.0",
     "groq-sdk": "^0.37.0",
+    "langchain": "^1.2.18",
     "lucide-react": "^0.563.0",
     "mammoth": "^1.11.0",
     "mongodb": "^6.21.0",

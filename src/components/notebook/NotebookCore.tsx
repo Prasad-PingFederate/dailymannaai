@@ -1652,7 +1652,14 @@ It's now part of my collective wisdom!`
                             </button>
                         </div>
 
-                        {/* Audio Controls */}
+                        <button
+                            onClick={() => window.open('/bible-explorer', '_blank')}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors group"
+                        >
+                            <BookOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <span className="font-serif font-medium">Bible Explorer</span>
+                            <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
                         <div className="p-6 border-b border-border bg-gradient-to-br from-accent/10 to-accent-secondary/10">
                             <div className="flex flex-col items-center gap-4">
                                 {/* Status Text - Large and Prominent */}

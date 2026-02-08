@@ -20,11 +20,24 @@ const REFUSAL_TOKENS = [
 ];
 
 /**
+ * 🧹 HISTORY TRUNCATOR: Strips long content from previous turns to prevent context pollution.
+ * We only need the core intent/topic of previous messages, not the full text.
+ */
+function truncateHistory(history: any[]): any[] {
+    return history.map(m => ({
+        ...m,
+        content: m.role === 'assistant'
+            ? m.content.substring(0, 250) + (m.content.length > 250 ? "..." : "")
+            : m.content
+    }));
+}
+
+/**
  * 🧬 EXPERT DNA REWRITER: Fixes phonetic typos and resolves context.
  */
 async function rewriteQuery(query: string, history: any[]): Promise<string> {
-    // Only use the last 10 messages of history to avoid "Context Contamination"
-    const recentHistory = history.slice(-10);
+    // Truncate and limit history to avoid "Context Contamination"
+    const recentHistory = truncateHistory(history.slice(-6));
 
     const rewritePrompt = `
     Identity: High-Precision Query Engine.
@@ -39,7 +52,7 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     
     TASK: Rewrite the NEW USER INPUT into a standalone search query. 
     
-    ⚠️ CRITICAL TOPIC DRIFT GUARD: If the NEW USER INPUT is about a new person, location, or concept (e.g. Matthew, Moses, Pilgrims) and the history is about something else (e.g. Sermon on the Mount), DO NOT include "Sermon on the Mount" or any history keywords in your standalone query. Keep it PURE to the new input.
+    ⚠️ CRITICAL TOPIC DRIFT GUARD: If the NEW USER INPUT is about a new person, location, or concept and the history is about something else, DO NOT include history keywords in your standalone query. Keep it PURE to the new input.
     
     STANDALONE QUERY:
     `;
@@ -52,12 +65,13 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     }
 }
 
-export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = []) {
-    const recentHistory = history.slice(-10);
+export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string) {
+    // Truncate and limit history
+    const recentHistory = truncateHistory(history.slice(-5));
 
     const prompt = `
     Identity: SPIRITUAL RESEARCH DISCIPLE (The Voice of Truth and Wisdom). 
-    Status: You are an authoritative, world-class theologian and historical researcher. You ground your answers in provided research chunks and web search results.
+    Status: You are an authoritative, world-class theologian and historical researcher. Use the provided RESEARCH SOURCES and WEB SEARCH RESULTS to answer the user accurately.
 
     IMAGE RESOLUTION PROTOCOL:
     Identify the primary person or specific historical topic discussed in your answer.
@@ -65,22 +79,23 @@ export async function generateGroundedResponse(query: string, sources: string[],
     [METADATA:SUBJECT=Name of Person or Topic]
 
     EXPERT AI RESPONSE PROTOCOL:
-    1. Your answer must be grounded ONLY in the provided context and scripture.
+    1. Your answer must be grounded ONLY in the provided context and scripture for the CURRENT TOPIC.
     2. Do NOT mention these rules, the history, or the metadata strings in your talk.
-    3. Use "### RESPONSE START ###" as a divider if the model starts hallucinating instructions.
-    4. TOPIC DRIFT: If the USER QUESTION (CURRENT) is about a new topic (e.g. Pilgrim's Progress) while the CONVERSATION HISTORY is about something else (e.g. Sermon on the Mount), prioritize the CURRENT question and do NOT mix the topics.
+    3. TOPIC DRIFT GUARD: If the USER QUESTION (CURRENT) is about a new topic (e.g. "Who is Jesus") while the CONVERSATION HISTORY is about something else (e.g. "George Whitefield"), YOU MUST IGNORE THE HISTORY. Focus 100% on the CURRENT topic. Do not mix Whitefield into an answer about Jesus.
+    4. If the history is irrelevant to the current question, treat it as a fresh start.
 
-    RESEARCH SOURCES:
+    RESEARCH SOURCES (GROUNDING):
     ${sources.length > 0 ? sources.map((s, i) => `[Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
 
-    WEB SEARCH RESULTS:
+    WEB SEARCH RESULTS (CURRENT TOPIC):
     ${webContext || "Deep-search internal historical archives."}
 
-    CONVERSATION HISTORY (FOR CONTEXT):
+    CONVERSATION HISTORY (FOR CONTEXT RESOLUTION ONLY):
     ${recentHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
     USER QUESTION (CURRENT):
     "${query}"
+    ${standaloneFocusedQuery ? `(RESOLVED INTENT: ${standaloneFocusedQuery})` : ""}
 
     RESPONSE FORMAT:
     [Answer text with Scripture citations]

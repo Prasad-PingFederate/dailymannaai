@@ -94,7 +94,7 @@ export async function POST(req: Request) {
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
 
         // 3. Grounded Synthesis with Expert Persona
-        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, sourcesText, webContext, history);
+        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, sourcesText, webContext, history, standaloneQuery);
 
         // 4. Resolve Portrait (Hardcoded or Dynamic)
         let portrait = resolvePortrait(answer);
