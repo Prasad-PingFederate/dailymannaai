@@ -98,6 +98,7 @@ export default function NotebookWorkspace() {
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
+    const [isAudioOverviewOpen, setIsAudioOverviewOpen] = useState(false);
     const [showScrollButton, setShowScrollButton] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -897,11 +898,10 @@ It's now part of my collective wisdom!`
 
             const data = await res.json();
 
-            if (res.ok) {
-                setAudioOverview({
-                    title: data.title,
-                    script: data.script
-                });
+            if (data.title && data.script) {
+                setAudioOverview({ title: data.title, script: data.script });
+                setIsAudioOverviewOpen(true);
+                showToast("Podcast generated!", "success");
                 setMessages(prev => [...prev, {
                     role: "assistant",
                     content: `I've created a podcast-style overview of your ${data.sourceCount} source(s)! Check the audio player above.`
@@ -1509,188 +1509,30 @@ It's now part of my collective wisdom!`
             </button>
 
             {/* 2. Main Editor/Viewer (Middle) */}
-            <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden">
-                <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md pt-safe">
+            <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden transition-all duration-500">
+                <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md pt-safe shadow-sm">
                     <div className="flex items-center gap-2 md:gap-4">
-                        {/* Mobile Components Shortcut Group */}
-                        <div className="flex md:hidden items-center gap-1.5">
-                            <button
-                                onClick={() => setMobileMenuOpen(true)}
-                                className="p-2 bg-accent/5 text-accent hover:bg-accent/10 rounded-xl transition-colors"
-                                title="Open Sources"
-                            >
-                                <BookOpen size={20} />
-                            </button>
-                            <button
-                                onClick={() => setUploadModalOpen(true)}
-                                className="p-2 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 active:scale-95 transition-all"
-                                title="Add Source"
-                            >
-                                <Plus size={20} />
-                            </button>
-                        </div>
-
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="p-2 bg-accent/5 text-accent hover:bg-accent/10 rounded-xl transition-colors md:hidden"
+                            title="Open Sources"
+                        >
+                            <Menu size={20} />
+                        </button>
                         <div className="flex items-center gap-1.5 md:gap-2">
                             <div className="text-red-600 flex-shrink-0" title="The Holy Cross">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                 </svg>
                             </div>
-                            <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none">Daily Manna AI</h2>
+                            <h2 className="font-bold text-base md:text-lg truncate max-w-[150px] sm:max-w-none text-foreground">Daily Manna AI</h2>
                         </div>
                         <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
                     </div>
-                    <div className="flex items-center gap-2 md:gap-3">
-                        {/* Space reserved for future header actions */}
-                    </div>
                 </header>
 
-                {/* Audio Overview Player (Appears when generated) */}
-                {
-                    audioOverview && (
-                        <div className="absolute top-20 right-6 w-96 max-h-[calc(100vh-120px)] glass-morphism rounded-2xl shadow-2xl border border-accent/20 animate-in slide-in-from-top-4 duration-500 z-40 flex flex-col">
-                            <div className="flex items-center justify-between p-4 border-b border-border">
-                                <div className="flex items-center gap-2 text-accent">
-                                    <Mic2 size={16} />
-                                    <span className="text-xs font-bold uppercase tracking-wider">Audio Overview</span>
-                                </div>
-                                <button onClick={() => { stopAudio(); setAudioOverview(null); }} className="text-muted hover:text-foreground">
-                                    <X size={14} />
-                                </button>
-                            </div>
-
-                            <button
-                                onClick={() => window.open('/bible-explorer', '_blank')}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors group"
-                            >
-                                <BookOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                <span className="font-serif font-medium">Bible Explorer</span>
-                                <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </button>
-                            <div className="p-6 border-b border-border bg-gradient-to-br from-accent/10 to-accent-secondary/10">
-                                <div className="flex flex-col items-center gap-4">
-                                    {/* Status Text - Large and Prominent */}
-                                    <div className="text-center">
-                                        <p className="text-sm font-bold text-foreground mb-1">
-                                            {isPlaying ? (isPaused ? '⏸️ Paused' : '🔊 Playing Podcast...') : '🎧 Ready to Listen'}
-                                        </p>
-                                        <p className="text-[10px] text-muted">
-                                            {isPlaying ? '👨 David & 👩 Sarah - Two Voice Conversation' : 'Click play for two-voice podcast'}
-                                        </p>
-                                    </div>
-
-                                    {/* Play/Pause/Stop Controls */}
-                                    <div className="flex items-center justify-center gap-6">
-                                        {!isPlaying ? (
-                                            <div className="flex flex-col items-center gap-2">
-                                                <button
-                                                    onClick={playAudio}
-                                                    className="h-16 w-16 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
-                                                    title="Start Podcast"
-                                                >
-                                                    <ArrowRight size={28} className="rotate-90 ml-0.5" />
-                                                </button>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Start</span>
-                                            </div>
-                                        ) : isPaused ? (
-                                            <div className="flex flex-col items-center gap-2">
-                                                <button
-                                                    onClick={resumeAudio}
-                                                    className="h-16 w-16 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
-                                                    title="Resume Podcast"
-                                                >
-                                                    <ArrowRight size={28} className="rotate-90 ml-0.5" />
-                                                </button>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Resume</span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center gap-2">
-                                                <button
-                                                    onClick={pauseAudio}
-                                                    className="h-16 w-16 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
-                                                    title="Pause Podcast"
-                                                >
-                                                    <div className="flex gap-1.5">
-                                                        <div className="w-1.5 h-6 bg-white rounded"></div>
-                                                        <div className="w-1.5 h-6 bg-white rounded"></div>
-                                                    </div>
-                                                </button>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Pause</span>
-                                            </div>
-                                        )}
-
-                                        <div className="flex flex-col items-center gap-2">
-                                            <button
-                                                onClick={stopAudio}
-                                                disabled={!isPlaying && !isPaused}
-                                                className={`h-12 w-12 rounded-full flex items-center justify-center border transition-all ${isPlaying || isPaused
-                                                    ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
-                                                    : "bg-muted/5 text-muted/30 border-transparent cursor-not-allowed"
-                                                    }`}
-                                                title="Stop Podcast"
-                                            >
-                                                <div className="w-4 h-4 bg-current rounded-sm"></div>
-                                            </button>
-                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isPlaying || isPaused ? "text-muted" : "text-muted/30"}`}>Stop</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress Indicator */}
-                                    {isPlaying && !isPaused && (
-                                        <div className="w-full">
-                                            <div className="h-1 bg-muted/20 rounded-full overflow-hidden">
-                                                <div className="h-full bg-accent animate-pulse w-full"></div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-
-                            <div className="p-4 overflow-y-auto flex-1 bg-background">
-                                <div className="mb-3 pb-3 border-b border-border">
-                                    <h4 className="font-bold text-base mb-1">{audioOverview.title}</h4>
-                                    <p className="text-[10px] text-muted uppercase tracking-wider">Podcast Transcript</p>
-                                </div>
-                                <div className="text-xs leading-relaxed space-y-3 text-foreground whitespace-pre-wrap font-mono">
-                                    {audioOverview.script}
-                                </div>
-                            </div>
-                            <div className="p-4 border-t border-border bg-muted/5 flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-[10px] text-muted">
-                                        🎙️ Browser TTS Engine
-                                    </p>
-                                    <button
-                                        onClick={() => navigator.clipboard.writeText(audioOverview.script)}
-                                        className="text-[10px] text-accent hover:text-accent/80 font-medium flex items-center gap-1"
-                                    >
-                                        <Copy size={10} /> Copy Script
-                                    </button>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={downloadMp3}
-                                        className="flex-1 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-accent/20"
-                                        title="Download MP3 Audio"
-                                    >
-                                        <FileAudio size={14} /> Download MP3
-                                    </button>
-                                    <button
-                                        onClick={downloadAudio}
-                                        className="flex-1 py-2 bg-card-bg border border-border text-foreground rounded-lg hover:bg-border/50 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
-                                        title="Download text transcript"
-                                    >
-                                        <ArrowRight size={14} className="rotate-90" /> Get Script
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-
-                {/* 2a. Main Content Area - Full Chat Assistant Focus */}
-                <div className="flex-1 overflow-hidden relative flex flex-col bg-background">
+                <div className="flex-1 flex overflow-hidden">
+                    {/* 2a. Main Chat Area */}
                     <div className="flex-1 flex flex-col relative overflow-hidden">
                         <div
                             ref={chatContainerRef}
@@ -1867,7 +1709,111 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
             </main>
+            {/* Audio Overview Container - Moved to a separate flex column */}
+            {/* 2b. Audio Overview Sidebar - Integrated Docked View */}
+            {audioOverview && isAudioOverviewOpen && (
+                <div className="w-[400px] border-l border-border bg-card-bg/30 backdrop-blur-xl animate-in slide-in-from-right duration-500 flex flex-col h-full overflow-hidden shrink-0 z-40">
+                    <div className="flex items-center justify-between p-4 border-b border-border shadow-sm">
+                        <div className="flex items-center gap-2 text-accent">
+                            <Mic2 size={16} />
+                            <span className="text-xs font-bold uppercase tracking-wider text-foreground">Audio Overview</span>
+                        </div>
+                        <button onClick={() => { stopAudio(); setIsAudioOverviewOpen(false); setAudioOverview(null); }} className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
 
+                    {/* Bible Explorer Link */}
+                    <button
+                        onClick={() => window.open('/bible-explorer', '_blank')}
+                        className="mx-4 my-4 flex items-center gap-3 px-4 py-3 bg-accent/5 border border-accent/10 hover:border-accent/30 hover:bg-accent/10 rounded-xl transition-all group"
+                    >
+                        <BookOpen className="w-5 h-5 text-accent group-hover:scale-110 transition-transform" />
+                        <div className="text-left">
+                            <p className="text-xs font-bold text-foreground">Bible Explorer</p>
+                            <p className="text-[10px] text-muted">Study grounded in scripture</p>
+                        </div>
+                        <ExternalLink className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-accent" />
+                    </button>
+
+                    <div className="px-6 py-4 border-b border-border bg-gradient-to-br from-accent/5 to-accent-secondary/5">
+                        <div className="flex flex-col items-center gap-4 text-center">
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-accent mb-1">
+                                    {isPlaying ? (isPaused ? 'Paused' : 'Now Playing') : 'Ready to Listen'}
+                                </p>
+                                <p className="text-[10px] text-muted leading-tight">
+                                    {isPlaying ? 'David & Sarah are discussing your research' : 'Click play to start the podcast overview'}
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-6 py-2">
+                                {!isPlaying ? (
+                                    <button
+                                        onClick={playAudio}
+                                        className="h-14 w-14 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
+                                    >
+                                        <ArrowRight size={24} className="rotate-90 ml-1" />
+                                    </button>
+                                ) : isPaused ? (
+                                    <button
+                                        onClick={resumeAudio}
+                                        className="h-14 w-14 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
+                                    >
+                                        <ArrowRight size={24} className="rotate-90 ml-1" />
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={pauseAudio}
+                                        className="h-14 w-14 bg-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-accent/30 hover:bg-accent/90 hover:scale-105 transition-all active:scale-95"
+                                    >
+                                        <div className="flex gap-1.5">
+                                            <div className="w-1.5 h-6 bg-white rounded"></div>
+                                            <div className="w-1.5 h-6 bg-white rounded"></div>
+                                        </div>
+                                    </button>
+                                )}
+                                <button
+                                    onClick={stopAudio}
+                                    className="h-10 w-10 border border-border hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 rounded-full flex items-center justify-center transition-all"
+                                >
+                                    <div className="w-3 h-3 bg-current rounded-sm"></div>
+                                </button>
+                            </div>
+
+                            {isPlaying && !isPaused && (
+                                <div className="w-full h-1 bg-accent/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-accent animate-pulse w-full"></div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        <div>
+                            <h4 className="font-bold text-lg mb-2 text-foreground">{audioOverview.title}</h4>
+                            <div className="text-[12px] leading-relaxed text-foreground/80 whitespace-pre-wrap font-serif">
+                                {audioOverview.script}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-4 border-t border-border bg-card-bg/50 backdrop-blur-sm space-y-3">
+                        <div className="flex items-center justify-between px-2">
+                            <span className="text-[10px] text-muted font-bold uppercase tracking-tighter">AI Voices: David & Sarah</span>
+                            <button onClick={() => navigator.clipboard.writeText(audioOverview.script)} className="text-[10px] text-accent font-bold hover:underline">Copy Script</button>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={downloadMp3} className="flex-1 py-2.5 bg-accent text-white rounded-xl hover:bg-accent/90 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-accent/10">
+                                <FileAudio size={14} /> Download MP3
+                            </button>
+                            <button onClick={downloadAudio} className="p-2.5 border border-border rounded-xl hover:bg-muted/10 transition-colors">
+                                <ArrowRight size={14} className="rotate-90" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
