@@ -1562,9 +1562,9 @@ It's now part of my collective wisdom!`
                 <div className="p-4 border-t border-border mt-auto">
                     <button
                         onClick={() => setUploadModalOpen(true)}
-                        className="flex items-center gap-2 w-full p-2 bg-accent/10 text-accent rounded-lg text-sm font-bold hover:bg-accent/20 transition-colors"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-white rounded-xl text-sm font-bold hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 active:scale-95"
                     >
-                        <Plus size={16} /> Add More Sources
+                        <Plus size={18} /> Add More Sources
                     </button>
                 </div>
             </aside>
@@ -1857,7 +1857,7 @@ It's now part of my collective wisdom!`
                             <div className="max-w-4xl mx-auto relative group">
                                 <div className="relative bg-card-bg/60 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] focus-within:ring-2 ring-accent/30 transition-all p-3 group-hover:border-accent/20">
                                     <textarea
-                                        placeholder="Ask Daily Manna AI about the scriptures or your research..."
+                                        placeholder="+ Search area  ASK Daily manna Ai about the scriptures or your research..."
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={(e) => {
@@ -1900,19 +1900,33 @@ It's now part of my collective wisdom!`
                                         </div>
                                     </div>
                                 </div>
-                                <div className="mt-5 flex flex-wrap justify-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
+                                <div className="mt-8 grid grid-cols-3 md:grid-cols-5 gap-3 max-w-3xl mx-auto">
                                     {[
-                                        { label: 'Summarize Sources', action: handleSummarize },
-                                        { label: 'Divine Reflection', action: handleDivineMeditation },
-                                        { label: 'Bible Explorer', action: () => window.open('/bible-explorer', '_blank') },
-                                        { label: 'Podcast Overview', action: generateAudioOverview }
-                                    ].map((tip, idx) => (
+                                        { label: 'Add', sub: 'SOURCE', icon: <Plus size={16} />, action: () => setUploadModalOpen(true), color: 'text-blue-500' },
+                                        { label: 'Summarize', sub: 'SOURCES', icon: <FileStack size={16} />, action: handleSummarize, color: 'text-blue-400' },
+                                        { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={16} />, action: handleRefine, color: 'text-purple-400' },
+                                        { label: 'Divine', sub: 'REFLECTION', icon: <Sparkles size={16} />, action: handleDivineMeditation, color: 'text-yellow-500', badge: 'DIVINE ✨' },
+                                        { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={16} />, action: generateAudioOverview, color: 'text-accent', badge: 'NEW ✨' }
+                                    ].map((tool, idx) => (
                                         <button
                                             key={idx}
-                                            onClick={tip.action}
-                                            className="px-3 py-1 bg-muted/5 border border-border/30 rounded-full text-[10px] font-bold text-muted hover:bg-accent/10 hover:text-accent transition-colors hover:scale-105 active:scale-95"
+                                            onClick={tool.action}
+                                            className="group relative flex flex-col items-center justify-center p-4 bg-card-bg/40 backdrop-blur-md border border-border/50 rounded-2xl hover:border-accent/40 hover:bg-accent/5 transition-all hover:scale-105 active:scale-95 shadow-xl"
                                         >
-                                            {tip.label}
+                                            {tool.badge && (
+                                                <span className="absolute -top-2 px-1.5 py-0.5 bg-background border border-border rounded text-[8px] font-black text-accent uppercase tracking-tighter shadow-sm whitespace-nowrap">
+                                                    {tool.badge}
+                                                </span>
+                                            )}
+                                            <div className={`${tool.color} mb-1 group-hover:scale-110 transition-transform`}>
+                                                {tool.icon}
+                                            </div>
+                                            <span className="text-[10px] font-bold text-foreground">
+                                                {tool.label}
+                                            </span>
+                                            <span className="text-[8px] font-medium text-muted uppercase tracking-wider">
+                                                {tool.sub}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
@@ -1921,111 +1935,36 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
 
-                {/* Dynamic Action Bar (Bottom Middle) - Stabilized */}
-                <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-full flex justify-center z-[50] pointer-events-none px-4">
-                    <div
-                        onMouseEnter={() => setIsBarHovered(true)}
-                        onMouseLeave={() => setIsBarHovered(false)}
-                        className={`pointer-events-auto transition-all duration-500 ease-in-out bg-card-bg/95 border border-accent/20 rounded-2xl px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-5 whitespace-nowrap overflow-x-auto custom-scrollbar 
-                            ${isBarHovered ? 'md:w-max' : 'w-full md:w-auto md:max-w-none hover:md:max-w-none'}`}
-                    >
-                        {/* Add Source - NEW for Mobile */}
+                {/* New Fixed Action Bar (Box 2 Style) */}
+                <div className="border-t border-border bg-card-bg/40 backdrop-blur-xl px-1 py-1">
+                    <div className="flex divide-x divide-border overflow-x-auto no-scrollbar">
                         <button
                             onClick={() => setUploadModalOpen(true)}
-                            className="group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all hover:bg-accent/10"
+                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
                         >
-                            <div className="flex items-center gap-2">
-                                <Plus size={14} className="md:size-4 text-accent" />
-                                <span className="text-[10px] md:text-xs font-bold">Add</span>
-                            </div>
-                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Source</span>
+                            Add
                         </button>
-
-
-                        <div className="w-px h-8 md:h-12 bg-border" />
-
-                        {/* Summarize - Works on SOURCES */}
                         <button
                             onClick={handleSummarize}
-                            disabled={isSummarizing}
-                            title="Summarize selected sources and add to notes"
-                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isSummarizing ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
+                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
                         >
-                            <div className="flex items-center gap-2">
-                                <FileStack size={14} className="md:size-4 text-blue-500" />
-                                <span className="text-[10px] md:text-xs font-bold">{isSummarizing ? '...' : 'Summarize'}</span>
-                            </div>
-                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Sources</span>
+                            Summarize,
                         </button>
-
-                        <div className="w-px h-8 md:h-12 bg-border" />
-
-                        {/* Refine - Works on NOTES */}
-                        <button
-                            onClick={handleRefine}
-                            disabled={isRefining}
-                            title="Refine and improve your notes"
-                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isRefining ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <Wand2 size={14} className="md:size-4 text-purple-500" />
-                                <span className="text-[10px] md:text-xs font-bold">{isRefining ? '...' : 'Refine'}</span>
-                            </div>
-                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Polish</span>
-                        </button>
-
-                        <div className="w-px h-8 md:h-12 bg-border" />
-
-                        {/* Divine Reflection - Highlighted */}
                         <button
                             onClick={handleDivineMeditation}
-                            disabled={isMeditating}
-                            title="Transform research into a prayerful meditation"
-                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isMeditating ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 bg-yellow-500/5 animate-divine-pulse border border-yellow-500/20'}`}
+                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
                         >
-                            <div className="feature-badge hidden md:block">DIVINE ✨</div>
-                            <div className="flex items-center gap-2 text-yellow-500">
-                                <Sparkles size={14} className="md:size-4" />
-                                <span className="text-[10px] md:text-xs font-bold">{isMeditating ? '...' : 'Divine'}</span>
-                            </div>
-                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Reflection</span>
+                            Refine Divine
                         </button>
-
-                        <div className="w-px h-8 md:h-12 bg-border" />
-
-                        {/* Audio Overview - Highlighted */}
                         <button
                             onClick={generateAudioOverview}
-                            disabled={isGeneratingAudio}
-                            title="Generate podcast-style overview"
-                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGeneratingAudio ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10 border border-accent/30 shadow-lg shadow-accent/10'}`}
+                            className="flex-1 min-w-[100px] py-4 px-4 text-xs font-bold hover:bg-accent/5 transition-colors flex items-center justify-center gap-2"
                         >
-                            <div className="feature-badge hidden md:block">NEW ✨</div>
-                            <div className="flex items-center gap-2">
-                                <Mic2 size={14} className="md:size-4 text-accent" />
-                                <span className="text-[10px] md:text-xs font-bold">{isGeneratingAudio ? '...' : 'Podcast'}</span>
-                            </div>
-                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Audio</span>
-                        </button>
-
-                        <div className="w-px h-8 md:h-12 bg-border" />
-
-                        {/* Grammar Check - NEW */}
-                        <button
-                            onClick={handleGrammarCheck}
-                            disabled={isGrammarChecking}
-                            title="Identify grammar mistakes and explain rules"
-                            className={`group relative flex flex-col items-center gap-1 px-3 md:px-4 py-2 rounded-xl transition-all ${isGrammarChecking ? 'bg-accent/20 cursor-wait' : 'hover:bg-accent/10'}`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 size={14} className="md:size-4 text-green-500" />
-                                <span className="text-[10px] md:text-xs font-bold">{isGrammarChecking ? '...' : 'Check'}</span>
-                            </div>
-                            <span className="text-[8px] md:text-[9px] text-muted uppercase tracking-wider">Grammar</span>
+                            New podcast
                         </button>
                     </div>
                 </div>
-            </main >
+            </main>
 
             {/* 3. Research Workspace (Right) - Now houses the Editor */}
             <section
@@ -2099,15 +2038,15 @@ It's now part of my collective wisdom!`
                 {/* Footer Tools for Workspace */}
                 <div className="p-4 border-t border-border bg-muted/5">
                     <div className="flex items-center justify-between text-[10px] text-muted font-bold uppercase tracking-widest px-2 mb-3">
-                        <span>Workspace Insights</span>
+                        <span>WORKSPACE INSIGHTS</span>
                         <Sparkles size={10} className="text-accent" />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                        <button onClick={handleRefine} className="p-2 bg-card-bg border border-border rounded-xl text-[10px] font-bold hover:bg-accent/10 hover:text-accent transition-all flex items-center justify-center gap-2">
-                            <Wand2 size={12} /> Refine Notes
+                        <button onClick={handleRefine} className="p-2.5 bg-card-bg border border-border/80 rounded-xl text-[10px] font-bold hover:bg-accent/5 hover:border-accent/40 transition-all flex items-center justify-center gap-2 shadow-sm">
+                            <Wand2 size={12} className="text-purple-400" /> Refine Notes
                         </button>
-                        <button onClick={handleGrammarCheck} className="p-2 bg-card-bg border border-border rounded-xl text-[10px] font-bold hover:bg-accent/10 hover:text-accent transition-all flex items-center justify-center gap-2">
-                            <CheckCircle2 size={12} /> Grammar Check
+                        <button onClick={handleGrammarCheck} className="p-2.5 bg-card-bg border border-border/80 rounded-xl text-[10px] font-bold hover:bg-accent/5 hover:border-accent/40 transition-all flex items-center justify-center gap-2 shadow-sm">
+                            <CheckCircle2 size={12} className="text-green-500" /> Grammar Check
                         </button>
                     </div>
                 </div>
