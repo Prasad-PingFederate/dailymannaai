@@ -54,7 +54,6 @@ interface Source {
 export default function NotebookWorkspace() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [isWorkspaceOpen, setWorkspaceOpen] = useState(true);
     const [activeTab, setActiveTab] = useState("sources"); // sources, chat
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [messages, setMessages] = useState([
@@ -93,9 +92,6 @@ export default function NotebookWorkspace() {
     const [viewingSource, setViewingSource] = useState<any>(null);
     const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [chatSidebarWidth, setChatSidebarWidth] = useState(450);
-    const [isResizing, setIsResizing] = useState(false);
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [isMeditating, setIsMeditating] = useState(false);
     const [isBarHovered, setIsBarHovered] = useState(false);
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
@@ -212,81 +208,6 @@ export default function NotebookWorkspace() {
         setTimeout(() => document.body.removeChild(ghost), 0);
     };
 
-    const handleNoteDrop = async (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDraggingOver(false);
-        const sourceId = e.dataTransfer.getData("sourceId");
-        const source = sources.find(s => s.id === sourceId);
-
-        if (source) {
-            // 1. Add to UI
-            const contentToAdd = `\n\n### 📑 Source: ${source.name}\n${source.fullContent || '[Extracting content...]'}\n`;
-            addNoteAtCursor(contentToAdd);
-            showToast(`Imported content from "${source.name}"`, "success");
-
-            // 2. CRITICAL SYNC: Ensure server has this content for Summarize/Audio actions
-            // Even if it's already there, we re-ingest to be safe for this session
-            if (source.fullContent) {
-                try {
-                    await fetch("/api/ingest", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            text: source.fullContent,
-                            name: source.name,
-                            mode: "text"
-                        }),
-                    });
-                } catch (e) {
-                    console.error("Content sync failed on drop", e);
-                }
-            }
-        }
-    };
-
-    const handleNoteDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDraggingOver(true);
-        e.dataTransfer.dropEffect = "copy";
-    };
-
-    const handleNoteDragLeave = () => {
-        setIsDraggingOver(false);
-    };
-
-    // --- Resizing Logic --- (Restored)
-    const startResizing = (e: React.MouseEvent) => {
-        setIsResizing(true);
-        e.preventDefault();
-    };
-
-    const stopResizing = () => {
-        setIsResizing(false);
-    };
-
-    const resize = (e: MouseEvent) => {
-        if (isResizing) {
-            const newWidth = window.innerWidth - e.clientX;
-            if (newWidth > 300 && newWidth < 800) {
-                setChatSidebarWidth(newWidth);
-            }
-        }
-    };
-
-    useEffect(() => {
-        if (isResizing) {
-            window.addEventListener("mousemove", resize);
-            window.addEventListener("mouseup", stopResizing);
-        } else {
-            window.removeEventListener("mousemove", resize);
-            window.removeEventListener("mouseup", stopResizing);
-        };
-
-        return () => {
-            window.removeEventListener("mousemove", resize);
-            window.removeEventListener("mouseup", stopResizing);
-        };
-    }, [isResizing]);
 
     const toggleSource = (id: string) => {
         setSources(prev => prev.map(s =>
@@ -1619,28 +1540,7 @@ It's now part of my collective wisdom!`
                         <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
                     </div>
                     <div className="flex items-center gap-2 md:gap-3">
-                        <button
-                            onClick={() => setWorkspaceOpen(!isWorkspaceOpen)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${isWorkspaceOpen ? 'bg-accent/10 border-accent/30 text-accent shadow-sm' : 'bg-muted/5 border-border/50 text-muted hover:text-foreground'}`}
-                            title="Toggle Research Workspace"
-                        >
-                            <Edit3 size={16} />
-                            <span className="hidden sm:inline">Workspace</span>
-                        </button>
-
-                        <button
-                            onClick={() => setWorkspaceOpen(!isWorkspaceOpen)}
-                            className={`md:hidden px-3 py-2 rounded-xl transition-all relative flex items-center gap-2 ${isWorkspaceOpen ? 'bg-accent text-white scale-105' : 'bg-accent-secondary/5 text-accent-secondary hover:bg-accent-secondary/10'}`}
-                            title="Toggle Workspace"
-                        >
-                            <Edit3 size={18} />
-                            <span className="text-xs font-bold uppercase tracking-tight">Notes</span>
-                            {messages.length > 1 && !isWorkspaceOpen && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-extrabold rounded-full h-4 w-4 flex items-center justify-center border-2 border-background">
-                                    {messages.length - 1}
-                                </span>
-                            )}
-                        </button>
+                        {/* Space reserved for future header actions */}
                     </div>
                 </header>
 
@@ -1940,101 +1840,6 @@ It's now part of my collective wisdom!`
                 </div>
             </main>
 
-            {/* 3. Research Workspace (Right) - Now houses the Editor */}
-            <section
-                style={{ width: (isWorkspaceOpen || !isMobile) ? `${chatSidebarWidth}px` : '0' }}
-                className={`border-l border-border flex flex-col bg-card-bg/20 glass-morphism relative overflow-hidden
-                    md:relative md:translate-x-0 transition-all duration-300
-                    ${isWorkspaceOpen ? 'fixed inset-0 z-[150] translate-x-0 w-full shadow-2xl pt-safe' : 'fixed translate-x-full md:translate-x-0'}`}
-            >
-                {/* Mobile Close Button */}
-                <button
-                    onClick={() => setWorkspaceOpen(false)}
-                    className="md:hidden absolute top-4 left-4 z-10 p-2 bg-card-bg rounded-full shadow-lg hover:bg-border/50 transition-colors"
-                >
-                    <X size={20} />
-                </button>
-
-                {/* Resize Handle (Hit Area) - Desktop only */}
-                <div
-                    onMouseDown={startResizing}
-                    className="hidden md:block absolute left-[-4px] top-0 bottom-0 w-2 cursor-col-resize hover:bg-accent/30 transition-all z-50 group-hover:bg-accent/10"
-                    title="Drag to resize workspace"
-                />
-
-                <header className="h-16 border-b border-border flex items-center px-4 gap-3">
-                    <div className="text-accent-secondary text-accent">
-                        <Edit3 size={20} />
-                    </div>
-                    <h3 className="font-bold flex-1 text-sm md:text-base tracking-tight">Research Workspace</h3>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setNoteContent("")}
-                            className="p-2 hover:bg-red-500/10 rounded-lg text-muted hover:text-red-500 transition-all"
-                            title="Clear Workspace"
-                        >
-                            <Trash2 size={18} />
-                        </button>
-                    </div>
-                </header>
-
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-card-bg/5">
-                    <div className="space-y-6">
-                        <div className="space-y-1">
-                            <input
-                                type="text"
-                                defaultValue="Sacred Research Notes"
-                                className="text-xl font-bold bg-transparent border-none focus:outline-none w-full text-foreground"
-                            />
-                            <p className="text-[10px] text-muted uppercase tracking-widest font-black opacity-50">Sync Active • Divine Protection</p>
-                        </div>
-
-                        <div
-                            className={`prose prose-zinc dark:prose-invert max-w-none relative group transition-all duration-300 ${isDraggingOver ? 'scale-[1.01]' : ''}`}
-                            onDrop={handleNoteDrop}
-                            onDragOver={handleNoteDragOver}
-                            onDragLeave={handleNoteDragLeave}
-                        >
-                            {/* Drag overlay indicator */}
-                            <div className={`absolute inset-x-[-10px] inset-y-[-10px] border-2 border-dashed rounded-2xl pointer-events-none transition-all duration-300 z-0 ${isDraggingOver ? 'border-accent/40 bg-accent/5' : 'border-transparent'}`} />
-
-                            <textarea
-                                placeholder="Start typing your research notes here... or drag a source here to analyze it."
-                                value={noteContent}
-                                onChange={(e) => setNoteContent(e.target.value)}
-                                className="w-full min-h-[600px] bg-transparent border-none focus:outline-none text-[15px] resize-none leading-relaxed relative z-10 font-medium"
-                                rows={20}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer Tools for Workspace */}
-                <div className="p-4 border-t border-border bg-muted/5">
-                    <div className="flex items-center justify-between text-[10px] text-muted font-bold uppercase tracking-widest px-2 mb-3">
-                        <span>WORKSPACE INSIGHTS</span>
-                        <Sparkles size={10} className="text-accent" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <button onClick={handleRefine} className="p-2.5 bg-card-bg border border-border/80 rounded-xl text-[10px] font-bold hover:bg-accent/5 hover:border-accent/40 transition-all flex items-center justify-center gap-2 shadow-sm">
-                            <Wand2 size={12} className="text-purple-400" /> Refine Notes
-                        </button>
-                        <button onClick={handleGrammarCheck} className="p-2.5 bg-card-bg border border-border/80 rounded-xl text-[10px] font-bold hover:bg-accent/5 hover:border-accent/40 transition-all flex items-center justify-center gap-2 shadow-sm">
-                            <CheckCircle2 size={12} className="text-green-500" /> Grammar Check
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            {/* Mobile Workspace Backdrop */}
-            {
-                isWorkspaceOpen && (
-                    <div
-                        className="md:hidden fixed inset-0 bg-black/50 z-[59] backdrop-blur-sm"
-                        onClick={() => setWorkspaceOpen(false)}
-                    />
-                )
-            }
         </div>
     );
 }
