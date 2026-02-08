@@ -1552,7 +1552,7 @@ It's now part of my collective wisdom!`
                                             <div key={i} className={`group flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
                                                 <div className={`h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-red-600 shadow-xl'}`}>
                                                     {msg.role === 'user' ? 'U' : (
-                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-red-600 drop-shadow-md">
                                                             <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                                         </svg>
                                                     )}
@@ -1608,8 +1608,8 @@ It's now part of my collective wisdom!`
                                         ))}
                                         {isChatting && (
                                             <div className="flex gap-4 animate-in fade-in duration-500">
-                                                <div className="h-10 w-10 rounded-xl bg-card-bg border border-border flex-shrink-0 flex items-center justify-center text-red-600 animate-pulse">
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <div className="h-10 w-10 rounded-xl bg-card-bg border border-border flex-shrink-0 flex items-center justify-center animate-pulse shadow-md">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-red-600">
                                                         <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                                     </svg>
                                                 </div>
