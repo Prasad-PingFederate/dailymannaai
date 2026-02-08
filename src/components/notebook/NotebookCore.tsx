@@ -1549,12 +1549,16 @@ It's now part of my collective wisdom!`
                                     )}
                                     <div className="space-y-8 pb-6">
                                         {messages.map((msg: any, i) => (
-                                            <div key={i} className={`group flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
-                                                <div className={`h-12 w-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-accent-secondary shadow-xl'}`}>
-                                                    {msg.role === 'user' ? 'U' : <Sparkles size={24} className="animate-pulse" />}
+                                            <div key={i} className={`group flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
+                                                <div className={`h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-red-600 shadow-xl'}`}>
+                                                    {msg.role === 'user' ? 'U' : (
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
+                                                        </svg>
+                                                    )}
                                                 </div>
                                                 <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
-                                                    <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/50 backdrop-blur-sm border border-border/50'} rounded-3xl p-6 px-8 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/30`}>
+                                                    <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/50 backdrop-blur-sm border border-border/50'} rounded-3xl p-6 px-6 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/30`}>
                                                         <div className="whitespace-pre-wrap break-words">
                                                             {msg.content}
                                                         </div>
@@ -1603,9 +1607,11 @@ It's now part of my collective wisdom!`
                                             </div>
                                         ))}
                                         {isChatting && (
-                                            <div className="flex gap-6 animate-in fade-in duration-500">
-                                                <div className="h-10 w-10 rounded-2xl bg-accent-secondary flex-shrink-0 flex items-center justify-center text-white animate-pulse">
-                                                    <Sparkles size={20} />
+                                            <div className="flex gap-4 animate-in fade-in duration-500">
+                                                <div className="h-10 w-10 rounded-xl bg-card-bg border border-border flex-shrink-0 flex items-center justify-center text-red-600 animate-pulse">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
+                                                    </svg>
                                                 </div>
                                                 <div className="bg-muted/5 rounded-2xl p-6 text-muted-foreground italic flex items-center gap-3">
                                                     <div className="flex gap-1.5">
