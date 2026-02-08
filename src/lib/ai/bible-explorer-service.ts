@@ -55,8 +55,20 @@ const BOOK_NAMES: Record<string, string> = {
     "65": "Jude", "66": "Revelation",
 };
 
+const GREETINGS = ["hi", "hello", "hai", "hey", "greetings", "good morning", "good afternoon", "good evening"];
+
+function isGreeting(text: string): boolean {
+    const clean = text.toLowerCase().trim().replace(/[^\w\s]/g, "");
+    return GREETINGS.includes(clean);
+}
+
 export async function askBibleQuestion(question: string, history: any[] = []) {
-    const searchResult = await retryWithExponentialBackoff(() => performSimilaritySearch(question));
+    const queryIsGreeting = isGreeting(question);
+
+    // If it's a greeting, we might want to search for verses about "greeting" or "peace" or "fellowship"
+    // to give the AI some scriptural context for its welcome.
+    const searchQuery = queryIsGreeting ? "greetings peace fellowship" : question;
+    const searchResult = await retryWithExponentialBackoff(() => performSimilaritySearch(searchQuery));
 
     const langchainMessages: BaseMessage[] = [
         new SystemMessage(BIBLE_EXPLORER_SYSTEM_PROMPT),
@@ -70,8 +82,12 @@ export async function askBibleQuestion(question: string, history: any[] = []) {
         }
     }
 
+    const greetingContext = queryIsGreeting
+        ? "\nThe user has greeted you. Please respond with a warm, faithful welcome like: 'Hello! It's wonderful to engage with you on matters of faith and Scripture.' but keep your unique born-again believer persona. Encourage them to ask questions about the Bible.\n"
+        : "";
+
     langchainMessages.push(new HumanMessage(
-        `Here are relevant Bible verses from the vector database:\n${searchResult.formatted}\n\nAnswer the following question with a thorough, natural response.\n${BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX}\n\nQuestion: ${question}`
+        `${greetingContext}Here are relevant Bible verses from the vector database:\n${searchResult.formatted}\n\nAnswer the following question with a thorough, natural response.\n${BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX}\n\nQuestion: ${question}`
     ));
 
     return model.stream(langchainMessages);
