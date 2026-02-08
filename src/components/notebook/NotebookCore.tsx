@@ -1706,7 +1706,7 @@ It's now part of my collective wisdom!`
                                     )}
                                     <div className="space-y-12 pb-20">
                                         {messages.map((msg: any, i) => (
-                                            <div key={i} className={`flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
+                                            <div key={i} className={`group flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
                                                 <div className={`h-12 w-12 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-accent-secondary shadow-xl'}`}>
                                                     {msg.role === 'user' ? 'U' : <Sparkles size={24} className="animate-pulse" />}
                                                 </div>
@@ -1717,16 +1717,43 @@ It's now part of my collective wisdom!`
                                                         </div>
                                                     </div>
                                                     {msg.role === 'assistant' && (
-                                                        <div className="flex items-center gap-6 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button onClick={() => handleSpeakMessage(msg.content, i)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                <Volume2 size={14} /> Listen
-                                                            </button>
-                                                            <button onClick={() => addNoteAtCursor(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                <Pin size={14} /> Pin to Note
-                                                            </button>
-                                                            <button onClick={() => navigator.clipboard.writeText(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                <Copy size={14} /> Copy
-                                                            </button>
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center gap-6 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button
+                                                                    onClick={() => handleSpeakMessage(msg.content, i)}
+                                                                    className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${isSpeakingMap[i] ? 'text-accent' : 'text-muted hover:text-accent'}`}
+                                                                >
+                                                                    <Volume2 size={14} className={isSpeakingMap[i] ? 'animate-pulse' : ''} />
+                                                                    {isSpeakingMap[i] ? 'Stop' : 'Listen'}
+                                                                </button>
+                                                                <button onClick={() => addNoteAtCursor(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                    <Pin size={14} /> Pin to Note
+                                                                </button>
+                                                                <button onClick={() => navigator.clipboard.writeText(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                                                                    <Copy size={14} /> Copy
+                                                                </button>
+                                                            </div>
+
+                                                            {/* Follow-up Suggestions (Only for the latest message) */}
+                                                            {i === messages.length - 1 && suggestions.length > 0 && !isChatting && (
+                                                                <div className="mt-4 px-4 space-y-3 animate-in fade-in slide-in-from-left-4 duration-700 delay-300">
+                                                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em]">
+                                                                        <MessageSquare size={12} className="text-accent/60" />
+                                                                        <span>Continue studying:</span>
+                                                                    </div>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {suggestions.map((suggestion, sIdx) => (
+                                                                            <button
+                                                                                key={sIdx}
+                                                                                onClick={() => handleSendMessage(suggestion)}
+                                                                                className="px-5 py-2.5 bg-card-bg/40 border border-border/60 rounded-full text-xs font-semibold text-foreground/80 hover:text-foreground hover:border-accent/40 hover:bg-accent/5 transition-all shadow-sm hover:translate-y-[-1px] active:translate-y-0"
+                                                                            >
+                                                                                {suggestion}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
