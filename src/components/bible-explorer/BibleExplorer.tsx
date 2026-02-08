@@ -72,7 +72,7 @@ export default function BibleExplorer() {
                     <h2 className="text-xl font-bold font-serif">Bible AI Explorer</h2>
                 </div>
                 <div className="flex gap-4">
-                    <History className="w-5 h-5 cursor-pointer opacity-80 hover:opacity-100" title="Study History" />
+                    <History className="w-5 h-5 cursor-pointer opacity-80 hover:opacity-100" />
                 </div>
             </div>
 
