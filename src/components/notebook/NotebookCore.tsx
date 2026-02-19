@@ -1686,9 +1686,10 @@ It's now part of my collective wisdom!`
                         {dailyManna && (
                             <div className="relative group flex items-center gap-3">
                                 {!isDailyMannaOpen && (
-                                    <div className="hidden lg:flex items-center gap-2 text-[10px] font-black text-amber-500 animate-bounce-subtle bg-amber-500/5 px-4 py-2 rounded-2xl border border-amber-500/20 shadow-lg shadow-amber-500/5">
-                                        <div className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
-                                        READ TODAY'S MANNA 🍞
+                                    <div className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] font-black text-amber-500 animate-bounce-subtle bg-amber-500/5 px-2.5 py-1.5 md:px-4 md:py-2 rounded-full border border-amber-500/20 shadow-lg shadow-amber-500/5">
+                                        <div className="w-1.5 md:w-2 h-1.5 md:h-2 bg-amber-500 rounded-full animate-ping" />
+                                        <span className="hidden sm:inline">READ TODAY'S MANNA 🍞</span>
+                                        <span className="sm:hidden">MANNA 🍞</span>
                                     </div>
                                 )}
                                 <button
