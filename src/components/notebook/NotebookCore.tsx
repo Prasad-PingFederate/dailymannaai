@@ -1684,21 +1684,20 @@ It's now part of my collective wisdom!`
                     {/* Daily Manna Mini-Message (Header Right) */}
                     <div className="flex items-center gap-3">
                         {dailyManna && (
-                            <div className="relative group flex items-center gap-3">
-                                {!isDailyMannaOpen && (
-                                    <div className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] font-black text-amber-500 animate-bounce-subtle bg-amber-500/5 px-2.5 py-1.5 md:px-4 md:py-2 rounded-full border border-amber-500/20 shadow-lg shadow-amber-500/5">
-                                        <div className="w-1.5 md:w-2 h-1.5 md:h-2 bg-amber-500 rounded-full animate-ping" />
-                                        <span className="hidden sm:inline">READ TODAY'S MANNA 🍞</span>
-                                        <span className="sm:hidden">MANNA 🍞</span>
-                                    </div>
-                                )}
+                            <div className="relative group flex items-center">
                                 <button
                                     onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${isDailyMannaOpen ? 'bg-accent/10 border-accent text-accent' : 'bg-card-bg border-border text-muted-foreground hover:border-accent/40'}`}
+                                    className={`flex items-center gap-2.5 px-4 py-2 rounded-full border transition-all ${isDailyMannaOpen ? 'bg-accent/10 border-accent text-accent' : 'bg-card-bg border-border text-muted-foreground hover:border-accent/40 shadow-sm'}`}
                                 >
-                                    <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Daily Manna</span>
-                                    <div className="w-px h-3 bg-border mx-1 hidden md:block" />
+                                    <div className="relative flex items-center justify-center">
+                                        <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
+                                        {!isDailyMannaOpen && (
+                                            <div className="absolute inset-0 w-full h-full bg-amber-500 rounded-full animate-ping opacity-40" />
+                                        )}
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Read Today's Daily Manna 🍞</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Manna 🍞</span>
+                                    <div className="w-px h-3 bg-border mx-1" />
                                     <span className="text-[10px] font-bold font-mono">{dailyManna.date}</span>
                                 </button>
 
