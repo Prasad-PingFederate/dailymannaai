@@ -64,7 +64,7 @@ export default function NotebookWorkspace() {
     const [input, setInput] = useState("");
     const [noteContent, setNoteContent] = useState("");
     const [sources, setSources] = useState<Source[]>([
-        { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true, fullContent: "Daily Manna AI is a spiritual growth platform..." },
+        { id: "Intro-Source", name: "Project Introduction", type: "text", selected: true, fullContent: "DailyMannaAI is a spiritual growth platform..." },
         { id: "Historical-Missionaries-Pioneers", name: "Historical Missionaries", type: "text", selected: true, fullContent: "The history of missions is filled with pioneers like William Carey..." },
         { id: "Modern-Evangelists-Missionaries", name: "Modern Evangelists", type: "text", selected: true, fullContent: "Modern evangelism leverages technology to reach the unreached..." },
         { id: "Joshua-Daniel-Doing-Gods-Will", name: "Joshua Daniel - Doing God's Will", type: "text", selected: true, fullContent: "Joshua Daniel's life was a testament to following God's calling..." },
@@ -1677,7 +1677,7 @@ It's now part of my collective wisdom!`
                                     <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                 </svg>
                             </div>
-                            <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none text-foreground">Daily Manna AI</h2>
+                            <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none text-foreground">DailyMannaAI</h2>
                         </div>
                         <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
                     </div>
@@ -1865,7 +1865,7 @@ It's now part of my collective wisdom!`
                                                         <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
                                                         <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
                                                     </div>
-                                                    Daily Manna AI is thinking...
+                                                    DailyMannaAI is thinking...
                                                 </div>
                                             </div>
                                         )}
