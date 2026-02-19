@@ -1691,6 +1691,7 @@ It's now part of my collective wisdom!`
                                     onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
                                     className={`flex items-center gap-1.5 px-2 py-1.5 rounded-xl transition-all ${isDailyMannaOpen ? 'bg-accent/10 text-accent' : 'text-muted-foreground/60 hover:text-accent hover:bg-accent/5'}`}
                                 >
+                                    <span className="text-[10px] font-black uppercase tracking-widest mr-1 opacity-70">Read Today's Daily Manna 🍞</span>
                                     <div className="relative flex items-center justify-center">
                                         <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
                                         {!isDailyMannaOpen && (
