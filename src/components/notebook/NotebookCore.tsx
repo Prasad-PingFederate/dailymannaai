@@ -100,6 +100,8 @@ export default function NotebookWorkspace() {
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
     const [isAudioOverviewOpen, setIsAudioOverviewOpen] = useState(false);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [dailyManna, setDailyManna] = useState<{ date: string, message: string } | null>(null);
+    const [isDailyMannaOpen, setIsDailyMannaOpen] = useState(false);
     const [localImagePath, setLocalImagePath] = useState("");
     const [isLocalImageModalOpen, setLocalImageModalOpen] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
@@ -187,6 +189,22 @@ export default function NotebookWorkspace() {
 
         loadVoices();
         window.speechSynthesis.onvoiceschanged = loadVoices;
+    }, []);
+
+    // --- DAILY MANNA: Fetch message ---
+    useEffect(() => {
+        const fetchDailyManna = async () => {
+            try {
+                const res = await fetch("/api/daily-message");
+                const data = await res.json();
+                if (data.message) {
+                    setDailyManna(data);
+                }
+            } catch (e) {
+                console.error("Daily Manna Fetch Error:", e);
+            }
+        };
+        fetchDailyManna();
     }, []);
 
     // --- Notification System ---
@@ -1658,9 +1676,58 @@ It's now part of my collective wisdom!`
                                     <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                 </svg>
                             </div>
-                            <h2 className="font-bold text-base md:text-lg truncate max-w-[150px] sm:max-w-none text-foreground">Daily Manna AI</h2>
+                            <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none text-foreground">Daily Manna AI</h2>
                         </div>
                         <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
+                    </div>
+
+                    {/* Daily Manna Mini-Message (Header Right) */}
+                    <div className="flex items-center gap-3">
+                        {dailyManna && (
+                            <div className="relative group">
+                                <button
+                                    onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${isDailyMannaOpen ? 'bg-accent/10 border-accent text-accent' : 'bg-card-bg border-border text-muted-foreground hover:border-accent/40'}`}
+                                >
+                                    <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Daily Manna</span>
+                                    <div className="w-px h-3 bg-border mx-1 hidden md:block" />
+                                    <span className="text-[10px] font-bold font-mono">{dailyManna.date}</span>
+                                </button>
+
+                                {isDailyMannaOpen && (
+                                    <div className="absolute right-0 top-12 w-[300px] md:w-[400px] bg-card-bg border border-border rounded-2xl shadow-2xl p-6 z-[60] animate-in slide-in-from-top-4 duration-300 glass-morphism">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2 text-accent">
+                                                <Sparkles size={16} />
+                                                <span className="text-xs font-black uppercase tracking-[0.2em]">Heavenly Message</span>
+                                            </div>
+                                            <button onClick={() => setIsDailyMannaOpen(false)} className="text-muted hover:text-foreground">
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                        <div className="text-[11px] font-black text-accent/60 uppercase tracking-widest mb-1">{dailyManna.date}</div>
+                                        <div className="text-[13px] leading-relaxed text-foreground/90 italic font-serif space-y-3 whitespace-pre-wrap max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
+                                            {dailyManna.message}
+                                        </div>
+                                        <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
+                                            <span className="text-[9px] font-bold text-muted uppercase tracking-widest">Grounded in Grace</span>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(`Daily Manna (${dailyManna.date}):\n\n${dailyManna.message}`);
+                                                    showToast("Message copied to heart & clipboard", "success");
+                                                }}
+                                                className="text-[9px] font-black text-accent uppercase hover:underline"
+                                            >
+                                                Share Word
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Other existing header right items could go here */}
                     </div>
                 </header>
 
