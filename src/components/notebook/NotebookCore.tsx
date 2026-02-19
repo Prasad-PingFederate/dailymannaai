@@ -1662,7 +1662,7 @@ It's now part of my collective wisdom!`
 
             {/* 2. Main Editor/Viewer (Middle) */}
             <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden transition-all duration-500">
-                <header className="sticky top-0 z-40 h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card-bg/80 backdrop-blur-md pt-safe shadow-sm">
+                <header className="sticky top-0 z-40 h-16 flex items-center justify-between px-4 md:px-6 bg-transparent pt-safe">
                     <div className="flex items-center gap-2 md:gap-4">
                         <button
                             onClick={() => setMobileMenuOpen(true)}
@@ -1671,15 +1671,16 @@ It's now part of my collective wisdom!`
                         >
                             <Menu size={20} />
                         </button>
-                        <div className="flex items-center gap-1.5 md:gap-2">
-                            <div className="text-red-600 flex-shrink-0" title="The Holy Cross">
+                        <div className="flex items-center gap-1.5 md:gap-2 group cursor-pointer hover:opacity-80 transition-opacity">
+                            <div className="text-red-600 flex-shrink-0" title="DailyMannaAI">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                 </svg>
                             </div>
-                            <h2 className="font-bold text-base md:text-lg truncate max-w-[120px] sm:max-w-none text-foreground">DailyMannaAI</h2>
+                            <span className="font-bold text-sm text-muted-foreground flex items-center gap-1">
+                                DailyMannaAI <ChevronRight size={14} className="opacity-50" />
+                            </span>
                         </div>
-                        <div className="hidden sm:block px-2 py-0.5 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase tracking-wider">Sync Active</div>
                     </div>
 
                     {/* Daily Manna Mini-Message (Header Right) */}
@@ -1688,7 +1689,7 @@ It's now part of my collective wisdom!`
                             <div className="relative group flex items-center">
                                 <button
                                     onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
-                                    className={`flex items-center gap-2.5 px-4 py-2 rounded-full border transition-all ${isDailyMannaOpen ? 'bg-accent/10 border-accent text-accent' : 'bg-card-bg border-border text-muted-foreground hover:border-accent/40 shadow-sm'}`}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${isDailyMannaOpen ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:bg-accent/5'}`}
                                 >
                                     <div className="relative flex items-center justify-center">
                                         <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
@@ -1775,9 +1776,26 @@ It's now part of my collective wisdom!`
                             <div className="max-w-3xl mx-auto">
                                 <div className="chat-focus-messages space-y-6 pt-10">
                                     {messages.length === 1 && (
-                                        <div className="text-center py-20 animate-in fade-in zoom-in duration-700">
-                                            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent-secondary">What can I help with?</h1>
-                                            <p className="text-muted text-lg">Harness the power of AI grounded in your sacred sources.</p>
+                                        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-in fade-in zoom-in-95 duration-1000 ease-out">
+                                            <div className="mb-8 p-4 rounded-3xl bg-accent/5 ring-1 ring-accent/10 animate-bounce-subtle">
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-red-600">
+                                                    <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
+                                                </svg>
+                                            </div>
+                                            <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-foreground">
+                                                What can I help with?
+                                            </h1>
+                                            <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
+                                                {["Explain Romans 8", "John Wesley on Grace", "Study guide for Ephesians", "Sermon summary"].map((hint, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => setInput(hint)}
+                                                        className="px-4 py-2 bg-card-bg border border-border rounded-full text-xs font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
+                                                    >
+                                                        {hint}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                     <div className="space-y-8 pb-6">
