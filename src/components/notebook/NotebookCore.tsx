@@ -100,6 +100,8 @@ export default function NotebookWorkspace() {
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
     const [isAudioOverviewOpen, setIsAudioOverviewOpen] = useState(false);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const [localImagePath, setLocalImagePath] = useState("");
+    const [isLocalImageModalOpen, setLocalImageModalOpen] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const actionBarRef = useRef<HTMLDivElement>(null);
@@ -937,7 +939,7 @@ It's now part of my collective wisdom!`
             const res = await fetch("/api/generate-audio", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: text.substring(0, 10000) }) // Increased limit for full messages
+                body: JSON.stringify({ text: text.substring(0, 10000) })
             });
 
             const data = await res.json();
@@ -957,15 +959,48 @@ It's now part of my collective wisdom!`
                 };
 
                 audio.play();
-                showToast("Playing spiritual audio...", "success");
+                showToast("Streaming spiritual audio...", "success");
             } else {
-                // If no audio data, reset state immediately
                 setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
             }
         } catch (e) {
             console.error("Audio Playback Error:", e);
             showToast("Failed to generate audio", "error");
             setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
+        }
+    };
+
+    const downloadMessageMp3 = async (text: string, titleHint: string) => {
+        try {
+            showToast("Generating MP3 for download...", "success");
+            const res = await fetch("/api/generate-audio", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text.substring(0, 10000) })
+            });
+
+            const data = await res.json();
+            if (data.audio_base64) {
+                const byteCharacters = atob(data.audio_base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `daily_manna_${titleHint.substring(0, 20).replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast("MP3 Study saved successfully", "success");
+            }
+        } catch (e) {
+            console.error("Download Error:", e);
+            showToast("Failed to save MP3", "error");
         }
     };
 
@@ -1206,6 +1241,71 @@ It's now part of my collective wisdom!`
                 <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-4 py-2 rounded-full shadow-lg border animate-in slide-in-from-top-4 duration-300 text-sm font-bold flex items-center gap-2 ${notification.type === 'success' ? 'bg-green-500/90 text-white border-green-400' : 'bg-red-500/90 text-white border-red-400'}`}>
                     {notification.type === 'success' ? <CheckCircle2 size={16} /> : <X size={16} />}
                     {notification.message}
+                </div>
+            )}
+
+            {/* Local Image Viewer Modal */}
+            {isLocalImageModalOpen && (
+                <div className="absolute inset-0 z-[200] flex items-center justify-center p-6 bg-background/90 backdrop-blur-md animate-in fade-in">
+                    <div className="relative w-full max-w-3xl bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200">
+                        <header className="p-6 border-b border-border flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-bold">Local Image Explorer</h3>
+                                <p className="text-sm text-muted">Paste an absolute disk path to view your integrated images.</p>
+                            </div>
+                            <button onClick={() => setLocalImageModalOpen(false)} className="p-2 hover:bg-border/50 rounded-full transition-colors">
+                                <X size={20} />
+                            </button>
+                        </header>
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted uppercase tracking-wider">Absolute File Path</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="C:\Users\...\image.jpg"
+                                        value={localImagePath}
+                                        onChange={(e) => setLocalImagePath(e.target.value)}
+                                        className="flex-1 bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent outline-none"
+                                    />
+                                    <button
+                                        onClick={() => setLocalImagePath("")}
+                                        className="px-4 bg-muted/10 hover:bg-muted/20 rounded-xl transition-colors"
+                                    >Clear</button>
+                                </div>
+                            </div>
+
+                            {localImagePath && (
+                                <div className="border border-border rounded-2xl overflow-hidden bg-black/20 flex flex-col min-h-[300px]">
+                                    <div className="p-3 bg-muted/5 border-b border-border flex items-center justify-between">
+                                        <span className="text-[10px] font-mono text-muted truncate max-w-md">{localImagePath}</span>
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(localImagePath)}
+                                            className="text-[10px] font-bold text-accent hover:underline"
+                                        >COPY PATH</button>
+                                    </div>
+                                    <div className="flex-1 flex items-center justify-center p-4">
+                                        <img
+                                            src={`/api/local-image?path=${encodeURIComponent(localImagePath)}`}
+                                            alt="Local Preview"
+                                            className="max-w-full max-h-[400px] rounded-lg shadow-xl object-contain"
+                                            onError={(e) => {
+                                                (e.target as any).src = 'https://via.placeholder.com/400x300?text=Invalid+Image+Path';
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <footer className="p-6 border-t border-border flex justify-end">
+                            <button
+                                onClick={() => setLocalImageModalOpen(false)}
+                                className="px-8 py-2 bg-accent text-white rounded-full font-bold hover:bg-accent/90 transition-all shadow-lg shadow-accent/20"
+                            >
+                                Done
+                            </button>
+                        </footer>
+                    </div>
                 </div>
             )}
             {/* Upload Modal Overlay */}
@@ -1481,7 +1581,13 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-border mt-auto">
+                <div className="p-4 border-t border-border mt-auto space-y-2">
+                    <button
+                        onClick={() => setLocalImageModalOpen(true)}
+                        className="flex items-center justify-center gap-2 w-full py-2 bg-muted/10 text-muted hover:text-accent border border-dashed border-border rounded-xl text-xs font-bold transition-all active:scale-95"
+                    >
+                        🖼️ Open Local Image
+                    </button>
                     <button
                         onClick={() => setUploadModalOpen(true)}
                         className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-white rounded-xl text-sm font-bold hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 active:scale-95"
@@ -1559,19 +1665,31 @@ It's now part of my collective wisdom!`
                                                 </div>
                                                 <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
                                                     {msg.role === 'assistant' && (
-                                                        <div className="flex items-center gap-6 px-4 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className={`flex flex-wrap items-center gap-3 md:gap-6 px-4 mb-2 transition-opacity ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                                             <button
                                                                 onClick={() => handleSpeakMessage(msg.content, i)}
-                                                                className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${isSpeakingMap[i] ? 'text-accent' : 'text-muted hover:text-accent'}`}
+                                                                className={`flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95 ${isSpeakingMap[i] ? 'text-accent' : 'text-muted-foreground/70 hover:text-accent'}`}
                                                             >
-                                                                <Volume2 size={14} className={isSpeakingMap[i] ? 'animate-pulse' : ''} />
+                                                                <Volume2 size={isMobile ? 18 : 14} className={isSpeakingMap[i] ? 'animate-pulse' : ''} />
                                                                 {isSpeakingMap[i] ? 'Stop' : 'Listen'}
                                                             </button>
-                                                            <button onClick={() => addNoteAtCursor(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                <Pin size={14} /> Pin to Note
+                                                            <button
+                                                                onClick={() => downloadMessageMp3(msg.content, msg.content.substring(0, 15))}
+                                                                className="text-muted-foreground/70 hover:text-accent flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95"
+                                                            >
+                                                                <FileAudio size={isMobile ? 18 : 14} /> MP3
                                                             </button>
-                                                            <button onClick={() => navigator.clipboard.writeText(msg.content)} className="text-muted hover:text-accent flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                                                                <Copy size={14} /> Copy
+                                                            <button
+                                                                onClick={() => addNoteAtCursor(msg.content)}
+                                                                className="text-muted-foreground/70 hover:text-accent flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95"
+                                                            >
+                                                                <Pin size={isMobile ? 18 : 14} /> Pin
+                                                            </button>
+                                                            <button
+                                                                onClick={() => navigator.clipboard.writeText(msg.content)}
+                                                                className="text-muted-foreground/70 hover:text-accent flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95"
+                                                            >
+                                                                <Copy size={isMobile ? 18 : 14} /> Copy
                                                             </button>
                                                         </div>
                                                     )}
@@ -1719,7 +1837,7 @@ It's now part of my collective wisdom!`
             {/* Audio Overview Container - Moved to a separate flex column */}
             {/* 2b. Audio Overview Sidebar - Integrated Docked View */}
             {audioOverview && isAudioOverviewOpen && (
-                <div className="w-[400px] border-l border-border bg-card-bg/30 backdrop-blur-xl animate-in slide-in-from-right duration-500 flex flex-col h-full overflow-hidden shrink-0 z-40">
+                <div className="w-full md:w-[400px] border-l border-border bg-card-bg/30 backdrop-blur-3xl animate-in slide-in-from-right duration-500 flex flex-col h-full overflow-hidden shrink-0 z-50 fixed md:relative inset-0 md:inset-auto">
                     <div className="flex items-center justify-between p-4 border-b border-border shadow-sm">
                         <div className="flex items-center gap-2 text-accent">
                             <Mic2 size={16} />
@@ -1798,9 +1916,9 @@ It's now part of my collective wisdom!`
 
                     <div className="flex-1 overflow-y-auto p-6 space-y-6">
                         <div>
-                            <h4 className="font-bold text-lg mb-2 text-foreground">{audioOverview.title}</h4>
+                            <h4 className="font-bold text-lg mb-2 text-foreground">{audioOverview?.title || 'Overview'}</h4>
                             <div className="text-[12px] leading-relaxed text-foreground/80 whitespace-pre-wrap font-serif">
-                                {audioOverview.script}
+                                {audioOverview?.script || ''}
                             </div>
                         </div>
                     </div>
@@ -1808,7 +1926,7 @@ It's now part of my collective wisdom!`
                     <div className="p-4 border-t border-border bg-card-bg/50 backdrop-blur-sm space-y-3">
                         <div className="flex items-center justify-between px-2">
                             <span className="text-[10px] text-muted font-bold uppercase tracking-tighter">AI Voices: David & Sarah</span>
-                            <button onClick={() => navigator.clipboard.writeText(audioOverview.script)} className="text-[10px] text-accent font-bold hover:underline">Copy Script</button>
+                            <button onClick={() => audioOverview && navigator.clipboard.writeText(audioOverview.script)} className="text-[10px] text-accent font-bold hover:underline">Copy Script</button>
                         </div>
                         <div className="flex gap-2">
                             <button onClick={downloadMp3} className="flex-1 py-2.5 bg-accent text-white rounded-xl hover:bg-accent/90 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-accent/10">
