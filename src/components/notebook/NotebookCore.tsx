@@ -1684,7 +1684,13 @@ It's now part of my collective wisdom!`
                     {/* Daily Manna Mini-Message (Header Right) */}
                     <div className="flex items-center gap-3">
                         {dailyManna && (
-                            <div className="relative group">
+                            <div className="relative group flex items-center gap-3">
+                                {!isDailyMannaOpen && (
+                                    <div className="hidden lg:flex items-center gap-2 text-[10px] font-black text-amber-500 animate-bounce-subtle bg-amber-500/5 px-4 py-2 rounded-2xl border border-amber-500/20 shadow-lg shadow-amber-500/5">
+                                        <div className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
+                                        READ TODAY'S MANNA 🍞
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
                                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${isDailyMannaOpen ? 'bg-accent/10 border-accent text-accent' : 'bg-card-bg border-border text-muted-foreground hover:border-accent/40'}`}
