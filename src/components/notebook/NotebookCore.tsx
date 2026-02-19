@@ -1929,35 +1929,55 @@ It's now part of my collective wisdom!`
 
                 {/* New Fixed Action Bar (Merged Style) */}
                 <div className="border-t border-border bg-card-bg/60 backdrop-blur-2xl px-4 py-3">
-                    <div className="max-w-4xl mx-auto grid grid-cols-3 md:grid-cols-5 gap-3">
-                        {[
-                            { label: 'Add', sub: 'SOURCE', icon: <Plus size={18} />, action: () => setUploadModalOpen(true), style: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-                            { label: 'Summary', sub: 'SYNTHESIS', icon: <FileStack size={18} />, action: handleSummarize, style: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
-                            { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={18} />, action: handleRefine, style: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
-                            { label: 'Divine', sub: 'INTERVENTION', icon: <Sparkles size={18} />, action: handleDivineMeditation, style: 'bg-amber-500/15 text-amber-500 border-amber-500/30 font-black shadow-lg shadow-amber-500/10', badge: 'DIVINE ✨' },
-                            { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={18} />, action: generateAudioOverview, style: 'bg-accent/15 text-accent border-accent/30 font-black shadow-lg shadow-accent/10', badge: 'PROFOUND ✨' }
-                        ].map((tool, idx) => (
-                            <button
-                                key={idx}
-                                onClick={tool.action}
-                                className={`group relative flex flex-col items-center justify-center p-2.5 border rounded-2xl transition-all hover:scale-105 active:scale-95 ${tool.style}`}
-                            >
-                                {tool.badge && (
-                                    <span className="absolute -top-2 px-2 py-0.5 bg-background border border-current rounded-full text-[7px] font-black uppercase tracking-tighter shadow-sm whitespace-nowrap animate-bounce-subtle">
-                                        {tool.badge}
+                    <div className="max-w-4xl mx-auto space-y-3">
+                        {/* Search and Resources Info Bar */}
+                        <div className="flex items-center justify-between gap-4 px-1">
+                            <div className="flex-1 relative group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" size={12} />
+                                <input
+                                    type="text"
+                                    placeholder="Search your library and insights..."
+                                    className="w-full bg-background/40 border border-border/50 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:ring-1 focus:ring-accent/30 transition-all shadow-sm"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 bg-accent/5 px-3 py-2 rounded-xl border border-accent/10 whitespace-nowrap">
+                                <BookOpen size={12} className="text-accent" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
+                                    {sources.filter(s => s.selected).length} Resources Active
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                            {[
+                                { label: 'Add', sub: 'SOURCE', icon: <Plus size={18} />, action: () => setUploadModalOpen(true), style: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+                                { label: 'Summary', sub: 'SYNTHESIS', icon: <FileStack size={18} />, action: handleSummarize, style: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
+                                { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={18} />, action: handleRefine, style: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+                                { label: 'Divine', sub: 'INTERVENTION', icon: <Sparkles size={18} />, action: handleDivineMeditation, style: 'bg-amber-500/15 text-amber-500 border-amber-500/30 font-black shadow-lg shadow-amber-500/10', badge: 'DIVINE ✨' },
+                                { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={18} />, action: generateAudioOverview, style: 'bg-accent/15 text-accent border-accent/30 font-black shadow-lg shadow-accent/10', badge: 'PROFOUND ✨' }
+                            ].map((tool, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={tool.action}
+                                    className={`group relative flex flex-col items-center justify-center p-2.5 border rounded-2xl transition-all hover:scale-105 active:scale-95 ${tool.style}`}
+                                >
+                                    {tool.badge && (
+                                        <span className="absolute -top-2 px-2 py-0.5 bg-background border border-current rounded-full text-[7px] font-black uppercase tracking-tighter shadow-sm whitespace-nowrap animate-bounce-subtle">
+                                            {tool.badge}
+                                        </span>
+                                    )}
+                                    <div className="mb-1 group-hover:scale-110 transition-transform">
+                                        {tool.icon}
+                                    </div>
+                                    <span className="text-[9px] font-black tracking-wider uppercase">
+                                        {tool.label}
                                     </span>
-                                )}
-                                <div className="mb-1 group-hover:scale-110 transition-transform">
-                                    {tool.icon}
-                                </div>
-                                <span className="text-[9px] font-black tracking-wider uppercase">
-                                    {tool.label}
-                                </span>
-                                <span className="text-[7px] font-medium opacity-70 uppercase tracking-widest hidden md:block">
-                                    {tool.sub}
-                                </span>
-                            </button>
-                        ))}
+                                    <span className="text-[7px] font-medium opacity-70 uppercase tracking-widest hidden md:block">
+                                        {tool.sub}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </main>
