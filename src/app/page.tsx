@@ -6,8 +6,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  Mic2,
-  Github
+  Mic2
 } from "lucide-react";
 
 export default function Home() {
@@ -73,14 +72,6 @@ export default function Home() {
             >
               Open Your Study Workspace
               <ArrowRight size={20} />
-            </Link>
-            <Link
-              href="https://github.com/Prasad-PingFederate/notebookllm.ai"
-              target="_blank"
-              className="flex items-center gap-2 rounded-full border border-border bg-card-bg px-8 py-4 text-lg font-semibold transition-colors hover:bg-border/50"
-            >
-              <Github size={20} />
-              Support on GitHub
             </Link>
           </div>
 
