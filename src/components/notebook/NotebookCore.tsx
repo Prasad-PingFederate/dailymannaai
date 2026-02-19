@@ -1703,7 +1703,7 @@ It's now part of my collective wisdom!`
                                 </button>
 
                                 {isDailyMannaOpen && (
-                                    <div className="absolute right-0 top-12 w-[300px] md:w-[400px] bg-card-bg border border-border rounded-2xl shadow-2xl p-6 z-[60] animate-in slide-in-from-top-4 duration-300 glass-morphism">
+                                    <div className="absolute right-0 top-14 w-[calc(100vw-2rem)] sm:w-[400px] bg-card-bg border border-border rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] p-6 z-[100] animate-in slide-in-from-top-4 duration-300">
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-2 text-accent">
                                                 <Sparkles size={16} />
