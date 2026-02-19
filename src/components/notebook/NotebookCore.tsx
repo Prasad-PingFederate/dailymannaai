@@ -35,7 +35,8 @@ import {
     CheckCircle2,
     Volume2,
     Menu,
-    Lightbulb
+    Lightbulb,
+    MessageCircle
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 import { GODS_LOVE_VERSES } from "@/lib/data/gods_love";
@@ -1716,17 +1717,43 @@ It's now part of my collective wisdom!`
                                         <div className="text-[13px] leading-relaxed text-foreground/90 italic font-serif space-y-3 whitespace-pre-wrap max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
                                             {dailyManna.message}
                                         </div>
-                                        <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
-                                            <span className="text-[9px] font-bold text-muted uppercase tracking-widest">Grounded in Grace</span>
+                                        <div className="mt-6 pt-6 border-t border-border/50 space-y-4">
                                             <button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(`Daily Manna (${dailyManna.date}):\n\n${dailyManna.message}`);
-                                                    showToast("Message copied to heart & clipboard", "success");
-                                                }}
-                                                className="text-[9px] font-black text-accent uppercase hover:underline"
+                                                onClick={() => window.open('https://chat.whatsapp.com/EXAMPLE_LINK', '_blank')}
+                                                className="w-full py-3 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#25D366]/20 transition-all active:scale-95"
                                             >
-                                                Share Word
+                                                <MessageCircle size={14} fill="currentColor" className="opacity-20" />
+                                                Join WhatsApp Community
                                             </button>
+
+                                            <div className="flex items-center justify-between gap-3">
+                                                <button
+                                                    onClick={() => {
+                                                        const text = encodeURIComponent(`✨ *Daily Manna (${dailyManna.date})* ✨\n\n${dailyManna.message}\n\n🙏 _Grounded in Grace_\n📖 Read more at: dailymannaai.com`);
+                                                        window.open(`https://wa.me/?text=${text}`, '_blank');
+                                                        showToast("Opening WhatsApp...", "success");
+                                                    }}
+                                                    className="flex-1 py-3 bg-accent text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 shadow-lg shadow-accent/20 hover:scale-[1.02] transition-all active:scale-95"
+                                                >
+                                                    <Share2 size={14} />
+                                                    Share to WhatsApp
+                                                </button>
+
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`Daily Manna (${dailyManna.date}):\n\n${dailyManna.message}`);
+                                                        showToast("Copied to clipboard", "success");
+                                                    }}
+                                                    className="p-3 bg-muted/10 text-muted-foreground rounded-xl hover:bg-muted/20 transition-colors"
+                                                    title="Copy Script"
+                                                >
+                                                    <Copy size={16} />
+                                                </button>
+                                            </div>
+
+                                            <div className="text-center">
+                                                <span className="text-[8px] font-bold text-muted uppercase tracking-widest opacity-50">#1 Spiritual Resource Provider</span>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
