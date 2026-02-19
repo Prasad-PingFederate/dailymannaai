@@ -1719,7 +1719,7 @@ It's now part of my collective wisdom!`
                                         </div>
                                         <div className="mt-6 pt-6 border-t border-border/50 space-y-4">
                                             <button
-                                                onClick={() => window.open('https://chat.whatsapp.com/EXAMPLE_LINK', '_blank')}
+                                                onClick={() => window.open('https://chat.whatsapp.com/JHD6LT3xDcp93tt1DDSWED', '_blank')}
                                                 className="w-full py-3 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#25D366]/20 transition-all active:scale-95"
                                             >
                                                 <MessageCircle size={14} fill="currentColor" className="opacity-20" />
@@ -1741,13 +1741,13 @@ It's now part of my collective wisdom!`
 
                                                 <button
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText(`Daily Manna (${dailyManna.date}):\n\n${dailyManna.message}`);
-                                                        showToast("Copied to clipboard", "success");
+                                                        navigator.clipboard.writeText(`Daily Manna (${dailyManna.date}):\n\n${dailyManna.message}\n\n🙏 Grounded in Grace\n📖 Read more at: dailymannaai.com`);
+                                                        showToast("Today's Manna copied to heart & clipboard", "success");
                                                     }}
-                                                    className="p-3 bg-muted/10 text-muted-foreground rounded-xl hover:bg-muted/20 transition-colors"
-                                                    title="Copy Script"
+                                                    className="flex-1 py-3 bg-muted/10 text-muted-foreground border border-border rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-muted/20 transition-all active:scale-95"
                                                 >
-                                                    <Copy size={16} />
+                                                    <Copy size={14} />
+                                                    Copy Word
                                                 </button>
                                             </div>
 
