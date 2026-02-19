@@ -1885,7 +1885,7 @@ It's now part of my collective wisdom!`
                         <div className="relative group">
                             <div className="relative bg-background/50 border border-border/80 rounded-2xl shadow-xl focus-within:ring-2 ring-accent/30 transition-all p-2 group-hover:border-accent/20">
                                 <textarea
-                                    placeholder="ASK Daily manna Ai about the scriptures or your research..."
+                                    placeholder="Ask DailyMannaAI about Bible, scriptures or start your research..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => {
