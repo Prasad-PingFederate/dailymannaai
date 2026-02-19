@@ -1662,7 +1662,7 @@ It's now part of my collective wisdom!`
 
             {/* 2. Main Editor/Viewer (Middle) */}
             <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden transition-all duration-500">
-                <header className="sticky top-0 z-40 h-16 flex items-center justify-between px-4 md:px-6 bg-transparent pt-safe">
+                <header className="sticky top-0 z-40 h-14 flex items-center justify-between px-4 md:px-6 bg-transparent pt-safe">
                     <div className="flex items-center gap-2 md:gap-4">
                         <button
                             onClick={() => setMobileMenuOpen(true)}
@@ -1771,10 +1771,10 @@ It's now part of my collective wisdom!`
                         <div
                             ref={chatContainerRef}
                             onScroll={handleChatScroll}
-                            className="flex-1 overflow-y-auto p-4 md:px-10 md:py-6 space-y-6 relative"
+                            className="flex-1 overflow-y-auto p-4 md:px-10 md:pt-2 md:pb-6 space-y-6 relative"
                         >
                             <div className="max-w-3xl mx-auto">
-                                <div className="chat-focus-messages space-y-6 pt-10">
+                                <div className="chat-focus-messages space-y-6 pt-4">
                                     {messages.length === 1 && (
                                         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-in fade-in zoom-in-95 duration-1000 ease-out">
                                             <div className="mb-8 p-4 rounded-3xl bg-accent/5 ring-1 ring-accent/10 animate-bounce-subtle">
