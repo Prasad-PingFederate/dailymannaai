@@ -1691,14 +1691,14 @@ It's now part of my collective wisdom!`
                                     onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
                                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${isDailyMannaOpen ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:bg-accent/5'}`}
                                 >
-                                    <div className="relative flex items-center justify-center">
+                                    <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Read Today's Daily Manna 🍞</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Manna 🍞</span>
+                                    <div className="relative flex items-center justify-center ml-1">
                                         <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
                                         {!isDailyMannaOpen && (
                                             <div className="absolute inset-0 w-full h-full bg-amber-500 rounded-full animate-ping opacity-40" />
                                         )}
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Read Today's Daily Manna 🍞</span>
-                                    <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Manna 🍞</span>
                                     <div className="w-px h-3 bg-border mx-1" />
                                     <span className="text-[10px] font-bold font-mono">{dailyManna.date}</span>
                                 </button>
