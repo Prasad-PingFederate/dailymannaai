@@ -19,24 +19,28 @@ export async function POST(req: Request) {
             .map((s: any) => `### Source: ${s.name}\n${s.content}`)
             .join("\n\n");
 
-        const prompt = `You are creating a podcast-style audio overview of spiritual research materials. Generate a natural, engaging conversation between two hosts discussing the content.
+        const prompt = `You are creating a highly profound, spiritually-rich podcast-style audio overview of Christian research materials. 
+
+Generate a natural, deeply engaging conversation between two hosts who are passionate about theology and spiritual growth.
 
 RESEARCH MATERIALS:
 ${combinedContent}
 
+The goal is to make this the #1 spiritual podcast experience for users.
 Create a podcast script with:
-- Two hosts: "Sarah" (enthusiastic, asks questions) and "David" (knowledgeable, provides insights)
-- Natural, conversational dialogue
-- Discussion of key spiritual themes and teachings
-- References to Scripture and Christian leaders mentioned
-- Engaging back-and-forth that makes complex theology accessible
-- 3-5 minutes of content (roughly 500-700 words)
+- Two hosts: "Sarah" (enthusiastic, seeks deeper meaning, asks "how does this change my life?") and "David" (knowledgeable, biblically grounded, provides profound theological insights)
+- Natural, conversational dialogue with emotional depth
+- Focus on the "Profound Intervention": How do these truths challenge our current worldview?
+- Discussion of key spiritual themes, hidden gems in the text, and historical context
+- Integration of Scripture and Wisdom: Connect the research to the broader narrative of the Gospel
+- Practical Applications: What are 2-3 specific "Divine Actions" the listener can take this week?
+- Length: 800-1000 words (deep dive)
 
 Format as:
 Sarah: [dialogue]
 David: [dialogue]
 
-Make it sound like a real conversation, not a formal presentation. Use natural speech patterns, occasional questions, and friendly banter.
+Ensure the tone is reverent yet accessible, providing "Daily Manna" that truly nourishes the soul.
 
 PODCAST SCRIPT:`;
 

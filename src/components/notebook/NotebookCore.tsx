@@ -800,32 +800,59 @@ It's now part of my collective wisdom!`
     };
 
     const handleDivineMeditation = async () => {
-        if (!noteContent || noteContent.trim().length < 20) {
-            alert("Write a bit more in your research notes first, then we can seek a deeper meditation.");
+        const selectedSources = sources.filter(s => s.selected);
+
+        if (selectedSources.length === 0 && (!noteContent || noteContent.trim().length < 20)) {
+            alert("Please select some sources or write more in your research notes to receive a Divine Reflection.");
             return;
         }
 
         setIsMeditating(true);
+        showToast("Seeking profound divine intervention...", "success");
+
         try {
-            const res = await fetch("/api/chat", {
+            const res = await fetch("/api/divine", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    query: "Based on my research notes, please provide a deep spiritual meditation and a prayer that glorifies God. Identify the main Christ-centered themes.",
-                    history: [{ role: "user", content: `Here is my current research: ${noteContent}` }]
+                    sources: selectedSources.map(s => ({ name: s.name, content: s.fullContent || "" })),
+                    notes: noteContent
                 }),
             });
 
             const data = await res.json();
-            if (res.ok) {
+            if (res.ok && data.reflection) {
+                // Parse out suggestions if they exist at the end (looking for section 6)
+                let mainContent = data.reflection;
+                let parsedSuggestions: string[] = [];
+
+                if (mainContent.includes("6. ✨ DIVINE SUGGESTIONS")) {
+                    const parts = mainContent.split("6. ✨ DIVINE SUGGESTIONS");
+                    mainContent = parts[0];
+                    const suggestionBlock = parts[1];
+                    // Extract numbered items or bullet points
+                    const regex = /(?:\d\.|\*)\s+(.+)/g;
+                    let match;
+                    while ((match = regex.exec(suggestionBlock)) !== null) {
+                        parsedSuggestions.push(match[1].trim());
+                    }
+                }
+
                 setMessages(prev => [...prev, {
                     role: "assistant",
-                    content: `✨ **Divine Reflection**\n\n${data.content}`
+                    content: mainContent.trim()
                 }]);
-                showToast("Meditation added for your spirit", "success");
+
+                if (parsedSuggestions.length > 0) {
+                    setSuggestions(parsedSuggestions);
+                }
+
+                showToast("Profound intervention received", "success");
+                setActiveTab("chat");
             }
         } catch (e) {
-            console.error("Meditation Error:", e);
+            console.error("Divine Reflection Error:", e);
+            showToast("Failed to connect to the Divine Counselor", "error");
         } finally {
             setIsMeditating(false);
         }
@@ -1801,32 +1828,32 @@ It's now part of my collective wisdom!`
                 </div>
 
                 {/* New Fixed Action Bar (Merged Style) */}
-                <div className="border-t border-border bg-card-bg/40 backdrop-blur-xl px-4 py-4">
-                    <div className="max-w-4xl mx-auto grid grid-cols-3 md:grid-cols-5 gap-3">
+                <div className="border-t border-border bg-card-bg/60 backdrop-blur-2xl px-4 py-6">
+                    <div className="max-w-4xl mx-auto grid grid-cols-3 md:grid-cols-5 gap-4">
                         {[
-                            { label: 'Add', sub: 'SOURCE', icon: <Plus size={16} />, action: () => setUploadModalOpen(true), color: 'text-blue-500' },
-                            { label: 'Summarize', sub: 'SOURCES', icon: <FileStack size={16} />, action: handleSummarize, color: 'text-blue-400' },
-                            { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={16} />, action: handleRefine, color: 'text-purple-400' },
-                            { label: 'Divine', sub: 'REFLECTION', icon: <Sparkles size={16} />, action: handleDivineMeditation, color: 'text-yellow-500', badge: 'DIVINE ✨' },
-                            { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={16} />, action: generateAudioOverview, color: 'text-accent', badge: 'NEW ✨' }
+                            { label: 'Add', sub: 'SOURCE', icon: <Plus size={20} />, action: () => setUploadModalOpen(true), style: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+                            { label: 'Summary', sub: 'SYNTHESIS', icon: <FileStack size={20} />, action: handleSummarize, style: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
+                            { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={20} />, action: handleRefine, style: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+                            { label: 'Divine', sub: 'INTERVENTION', icon: <Sparkles size={20} />, action: handleDivineMeditation, style: 'bg-amber-500/15 text-amber-500 border-amber-500/30 font-black shadow-lg shadow-amber-500/10', badge: 'DIVINE ✨' },
+                            { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={20} />, action: generateAudioOverview, style: 'bg-accent/15 text-accent border-accent/30 font-black shadow-lg shadow-accent/10', badge: 'PROFOUND ✨' }
                         ].map((tool, idx) => (
                             <button
                                 key={idx}
                                 onClick={tool.action}
-                                className="group relative flex flex-col items-center justify-center p-3 bg-card-bg/60 backdrop-blur-md border border-border/50 rounded-[1.25rem] hover:border-accent/40 hover:bg-accent/5 transition-all hover:scale-105 active:scale-95 shadow-md"
+                                className={`group relative flex flex-col items-center justify-center p-4 border rounded-[1.5rem] transition-all hover:scale-105 active:scale-95 ${tool.style}`}
                             >
                                 {tool.badge && (
-                                    <span className="absolute -top-2 px-1.5 py-0.5 bg-background border border-border rounded text-[7px] font-black text-accent uppercase tracking-tighter shadow-sm whitespace-nowrap">
+                                    <span className="absolute -top-2 px-2 py-0.5 bg-background border border-current rounded-full text-[8px] font-black uppercase tracking-tighter shadow-sm whitespace-nowrap animate-bounce-subtle">
                                         {tool.badge}
                                     </span>
                                 )}
-                                <div className={`${tool.color} mb-1 group-hover:scale-110 transition-transform`}>
+                                <div className="mb-2 group-hover:scale-110 transition-transform">
                                     {tool.icon}
                                 </div>
-                                <span className="text-[9px] font-bold text-foreground">
+                                <span className="text-[10px] font-black tracking-wider uppercase">
                                     {tool.label}
                                 </span>
-                                <span className="text-[7px] font-medium text-muted uppercase tracking-wider">
+                                <span className="text-[8px] font-medium opacity-70 uppercase tracking-widest hidden md:block">
                                     {tool.sub}
                                 </span>
                             </button>
