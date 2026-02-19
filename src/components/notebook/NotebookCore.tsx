@@ -1662,7 +1662,7 @@ It's now part of my collective wisdom!`
 
             {/* 2. Main Editor/Viewer (Middle) */}
             <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden transition-all duration-500">
-                <header className="absolute top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4 md:px-6 bg-transparent pt-safe">
+                <header className="absolute top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-2 md:px-4 bg-transparent pt-safe">
                     <div className="flex items-center gap-2 md:gap-4">
                         <button
                             onClick={() => setMobileMenuOpen(true)}
@@ -1689,17 +1689,15 @@ It's now part of my collective wisdom!`
                             <div className="relative group flex items-center">
                                 <button
                                     onClick={() => setIsDailyMannaOpen(!isDailyMannaOpen)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all ${isDailyMannaOpen ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:bg-accent/5'}`}
+                                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-xl transition-all ${isDailyMannaOpen ? 'bg-accent/10 text-accent' : 'text-muted-foreground/60 hover:text-accent hover:bg-accent/5'}`}
                                 >
-                                    <span className="text-[10px] font-bold font-mono opacity-50">{dailyManna.date}</span>
-                                    <div className="w-px h-3 bg-border mx-2" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Daily Manna 🍞</span>
-                                    <div className="relative flex items-center justify-center ml-1">
-                                        <Sparkles size={12} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
+                                    <div className="relative flex items-center justify-center">
+                                        <Sparkles size={14} className={!isDailyMannaOpen ? 'animate-pulse text-amber-500' : ''} />
                                         {!isDailyMannaOpen && (
-                                            <div className="absolute inset-0 w-full h-full bg-amber-500 rounded-full animate-ping opacity-30" />
+                                            <div className="absolute inset-0 w-full h-full bg-amber-500 rounded-full animate-ping opacity-20" />
                                         )}
                                     </div>
+                                    <span className="text-[10px] font-bold font-mono">{dailyManna.date}</span>
                                 </button>
 
                                 {isDailyMannaOpen && (
