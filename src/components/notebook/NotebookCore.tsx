@@ -1874,77 +1874,59 @@ It's now part of my collective wisdom!`
                             </div>
                         </div>
 
-                        {/* Center Chat Input (Groq/Claude style) */}
-                        <div className="p-4 md:px-10 md:pb-8 md:pt-2 border-t border-border/10 bg-gradient-to-t from-background to-transparent">
-                            <div className="max-w-4xl mx-auto relative group">
-                                <div className="relative bg-card-bg/60 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] focus-within:ring-2 ring-accent/30 transition-all p-3 group-hover:border-accent/20">
-                                    <textarea
-                                        placeholder="ASK Daily manna Ai about the scriptures or your research..."
-                                        value={input}
-                                        onChange={(e) => setInput(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleSendMessage();
-                                            }
-                                        }}
-                                        className="w-full bg-transparent border-none py-5 px-14 pr-20 text-xl focus:outline-none resize-none min-h-[70px] max-h-80 overflow-y-auto"
-                                        rows={1}
-                                    />
-                                    <div className="absolute left-4 top-4">
-                                        <button
-                                            onClick={() => setUploadModalOpen(true)}
-                                            className="p-3 bg-muted/5 hover:bg-accent/10 rounded-full text-muted hover:text-accent transition-all hover:scale-110 active:scale-90"
-                                            title="Add Source (PDF, Word, YT, URL)"
-                                        >
-                                            <Plus size={24} />
-                                        </button>
-                                    </div>
-                                    <div className="absolute right-4 top-4">
-                                        <button
-                                            onClick={() => handleSendMessage()}
-                                            disabled={!input.trim()}
-                                            className={`p-4 bg-accent text-white rounded-[1.5rem] shadow-2xl transition-all ${input.trim() ? 'hover:scale-110 active:scale-90 hover:rotate-2 shadow-accent/40' : 'opacity-10 cursor-not-allowed grayscale'}`}
-                                        >
-                                            <Send size={24} />
-                                        </button>
-                                    </div>
-                                    <div className="px-8 pb-3 flex items-center justify-between text-[11px] text-muted-foreground font-black uppercase tracking-[0.2em]">
-                                        <div className="flex items-center gap-4">
-                                            <span className="flex items-center gap-2 italic">
-                                                <BookOpen size={12} className="text-accent" />
-                                                {sources.filter(s => s.selected).length} SOURCES ACTIVE
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-accent/80">
-                                            <Sparkles size={12} className="animate-pulse" />
-                                            BORN AGAIN AI
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {/* Center Chat Input space removed - moved to footer */}
                     </div>
                 </div>
 
                 {/* New Fixed Action Bar (Merged Style) */}
-                <div className="border-t border-border bg-card-bg/60 backdrop-blur-2xl px-4 py-3">
-                    <div className="max-w-4xl mx-auto space-y-3">
-                        {/* Search and Resources Info Bar */}
-                        <div className="flex items-center justify-between gap-4 px-1">
-                            <div className="flex-1 relative group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors" size={12} />
-                                <input
-                                    type="text"
-                                    placeholder="Search your library and insights..."
-                                    className="w-full bg-background/40 border border-border/50 rounded-xl py-2 pl-9 pr-4 text-[11px] focus:outline-none focus:ring-1 focus:ring-accent/30 transition-all shadow-sm"
+                <div className="border-t border-border bg-card-bg/80 backdrop-blur-3xl px-4 py-4 md:px-10">
+                    <div className="max-w-4xl mx-auto space-y-4">
+                        {/* Integrated Main Chat Input */}
+                        <div className="relative group">
+                            <div className="relative bg-background/50 border border-border/80 rounded-2xl shadow-xl focus-within:ring-2 ring-accent/30 transition-all p-2 group-hover:border-accent/20">
+                                <textarea
+                                    placeholder="ASK Daily manna Ai about the scriptures or your research..."
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                    className="w-full bg-transparent border-none py-3 px-12 pr-14 text-lg focus:outline-none resize-none min-h-[54px] max-h-40 overflow-y-auto"
+                                    rows={1}
                                 />
-                            </div>
-                            <div className="flex items-center gap-2 bg-accent/5 px-3 py-2 rounded-xl border border-accent/10 whitespace-nowrap">
-                                <BookOpen size={12} className="text-accent" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
-                                    {sources.filter(s => s.selected).length} Resources Active
-                                </span>
+                                <div className="absolute left-2 top-2">
+                                    <button
+                                        onClick={() => setUploadModalOpen(true)}
+                                        className="p-2.5 bg-muted/10 hover:bg-accent/10 rounded-xl text-muted hover:text-accent transition-all hover:scale-110 active:scale-90"
+                                        title="Add Source (PDF, Word, YT, URL)"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
+                                <div className="absolute right-2 top-2">
+                                    <button
+                                        onClick={() => handleSendMessage()}
+                                        disabled={!input.trim()}
+                                        className={`p-2.5 bg-accent text-white rounded-xl shadow-lg transition-all ${input.trim() ? 'hover:scale-105 active:scale-95 shadow-accent/40' : 'opacity-10 cursor-not-allowed'}`}
+                                    >
+                                        <Send size={20} />
+                                    </button>
+                                </div>
+                                <div className="px-4 pb-1.5 flex items-center justify-between text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-80">
+                                    <div className="flex items-center gap-4">
+                                        <span className="flex items-center gap-2 italic">
+                                            <BookOpen size={10} className="text-accent" />
+                                            {sources.filter(s => s.selected).length} SOURCES ACTIVE
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-accent/80">
+                                        <Sparkles size={10} className="animate-pulse" />
+                                        BORN AGAIN AI
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
