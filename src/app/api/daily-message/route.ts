@@ -7,7 +7,10 @@ const providerManager = new AIProviderManager();
 export async function GET() {
     try {
         const today = new Date();
-        const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+        const dateStr = `${today.getDate().toString().padStart(2, '0')}/${monthNames[today.getMonth()]}/${today.getFullYear()}`;
 
         // 1. Try to fetch from Cache (MongoDB)
         let db;
