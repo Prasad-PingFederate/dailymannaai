@@ -9,8 +9,16 @@ async function finishWesley() {
     const collection = astraDb.collection('sermons_archive');
 
     const additionalSermons = [
-        { id: 4, title: "Scriptural Christianity" },
-        { id: 5, title: "Justification by Faith" },
+        {
+            id: 4,
+            title: "Scriptural Christianity",
+            content: "John Wesley's foundational sermon on Acts 4:31. It outlines the nature of Christianity as a religion of the heart, characterized by the 'fruit of the Spirit' (love, joy, peace). It emphasizes that true Christianity is not merely a set of opinions or rituals, but a transformative filling of the Holy Spirit that results in outward righteousness and love for all humankind, including enemies."
+        },
+        {
+            id: 5,
+            title: "Justification by Faith",
+            content: "Based on Romans 4:5, this sermon clarifies that justification is God's act of pardon, the forgiveness of past sins. It is a gift for the 'ungodly' who come to God with empty hands, trusting solely in the merits of Christ. Wesley distinguishes justification (being pardoned) from sanctification (being made holy), and asserts that faith is the sole condition for this divine acceptance."
+        },
         { id: 16, title: "The Means of Grace" },
         { id: 39, title: "Catholic Spirit" },
         { id: 51, title: "The Good Steward" },

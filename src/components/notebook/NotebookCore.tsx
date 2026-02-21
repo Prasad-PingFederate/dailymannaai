@@ -671,6 +671,7 @@ It's now part of my collective wisdom!`
                 setMessages(prev => [...prev, {
                     role: "assistant",
                     content: data.content,
+                    thought: data.thought,
                     portrait: data.portrait
                 }]);
                 if (data.suggestions) {
@@ -1837,6 +1838,19 @@ It's now part of my collective wisdom!`
                                                         </div>
                                                     )}
                                                     <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/70 backdrop-blur-xl border border-border/50'} rounded-3xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full`}>
+                                                        {msg.role === 'assistant' && msg.thought && (
+                                                            <div className="mb-4 pb-4 border-b border-border/30">
+                                                                <details className="group">
+                                                                    <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-accent/60 cursor-pointer hover:text-accent transition-colors list-none select-none">
+                                                                        <Sparkles size={12} className="group-open:rotate-180 transition-transform" />
+                                                                        <span>Internal Reasoning Process</span>
+                                                                    </summary>
+                                                                    <div className="mt-3 text-sm text-muted-foreground/80 italic font-medium leading-relaxed bg-accent/5 p-4 rounded-2xl border border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
+                                                                        {msg.thought}
+                                                                    </div>
+                                                                </details>
+                                                            </div>
+                                                        )}
                                                         <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                                                             {msg.content}
                                                         </div>

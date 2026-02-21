@@ -50,6 +50,7 @@ export async function POST(req: Request) {
             return NextResponse.json({
                 role: "assistant",
                 content: content,
+                thought: `Direct matched verse "${query}" in the Rock-Solid KJV archives. Bypassing semantic synthesis for absolute scriptural precision.`,
                 suggestions: [`Explain ${query} in depth.`, `Show me cross-references.`, `How does this apply to me?`],
                 citations: [{ id: "kjv-direct", source: "KJV Bible (The Rock)", preview: content.substring(0, 80) + "..." }],
                 metadata: { search_mode: "DIRECT", intent: "SCRIPTURE_PRECISION" }
@@ -73,11 +74,12 @@ export async function POST(req: Request) {
             // Guard: If query is long, it's likely a complex question starting with a greeting (e.g. "Hello, who is Jesus?")
             if (query.split(" ").length <= 4) {
                 const greetingPrompt = `The user said: "${query}". Reply with a warm Christian greeting. Do not use "Praise the Lord!" unless the user said it first. Use "Greetings in Jesus' name" or "Good morning/evening". Keep it short.`;
-                const { answer: greeting } = await generateGroundedResponse(greetingPrompt, [], "", history);
+                const { answer: greeting, thought: greetingThought } = await generateGroundedResponse(greetingPrompt, [], "", history);
 
                 return NextResponse.json({
                     role: "assistant",
                     content: greeting,
+                    thought: greetingThought || "Generating a warm Christian greeting based on established spiritual protocol.",
                     suggestions: ["Show me today's verse.", "Help me with Bible study.", "What is the Daily Manna?"],
                     metadata: { search_mode: "GREETING" }
                 });
@@ -117,7 +119,7 @@ export async function POST(req: Request) {
             ? `Integrity Score: ${searchResult.truthAssessment.integrityScore}%. ${searchResult.truthAssessment.isSound ? 'Status: Sound.' : 'Status: Warnings Found: ' + searchResult.truthAssessment.warnings.join(", ")}`
             : "";
 
-        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
+        const { answer, thought, suggestions, suggestedSubject } = await generateGroundedResponse(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
 
         // 4. Resolve Portrait (Hardcoded or Dynamic)
         let portrait = resolvePortrait(answer);
@@ -140,6 +142,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             role: "assistant",
             content: answer,
+            thought: thought,
             suggestions: suggestions,
             portrait: portrait || dynamicImage,
             truthAudit: searchResult.truthAssessment, // Add for debugging/transparency

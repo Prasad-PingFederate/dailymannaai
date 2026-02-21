@@ -14,6 +14,7 @@ export interface TrainingData {
     };
     response: {
         answer: string;
+        thought?: string;
         latency: number;
         modelUsed: string;
     };

@@ -88,13 +88,18 @@ export async function generateGroundedResponse(query: string, sources: string[],
     - Avoid "I think" or "Maybe". Use "The Scriptures record..." or "Historical records indicate...".
     - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
 
-    STEP 4: FORMATTING PROTOCOL (Visual Clarity & Zero-Clutter)
-    - **NO HASH SYMBOLS**: Never use '#' symbols for headers. It looks too technical.
-    - **BOLD HEADERS**: Use **Bold Text** for all section titles and the main header.
+    STEP 4: INTERNAL REASONING (The "Thinking" Process)
+    - YOU MUST START YOUR RESPONSE WITH YOUR INTERNAL REASONING WRAPPED IN \`<THOUGHT>\` tags.
+    - Inside \`<THOUGHT>\`, show your scripture cross-references, historical facts, and doctrinal verification.
+    - Address the user's intent and plan the structure of the response.
+    - DO NOT skip this step. The user needs to see your "Thinking" process.
+
+    STEP 5: FORMATTING PROTOCOL (Visual Clarity & Zero-Clutter)
+    - **NO HASH SYMBOLS**: Never use '#' symbols for headers. Use **Bold Text** for titles.
     - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text or **Bold**.
-    - **DRASTICALLY REDUCE BOLDING**: Do not bold every other phrase. Limit bolding (\*\*) to only the Title and at most 2 critical terms per section.
-    - **CLEAN PARAGRAPHS**: Use clean line breaks to separate ideas. Avoid all complex markdown symbols except basic bolding for titles.
-    - **PRACTICAL APPLICATION**: Simply write **Practical Application** on its own line, followed by the content.
+    - **DRASTICALLY REDUCE BOLDING**: Limit bolding (\*\*) to only the Title and at most 2 critical terms per section.
+    - **CLEAN PARAGRAPHS**: Use clear line breaks between thoughts.
+    - **PRACTICAL APPLICATION**: Write **Practical Application** on its own line in **Bold**.
 
     RESEARCH SOURCES (VERIFIED KNOWLEDGE):
     ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -110,12 +115,15 @@ export async function generateGroundedResponse(query: string, sources: string[],
     ${standaloneFocusedQuery ? `(RESOLVED FOR DEEP ANALYSIS: ${standaloneFocusedQuery})` : ""}
 
     RESPONSE FORMAT:
+    <THOUGHT>
+    [Your internal reasoning]
+    </THOUGHT>
+    
+    ### RESPONSE START ###
     [Answer text with Scripture citations]
     ---SUGGESTIONS---
     [3 brief follow-up questions]
     [METADATA:SUBJECT=Subject Name]
-
-    ### RESPONSE START ###
     `;
 
     try {
@@ -143,6 +151,14 @@ export async function generateGroundedResponse(query: string, sources: string[],
         }
 
         console.log(`[AI - DNA] Synthesis complete via: ${finalProvider} `);
+
+        // 🧬 CHAIN-OF-THOUGHT EXTRACTION: Pull out the reasoning block (Case-Insensitive)
+        let thought = "";
+        const thoughtMatch = finalResponse.match(/<THOUGHT>([\s\S]*?)<\/THOUGHT>/i);
+        if (thoughtMatch) {
+            thought = thoughtMatch[1].trim();
+            finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
+        }
 
         // Clean prompt leakage (strip everything before the delimiter)
         if (finalResponse.includes("### RESPONSE START ###")) {
@@ -240,6 +256,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
             },
             response: {
                 answer: answer,
+                thought: thought,
                 latency: 0,
                 modelUsed: finalProvider
             },
@@ -250,12 +267,13 @@ export async function generateGroundedResponse(query: string, sources: string[],
             }
         }).catch(e => console.error("[MongoDB] Research logging failed:", e.message));
 
-        return { answer, suggestions, suggestedSubject };
+        return { answer, thought, suggestions, suggestedSubject };
     } catch (error: any) {
         console.error('[AI-DNA] Core synthesis error:', error.message);
 
         return {
             answer: "I encountered an issue processing your request. Please try again.",
+            thought: "",
             suggestions: ["Try asking: Who is Jesus?", "Try asking: John 3:16"],
             suggestedSubject: ""
         };
