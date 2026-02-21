@@ -1889,13 +1889,26 @@ It's now part of my collective wisdom!`
                                                         <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                                     </svg>
                                                 </div>
-                                                <div className="bg-muted/5 rounded-2xl p-6 text-muted-foreground italic flex items-center gap-3">
-                                                    <div className="flex gap-1.5">
-                                                        <div className="w-2 h-2 bg-accent rounded-full animate-bounce"></div>
-                                                        <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                                                        <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                                                <div className="bg-muted/5 rounded-2xl p-6 text-muted-foreground italic flex flex-col gap-3 min-w-[240px]">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex gap-1.5">
+                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce"></div>
+                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                                                        </div>
+                                                        <span className="text-sm font-medium">DailyMannaAI is thinking...</span>
                                                     </div>
-                                                    DailyMannaAI is thinking...
+                                                    <div className="flex items-center gap-2 px-1">
+                                                        <div className="h-[2px] w-full bg-border/30 rounded-full overflow-hidden">
+                                                            <div className="h-full bg-accent/40 animate-[shimmer_2s_infinite] w-1/3"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-[10px] uppercase tracking-[0.2em] font-black text-accent/50 animate-pulse">
+                                                        {(() => {
+                                                            const steps = ["Consulting Scripture", "Auditing Doctrine", "Cross-referencing Wesley", "Synthesizing Wisdom", "Verifying Historical Truth"];
+                                                            return steps[Math.floor((Date.now() / 2000) % steps.length)];
+                                                        })()}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
