@@ -54,14 +54,20 @@ export async function POST(req: Request) {
                 citations: [{ id: "kjv-direct", source: "KJV Bible (The Rock)", preview: content.substring(0, 80) + "..." }],
                 metadata: { search_mode: "DIRECT", intent: "SCRIPTURE_PRECISION" }
             });
-        } else if (searchResult.results && searchResult.results.length > 0) {
+        } else if (searchResult.mode === "SEMANTIC_SEARCH") {
             const intentType = searchResult.intent?.type || "GENERAL";
             const keywords = searchResult.intent?.primaryKeywords.join(", ") || "none";
 
-            console.log(`[TruthEngine] 🧠 Semantic Search Active | Intent: ${intentType} | Keywords: ${keywords}`);
+            console.log(`[TruthEngine] 🧠 UNIFIED Search | Intent: ${intentType} | Keywords: ${keywords}`);
 
-            searchResult.results.forEach(res => {
+            // Add Bible Results
+            searchResult.bibleResults.forEach((res: any) => {
                 groundingSources.push(`[KJV Bible Result]: (${res.reference}) ${res.text}`);
+            });
+
+            // Add Document Results (Sermons, History)
+            searchResult.documentResults.forEach((res: any) => {
+                groundingSources.push(`[Expert Knowledge]: (${res.title}) ${res.snippet}`);
             });
         } else if (searchResult.mode === "GREETING") {
             // Guard: If query is long, it's likely a complex question starting with a greeting (e.g. "Hello, who is Jesus?")
@@ -105,8 +111,13 @@ export async function POST(req: Request) {
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
 
         // 3. Grounded Synthesis with Expert Persona
-        const combinedSources = [...groundingSources, ...sourcesText]; // Fixed variable name from 'sources' to 'sourcesText'
-        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, combinedSources, webContext, history, standaloneQuery);
+        const combinedSources = [...groundingSources, ...sourcesText];
+
+        const truthSummary = searchResult.truthAssessment
+            ? `Integrity Score: ${searchResult.truthAssessment.integrityScore}%. ${searchResult.truthAssessment.isSound ? 'Status: Sound.' : 'Status: Warnings Found: ' + searchResult.truthAssessment.warnings.join(", ")}`
+            : "";
+
+        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
 
         // 4. Resolve Portrait (Hardcoded or Dynamic)
         let portrait = resolvePortrait(answer);
@@ -131,6 +142,7 @@ export async function POST(req: Request) {
             content: answer,
             suggestions: suggestions,
             portrait: portrait || dynamicImage,
+            truthAudit: searchResult.truthAssessment, // Add for debugging/transparency
             citations: relevantChunks.map(c => ({
                 id: c.id,
                 source: c.sourceId,

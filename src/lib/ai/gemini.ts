@@ -65,7 +65,7 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     }
 }
 
-export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string) {
+export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string) {
     // Truncate and limit history
     const recentHistory = truncateHistory(history.slice(-5));
 
@@ -76,6 +76,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
     - Before answering, analyze the RESEARCH SOURCES and WEB RESULTS. 
     - Identify if the question is BIBLICAL, HISTORICAL, or PERSONAL.
     - If there is a conflict between WEB results and BIBLE sources, the BIBLE (KJV) is the Absolute Truth.
+    - 🛡️ TRUTH FILTER STATUS: ${truthSummary || "Not audited."}
     
     STEP 2: THE CHAIN OF TRUTH (Grounding Rules)
     - 🛡️ BIBLE FIRST: If a verse from 'KJV Bible' is in the sources, quote it exactly. Do not summarize it.
