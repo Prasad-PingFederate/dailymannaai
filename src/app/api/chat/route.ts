@@ -121,7 +121,14 @@ export async function POST(req: Request) {
 
         const { stream, provider } = await generateGroundedStream(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
 
-        // Prepare metadata for the frontend to read via headers
+        // Prepare metadata and research steps for the frontend
+        const researchSteps = [
+            `Distilled intent: "${standaloneQuery}"`,
+            `Found ${relevantChunks.length} relevant context fragments`,
+            webResults.length > 0 ? `Integrated ${webResults.length} external truth-points` : "Verified with internal canonical archives",
+            searchResult.truthAssessment ? `Doctrine Integrity Score: ${searchResult.truthAssessment.integrityScore}%` : "Sovereign Reasoning Mode Active"
+        ];
+
         const citations = relevantChunks.map(c => ({
             id: c.id,
             source: c.sourceId,
@@ -136,7 +143,8 @@ export async function POST(req: Request) {
                 "Cache-Control": "no-cache",
                 "X-AI-Provider": provider,
                 "X-Citations": Buffer.from(JSON.stringify(citations)).toString('base64'),
-                "X-Web-Links": Buffer.from(JSON.stringify(webLinks)).toString('base64')
+                "X-Web-Links": Buffer.from(JSON.stringify(webLinks)).toString('base64'),
+                "X-Research-Steps": Buffer.from(JSON.stringify(researchSteps)).toString('base64')
             }
         });
     } catch (error: any) {

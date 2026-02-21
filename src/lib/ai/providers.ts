@@ -55,9 +55,11 @@ class GeminiProvider implements AIProvider {
     async generateResponse(prompt: string): Promise<string> {
         // Broad list of stable model identifiers
         const modelNames = [
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
-            "gemini-pro"
+            "gemini-3-flash-preview",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-flash-latest",
+            "gemini-pro-latest"
         ];
         let lastError = "";
 
@@ -83,7 +85,7 @@ class GeminiProvider implements AIProvider {
     }
 
     async generateStream(prompt: string): Promise<ReadableStream> {
-        const model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1" });
+        const model = this.client.getGenerativeModel({ model: "gemini-2.5-flash" }, { apiVersion: "v1" });
         const result = await model.generateContentStream(prompt);
 
         return new ReadableStream({
@@ -312,12 +314,12 @@ class OpenRouterProvider implements AIProvider {
 
     async generateResponse(prompt: string): Promise<string> {
         const fallbackModels = [
-            "deepseek/deepseek-chat",
-            "google/gemini-flash-1.5",
             "google/gemini-2.0-flash-exp:free",
             "meta-llama/llama-3.1-8b-instruct:free",
             "mistralai/mistral-7b-instruct:free",
-            "anthropic/claude-3-haiku:free"
+            "deepseek/deepseek-r1:free",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "openchat/openchat-7b:free"
         ];
 
         let lastError = "";

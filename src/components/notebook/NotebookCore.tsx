@@ -689,8 +689,10 @@ It's now part of my collective wisdom!`
             // Extract metadata from headers
             const citationsHeader = res.headers.get("x-citations");
             const webLinksHeader = res.headers.get("x-web-links");
+            const stepsHeader = res.headers.get("x-research-steps");
             let initialCitations: any[] = [];
             let initialWebLinks: any[] = [];
+            let initialResearchSteps: string[] = [];
             try {
                 if (citationsHeader) {
                     const decoded = decodeURIComponent(escape(atob(citationsHeader)));
@@ -700,6 +702,10 @@ It's now part of my collective wisdom!`
                     const decoded = decodeURIComponent(escape(atob(webLinksHeader)));
                     initialWebLinks = JSON.parse(decoded);
                 }
+                if (stepsHeader) {
+                    const decoded = decodeURIComponent(escape(atob(stepsHeader)));
+                    initialResearchSteps = JSON.parse(decoded);
+                }
             } catch (e) { console.warn("Failed to parse metadata headers", e); }
 
             // Add placeholder assistant message with metadata
@@ -708,8 +714,10 @@ It's now part of my collective wisdom!`
                 content: "",
                 thought: "",
                 isThinking: true,
+                thinkingPhase: "Preparing study context...",
                 citations: initialCitations,
-                webResults: initialWebLinks
+                webResults: initialWebLinks,
+                researchSteps: initialResearchSteps
             }]);
 
             let fullText = "";
@@ -722,18 +730,27 @@ It's now part of my collective wisdom!`
                 const chunk = decoder.decode(value, { stream: true });
                 fullText += chunk;
 
-                // 🧬 Live Parsing: Identify THOUGHT vs CONTENT
+                // 🧬 Live Parsing: Identify THOUGHT vs CONTENT vs PHASE
                 let currentThought = "";
                 let currentContent = fullText;
                 let stillThinking = true;
+                let thinkingPhase = "Analyzing intent...";
 
                 const thoughtMatch = fullText.match(/<THOUGHT>([\s\S]*?)(?:<\/THOUGHT>|$)/i);
                 if (thoughtMatch) {
                     currentThought = thoughtMatch[1].trim();
+
+                    // Dynamic Phase Detection
+                    if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
+                    else if (currentThought.length > 250) thinkingPhase = "Auditing doctrine...";
+                    else if (currentThought.length > 120) thinkingPhase = "Cross-referencing Scriptures...";
+                    else if (currentThought.length > 20) thinkingPhase = "Searching truth archives...";
+
                     const parts = fullText.split(/<\/THOUGHT>/i);
                     if (parts.length > 1) {
                         currentContent = parts[1] || "";
                         stillThinking = false;
+                        thinkingPhase = "Reasoning complete.";
                     } else {
                         currentContent = "";
                         stillThinking = true;
@@ -753,7 +770,8 @@ It's now part of my collective wisdom!`
                             ...newMsgs[lastIdx],
                             content: currentContent,
                             thought: currentThought,
-                            isThinking: stillThinking
+                            isThinking: stillThinking,
+                            thinkingPhase: thinkingPhase
                         };
                     }
                     return newMsgs;
@@ -1936,22 +1954,33 @@ It's now part of my collective wisdom!`
                                                         </div>
                                                     )}
                                                     <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/70 backdrop-blur-xl border border-border/50'} rounded-3xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full`}>
-                                                        {msg.role === 'assistant' && (msg.thought || msg.isThinking) && (
+                                                        {msg.role === 'assistant' && (msg.thought || msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)) && (
                                                             <div className="mb-4 pb-4 border-b border-border/30">
-                                                                <details className="group" open={msg.isThinking}>
+                                                                <details className="group" open={msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)}>
                                                                     <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-accent/60 cursor-pointer hover:text-accent transition-colors list-none select-none">
                                                                         <Sparkles size={12} className={`${msg.isThinking ? 'animate-spin' : 'group-open:rotate-180'} transition-transform`} />
-                                                                        <span>{msg.isThinking ? "DailyMannaAI is thinking..." : "Internal Reasoning Process"}</span>
+                                                                        <span>{msg.isThinking ? (msg.thinkingPhase || "Analyzing...") : "Internal Reasoning Process"}</span>
                                                                     </summary>
                                                                     <div className="mt-3 text-sm text-muted-foreground/80 italic font-medium leading-relaxed bg-accent/5 p-4 rounded-2xl border border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
+                                                                        {/* Research Steps Log */}
+                                                                        {msg.researchSteps && msg.researchSteps.length > 0 && (
+                                                                            <div className="mb-4 space-y-2 border-b border-accent/10 pb-4 not-italic font-sans">
+                                                                                {msg.researchSteps.map((step: string, idx: number) => (
+                                                                                    <div key={idx} className={`flex items-center gap-2 text-[11px] text-accent/80 animate-in fade-in slide-in-from-left-2 duration-500 ${msg.isThinking && idx === msg.researchSteps.length - 1 ? 'animate-pulse' : ''}`}>
+                                                                                        <CheckCircle2 size={12} className="text-accent" />
+                                                                                        <span className="opacity-80 font-bold">{step}</span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
                                                                         {msg.thought}
                                                                         {msg.isThinking && <span className="inline-flex ml-1 w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />}
                                                                     </div>
                                                                 </details>
                                                             </div>
                                                         )}
-                                                        <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
-                                                            {msg.content}
+                                                        <div className={`whitespace-pre-wrap break-words [overflow-wrap:anywhere] transition-all duration-700 ${!msg.content && msg.isThinking ? 'opacity-40 animate-pulse italic text-sm' : 'opacity-100'}`}>
+                                                            {msg.content || (msg.isThinking ? "Preparing inspired response based on research..." : "")}
                                                         </div>
                                                     </div>
                                                     {msg.role === 'assistant' && (
