@@ -152,12 +152,21 @@ export async function generateGroundedResponse(query: string, sources: string[],
 
         console.log(`[AI - DNA] Synthesis complete via: ${finalProvider} `);
 
-        // 🧬 CHAIN-OF-THOUGHT EXTRACTION: Pull out the reasoning block (Case-Insensitive)
+        // 🧬 CHAIN-OF-THOUGHT EXTRACTION: Pull out the reasoning block (Case-Insensitive + Fallbacks)
         let thought = "";
+
+        // Strategy 1: XML-style tags (Standard)
         const thoughtMatch = finalResponse.match(/<THOUGHT>([\s\S]*?)<\/THOUGHT>/i);
         if (thoughtMatch) {
             thought = thoughtMatch[1].trim();
             finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
+        } else {
+            // Strategy 2: Markdown headers (Fallback)
+            const mdMatch = finalResponse.match(/(\*\*Thinking\*\*|\*\*Reasoning\*\*|### Thinking):?([\s\S]*?)(?=### RESPONSE START ###|\*\*Answer\*\*|$)/i);
+            if (mdMatch) {
+                thought = mdMatch[2].trim();
+                finalResponse = finalResponse.replace(mdMatch[0], "").trim();
+            }
         }
 
         // Clean prompt leakage (strip everything before the delimiter)
