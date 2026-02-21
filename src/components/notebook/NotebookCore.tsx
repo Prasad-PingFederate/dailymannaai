@@ -682,18 +682,27 @@ It's now part of my collective wisdom!`
             if (contentType?.includes("application/json")) {
                 const data = await res.json();
                 if (data.role === "assistant") {
-                    setMessages(prev => [...prev, {
-                        role: "assistant",
-                        content: data.content,
-                        thought: data.thought,
-                        portrait: data.portrait
-                    }]);
+                    // Update the Ghost message instead of adding a new one
+                    setMessages(prev => {
+                        const newMsgs = [...prev];
+                        const lastIdx = newMsgs.length - 1;
+                        if (newMsgs[lastIdx].role === "assistant") {
+                            newMsgs[lastIdx] = {
+                                ...newMsgs[lastIdx],
+                                content: data.content,
+                                thought: data.thought,
+                                portrait: data.portrait,
+                                isThinking: false
+                            };
+                        }
+                        return newMsgs;
+                    });
                     if (data.suggestions) setSuggestions(data.suggestions);
                 }
                 return;
             }
 
-            // --- STREAMING MODE (DeepSeek Style) ---
+            // --- STREAMING MODE ---
             const reader = res.body?.getReader();
             if (!reader) throw new Error("No stream reader");
 
@@ -701,23 +710,16 @@ It's now part of my collective wisdom!`
             const citationsHeader = res.headers.get("x-citations");
             const webLinksHeader = res.headers.get("x-web-links");
             const stepsHeader = res.headers.get("x-research-steps");
+            const providerHeader = res.headers.get("x-ai-provider");
+
             let initialCitations: any[] = [];
             let initialWebLinks: any[] = [];
             let initialResearchSteps: string[] = [];
             try {
-                if (citationsHeader) {
-                    const decoded = decodeURIComponent(escape(atob(citationsHeader)));
-                    initialCitations = JSON.parse(decoded);
-                }
-                if (webLinksHeader) {
-                    const decoded = decodeURIComponent(escape(atob(webLinksHeader)));
-                    initialWebLinks = JSON.parse(decoded);
-                }
-                if (stepsHeader) {
-                    const decoded = decodeURIComponent(escape(atob(stepsHeader)));
-                    initialResearchSteps = JSON.parse(decoded);
-                }
-            } catch (e) { console.warn("Failed to parse metadata headers", e); }
+                if (citationsHeader) initialCitations = JSON.parse(decodeURIComponent(escape(atob(citationsHeader))));
+                if (webLinksHeader) initialWebLinks = JSON.parse(decodeURIComponent(escape(atob(webLinksHeader))));
+                if (stepsHeader) initialResearchSteps = JSON.parse(decodeURIComponent(escape(atob(stepsHeader))));
+            } catch (e) { console.warn("Metadata error", e); }
 
             // UPDATE the "Ghost" assistant message with real metadata from headers
             setMessages(prev => {
@@ -726,11 +728,10 @@ It's now part of my collective wisdom!`
                 if (newMsgs[lastIdx].role === "assistant") {
                     newMsgs[lastIdx] = {
                         ...newMsgs[lastIdx],
-                        isThinking: true,
-                        thinkingPhase: "Preparing study context...",
                         citations: initialCitations,
                         webResults: initialWebLinks,
-                        researchSteps: initialResearchSteps.length > 0 ? initialResearchSteps : newMsgs[lastIdx].researchSteps
+                        researchSteps: initialResearchSteps.length > 0 ? initialResearchSteps : newMsgs[lastIdx].researchSteps,
+                        thinkingPhase: "Preparing study context..."
                     };
                 }
                 return newMsgs;
@@ -746,35 +747,50 @@ It's now part of my collective wisdom!`
                 const chunk = decoder.decode(value, { stream: true });
                 fullText += chunk;
 
-                // 🧬 Live Parsing: Identify THOUGHT vs CONTENT vs PHASE
+                // 🧬 ROBUST PARSING
                 let currentThought = "";
                 let currentContent = fullText;
                 let stillThinking = true;
-                let thinkingPhase = "Analyzing intent...";
+                let thinkingPhase = "Analyzing...";
 
-                const thoughtMatch = fullText.match(/<THOUGHT>([\s\S]*?)(?:<\/THOUGHT>|$)/i);
-                if (thoughtMatch) {
-                    currentThought = thoughtMatch[1].trim();
+                // Case A: Standard Delimiters
+                const hasThoughtStart = fullText.toLowerCase().includes("<thought>");
+                const hasThoughtEnd = fullText.toLowerCase().includes("</thought>");
+                const hasResponseStart = fullText.toLowerCase().includes("### response start ###");
 
-                    // Dynamic Phase Detection
-                    if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
-                    else if (currentThought.length > 250) thinkingPhase = "Auditing doctrine...";
-                    else if (currentThought.length > 120) thinkingPhase = "Cross-referencing Scriptures...";
-                    else if (currentThought.length > 20) thinkingPhase = "Searching truth archives...";
+                if (hasThoughtStart) {
+                    const tParts = fullText.split(/<THOUGHT>|<\/THOUGHT>/i);
+                    // tParts[0] is before tag, tParts[1] is thought
+                    currentThought = tParts[1] || "";
 
-                    const parts = fullText.split(/<\/THOUGHT>/i);
-                    if (parts.length > 1) {
-                        currentContent = parts[1] || "";
+                    if (hasThoughtEnd) {
+                        const contentParts = fullText.split(/<\/THOUGHT>/i);
+                        currentContent = contentParts[1] || "";
+                        stillThinking = false;
+                        thinkingPhase = "Reasoning complete.";
+                    } else if (hasResponseStart) {
+                        // AI forgot </THOUGHT> but started response
+                        const contentParts = fullText.split(/### RESPONSE START ###/i);
+                        currentContent = contentParts[1] || "";
                         stillThinking = false;
                         thinkingPhase = "Reasoning complete.";
                     } else {
-                        currentContent = "";
+                        currentContent = ""; // Still in thought block
                         stillThinking = true;
+
+                        // Dynamic Phase Display
+                        if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
+                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
+                        else thinkingPhase = "Searching truth archives...";
                     }
+                } else if (hasResponseStart) {
+                    const contentParts = fullText.split(/### RESPONSE START ###/i);
+                    currentContent = contentParts[1] || "";
+                    stillThinking = false;
                 }
 
-                // Clean delimiters from content
-                currentContent = currentContent.replace(/^[\s\S]*### RESPONSE START ###/i, "").trim();
+                // Clean content of remaining markers
+                currentContent = currentContent.replace(/### RESPONSE START ###/i, "").trim();
                 currentContent = currentContent.split("---SUGGESTIONS---")[0].trim();
 
                 // Update the LATEST assistant message
@@ -787,7 +803,8 @@ It's now part of my collective wisdom!`
                             content: currentContent,
                             thought: currentThought,
                             isThinking: stillThinking,
-                            thinkingPhase: thinkingPhase
+                            thinkingPhase: thinkingPhase,
+                            portrait: newMsgs[lastIdx].portrait // Preserve portrait
                         };
                     }
                     return newMsgs;
