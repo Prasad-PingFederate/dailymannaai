@@ -1,50 +1,50 @@
 import { getDatabase } from "../src/lib/mongodb";
-import * as zlib from 'zlib';
+import { getAstraDb } from "../src/lib/astra";
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
 async function checkStorage() {
-    console.log("📊 TRUTH ENGINE STORAGE REPORT");
-    console.log("-------------------------------");
+    console.log("📊 TRUTH ENGINE HYBRID STORAGE REPORT");
+    console.log("-------------------------------------");
 
-    const db = await getDatabase();
-    const collection = db.collection('sermons');
-
-    const count = await collection.countDocuments();
-    const all = await collection.find({}).toArray();
-
-    let totalUncompressedSize = 0;
-    let totalCompressedSize = 0;
-    let preachers: Record<string, number> = {};
-
-    for (const doc of all) {
-        preachers[doc.preacher] = (preachers[doc.preacher] || 0) + 1;
-
-        // Estimate sizes
-        if (doc.isCompressed && doc.compressedContent) {
-            // MongoDB Binary objects might have a .buffer property or be a Buffer itself
-            const size = doc.compressedContent.buffer ? doc.compressedContent.buffer.byteLength :
-                (doc.compressedContent.length || 0);
-            totalCompressedSize += size;
-            totalUncompressedSize += size * 3.5;
-        } else if (doc.content) {
-            totalUncompressedSize += doc.content.length;
-            totalCompressedSize += doc.content.length;
-        }
+    // 1. MongoDB Status
+    try {
+        const mongoDb = await getDatabase();
+        const mongoCount = await mongoDb.collection('sermons').countDocuments();
+        console.log(`✅ MongoDB (Backup): ${mongoCount} items`);
+    } catch (e) {
+        console.log(`❌ MongoDB: Offline or error`);
     }
 
-    console.log(`✅ Total Sermons Ingested: ${count}`);
-    console.log(`👤 Preacher Breakdown:`);
-    Object.entries(preachers).forEach(([p, c]) => console.log(`   - ${p}: ${c} messages`));
+    // 2. Astra DB Status
+    try {
+        const astraDb = getAstraDb();
+        const astraCol = astraDb.collection('sermons_archive');
 
-    console.log(`\n💾 Space Optimization:`);
-    console.log(`   - Estimated Raw Text Size: ${(totalUncompressedSize / (1024 * 1024)).toFixed(2)} MB`);
-    console.log(`   - Actual DB Storage Size: ${(totalCompressedSize / (1024 * 1024)).toFixed(2)} MB`);
-    console.log(`   - Compression Efficiency: ${(((totalUncompressedSize - totalCompressedSize) / totalUncompressedSize) * 100).toFixed(1)}%`);
+        // Count all documents (Note: Data API countDocuments needs an upperBound)
+        const totalAstra = await astraCol.countDocuments({}, { upperBound: 5000 });
 
-    console.log(`\n🚀 Remaining Capacity: ~${(500 - (totalCompressedSize / (1024 * 1024))).toFixed(2)} MB (at 500MB limit)`);
-    console.log("-------------------------------");
+        // Get sample for breakdown
+        const sample = await astraCol.find({}).limit(1000).toArray();
+        const breakdown: Record<string, number> = {};
+        sample.forEach(s => {
+            breakdown[s.preacher] = (breakdown[s.preacher] || 0) + 1;
+        });
+
+        if (totalAstra > 0) {
+            console.log(`✅ Astra DB (Primary - 80GB): Active (${totalAstra} items found)`);
+            console.log(`👤 Cloud Preacher Breakdown:`);
+            Object.entries(breakdown).forEach(([p, c]) => console.log(`   - ${p}: ${c} messages`));
+            console.log(`🚀 TRUTH ENGINE is now running on the high-capacity Astra Cloud storage.`);
+        } else {
+            console.log(`⚠️  Astra DB is empty. Migration pending or failed.`);
+        }
+    } catch (e: any) {
+        console.log(`❌ Astra DB: Error connecting (${e.message})`);
+    }
+
+    console.log("-------------------------------------");
     process.exit(0);
 }
 

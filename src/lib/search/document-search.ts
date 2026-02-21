@@ -1,5 +1,6 @@
 import { searchRelevantChunks } from "../storage/vector-store";
 import { getDatabase } from "../mongodb";
+import { getCollection } from "../astra";
 
 export interface DocSearchResult {
     title: string;
@@ -26,24 +27,43 @@ export async function searchDocuments(query: string): Promise<DocSearchResult[]>
             preacher: "Historical Profile"
         }));
 
-        // 2. Search MongoDB Sermons (Full Transcripts/Summaries)
-        const db = await getDatabase();
-        const sermons = await db.collection('sermons').find({
-            $or: [
-                { title: { $regex: query, $options: 'i' } },
-                { content: { $regex: query, $options: 'i' } },
-                { preacher: { $regex: query, $options: 'i' } }
-            ]
-        }).limit(5).toArray();
+        // 2. Search Cloud Storage (Astra DB - 80GB Primary)
+        let databaseResults: DocSearchResult[] = [];
+        try {
+            const astraCol = await getCollection('sermons_archive');
+            const cloudSermons = await astraCol.find({}).limit(5).toArray();
 
-        const databaseResults: DocSearchResult[] = sermons.map(s => ({
-            title: s.title,
-            snippet: s.content.substring(0, 500) + "...",
-            sourceId: `db-sermon-${s._id}`,
-            score: 100, // Boost database results
-            audioUrl: s.audioUrl,
-            preacher: s.preacher
-        }));
+            databaseResults = cloudSermons.map(s => ({
+                title: s.title,
+                snippet: s.content?.substring(0, 500) + "...",
+                sourceId: `astra-${s._id}`,
+                score: 100,
+                audioUrl: s.audioUrl,
+                preacher: s.preacher
+            }));
+            console.log(`[DocumentSearch] ☁️ Retrieved ${databaseResults.length} items from Astra DB.`);
+        } catch (astraError) {
+            console.error("[DocumentSearch] Astra DB failed, falling back to MongoDB:", astraError);
+
+            // 3. Fallback to MongoDB (Backup)
+            const db = await getDatabase();
+            const sermons = await db.collection('sermons').find({
+                $or: [
+                    { title: { $regex: query, $options: 'i' } },
+                    { content: { $regex: query, $options: 'i' } },
+                    { preacher: { $regex: query, $options: 'i' } }
+                ]
+            }).limit(5).toArray();
+
+            databaseResults = sermons.map(s => ({
+                title: s.title,
+                snippet: s.content.substring(0, 500) + "...",
+                sourceId: `db-sermon-${s._id}`,
+                score: 100,
+                audioUrl: s.audioUrl,
+                preacher: s.preacher
+            }));
+        }
 
         // Merge and sort
         return [...databaseResults, ...vectorResults].sort((a, b) => b.score - a.score);

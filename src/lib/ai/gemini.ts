@@ -88,6 +88,13 @@ export async function generateGroundedResponse(query: string, sources: string[],
     - Avoid "I think" or "Maybe". Use "The Scriptures record..." or "Historical records indicate...".
     - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
 
+    STEP 4: FORMATTING PROTOCOL (Visual Clarity)
+    - **HEADER**: Always use \`### Practical Application\` (as an H3 header) instead of bolding it inline.
+    - **CONTENT**: Do not over-use bold (**). 
+    - Use **Bold** ONLY for truly essential, high-impact spiritual takeaways.
+    - Use *Italics* for secondary or supporting life-application points to keep the page clean and readable.
+    - Avoid nested bolding like \`**Bold: ** more bold**\`.
+
     RESEARCH SOURCES (VERIFIED KNOWLEDGE):
     ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
 
