@@ -110,23 +110,22 @@ const ID_TO_BOOK: Record<number, string> = {
 export function parseVerseReference(ref: string) {
     const original = ref.toLowerCase().trim();
 
-    // Check if the query IS a single reference (the "fast path")
-    const isDirectLookup = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(original);
-
-    // 1. Clean query: remove prefixes like "show", "read", "tell me about"
+    // 1. CRITICAL: Remove fluff words that break the parser
     let clean = original
-        .replace(/^(show|read|lookup|give me|find|tell me about|what does|where is)\s+/i, '')
-        .replace(/:/g, ' ');
+        .replace(/\b(what is|chapter|verse|the book of|lookup|tell me about|where is|read|show me|give me|find)\b/g, '')
+        .replace(/:/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
     // 2. Handle compressed "john1:1" -> "john 1 1"
     clean = clean.replace(/([a-z])(\d)/g, '$1 $2');
 
-    // Check if there's a hyphen in the original after the prefix
+    // Check if there's a hyphen in the original for ranges
     const hasHyphen = original.includes('-');
 
     const parts = clean.split(/[\s-]+/);
 
-    if (parts.length < 2) return null;
+    if (parts.length < 1) return null;
 
     let bookName = "";
     let chapter = 0;
@@ -134,14 +133,22 @@ export function parseVerseReference(ref: string) {
     let endVerse = 0;
     let foundRef = false;
 
-    // Iterate to find a valid book name followed by numbers
-    for (let i = 0; i < parts.length - 1; i++) {
+    // Search for a Book name anywhere in the cleaned string
+    for (let i = 0; i < parts.length; i++) {
         let currentBook = parts[i];
         let nextIndex = i + 1;
 
-        // Handle "1 John"
-        if ((currentBook === '1' || currentBook === '2' || currentBook === '3') && parts[i + 1]) {
-            currentBook = `${parts[i]} ${parts[i + 1]}`;
+        // Handle numbered books like "1 John"
+        if ((currentBook === '1' || currentBook === '2' || currentBook === '3' ||
+            currentBook === 'i' || currentBook === 'ii' || currentBook === 'iii') && parts[i + 1]) {
+
+            // Normalize i, ii, iii to 1, 2, 3
+            let num = currentBook;
+            if (num === 'i') num = '1';
+            if (num === 'ii') num = '2';
+            if (num === 'iii') num = '3';
+
+            currentBook = `${num} ${parts[i + 1]}`;
             nextIndex = i + 2;
         }
 
@@ -151,22 +158,21 @@ export function parseVerseReference(ref: string) {
             bookName = currentBook;
             chapter = parseInt(parts[nextIndex]);
 
+            // Look for verse numbers after the chapter
             if (parts[nextIndex + 1] && !isNaN(parseInt(parts[nextIndex + 1]))) {
-                if (parts.length === 3 && hasHyphen && isDirectLookup) {
-                    // "John 1-10" case
-                    startVerse = 1;
-                    endVerse = parseInt(parts[nextIndex + 1]);
-                } else {
-                    startVerse = parseInt(parts[nextIndex + 1]);
-                    if (parts[nextIndex + 2] && !isNaN(parseInt(parts[nextIndex + 2]))) {
-                        endVerse = parseInt(parts[nextIndex + 2]);
-                    }
+                startVerse = parseInt(parts[nextIndex + 1]);
+
+                // Look for range "1-10"
+                if (parts[nextIndex + 2] && !isNaN(parseInt(parts[nextIndex + 2]))) {
+                    endVerse = parseInt(parts[nextIndex + 2]);
                 }
+            } else if (hasHyphen && parts[nextIndex + 1] && !isNaN(parseInt(parts[nextIndex + 1]))) {
+                // Handle "John 1-10" as chapter/verse if no verse was specified
+                startVerse = 1;
+                endVerse = parseInt(parts[nextIndex + 1]);
             }
 
-            // Default to verse 1 if not specified
             if (!startVerse) startVerse = 1;
-
             foundRef = true;
             break;
         }
@@ -174,6 +180,9 @@ export function parseVerseReference(ref: string) {
 
     const bookId = BOOK_MAP[bookName] || BOOK_MAP[bookName.replace(/\s/g, '')];
     if (!foundRef || !bookId || isNaN(chapter)) return null;
+
+    // Determine if this was a direct "shorthand" query or a long sentence
+    const isDirectLookup = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(original.replace(/\b(what is|chapter|verse)\b/g, '').trim());
 
     return { bookId, chapter, startVerse: startVerse || 1, endVerse: endVerse || startVerse || 0, isDirectLookup };
 }

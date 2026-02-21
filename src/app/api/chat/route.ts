@@ -5,8 +5,8 @@ import { generateGroundedResponse, rewriteQuery } from "@/lib/ai/gemini";
 import { TrainingLogger } from "@/lib/ai/training-logger";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
 import { performWebSearch, formatSearchResults, performImageSearch } from "@/lib/tools/web-search";
-import { lookupBibleReference } from "@/lib/bible/lookup";
 import { resolvePortrait } from "@/lib/ai/image-resolver";
+import { executeHybridSearch } from "@/lib/search/engine"; // Added import
 
 export async function POST(req: Request) {
     try {
@@ -38,26 +38,31 @@ export async function POST(req: Request) {
 
         console.log(`[ChatAPI-DNA] Entry Query: "${query}"`);
 
-        // Check for Bible Verse Lookup
-        const bibleResult = await lookupBibleReference(query);
+        // 🚀 THE TRUTH ENGINE: Perform Hybrid Search (Direct Lookup + Intent Search)
+        const searchResult = await executeHybridSearch(query);
+        let groundingSources: string[] = [];
 
-        if (bibleResult) {
-            const isDirect = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(query.trim());
+        if (searchResult.mode === "DIRECT_LOOKUP" && searchResult.content) {
+            const content = searchResult.content;
+            console.log(`[TruthEngine] ⚡ Direct Scripture Match: ${query}`);
+            groundingSources.push(`[KJV Bible Exact]: ${content}`);
 
-            if (isDirect) {
-                console.log(`[ChatAPI-DNA] Direct Bible Verse Match found for: ${query}`);
-                return NextResponse.json({
-                    role: "assistant",
-                    content: bibleResult,
-                    suggestions: [
-                        `What is the context of ${query}?`,
-                        `Explain this chapter.`,
-                        `Show me the next chapter.`
-                    ],
-                    citations: [],
-                    webResults: []
-                });
-            }
+            return NextResponse.json({
+                role: "assistant",
+                content: content,
+                suggestions: [`Explain ${query} in depth.`, `Show me cross-references.`, `How does this apply to me?`],
+                citations: [{ id: "kjv-direct", source: "KJV Bible (The Rock)", preview: content.substring(0, 80) + "..." }],
+                metadata: { search_mode: "DIRECT", intent: "SCRIPTURE_PRECISION" }
+            });
+        } else if (searchResult.results && searchResult.results.length > 0) {
+            const intentType = searchResult.intent?.type || "GENERAL";
+            const keywords = searchResult.intent?.primaryKeywords.join(", ") || "none";
+
+            console.log(`[TruthEngine] 🧠 Semantic Search Active | Intent: ${intentType} | Keywords: ${keywords}`);
+
+            searchResult.results.forEach(res => {
+                groundingSources.push(`[KJV Bible Result]: (${res.reference}) ${res.text}`);
+            });
         }
 
         // 1. Expert Rewriting (Phonetic Awareness)
@@ -67,15 +72,7 @@ export async function POST(req: Request) {
         let relevantChunks = searchRelevantChunks(standaloneQuery);
         let webResults = await performWebSearch(standaloneQuery);
 
-        // Inject Bible Verse into context if found in query
-        if (bibleResult) {
-            relevantChunks.push({
-                id: "kjv-verse",
-                sourceId: "KJV Bible",
-                content: bibleResult,
-                score: 1.0
-            } as any);
-        }
+        console.log(`[ChatAPI-DNA] Research complete. Local Sources: ${relevantChunks.length} | Web: ${webResults.length} | Hybrid Bible Sources: ${groundingSources.length}`);
 
         // 🧬 DNA LOGIC: Proactive Retry
         if (relevantChunks.length === 0 && webResults.length === 0) {
@@ -94,7 +91,8 @@ export async function POST(req: Request) {
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
 
         // 3. Grounded Synthesis with Expert Persona
-        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, sourcesText, webContext, history, standaloneQuery);
+        const combinedSources = [...groundingSources, ...sourcesText]; // Fixed variable name from 'sources' to 'sourcesText'
+        const { answer, suggestions, suggestedSubject } = await generateGroundedResponse(query, combinedSources, webContext, history, standaloneQuery);
 
         // 4. Resolve Portrait (Hardcoded or Dynamic)
         let portrait = resolvePortrait(answer);

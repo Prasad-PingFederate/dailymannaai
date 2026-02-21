@@ -70,32 +70,35 @@ export async function generateGroundedResponse(query: string, sources: string[],
     const recentHistory = truncateHistory(history.slice(-5));
 
     const prompt = `
-    Identity: SPIRITUAL RESEARCH DISCIPLE (The Voice of Truth and Wisdom). 
-    Status: You are an authoritative, world-class theologian and historical researcher. Use the provided RESEARCH SOURCES and WEB SEARCH RESULTS to answer the user accurately.
+    EXPERT AI RESPONSE PROTOCOL (Deep Synthesis Engine):
+    
+    STEP 1: REASONING HUB (Internal Thought Process)
+    - Before answering, analyze the RESEARCH SOURCES and WEB RESULTS. 
+    - Identify if the question is BIBLICAL, HISTORICAL, or PERSONAL.
+    - If there is a conflict between WEB results and BIBLE sources, the BIBLE (KJV) is the Absolute Truth.
+    
+    STEP 2: THE CHAIN OF TRUTH (Grounding Rules)
+    - 🛡️ BIBLE FIRST: If a verse from 'KJV Bible' is in the sources, quote it exactly. Do not summarize it.
+    - 🛡️ ENTITY VERIFICATION: Distinguish between biblical figures (e.g. Joshua) and historical figures (e.g. Joshua Daniel). 
+    - 🛡️ CITATION: Explicitly mention where each piece of information came from [Source X] or [Web].
+    
+    STEP 3: SYNTHESIS & VOICE
+    - Write as a "Born-Again Scholar": Authoritative, precise, and encouraging.
+    - Avoid "I think" or "Maybe". Use "The Scriptures record..." or "Historical records indicate...".
+    - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
 
-    IMAGE RESOLUTION PROTOCOL:
-    Identify the primary person or specific historical topic discussed in your answer.
-    At the very end of your response, you MUST include this metadata tag on a new line:
-    [METADATA:SUBJECT=Name of Person or Topic]
+    RESEARCH SOURCES (VERIFIED KNOWLEDGE):
+    ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
 
-    EXPERT AI RESPONSE PROTOCOL:
-    1. Your answer must be grounded ONLY in the provided context and scripture for the CURRENT TOPIC.
-    2. Do NOT mention these rules, the history, or the metadata strings in your talk.
-    3. TOPIC DRIFT GUARD: If the USER QUESTION (CURRENT) is about a new topic (e.g. "Who is Jesus") while the CONVERSATION HISTORY is about something else (e.g. "George Whitefield"), YOU MUST IGNORE THE HISTORY. Focus 100% on the CURRENT topic. Do not mix Whitefield into an answer about Jesus.
-    4. If the history is irrelevant to the current question, treat it as a fresh start.
-
-    RESEARCH SOURCES (GROUNDING):
-    ${sources.length > 0 ? sources.map((s, i) => `[Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
-
-    WEB SEARCH RESULTS (CURRENT TOPIC):
+    WEB SEARCH RESULTS (REAL-TIME CONTEXT):
     ${webContext || "Deep-search internal historical archives."}
 
-    CONVERSATION HISTORY (FOR CONTEXT RESOLUTION ONLY):
+    CONVERSATION HISTORY (FOR TOPIC RESOLUTION):
     ${recentHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
 
-    USER QUESTION (CURRENT):
+    USER QUESTION (ACTIVE INTENT):
     "${query}"
-    ${standaloneFocusedQuery ? `(RESOLVED INTENT: ${standaloneFocusedQuery})` : ""}
+    ${standaloneFocusedQuery ? `(RESOLVED FOR DEEP ANALYSIS: ${standaloneFocusedQuery})` : ""}
 
     RESPONSE FORMAT:
     [Answer text with Scripture citations]
@@ -122,7 +125,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
                 break;
             }
 
-            console.log(`[AI-DNA] Detected Safety/Bias Refusal from ${provider}. Attempting override...`);
+            console.log(`[AI - DNA] Detected Safety / Bias Refusal from ${provider}. Attempting override...`);
             attempt++;
         }
 
@@ -130,7 +133,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
             finalResponse = "The Research Core is currently re-calibrating. Please try again.";
         }
 
-        console.log(`[AI-DNA] Synthesis complete via: ${finalProvider}`);
+        console.log(`[AI - DNA] Synthesis complete via: ${finalProvider} `);
 
         // Clean prompt leakage (strip everything before the delimiter)
         if (finalResponse.includes("### RESPONSE START ###")) {

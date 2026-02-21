@@ -1836,8 +1836,8 @@ It's now part of my collective wisdom!`
                                                             </button>
                                                         </div>
                                                     )}
-                                                    <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/50 backdrop-blur-sm border border-border/50'} rounded-3xl p-6 px-6 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/30`}>
-                                                        <div className="whitespace-pre-wrap break-words">
+                                                    <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/70 backdrop-blur-xl border border-border/50'} rounded-3xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full`}>
+                                                        <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                                                             {msg.content}
                                                         </div>
                                                     </div>
@@ -1894,14 +1894,41 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
 
-                {/* New Fixed Action Bar (Merged Style) */}
-                <div className="border-t border-border bg-card-bg/80 backdrop-blur-3xl px-4 py-4 md:px-10">
-                    <div className="max-w-4xl mx-auto space-y-4">
-                        {/* Integrated Main Chat Input */}
+                {/* 🚀 WORLD-CLASS FLOATING SEARCH BAR (ChatGPT/Antigravity Style) */}
+                <div className="fixed bottom-6 left-0 right-0 z-[100] px-4">
+                    <div className="max-w-3xl mx-auto flex flex-col gap-4">
+                        {/* Compact Tool Row (Subtle) */}
+                        <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1 px-2">
+                            {[
+                                { label: 'Summarize', icon: <FileStack size={14} />, action: handleSummarize, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
+                                { label: 'Refine', icon: <Wand2 size={14} />, action: handleRefine, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
+                                { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
+                                { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' }
+                            ].map((tool, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={tool.action}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold transition-all hover:scale-105 active:scale-95 whitespace-nowrap shadow-sm ${tool.color}`}
+                                >
+                                    {tool.icon}
+                                    {tool.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Floating Pill Search Bar */}
                         <div className="relative group">
-                            <div className="relative bg-background/50 border border-border/80 rounded-2xl shadow-xl focus-within:ring-2 ring-accent/30 transition-all p-2 group-hover:border-accent/20">
+                            <div className="relative bg-card-bg/80 backdrop-blur-2xl border border-border/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] focus-within:ring-2 ring-accent/40 transition-all p-1.5 px-2 flex items-center gap-2 group-hover:border-accent/30">
+                                <button
+                                    onClick={() => setUploadModalOpen(true)}
+                                    className="p-3 bg-muted/5 hover:bg-accent/10 rounded-full text-muted hover:text-accent transition-all hover:scale-110"
+                                    title="Add Source"
+                                >
+                                    <Plus size={22} />
+                                </button>
+
                                 <textarea
-                                    placeholder="Ask DailyMannaAI about Bible, scriptures or start your research..."
+                                    placeholder="Ask DailyMannaAI about Bible or scriptures..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => {
@@ -1910,71 +1937,32 @@ It's now part of my collective wisdom!`
                                             handleSendMessage();
                                         }
                                     }}
-                                    className="w-full bg-transparent border-none py-3 px-12 pr-14 text-lg focus:outline-none resize-none min-h-[54px] max-h-40 overflow-y-auto"
+                                    className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
                                     rows={1}
                                 />
-                                <div className="absolute left-2 top-2">
-                                    <button
-                                        onClick={() => setUploadModalOpen(true)}
-                                        className="p-2.5 bg-muted/10 hover:bg-accent/10 rounded-xl text-muted hover:text-accent transition-all hover:scale-110 active:scale-90"
-                                        title="Add Source (PDF, Word, YT, URL)"
-                                    >
-                                        <Plus size={20} />
-                                    </button>
-                                </div>
-                                <div className="absolute right-2 top-2">
-                                    <button
-                                        onClick={() => handleSendMessage()}
-                                        disabled={!input.trim()}
-                                        className={`p-2.5 bg-accent text-white rounded-xl shadow-lg transition-all ${input.trim() ? 'hover:scale-105 active:scale-95 shadow-accent/40' : 'opacity-10 cursor-not-allowed'}`}
-                                    >
-                                        <Send size={20} />
-                                    </button>
-                                </div>
-                                <div className="px-4 pb-1.5 flex items-center justify-between text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-80">
-                                    <div className="flex items-center gap-4">
-                                        <span className="flex items-center gap-2 italic">
-                                            <BookOpen size={10} className="text-accent" />
-                                            {sources.filter(s => s.selected).length} SOURCES ACTIVE
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-accent/80">
-                                        <Sparkles size={10} className="animate-pulse" />
-                                        BORN AGAIN AI
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-                            {[
-                                { label: 'Add', sub: 'SOURCE', icon: <Plus size={18} />, action: () => setUploadModalOpen(true), style: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-                                { label: 'Summary', sub: 'SYNTHESIS', icon: <FileStack size={18} />, action: handleSummarize, style: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
-                                { label: 'Refine', sub: 'POLISH', icon: <Wand2 size={18} />, action: handleRefine, style: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
-                                { label: 'Divine', sub: 'INTERVENTION', icon: <Sparkles size={18} />, action: handleDivineMeditation, style: 'bg-amber-500/15 text-amber-500 border-amber-500/30 font-black shadow-lg shadow-amber-500/10', badge: 'DIVINE ✨' },
-                                { label: 'Podcast', sub: 'AUDIO', icon: <Mic2 size={18} />, action: generateAudioOverview, style: 'bg-accent/15 text-accent border-accent/30 font-black shadow-lg shadow-accent/10', badge: 'PROFOUND ✨' }
-                            ].map((tool, idx) => (
                                 <button
-                                    key={idx}
-                                    onClick={tool.action}
-                                    className={`group relative flex flex-col items-center justify-center p-2.5 border rounded-2xl transition-all hover:scale-105 active:scale-95 ${tool.style}`}
+                                    onClick={() => handleSendMessage()}
+                                    disabled={!input.trim()}
+                                    className={`p-3 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-lg shadow-accent/40 hover:scale-105 active:scale-95' : 'bg-muted/10 text-muted opacity-30 cursor-not-allowed'}`}
                                 >
-                                    {tool.badge && (
-                                        <span className="absolute -top-2 px-2 py-0.5 bg-background border border-current rounded-full text-[7px] font-black uppercase tracking-tighter shadow-sm whitespace-nowrap animate-bounce-subtle">
-                                            {tool.badge}
-                                        </span>
+                                    {isChatting ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <Send size={22} />
                                     )}
-                                    <div className="mb-1 group-hover:scale-110 transition-transform">
-                                        {tool.icon}
-                                    </div>
-                                    <span className="text-[9px] font-black tracking-wider uppercase">
-                                        {tool.label}
-                                    </span>
-                                    <span className="text-[7px] font-medium opacity-70 uppercase tracking-widest hidden md:block">
-                                        {tool.sub}
-                                    </span>
                                 </button>
-                            ))}
+                            </div>
+
+                            {/* Sources/Status Indicator (Inside Floating Context) */}
+                            <div className="absolute -top-6 left-6 flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] opacity-40 group-focus-within:opacity-80 transition-opacity">
+                                <span className={`${sources.filter(s => s.selected).length > 0 ? 'text-accent' : 'text-muted'}`}>
+                                    {sources.filter(s => s.selected).length} SOURCES ACTIVE
+                                </span>
+                                <span className="text-amber-500 flex items-center gap-1">
+                                    <Sparkles size={10} /> BORN AGAIN AI
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
