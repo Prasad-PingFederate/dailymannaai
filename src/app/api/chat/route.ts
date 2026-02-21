@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         console.log(`[ChatAPI-DNA] Entry Query: "${query}"`);
 
         // Check for Bible Verse Lookup
-        const bibleResult = lookupBibleReference(query);
+        const bibleResult = await lookupBibleReference(query);
 
         if (bibleResult) {
             const isDirect = /^(show|read|lookup|give me|find)?\s*([123]?\s*[a-z]+)\s*\d+([: ]\d+)?([-\s]\d+)?$/i.test(query.trim());

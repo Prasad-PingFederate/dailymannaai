@@ -1,4 +1,5 @@
 // import kjvData from './data/kjv.json'; // Lazy loaded now
+import { getDatabase } from "@/lib/mongodb";
 
 export interface BibleVerse {
     pk: number;
@@ -81,6 +82,24 @@ const BOOK_MAP: Record<string, number> = {
     "revelation": 66, "rev": 66
 };
 
+const ID_TO_BOOK: Record<number, string> = {
+    1: "Genesis", 2: "Exodus", 3: "Leviticus", 4: "Numbers", 5: "Deuteronomy",
+    6: "Joshua", 7: "Judges", 8: "Ruth", 9: "1 Samuel", 10: "2 Samuel",
+    11: "1 Kings", 12: "2 Kings", 13: "1 Chronicles", 14: "2 Chronicles",
+    15: "Ezra", 16: "Nehemiah", 17: "Esther", 18: "Job", 19: "Psalms",
+    20: "Proverbs", 21: "Ecclesiastes", 22: "Song of Solomon", 23: "Isaiah",
+    24: "Jeremiah", 25: "Lamentations", 26: "Ezekiel", 27: "Daniel",
+    28: "Hosea", 29: "Joel", 30: "Amos", 31: "Obadiah", 32: "Jonah",
+    33: "Micah", 34: "Nahum", 35: "Habakkuk", 36: "Zephaniah", 37: "Haggai",
+    38: "Zechariah", 39: "Malachi", 40: "Matthew", 41: "Mark", 42: "Luke",
+    43: "John", 44: "Acts", 45: "Romans", 46: "1 Corinthians", 47: "2 Corinthians",
+    48: "Galatians", 49: "Ephesians", 50: "Philippians", 51: "Colossians",
+    52: "1 Thessalonians", 53: "2 Thessalonians", 54: "1 Timothy", 55: "2 Timothy",
+    56: "Titus", 57: "Philemon", 58: "Hebrews", 59: "James", 60: "1 Peter",
+    61: "2 Peter", 62: "1 John", 63: "2 John", 64: "3 John", 65: "Jude",
+    66: "Revelation"
+};
+
 /**
  * Parses a reference like "Matthew 1:1", "matthew:1:1", "1 John 1:1-10", "john1-10"
  */
@@ -160,34 +179,52 @@ export function parseVerseReference(ref: string) {
 }
 
 
-export function getVerseRange(bookId: number, chapter: number, start: number, end: number): string[] {
-    // 🧬 DNA OPTIMIZATION: Lazy load the 9MB JSON only when explicitly needed.
-    // This prevents Vercel Cold Start Timeout for normal chat queries.
-    const kjvData = require('./data/kjv.json');
+export async function getVerseRange(bookId: number, chapter: number, start: number, end: number): Promise<string[]> {
+    try {
+        const db = await getDatabase();
+        const bookName = ID_TO_BOOK[bookId];
 
-    const verses = (kjvData as BibleVerse[]).filter(v =>
-        v.fields.book_id === bookId &&
-        v.fields.chapter === chapter &&
-        v.fields.verse >= start &&
-        (end === 0 ? v.fields.verse === start : v.fields.verse <= end)
-    );
-    return verses.sort((a, b) => a.fields.verse - b.fields.verse).map(v => `${v.fields.verse} ${v.fields.text}`);
+        if (!bookName) return [];
+
+        const query: any = {
+            book: bookName,
+            chapter: chapter,
+            verse: { $gte: start }
+        };
+
+        if (end !== 0 && end !== start) {
+            query.verse.$lte = end;
+        } else if (end === start || end === 0) {
+            query.verse = start;
+        }
+
+        console.log(`[BibleLookup] Querying MongoDB for: ${bookName} ${chapter}:${start}${end ? '-' + end : ''}`);
+
+        const verses = await db.collection('bible_kjv')
+            .find(query)
+            .sort({ verse: 1 })
+            .toArray();
+
+        return verses.map(v => `${v.verse} ${v.text}`);
+    } catch (error) {
+        console.error("[BibleLookup] MongoDB Error:", error);
+        return [];
+    }
 }
 
-export function lookupBibleReference(query: string): string | null {
+export async function lookupBibleReference(query: string): Promise<string | null> {
     const parsed = parseVerseReference(query);
     if (!parsed) return null;
 
-    const verses = getVerseRange(parsed.bookId, parsed.chapter, parsed.startVerse, parsed.endVerse);
+    const verses = await getVerseRange(parsed.bookId, parsed.chapter, parsed.startVerse, parsed.endVerse);
     if (verses.length === 0) return null;
 
-    // Get book name for back-reference
-    const bookName = Object.keys(BOOK_MAP).find(key => BOOK_MAP[key] === parsed.bookId && key.length > 3);
-    const capitalizedBook = bookName ? bookName.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : "Scripture";
+    // Get canonical book name
+    const bookName = ID_TO_BOOK[parsed.bookId] || "Scripture";
 
     const title = parsed.endVerse > parsed.startVerse
-        ? `${capitalizedBook} ${parsed.chapter}:${parsed.startVerse}-${parsed.endVerse} (KJV)`
-        : `${capitalizedBook} ${parsed.chapter}:${parsed.startVerse} (KJV)`;
+        ? `${bookName} ${parsed.chapter}:${parsed.startVerse}-${parsed.endVerse} (KJV)`
+        : `${bookName} ${parsed.chapter}:${parsed.startVerse} (KJV)`;
 
     return `**${title}**\n\n${verses.map(v => `> ${v}`).join('\n>\n')}`;
 }
