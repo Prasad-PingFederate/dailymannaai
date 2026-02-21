@@ -26,8 +26,14 @@ export async function assessTruthIntegrity(query: string, results: string[]): Pr
     
     TASK: Detect if any retrieved data promotes false doctrine or contradicts the Deity of Christ.
     
-    RESPONSE FORMAT (JSON ONLY):
+    STEP 1: REASONING HUB (Thinking Block)
+    - Analyze each source for theological consistency.
+    - Match keywords against the CORE DOCTRINE.
+    - Identify subtle contradictions or "half-truths."
+    
+    STEP 3: FINAL ASSESSMENT (JSON ONLY)
     {
+        "thinking": "Brief explanation of your doctrinal auditing process",
         "isSound": true/false,
         "integrityScore": 0-100,
         "warnings": ["Warning if suspect content found"],
