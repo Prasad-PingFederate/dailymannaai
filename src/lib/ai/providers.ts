@@ -195,6 +195,28 @@ class GroqProvider implements AIProvider {
         }
     }
 
+    async generateStream(prompt: string): Promise<ReadableStream> {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${this.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [{ role: "user", content: prompt }],
+                stream: true,
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`Groq Stream Error: ${err}`);
+        }
+
+        return response.body!;
+    }
+
     async transcribeAudio(audioUrl: string): Promise<string> {
         console.log(`[AI] Groq (Whisper) transcription for: ${audioUrl.substring(0, 50)}...`);
         try {
@@ -476,6 +498,52 @@ class TogetherProvider implements AIProvider {
 }
 
 /**
+ * Generic OpenAI-Compatible Provider (Sovereign Backup)
+ * Use this for high-speed free backups like Sambanova, Cerebras, or Local Ollama
+ */
+class OpenAICompatibleProvider implements AIProvider {
+    constructor(
+        public name: string,
+        private baseUrl: string,
+        private apiKey: string,
+        private modelId: string
+    ) { }
+
+    async generateResponse(prompt: string): Promise<string> {
+        const response = await fetch(`${this.baseUrl}/chat/completions`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${this.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: this.modelId,
+                messages: [{ role: "user", content: prompt }],
+            }),
+        });
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || "";
+    }
+
+    async generateStream(prompt: string): Promise<ReadableStream> {
+        const response = await fetch(`${this.baseUrl}/chat/completions`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${this.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: this.modelId,
+                messages: [{ role: "user", content: prompt }],
+                stream: true,
+            }),
+        });
+        if (!response.ok) throw new Error(`${this.name} status: ${response.status}`);
+        return response.body!;
+    }
+}
+
+/**
  * Multi-Provider Manager
  */
 export class AIProviderManager {
@@ -486,25 +554,45 @@ export class AIProviderManager {
         const openRouterKey = process.env.OPENROUTER_API_KEY;
         const groqKey = process.env.GROQ_API_KEY;
         const xaiKey = process.env.XAI_API_KEY;
+        const mistralKey = process.env.MISTRAL_API_KEY; // New
+        const togetherKey = process.env.TOGETHER_API_KEY;
 
-        if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
+        // 🏆 ELITE COALITION (Priority Order for 10k Users)
+
+        // 1. Google Gemini (1500 req/day + massive Flash context)
         if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));
 
-        // Handle Groq (should start with gsk_)
-        if (groqKey && groqKey.startsWith("gsk_")) {
-            this.providers.push(new GroqProvider(groqKey));
+        // 2. Groq (Ultra-Fast, 14.4k req/day free beta)
+        if (groqKey && (groqKey.startsWith("gsk_") || groqKey.startsWith("xai-"))) {
+            const cleanGroqKey = groqKey.startsWith("xai-") ? groqKey : groqKey;
+            this.providers.push(new GroqProvider(cleanGroqKey));
         }
 
-        // Handle xAI (should start with xai- or provided as XAI_API_KEY)
+        // 3. Mistral (Huge monthly free quota)
+        if (mistralKey) {
+            this.providers.push(new OpenAICompatibleProvider(
+                "Mistral-Internal",
+                "https://api.mistral.ai/v1",
+                mistralKey,
+                "mistral-small-latest"
+            ));
+        }
+
+        // 4. Together AI
+        if (togetherKey && !togetherKey.includes("your_together")) {
+            this.providers.push(new TogetherProvider(togetherKey));
+        }
+
+        // 5. xAI (Grok)
         const activeXaiKey = xaiKey || (groqKey && groqKey.startsWith("xai-") ? groqKey : null);
         if (activeXaiKey) {
             this.providers.push(new XAIProvider(activeXaiKey));
         }
 
-        if (process.env.TOGETHER_API_KEY && !process.env.TOGETHER_API_KEY.includes("your_together")) {
-            this.providers.push(new TogetherProvider(process.env.TOGETHER_API_KEY));
-        }
+        // 6. OpenRouter (The Universal Catch-All)
+        if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
 
+        // 7. Hugging Face (Final Fallback)
         if (process.env.HUGGINGFACE_API_KEY) {
             this.providers.push(new HuggingFaceProvider(process.env.HUGGINGFACE_API_KEY));
         }
