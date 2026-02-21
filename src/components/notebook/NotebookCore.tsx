@@ -686,8 +686,25 @@ It's now part of my collective wisdom!`
             const reader = res.body?.getReader();
             if (!reader) throw new Error("No stream reader");
 
-            // Add placeholder assistant message
-            setMessages(prev => [...prev, { role: "assistant", content: "", thought: "", isThinking: true }]);
+            // Extract metadata from headers
+            const citationsHeader = res.headers.get("x-citations");
+            const webLinksHeader = res.headers.get("x-web-links");
+            let initialCitations = [];
+            let initialWebLinks = [];
+            try {
+                if (citationsHeader) initialCitations = JSON.parse(citationsHeader);
+                if (webLinksHeader) initialWebLinks = JSON.parse(webLinksHeader);
+            } catch (e) { console.warn("Failed to parse metadata headers", e); }
+
+            // Add placeholder assistant message with metadata
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: "",
+                thought: "",
+                isThinking: true,
+                citations: initialCitations,
+                webResults: initialWebLinks
+            }]);
 
             let fullText = "";
             const decoder = new TextDecoder();

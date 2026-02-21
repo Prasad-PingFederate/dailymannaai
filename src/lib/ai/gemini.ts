@@ -337,15 +337,17 @@ export async function generateGroundedStream(query: string, sources: string[], w
     "${query}"
     ${standaloneFocusedQuery ? `(RESOLVED FOR DEEP ANALYSIS: ${standaloneFocusedQuery})` : ""}
 
-    RESPONSE FORMAT:
+    RESPONSE FORMAT (STRICT):
     <THOUGHT>
-    [Your internal reasoning]
+    [Identify intent, scriptural plan, and doctrinal audit. NO FINAL ANSWER HERE.]
     </THOUGHT>
     
     ### RESPONSE START ###
-    [Answer text with Scripture citations]
+    [The final inspired answer for the user. USE CLEAN PARAGRAPHS.]
+    
     ---SUGGESTIONS---
-    [3 brief follow-up questions]
+    [3 follow-up questions]
+    
     [METADATA:SUBJECT=Subject Name]
     `;
 

@@ -121,11 +121,22 @@ export async function POST(req: Request) {
 
         const { stream, provider } = await generateGroundedStream(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
 
+        // Prepare metadata for the frontend to read via headers
+        const citations = relevantChunks.map(c => ({
+            id: c.id,
+            source: c.sourceId,
+            preview: c.content.substring(0, 80) + "..."
+        }));
+
+        const webLinks = webResults.map(r => ({ title: r.title, url: r.url }));
+
         return new Response(stream, {
             headers: {
                 "Content-Type": "text/plain; charset=utf-8",
                 "Cache-Control": "no-cache",
-                "X-AI-Provider": provider
+                "X-AI-Provider": provider,
+                "X-Citations": JSON.stringify(citations).substring(0, 4000), // Safety cap
+                "X-Web-Links": JSON.stringify(webLinks).substring(0, 2000)
             }
         });
     } catch (error: any) {

@@ -640,19 +640,41 @@ export class AIProviderManager {
             throw new Error("No AI providers configured.");
         }
 
-        // Try to find a provider with push streaming support (Gemini first)
-        const streamingProvider = this.providers.find(p => p.name === "Gemini" || p.name === "OpenRouter");
+        const errors: string[] = [];
 
-        if (streamingProvider && streamingProvider.generateStream) {
-            try {
-                const stream = await streamingProvider.generateStream(prompt);
-                return { stream, provider: streamingProvider.name };
-            } catch (e) {
-                console.error(`Streaming failed on ${streamingProvider.name}, falling back to static...`);
+        // 🚀 ATTEMPT 1: Live Streaming (DeepSeek Experience)
+        for (const provider of this.providers) {
+            if (provider.generateStream) {
+                try {
+                    console.log(`[AI-Manager] Attempting stream from ${provider.name}...`);
+                    const stream = await provider.generateStream(prompt);
+                    return { stream, provider: provider.name };
+                } catch (e: any) {
+                    const msg = e.message || String(e);
+                    console.warn(`[AI-Manager] Streaming failed on ${provider.name}: ${msg}`);
+                    errors.push(`${provider.name}: ${msg}`);
+                }
             }
         }
 
-        throw new Error("No streaming-capable provider available or configured.");
+        // 🛡️ ATTEMPT 2: Fallback to Static (The "Backup System")
+        console.warn("[AI-Manager] ⚠️ All stream attempts failed. Falling back to static response...");
+        try {
+            const { response, provider } = await this.generateResponse(prompt);
+
+            // Wrap the static response in a stream so the frontend doesn't break
+            const staticStream = new ReadableStream({
+                start(controller) {
+                    const encoder = new TextEncoder();
+                    controller.enqueue(encoder.encode(response));
+                    controller.close();
+                }
+            });
+
+            return { stream: staticStream, provider: `${provider} (Static Fallback)` };
+        } catch (e: any) {
+            throw new Error(`Critical Synthesis Failure: Both streaming AND static paths failed. [${errors.join(", ")}]`);
+        }
     }
 
     getActiveProviders(): string[] {
