@@ -89,12 +89,12 @@ export async function generateGroundedResponse(query: string, sources: string[],
     - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
 
     STEP 4: FORMATTING PROTOCOL (Visual Clarity & Zero-Clutter)
-    - **NO STARS IN HEADERS**: Never put bolding (\*\*) inside or around a header (###). Headers should be clean text.
-    - **HEADER DEPTH**: Use \`###\` for main sections. Avoid \`####\` or deeper level hashes.
-    - **DRASTICALLY REDUCE BOLDING**: Do not bold every other phrase. Limit bolding (\*\*) to a MAXIMUM of 2 key names or critical scriptural concepts per paragraph.
-    - **NO NESTED SYMBOLS**: Never combine headers and bolding (e.g., \`### **Title**\` is FORBIDDEN).
-    - **CLEAN PARAGRAPHS**: Let the text breathe. Use italics (*) only for Bible references or very subtle emphasis.
-    - **PRACTICAL APPLICATION**: Use \`### Practical Application\` as the section title, then clean text below.
+    - **NO HASH SYMBOLS**: Never use '#' symbols for headers. It looks too technical.
+    - **BOLD HEADERS**: Use **Bold Text** for all section titles and the main header.
+    - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text or **Bold**.
+    - **DRASTICALLY REDUCE BOLDING**: Do not bold every other phrase. Limit bolding (\*\*) to only the Title and at most 2 critical terms per section.
+    - **CLEAN PARAGRAPHS**: Use clean line breaks to separate ideas. Avoid all complex markdown symbols except basic bolding for titles.
+    - **PRACTICAL APPLICATION**: Simply write **Practical Application** on its own line, followed by the content.
 
     RESEARCH SOURCES (VERIFIED KNOWLEDGE):
     ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -163,11 +163,13 @@ export async function generateGroundedResponse(query: string, sources: string[],
         let answer = parts[0].trim();
 
         // 🧪 POST-SYNTHESIS CLEANER: Forcefully strip excessive symbols
-        // 1. Convert any deep hashes (####, #####) back to standard ###
-        answer = answer.replace(/^#+ /gm, '### ');
 
-        // 2. Strip bolding stars from inside headers (e.g., ### **Title** -> ### Title)
-        answer = answer.replace(/^(#+)\s*\*\*(.*?)\*\*/gm, '$1 $2');
+        // 1. Convert all headers (anything starting with #) to clean BOLD text
+        answer = answer.replace(/^#+ (.*)$/gm, '**$1**');
+
+        // 2. Strip single-star italics (e.g. *text* -> text)
+        // We do this by replacing * with nothing if it's not a double-star bold
+        answer = answer.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '$1');
 
         // 3. Remove cases where symbols are tripled or more
         answer = answer.replace(/\*{3,}/g, '**');
