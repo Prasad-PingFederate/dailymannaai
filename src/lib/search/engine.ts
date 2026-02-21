@@ -21,9 +21,15 @@ export interface UnifiedSearchResult {
 export async function executeHybridSearch(query: string): Promise<UnifiedSearchResult> {
     console.log(`[TruthEngine] 🔍 Deep Analysis: "${query}"`);
 
-    // 1. FAST PATH: Check if it's a direct reference
-    const directVerse = await lookupBibleReference(query);
-    if (directVerse) {
+    // 1 & 2. PARALLEL START: Direct Lookup + Intent Analysis
+    const [directVerse, intent] = await Promise.all([
+        lookupBibleReference(query),
+        analyzeSearchIntent(query)
+    ]);
+
+    // Handle Direct Fast-Path (only if user intent is clearly just looking up a verse)
+    if (directVerse && (intent.type === "VERSE_LOOKUP" || query.length < 25)) {
+        console.log(`[TruthEngine] ⚡ Direct Scripture Fast-Path: "${query}"`);
         return {
             mode: "DIRECT_LOOKUP",
             content: directVerse,
@@ -31,10 +37,6 @@ export async function executeHybridSearch(query: string): Promise<UnifiedSearchR
             documentResults: []
         };
     }
-
-    // 2. INTELLIGENCE PATH: Analyze intent
-    const intent = await analyzeSearchIntent(query);
-    console.log(`[TruthEngine] 🧠 Intent: ${intent.type} | Keywords: ${intent.primaryKeywords.join(", ")}`);
 
     if (intent.type === "GREETING") {
         return {
