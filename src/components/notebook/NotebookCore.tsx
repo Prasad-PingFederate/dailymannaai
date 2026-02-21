@@ -1769,7 +1769,7 @@ It's now part of my collective wisdom!`
                         <div
                             ref={chatContainerRef}
                             onScroll={handleChatScroll}
-                            className="flex-1 overflow-y-auto px-4 pb-6 md:px-10 pt-14 space-y-6 relative"
+                            className="flex-1 overflow-y-auto px-4 pb-48 md:px-10 pt-14 space-y-6 relative custom-scrollbar"
                         >
                             <div className="max-w-3xl mx-auto">
                                 <div className="chat-focus-messages space-y-6 pt-2">
@@ -1895,8 +1895,8 @@ It's now part of my collective wisdom!`
                 </div>
 
                 {/* 🚀 WORLD-CLASS FLOATING SEARCH BAR (ChatGPT/Antigravity Style) */}
-                <div className="fixed bottom-6 left-0 right-0 z-[100] px-4">
-                    <div className="max-w-3xl mx-auto flex flex-col gap-4">
+                <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-8 pt-24 pointer-events-none bg-gradient-to-t from-background via-background/90 to-transparent">
+                    <div className="max-w-3xl mx-auto flex flex-col gap-4 pointer-events-auto">
                         {/* Compact Tool Row (Subtle) */}
                         <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1 px-2">
                             {[
@@ -1918,7 +1918,7 @@ It's now part of my collective wisdom!`
 
                         {/* Floating Pill Search Bar */}
                         <div className="relative group">
-                            <div className="relative bg-card-bg/80 backdrop-blur-2xl border border-border/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] focus-within:ring-2 ring-accent/40 transition-all p-1.5 px-2 flex items-center gap-2 group-hover:border-accent/30">
+                            <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.25)] focus-within:ring-2 ring-accent/40 transition-all p-1.5 px-2 flex items-center gap-2 group-hover:border-accent/30">
                                 <button
                                     onClick={() => setUploadModalOpen(true)}
                                     className="p-3 bg-muted/5 hover:bg-accent/10 rounded-full text-muted hover:text-accent transition-all hover:scale-110"
@@ -1955,7 +1955,7 @@ It's now part of my collective wisdom!`
                             </div>
 
                             {/* Sources/Status Indicator (Inside Floating Context) */}
-                            <div className="absolute -top-6 left-6 flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] opacity-40 group-focus-within:opacity-80 transition-opacity">
+                            <div className="absolute -top-6 left-6 flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100 transition-opacity drop-shadow-sm">
                                 <span className={`${sources.filter(s => s.selected).length > 0 ? 'text-accent' : 'text-muted'}`}>
                                     {sources.filter(s => s.selected).length} SOURCES ACTIVE
                                 </span>
