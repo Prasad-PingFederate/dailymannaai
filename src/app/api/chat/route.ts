@@ -135,8 +135,8 @@ export async function POST(req: Request) {
                 "Content-Type": "text/plain; charset=utf-8",
                 "Cache-Control": "no-cache",
                 "X-AI-Provider": provider,
-                "X-Citations": JSON.stringify(citations).substring(0, 4000), // Safety cap
-                "X-Web-Links": JSON.stringify(webLinks).substring(0, 2000)
+                "X-Citations": Buffer.from(JSON.stringify(citations)).toString('base64'),
+                "X-Web-Links": Buffer.from(JSON.stringify(webLinks)).toString('base64')
             }
         });
     } catch (error: any) {

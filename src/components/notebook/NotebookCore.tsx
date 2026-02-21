@@ -689,11 +689,17 @@ It's now part of my collective wisdom!`
             // Extract metadata from headers
             const citationsHeader = res.headers.get("x-citations");
             const webLinksHeader = res.headers.get("x-web-links");
-            let initialCitations = [];
-            let initialWebLinks = [];
+            let initialCitations: any[] = [];
+            let initialWebLinks: any[] = [];
             try {
-                if (citationsHeader) initialCitations = JSON.parse(citationsHeader);
-                if (webLinksHeader) initialWebLinks = JSON.parse(webLinksHeader);
+                if (citationsHeader) {
+                    const decoded = decodeURIComponent(escape(atob(citationsHeader)));
+                    initialCitations = JSON.parse(decoded);
+                }
+                if (webLinksHeader) {
+                    const decoded = decodeURIComponent(escape(atob(webLinksHeader)));
+                    initialWebLinks = JSON.parse(decoded);
+                }
             } catch (e) { console.warn("Failed to parse metadata headers", e); }
 
             // Add placeholder assistant message with metadata
