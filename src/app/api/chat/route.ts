@@ -64,15 +64,19 @@ export async function POST(req: Request) {
                 groundingSources.push(`[KJV Bible Result]: (${res.reference}) ${res.text}`);
             });
         } else if (searchResult.mode === "GREETING") {
-            const greetingPrompt = `The user said: "${query}". Reply with a warm Christian greeting like "Praise the Lord!" or "Greetings in Jesus' name". Keep it short.`;
-            const { answer: greeting } = await generateGroundedResponse(greetingPrompt, [], "", history);
+            // Guard: If query is long, it's likely a complex question starting with a greeting (e.g. "Hello, who is Jesus?")
+            if (query.split(" ").length <= 4) {
+                const greetingPrompt = `The user said: "${query}". Reply with a warm Christian greeting. Do not use "Praise the Lord!" unless the user said it first. Use "Greetings in Jesus' name" or "Good morning/evening". Keep it short.`;
+                const { answer: greeting } = await generateGroundedResponse(greetingPrompt, [], "", history);
 
-            return NextResponse.json({
-                role: "assistant",
-                content: greeting,
-                suggestions: ["Show me today's verse.", "Help me with Bible study.", "What is the Daily Manna?"],
-                metadata: { search_mode: "GREETING" }
-            });
+                return NextResponse.json({
+                    role: "assistant",
+                    content: greeting,
+                    suggestions: ["Show me today's verse.", "Help me with Bible study.", "What is the Daily Manna?"],
+                    metadata: { search_mode: "GREETING" }
+                });
+            }
+            console.log(`[TruthEngine] 🧐 Greeting detected but query has depth. Proceeding to Deep Analysis.`);
         }
 
         // 1. Expert Rewriting (Phonetic Awareness)

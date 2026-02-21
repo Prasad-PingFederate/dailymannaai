@@ -16,6 +16,11 @@ export async function analyzeSearchIntent(query: string): Promise<SearchIntent> 
     Identity: CHRISTIAN SEARCH ANALYZER.
     Task: Deconstruct the user's intent to find the best scriptural answers.
     
+    CRITICAL RULES:
+    1. GREETING: Use ONLY for "hello", "hi", "hey", "good morning", "how are you", "praise the lord" etc.
+    2. Any query asking about a Bible verse, Jesus, God, faith, salvation, or history is NOT a greeting.
+    3. If the query is "Who is Jesus?", it is TOPICAL_SEARCH, NOT GREETING.
+    
     USER QUERY: "${query}"
     
     RESPONSE FORMAT (JSON ONLY):
