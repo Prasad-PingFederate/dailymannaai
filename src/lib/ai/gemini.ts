@@ -162,6 +162,16 @@ export async function generateGroundedResponse(query: string, sources: string[],
         const parts = finalResponse.split("---SUGGESTIONS---");
         let answer = parts[0].trim();
 
+        // 🧪 POST-SYNTHESIS CLEANER: Forcefully strip excessive symbols
+        // 1. Convert any deep hashes (####, #####) back to standard ###
+        answer = answer.replace(/^#+ /gm, '### ');
+
+        // 2. Strip bolding stars from inside headers (e.g., ### **Title** -> ### Title)
+        answer = answer.replace(/^(#+)\s*\*\*(.*?)\*\*/gm, '$1 $2');
+
+        // 3. Remove cases where symbols are tripled or more
+        answer = answer.replace(/\*{3,}/g, '**');
+
         // 🧪 ANTI-REPETITION POLISH: Detect and strip runaway headers
         const answerLines = answer.split('\n');
         if (answerLines.length > 10) {
