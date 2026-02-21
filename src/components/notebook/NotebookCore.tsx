@@ -655,6 +655,17 @@ It's now part of my collective wisdom!`
         setIsChatting(true);
 
         const currentHistory = [...messages];
+
+        // 🧪 INSTANT FEEDBACK: Add a "Ghost" assistant message immediately
+        setMessages(prev => [...prev, {
+            role: "assistant",
+            content: "",
+            thought: "",
+            isThinking: true,
+            thinkingPhase: "Contacting truth archives...",
+            researchSteps: ["Initializing spiritual inquiry...", "Distilling intent from query..."]
+        }]);
+
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
@@ -708,17 +719,22 @@ It's now part of my collective wisdom!`
                 }
             } catch (e) { console.warn("Failed to parse metadata headers", e); }
 
-            // Add placeholder assistant message with metadata
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: "",
-                thought: "",
-                isThinking: true,
-                thinkingPhase: "Preparing study context...",
-                citations: initialCitations,
-                webResults: initialWebLinks,
-                researchSteps: initialResearchSteps
-            }]);
+            // UPDATE the "Ghost" assistant message with real metadata from headers
+            setMessages(prev => {
+                const newMsgs = [...prev];
+                const lastIdx = newMsgs.length - 1;
+                if (newMsgs[lastIdx].role === "assistant") {
+                    newMsgs[lastIdx] = {
+                        ...newMsgs[lastIdx],
+                        isThinking: true,
+                        thinkingPhase: "Preparing study context...",
+                        citations: initialCitations,
+                        webResults: initialWebLinks,
+                        researchSteps: initialResearchSteps.length > 0 ? initialResearchSteps : newMsgs[lastIdx].researchSteps
+                    };
+                }
+                return newMsgs;
+            });
 
             let fullText = "";
             const decoder = new TextDecoder();
@@ -796,10 +812,18 @@ It's now part of my collective wisdom!`
             }
         } catch (error) {
             console.error("Chat Error:", error);
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: "I'm having trouble connecting to my brain. Please try again later."
-            }]);
+            setMessages(prev => {
+                const newMsgs = [...prev];
+                const lastIdx = newMsgs.length - 1;
+                if (newMsgs[lastIdx].role === "assistant") {
+                    newMsgs[lastIdx] = {
+                        ...newMsgs[lastIdx],
+                        content: "I'm having trouble connecting to my brain. Please check your connection or try a different brain.",
+                        isThinking: false
+                    };
+                }
+                return newMsgs;
+            });
         } finally {
             setIsChatting(false);
         }
