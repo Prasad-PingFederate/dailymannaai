@@ -835,7 +835,7 @@ It's now part of my collective wisdom!`
                 if (newMsgs[lastIdx].role === "assistant") {
                     newMsgs[lastIdx] = {
                         ...newMsgs[lastIdx],
-                        content: "I'm having trouble connecting to my brain. Please check your connection or try a different brain.",
+                        content: "I'm sorry, I'm unable to provide an answer right now. Please try again in a few moments.",
                         isThinking: false
                     };
                 }
@@ -2051,36 +2051,7 @@ It's now part of my collective wisdom!`
                                                 </div>
                                             </div>
                                         ))}
-                                        {isChatting && (
-                                            <div className="flex gap-4 animate-in fade-in duration-500">
-                                                <div className="h-10 w-10 rounded-xl bg-card-bg border border-border flex-shrink-0 flex items-center justify-center animate-pulse shadow-md">
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-red-600">
-                                                        <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
-                                                    </svg>
-                                                </div>
-                                                <div className="bg-muted/5 rounded-2xl p-6 text-muted-foreground italic flex flex-col gap-3 min-w-[240px]">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex gap-1.5">
-                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce"></div>
-                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                                                            <div className="w-2 h-2 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                                                        </div>
-                                                        <span className="text-sm font-medium">DailyMannaAI is thinking...</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 px-1">
-                                                        <div className="h-[2px] w-full bg-border/30 rounded-full overflow-hidden">
-                                                            <div className="h-full bg-accent/40 animate-[shimmer_2s_infinite] w-1/3"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-[10px] uppercase tracking-[0.2em] font-black text-accent/50 animate-pulse">
-                                                        {(() => {
-                                                            const steps = ["Consulting Scripture", "Auditing Doctrine", "Cross-referencing Wesley", "Synthesizing Wisdom", "Verifying Historical Truth"];
-                                                            return steps[Math.floor((Date.now() / 2000) % steps.length)];
-                                                        })()}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
+
                                     </div>
                                 </div>
                             </div>

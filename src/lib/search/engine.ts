@@ -18,13 +18,13 @@ export interface UnifiedSearchResult {
  * This is the main entry point for all search queries.
  * It combines Scripture, Sermon, and Historical knowledge with a Doctrine Filter.
  */
-export async function executeHybridSearch(query: string): Promise<UnifiedSearchResult> {
+export async function executeHybridSearch(query: string, preAnalyzedIntent?: any): Promise<UnifiedSearchResult> {
     console.log(`[TruthEngine] 🔍 Deep Analysis: "${query}"`);
 
-    // 1 & 2. PARALLEL START: Direct Lookup + Intent Analysis
+    // 1 & 2. PARALLEL START: Direct Lookup + Intent Analysis (if not pre-analyzed)
     const [directVerse, intent] = await Promise.all([
         lookupBibleReference(query),
-        analyzeSearchIntent(query)
+        preAnalyzedIntent ? Promise.resolve(preAnalyzedIntent) : analyzeSearchIntent(query)
     ]);
 
     // Handle Direct Fast-Path (only if user intent is clearly just looking up a verse)

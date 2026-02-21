@@ -651,12 +651,8 @@ export class AIProviderManager {
         }
 
         const errorDetails = errors.map(e => `${e.provider}: ${e.error.message}`).join(", ");
-
-        // Special case: If ALL failed, provide a humble "busy" response instead of a crash
-        return {
-            response: `🙏 I'm sorry, but all my spiritual wisdom centers are currently offline or at capacity [${errorDetails}]. Please wait a few minutes or check your connection. The Word is always available in your local notes!`,
-            provider: "System Recovery"
-        };
+        console.error(`[AI-Manager] CRITICAL: All providers failed. ${errorDetails}`);
+        throw new Error("WISDOM_CENTERS_OFFLINE");
     }
 
     async transcribeVideo(videoUrl: string): Promise<string> {

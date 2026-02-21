@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
-import { generateGroundedResponse, rewriteQuery, generateGroundedStream, getProviderManager } from "@/lib/ai/gemini";
+import { generateGroundedResponse, analyzeResearchIntent, generateGroundedStream, getProviderManager } from "@/lib/ai/gemini";
 import { TrainingLogger } from "@/lib/ai/training-logger";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
 import { performWebSearch, formatSearchResults, performImageSearch } from "@/lib/tools/web-search";
@@ -38,12 +38,13 @@ export async function POST(req: Request) {
 
         console.log(`[ChatAPI-DNA] Entry Query: "${query}"`);
 
-        // 🚀 PARALLEL PHASE 1: Intent Analysis & Truth Discovery
-        // We run the Hybrid Search (Scripture/Doctrine) and the Query Rewriter (Phonetic/Context) at the same time.
-        const [searchResult, standaloneQuery] = await Promise.all([
-            executeHybridSearch(query),
-            rewriteQuery(query, history)
-        ]);
+        // 🚀 ORCHESTRATED PHASE 1: Intent Analysis & Truth Discovery (SINGLE AI CALL)
+        // We resolve phonetic errors and categorize the intent in one go to save quota.
+        const intentResult = await analyzeResearchIntent(query, history);
+        const standaloneQuery = intentResult.standaloneQuery;
+
+        // Pass the result directly to the Hybrid search to skip redundant AI calls
+        const searchResult = await executeHybridSearch(query, intentResult);
 
         let groundingSources: string[] = [];
 
@@ -145,6 +146,8 @@ export async function POST(req: Request) {
         });
     } catch (error: any) {
         console.error("Agentic Loop Error:", error);
-        return NextResponse.json({ error: "High-level Persona Synthesis Failure: " + error.message }, { status: 500 });
+        return NextResponse.json({
+            error: "The spiritual wisdom centers are momentarily at capacity. Please take a moment to reflect and try again soon."
+        }, { status: 500 });
     }
 }

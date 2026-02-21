@@ -33,36 +33,54 @@ function truncateHistory(history: any[]): any[] {
 }
 
 /**
- * 🧬 EXPERT DNA REWRITER: Fixes phonetic typos and resolves context.
+ * 🧬 ORCHESTRATOR: Resolves intent and rewrites query in a SINGLE AI call to save quota.
  */
-async function rewriteQuery(query: string, history: any[]): Promise<string> {
-    // Truncate and limit history to avoid "Context Contamination"
+export async function analyzeResearchIntent(query: string, history: any[]): Promise<{ standaloneQuery: string; type: string; primaryKeywords: string[] }> {
     const recentHistory = truncateHistory(history.slice(-6));
 
-    const rewritePrompt = `
-    Identity: High-Precision Query Engine.
-    Mission: Resolve pronouns and CORRECT phonetic misspellings.
+    const orchestratorPrompt = `
+    Identity: High-Precision Spiritual Research Orchestrator.
+    Task: Analyze user intent and provide a standalone search query.
     
-    CRITICAL RULE: If the NEW USER INPUT is a completely new topic or subject (e.g., "Pilgrim's Progress") compared to the CONVERSATION HISTORY (e.g., "Sermon on the Mount"), ignore the history and treat the input as a fresh standalone query.
+    1. INTENT TYPE: Choose ONE: "VERSE_LOOKUP", "TOPICAL_SEARCH", "HISTORICAL_QUERY", "PERSONAL_GUIDANCE", "GREETING".
+    2. REWRITE: Resolve pronouns and CORRECT phonetic misspellings (e.g., "stan" -> "Satan"). 
+    3. STANDALONE: If the input is a new topic, ignore history.
     
     CONVERSATION HISTORY:
     ${recentHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
     
     NEW USER INPUT: "${query}"
     
-    TASK: Rewrite the NEW USER INPUT into a standalone search query. 
-    
-    ⚠️ CRITICAL TOPIC DRIFT GUARD: If the NEW USER INPUT is about a new person, location, or concept and the history is about something else, DO NOT include history keywords in your standalone query. Keep it PURE to the new input.
-    
-    STANDALONE QUERY:
+    RESPONSE FORMAT (JSON ONLY):
+    {
+        "type": "INTENT_TYPE",
+        "standaloneQuery": "Cleaned version for search",
+        "primaryKeywords": ["word1", "word2"]
+    }
     `;
 
     try {
-        const { response } = await getProviderManager().generateResponse(rewritePrompt);
-        return response.trim().replace(/^"|"$/g, '');
+        const { response } = await getProviderManager().generateResponse(orchestratorPrompt);
+        const cleanJson = response.replace(/```json|```/g, "").trim();
+        const parsed = JSON.parse(cleanJson);
+        return {
+            type: parsed.type || "TOPICAL_SEARCH",
+            standaloneQuery: parsed.standaloneQuery || query,
+            primaryKeywords: parsed.primaryKeywords || []
+        };
     } catch (e) {
-        return query;
+        console.error("[Orchestrator] Error:", e);
+        return { type: "TOPICAL_SEARCH", standaloneQuery: query, primaryKeywords: [] };
     }
+}
+
+/**
+ * 🧬 EXPERT DNA REWRITER: Fixes phonetic typos and resolves context.
+ * (Backward compatibility layer)
+ */
+async function rewriteQuery(query: string, history: any[]): Promise<string> {
+    const res = await analyzeResearchIntent(query, history);
+    return res.standaloneQuery;
 }
 
 export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string) {
