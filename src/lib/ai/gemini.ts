@@ -94,12 +94,22 @@ export async function generateGroundedResponse(query: string, sources: string[],
     - Address the user's intent and plan the structure of the response.
     - DO NOT skip this step. The user needs to see your "Thinking" process.
 
-    STEP 5: FORMATTING PROTOCOL (Visual Clarity & Zero-Clutter)
-    - **NO HASH SYMBOLS**: Never use '#' symbols for headers. Use **Bold Text** for titles.
-    - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text or **Bold**.
-    - **DRASTICALLY REDUCE BOLDING**: Limit bolding (\*\*) to only the Title and at most 2 critical terms per section.
-    - **CLEAN PARAGRAPHS**: Use clear line breaks between thoughts.
-    - **PRACTICAL APPLICATION**: Write **Practical Application** on its own line in **Bold**.
+    STEP 5: STRICT MINIMALISM PROTOCOL (Zero Clutter)
+    - **NO HASH SYMBOLS**: Never use '#' or '####' for headers. Use **Bold Text** for a single title on its own line.
+    - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text.
+    - **BOLD LIMIT**: You are allowed a maximum of 3 bold words (**word**) in the entire response. Use them only for the most critical names or truths.
+    - **CLEAN PARAGRAPHS**: Use double line breaks between paragraphs. Prefer a conversational, scholarly flow over lists.
+    - **NO SYMBOLS**: Do not use "✅", "🚀", or emojis unless explicitly requested.
+
+    FEW-SHOT STYLE EXAMPLE (DESIRED OUTPUT):
+    **The Nature of Faith**
+
+    Faith is described in the scriptures as the substance of things hoped for and the evidence of things not seen. It is the bedrock of the Christian walk.
+
+    When we look at the life of an apostle, we see that faith was not just a feeling but a persistent action. For example, in Hebrews 11, we find a catalog of those who pleased God through their trust.
+
+    **Practical Application**
+    Begin your day by dedicating your first thoughts to the Creator, trusting that His providence will guide your steps.
 
     RESEARCH SOURCES (VERIFIED KNOWLEDGE):
     ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -120,7 +130,13 @@ export async function generateGroundedResponse(query: string, sources: string[],
     </THOUGHT>
     
     ### RESPONSE START ###
-    [Answer text with Scripture citations]
+    **Descriptive Title**
+
+    [Clean, minimal answer with max 3 bold words.]
+    
+    **Practical Application** (Optional)
+    [One brief sentence.]
+
     ---SUGGESTIONS---
     [3 brief follow-up questions]
     [METADATA:SUBJECT=Subject Name]
@@ -317,12 +333,22 @@ export async function generateGroundedStream(query: string, sources: string[], w
     - Address the user's intent and plan the structure of the response.
     - DO NOT skip this step. The user needs to see your "Thinking" process.
 
-    STEP 5: FORMATTING PROTOCOL (Visual Clarity & Zero-Clutter)
-    - **NO HASH SYMBOLS**: Never use '#' symbols for headers. Use **Bold Text** for titles.
-    - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text or **Bold**.
-    - **DRASTICALLY REDUCE BOLDING**: Limit bolding (\*\*) to only the Title and at most 2 critical terms per section.
-    - **CLEAN PARAGRAPHS**: Use clear line breaks between thoughts.
-    - **PRACTICAL APPLICATION**: Write **Practical Application** on its own line in **Bold**.
+    STEP 5: STRICT MINIMALISM PROTOCOL (Zero Clutter)
+    - **NO HASH SYMBOLS**: Never use '#' or '####' for headers. Use **Bold Text** for a single title on its own line.
+    - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text.
+    - **BOLD LIMIT**: You are allowed a maximum of 3 bold words (**word**) in the entire response. Use them only for the most critical names or truths.
+    - **CLEAN PARAGRAPHS**: Use double line breaks between paragraphs. Prefer a conversational, scholarly flow over lists.
+    - **NO SYMBOLS**: Do not use "✅", "🚀", or emojis unless explicitly requested.
+
+    FEW-SHOT STYLE EXAMPLE (DESIRED OUTPUT):
+    **The Nature of Faith**
+
+    Faith is described in the scriptures as the substance of things hoped for and the evidence of things not seen. It is the bedrock of the Christian walk.
+
+    When we look at the life of an apostle, we see that faith was not just a feeling but a persistent action. For example, in Hebrews 11, we find a catalog of those who pleased God through their trust.
+
+    **Practical Application**
+    Begin your day by dedicating your first thoughts to the Creator, trusting that His providence will guide your steps.
 
     RESEARCH SOURCES (VERIFIED KNOWLEDGE):
     ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
@@ -339,14 +365,19 @@ export async function generateGroundedStream(query: string, sources: string[], w
 
     RESPONSE FORMAT (STRICT):
     <THOUGHT>
-    [Identify intent, scriptural plan, and doctrinal audit. NO FINAL ANSWER HERE.]
+    [Identify intent, scriptural plan, and doctrinal audit.]
     </THOUGHT>
     
     ### RESPONSE START ###
-    [The final inspired answer for the user. USE CLEAN PARAGRAPHS.]
+    **Descriptive Title**
+
+    [Clean, minimal answer with max 3 bold words.]
     
+    **Practical Application** (Optional)
+    [One brief sentence.]
+
     ---SUGGESTIONS---
-    [3 follow-up questions]
+    [3 brief follow-up questions]
     
     [METADATA:SUBJECT=Subject Name]
     `;
