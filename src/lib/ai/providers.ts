@@ -12,6 +12,7 @@ import { TrainingLogger } from "./training-logger";
 export interface AIProvider {
     name: string;
     generateResponse(prompt: string): Promise<string>;
+    generateStream?(prompt: string): Promise<ReadableStream>;
     transcribeVideo?(videoUrl: string): Promise<string>;
     transcribeAudio?(audioUrl: string): Promise<string>;
 }
@@ -79,6 +80,28 @@ class GeminiProvider implements AIProvider {
             }
         }
         throw new Error(`Gemini failed all model attempts. Last error: ${lastError}`);
+    }
+
+    async generateStream(prompt: string): Promise<ReadableStream> {
+        const model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1" });
+        const result = await model.generateContentStream(prompt);
+
+        return new ReadableStream({
+            async start(controller) {
+                const encoder = new TextEncoder();
+                try {
+                    for await (const chunk of result.stream) {
+                        const text = chunk.text();
+                        if (text) {
+                            controller.enqueue(encoder.encode(text));
+                        }
+                    }
+                    controller.close();
+                } catch (e) {
+                    controller.error(e);
+                }
+            },
+        });
     }
 
     async transcribeVideo(videoUrl: string): Promise<string> {
@@ -322,6 +345,39 @@ class OpenRouterProvider implements AIProvider {
             }
         }
         throw new Error(`OpenRouter failed (likely credits or no free endpoints). Last: ${lastError}`);
+    }
+
+    async generateStream(prompt: string): Promise<ReadableStream> {
+        const models = ["deepseek/deepseek-r1:free", "deepseek/deepseek-chat", "google/gemini-2.0-flash-exp:free"];
+        let lastError = "";
+
+        for (const modelId of models) {
+            try {
+                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${this.apiKey}`,
+                    },
+                    body: JSON.stringify({
+                        model: modelId,
+                        messages: [{ role: "user", content: prompt }],
+                        stream: true,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const err = await response.text();
+                    throw new Error(err);
+                }
+
+                return response.body!;
+            } catch (error: any) {
+                lastError = error.message;
+                continue;
+            }
+        }
+        throw new Error(`OpenRouter Stream failed: ${lastError}`);
     }
 }
 
@@ -577,6 +633,26 @@ export class AIProviderManager {
         }
 
         throw new Error("No AI providers could transcribe this audio stream.");
+    }
+
+    async generateStream(prompt: string): Promise<{ stream: ReadableStream; provider: string }> {
+        if (this.providers.length === 0) {
+            throw new Error("No AI providers configured.");
+        }
+
+        // Try to find a provider with push streaming support (Gemini first)
+        const streamingProvider = this.providers.find(p => p.name === "Gemini" || p.name === "OpenRouter");
+
+        if (streamingProvider && streamingProvider.generateStream) {
+            try {
+                const stream = await streamingProvider.generateStream(prompt);
+                return { stream, provider: streamingProvider.name };
+            } catch (e) {
+                console.error(`Streaming failed on ${streamingProvider.name}, falling back to static...`);
+            }
+        }
+
+        throw new Error("No streaming-capable provider available or configured.");
     }
 
     getActiveProviders(): string[] {

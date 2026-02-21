@@ -58,7 +58,7 @@ export default function NotebookWorkspace() {
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("sources"); // sources, chat
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
-    const [messages, setMessages] = useState([
+    const [messages, setMessages] = useState<any[]>([
         { role: "assistant", content: "How can I assist your research today?" }
     ]);
     const [input, setInput] = useState("");
@@ -665,18 +665,93 @@ It's now part of my collective wisdom!`
                 }),
             });
 
-            const data = await res.json();
+            if (!res.ok) throw new Error("Synthesis failure");
 
-            if (data.role === "assistant") {
-                setMessages(prev => [...prev, {
-                    role: "assistant",
-                    content: data.content,
-                    thought: data.thought,
-                    portrait: data.portrait
-                }]);
-                if (data.suggestions) {
-                    setSuggestions(data.suggestions);
+            const contentType = res.headers.get("content-type");
+            if (contentType?.includes("application/json")) {
+                const data = await res.json();
+                if (data.role === "assistant") {
+                    setMessages(prev => [...prev, {
+                        role: "assistant",
+                        content: data.content,
+                        thought: data.thought,
+                        portrait: data.portrait
+                    }]);
+                    if (data.suggestions) setSuggestions(data.suggestions);
                 }
+                return;
+            }
+
+            // --- STREAMING MODE (DeepSeek Style) ---
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error("No stream reader");
+
+            // Add placeholder assistant message
+            setMessages(prev => [...prev, { role: "assistant", content: "", thought: "", isThinking: true }]);
+
+            let fullText = "";
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                fullText += chunk;
+
+                // 🧬 Live Parsing: Identify THOUGHT vs CONTENT
+                let currentThought = "";
+                let currentContent = fullText;
+                let stillThinking = true;
+
+                const thoughtMatch = fullText.match(/<THOUGHT>([\s\S]*?)(?:<\/THOUGHT>|$)/i);
+                if (thoughtMatch) {
+                    currentThought = thoughtMatch[1].trim();
+                    const parts = fullText.split(/<\/THOUGHT>/i);
+                    if (parts.length > 1) {
+                        currentContent = parts[1] || "";
+                        stillThinking = false;
+                    } else {
+                        currentContent = "";
+                        stillThinking = true;
+                    }
+                }
+
+                // Clean delimiters from content
+                currentContent = currentContent.replace(/^[\s\S]*### RESPONSE START ###/i, "").trim();
+                currentContent = currentContent.split("---SUGGESTIONS---")[0].trim();
+
+                // Update the LATEST assistant message
+                setMessages(prev => {
+                    const newMsgs = [...prev];
+                    const lastIdx = newMsgs.length - 1;
+                    if (newMsgs[lastIdx].role === "assistant") {
+                        newMsgs[lastIdx] = {
+                            ...newMsgs[lastIdx],
+                            content: currentContent,
+                            thought: currentThought,
+                            isThinking: stillThinking
+                        };
+                    }
+                    return newMsgs;
+                });
+            }
+
+            // Post-stream cleanup to ensure isThinking is false
+            setMessages(prev => {
+                const newMsgs = [...prev];
+                const lastIdx = newMsgs.length - 1;
+                if (newMsgs[lastIdx].role === "assistant") {
+                    newMsgs[lastIdx].isThinking = false;
+                }
+                return newMsgs;
+            });
+
+            // Post-stream cleanup (Final suggestions extraction)
+            const suggestionMatch = fullText.match(/---SUGGESTIONS---([\s\S]*?)(?:\[METADATA|$)/i);
+            if (suggestionMatch) {
+                const s = suggestionMatch[1].split("\n").map(line => line.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(l => l.length > 5).slice(0, 3);
+                setSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
             }
         } catch (error) {
             console.error("Chat Error:", error);
@@ -1838,15 +1913,16 @@ It's now part of my collective wisdom!`
                                                         </div>
                                                     )}
                                                     <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/70 backdrop-blur-xl border border-border/50'} rounded-3xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full`}>
-                                                        {msg.role === 'assistant' && msg.thought && (
+                                                        {msg.role === 'assistant' && (msg.thought || msg.isThinking) && (
                                                             <div className="mb-4 pb-4 border-b border-border/30">
-                                                                <details className="group">
+                                                                <details className="group" open={msg.isThinking}>
                                                                     <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-accent/60 cursor-pointer hover:text-accent transition-colors list-none select-none">
-                                                                        <Sparkles size={12} className="group-open:rotate-180 transition-transform" />
-                                                                        <span>Internal Reasoning Process</span>
+                                                                        <Sparkles size={12} className={`${msg.isThinking ? 'animate-spin' : 'group-open:rotate-180'} transition-transform`} />
+                                                                        <span>{msg.isThinking ? "DailyMannaAI is thinking..." : "Internal Reasoning Process"}</span>
                                                                     </summary>
                                                                     <div className="mt-3 text-sm text-muted-foreground/80 italic font-medium leading-relaxed bg-accent/5 p-4 rounded-2xl border border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
                                                                         {msg.thought}
+                                                                        {msg.isThinking && <span className="inline-flex ml-1 w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />}
                                                                     </div>
                                                                 </details>
                                                             </div>

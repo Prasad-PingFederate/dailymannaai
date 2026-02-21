@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
-import { generateGroundedResponse, rewriteQuery } from "@/lib/ai/gemini";
+import { generateGroundedResponse, rewriteQuery, generateGroundedStream, getProviderManager } from "@/lib/ai/gemini";
 import { TrainingLogger } from "@/lib/ai/training-logger";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
 import { performWebSearch, formatSearchResults, performImageSearch } from "@/lib/tools/web-search";
@@ -112,49 +112,21 @@ export async function POST(req: Request) {
 
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
 
-        // 3. Grounded Synthesis with Expert Persona
+        // 3. Grounded Synthesis with Expert Persona (STREAMING)
         const combinedSources = [...groundingSources, ...sourcesText];
 
         const truthSummary = searchResult.truthAssessment
             ? `Integrity Score: ${searchResult.truthAssessment.integrityScore}%. ${searchResult.truthAssessment.isSound ? 'Status: Sound.' : 'Status: Warnings Found: ' + searchResult.truthAssessment.warnings.join(", ")}`
             : "";
 
-        const { answer, thought, suggestions, suggestedSubject } = await generateGroundedResponse(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
+        const { stream, provider } = await generateGroundedStream(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
 
-        // 4. Resolve Portrait (Hardcoded or Dynamic)
-        let portrait = resolvePortrait(answer);
-        let dynamicImage = null;
-
-        if (!portrait && suggestedSubject) {
-            console.log(`[ChatAPI-DNA] No hardcoded portrait for "${suggestedSubject}". Searching Wikipedia/Wikimedia...`);
-            const images = await performImageSearch(suggestedSubject);
-            if (images.length > 0) {
-                dynamicImage = {
-                    name: suggestedSubject,
-                    imageUrl: images[0].image,
-                    description: `Encyclopedic portrait found for ${suggestedSubject}.`,
-                    attribution: images[0].source,
-                    sourceUrl: images[0].url
-                };
+        return new Response(stream, {
+            headers: {
+                "Content-Type": "text/plain; charset=utf-8",
+                "Cache-Control": "no-cache",
+                "X-AI-Provider": provider
             }
-        }
-
-        return NextResponse.json({
-            role: "assistant",
-            content: answer,
-            thought: thought,
-            suggestions: suggestions,
-            portrait: portrait || dynamicImage,
-            truthAudit: searchResult.truthAssessment, // Add for debugging/transparency
-            citations: relevantChunks.map(c => ({
-                id: c.id,
-                source: c.sourceId,
-                preview: c.content.substring(0, 50) + "..."
-            })),
-            webResults: webResults.map(r => ({
-                title: r.title,
-                url: r.url
-            }))
         });
     } catch (error: any) {
         console.error("Agentic Loop Error:", error);

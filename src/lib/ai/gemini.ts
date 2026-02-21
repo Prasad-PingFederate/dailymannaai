@@ -289,4 +289,67 @@ export async function generateGroundedResponse(query: string, sources: string[],
     }
 }
 
+export async function generateGroundedStream(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string) {
+    const recentHistory = truncateHistory(history.slice(-5));
+
+    const prompt = `
+    EXPERT AI RESPONSE PROTOCOL (Deep Synthesis Engine):
+    
+    STEP 1: REASONING HUB (Internal Thought Process)
+    - Before answering, analyze the RESEARCH SOURCES and WEB RESULTS. 
+    - Identify if the question is BIBLICAL, HISTORICAL, or PERSONAL.
+    - If there is a conflict between WEB results and BIBLE sources, the BIBLE (KJV) is the Absolute Truth.
+    - 🛡️ TRUTH FILTER STATUS: ${truthSummary || "Not audited."}
+    
+    STEP 2: THE CHAIN OF TRUTH (Grounding Rules)
+    - 🛡️ BIBLE FIRST: If a verse from 'KJV Bible' is in the sources, quote it exactly. Do not summarize it.
+    - 🛡️ ENTITY VERIFICATION: Distinguish between biblical figures (e.g. Joshua) and historical figures (e.g. Joshua Daniel). 
+    - 🛡️ CITATION: Explicitly mention where each piece of information came from [Source X] or [Web].
+    
+    STEP 3: SYNTHESIS & VOICE
+    - Write as a "Born-Again Scholar": Authoritative, precise, and encouraging.
+    - Avoid "I think" or "Maybe". Use "The Scriptures record..." or "Historical records indicate...".
+    - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
+
+    STEP 4: INTERNAL REASONING (The "Thinking" Process)
+    - YOU MUST START YOUR RESPONSE WITH YOUR INTERNAL REASONING WRAPPED IN \`<THOUGHT>\` tags.
+    - Inside \`<THOUGHT>\`, show your scripture cross-references, historical facts, and doctrinal verification.
+    - Address the user's intent and plan the structure of the response.
+    - DO NOT skip this step. The user needs to see your "Thinking" process.
+
+    STEP 5: FORMATTING PROTOCOL (Visual Clarity & Zero-Clutter)
+    - **NO HASH SYMBOLS**: Never use '#' symbols for headers. Use **Bold Text** for titles.
+    - **NO ITALICS**: Never use single stars (*) for italics. Stick to plain text or **Bold**.
+    - **DRASTICALLY REDUCE BOLDING**: Limit bolding (\*\*) to only the Title and at most 2 critical terms per section.
+    - **CLEAN PARAGRAPHS**: Use clear line breaks between thoughts.
+    - **PRACTICAL APPLICATION**: Write **Practical Application** on its own line in **Bold**.
+
+    RESEARCH SOURCES (VERIFIED KNOWLEDGE):
+    ${sources.length > 0 ? sources.map((s, i) => `[Expert Source ${i + 1}]: \n${s}`).join("\n\n") : "NO LOCAL SOURCES (USE WEB)."}
+
+    WEB SEARCH RESULTS (REAL-TIME CONTEXT):
+    ${webContext || "Deep-search internal historical archives."}
+
+    CONVERSATION HISTORY (FOR TOPIC RESOLUTION):
+    ${recentHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n")}
+
+    USER QUESTION (ACTIVE INTENT):
+    "${query}"
+    ${standaloneFocusedQuery ? `(RESOLVED FOR DEEP ANALYSIS: ${standaloneFocusedQuery})` : ""}
+
+    RESPONSE FORMAT:
+    <THOUGHT>
+    [Your internal reasoning]
+    </THOUGHT>
+    
+    ### RESPONSE START ###
+    [Answer text with Scripture citations]
+    ---SUGGESTIONS---
+    [3 brief follow-up questions]
+    [METADATA:SUBJECT=Subject Name]
+    `;
+
+    return getProviderManager().generateStream(prompt);
+}
+
 export { rewriteQuery };
