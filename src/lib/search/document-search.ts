@@ -33,7 +33,7 @@ export async function searchDocuments(query: string): Promise<DocSearchResult[]>
             const astraCol = await getCollection('sermons_archive');
             const cloudSermons = await astraCol.find({}).limit(5).toArray();
 
-            databaseResults = cloudSermons.map(s => ({
+            databaseResults = cloudSermons.map((s: any) => ({
                 title: s.title,
                 snippet: s.content?.substring(0, 500) + "...",
                 sourceId: `astra-${s._id}`,

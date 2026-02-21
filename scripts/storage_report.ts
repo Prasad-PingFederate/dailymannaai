@@ -28,8 +28,9 @@ async function checkStorage() {
         // Get sample for breakdown
         const sample = await astraCol.find({}).limit(1000).toArray();
         const breakdown: Record<string, number> = {};
-        sample.forEach(s => {
-            breakdown[s.preacher] = (breakdown[s.preacher] || 0) + 1;
+        sample.forEach((s: any) => {
+            const preacher = s.preacher || "Unknown";
+            breakdown[preacher] = (breakdown[preacher] || 0) + 1;
         });
 
         if (totalAstra > 0) {
