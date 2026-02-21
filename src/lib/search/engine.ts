@@ -23,6 +23,15 @@ export async function executeHybridSearch(query: string) {
     const intent = await analyzeSearchIntent(query);
     console.log(`[TruthEngine] Intent detected: ${intent.type} (${intent.primaryKeywords.join(", ")})`);
 
+    // GREETING FAST PATH: If it's just a greeting, don't trigger Bible searches
+    if (intent.type === "GREETING") {
+        return {
+            mode: "GREETING",
+            intent: intent,
+            results: []
+        };
+    }
+
     // 3. RETRIEVAL: Get relevant verses based on the intent
     const results = await searchBible(intent.primaryKeywords);
 

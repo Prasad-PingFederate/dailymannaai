@@ -1,7 +1,7 @@
 import { getProviderManager } from "../ai/gemini";
 
 export interface SearchIntent {
-    type: "VERSE_LOOKUP" | "TOPICAL_SEARCH" | "HISTORICAL_QUERY" | "PERSONAL_GUIDANCE";
+    type: "VERSE_LOOKUP" | "TOPICAL_SEARCH" | "HISTORICAL_QUERY" | "PERSONAL_GUIDANCE" | "GREETING";
     primaryKeywords: string[];
     suggestedVerses?: string[]; // AI might suggest specific verses to check DB for
     simplifiedQuery: string;
@@ -20,7 +20,7 @@ export async function analyzeSearchIntent(query: string): Promise<SearchIntent> 
     
     RESPONSE FORMAT (JSON ONLY):
     {
-        "type": "VERSE_LOOKUP | TOPICAL_SEARCH | HISTORICAL_QUERY | PERSONAL_GUIDANCE",
+        "type": "VERSE_LOOKUP | TOPICAL_SEARCH | HISTORICAL_QUERY | PERSONAL_GUIDANCE | GREETING",
         "primaryKeywords": ["word1", "word2"],
         "suggestedVerses": ["Book Chapter:Verse"],
         "simplifiedQuery": "Cleaned version for DB search"

@@ -63,6 +63,16 @@ export async function POST(req: Request) {
             searchResult.results.forEach(res => {
                 groundingSources.push(`[KJV Bible Result]: (${res.reference}) ${res.text}`);
             });
+        } else if (searchResult.mode === "GREETING") {
+            const greetingPrompt = `The user said: "${query}". Reply with a warm Christian greeting like "Praise the Lord!" or "Greetings in Jesus' name". Keep it short.`;
+            const { answer: greeting } = await generateGroundedResponse(greetingPrompt, [], "", history);
+
+            return NextResponse.json({
+                role: "assistant",
+                content: greeting,
+                suggestions: ["Show me today's verse.", "Help me with Bible study.", "What is the Daily Manna?"],
+                metadata: { search_mode: "GREETING" }
+            });
         }
 
         // 1. Expert Rewriting (Phonetic Awareness)
