@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
-
-export const runtime = "nodejs"; // TTS requires Node.js runtime for streaming
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
     try {
@@ -10,6 +8,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 500 });
         }
 
+        const { default: OpenAI } = await import("openai");
         const openai = new OpenAI({ apiKey });
         const { text, voice = "shimmer", speed = 1.0 } = await req.json();
 
