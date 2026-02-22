@@ -235,7 +235,7 @@ export function useVoice({
             if (text) {
                 setTranscript(text);
             } else {
-                setError("Transcription failed. Verify API keys in Vercel.");
+                setError("Transcription failed. Please Redeploy on Vercel and check your browser microphone permissions.");
                 setStatus("error");
             }
         };
