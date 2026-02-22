@@ -846,6 +846,8 @@ It's now part of my collective wisdom!`
                 return newMsgs;
             });
 
+            // Post-stream cleanup (Final suggestions extraction)
+            const suggestionMatch = fullText.match(/---SUGGESTIONS---([\s\S]*?)(?:\[METADATA|$)/i);
             if (suggestionMatch) {
                 const s = suggestionMatch[1].split("\n").map(line => line.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(l => l.length > 5).slice(0, 3);
                 setSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
