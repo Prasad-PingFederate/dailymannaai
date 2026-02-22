@@ -18,6 +18,65 @@ export interface AIProvider {
 }
 
 /**
+ * Transforms an SSE (Server-Sent Events) stream from OpenAI-compatible APIs
+ * into a plain text ReadableStream that the frontend can display directly.
+ */
+function parseSSEStream(rawStream: ReadableStream): ReadableStream {
+    const reader = rawStream.getReader();
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+    let buffer = '';
+
+    return new ReadableStream({
+        async pull(controller) {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    // Process any remaining buffer
+                    if (buffer.trim()) {
+                        const lines = buffer.split('\n');
+                        for (const line of lines) {
+                            const content = extractSSEContent(line);
+                            if (content) controller.enqueue(encoder.encode(content));
+                        }
+                    }
+                    controller.close();
+                    return;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                for (const line of lines) {
+                    const content = extractSSEContent(line);
+                    if (content) {
+                        controller.enqueue(encoder.encode(content));
+                        return; // Yield after each chunk for streaming effect
+                    }
+                }
+            }
+        },
+        cancel() {
+            reader.cancel();
+        }
+    });
+}
+
+function extractSSEContent(line: string): string | null {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('data:')) return null;
+    const data = trimmed.slice(5).trim();
+    if (data === '[DONE]') return null;
+    try {
+        const parsed = JSON.parse(data);
+        return parsed.choices?.[0]?.delta?.content || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Utility to detect if an AI response is a "refusal" 
  * (e.g. "I cannot access YouTube") rather than a transcript.
  */
@@ -209,7 +268,7 @@ class GroqProvider implements AIProvider {
             throw new Error(`Groq Stream Error: ${err}`);
         }
 
-        return response.body!;
+        return parseSSEStream(response.body!);
     }
 
     async transcribeAudio(audioUrl: string): Promise<string> {
@@ -388,7 +447,7 @@ class OpenRouterProvider implements AIProvider {
                     throw new Error(err);
                 }
 
-                return response.body!;
+                return parseSSEStream(response.body!);
             } catch (error: any) {
                 lastError = error.message;
                 continue;
@@ -534,7 +593,7 @@ class OpenAICompatibleProvider implements AIProvider {
             }),
         });
         if (!response.ok) throw new Error(`${this.name} status: ${response.status}`);
-        return response.body!;
+        return parseSSEStream(response.body!);
     }
 }
 
