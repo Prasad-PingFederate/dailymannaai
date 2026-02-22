@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
     try {
-        const apiKey = process.env.OPENAI_API_KEY;
+        const apiKey = process.env.OPENAI_API_KEY || process.env.openaiKey;
         if (!apiKey) {
             return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 500 });
         }

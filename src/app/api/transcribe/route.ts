@@ -13,10 +13,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Recording was too short or silent." }, { status: 400 });
         }
 
-        const deepgramKey = process.env.DEEPGRAM_API_KEY || process.env.DEEPGRAM_API;
-        const groqKey = process.env.GROQ_API_KEY || process.env.groqKey;
-        const geminiKey = process.env.GEMINI_API_KEY;
-        const openAIKey = process.env.OPENAI_API_KEY;
+        const deepgramKey = process.env.DEEPGRAM_API_KEY || process.env.DEEPGRAM_API || process.env.deepgramKey;
+        const groqKey = process.env.GROQ_API_KEY || process.env.groqKey || process.env.groqkey;
+        const geminiKey = process.env.GEMINI_API_KEY || process.env.geminiKey;
+        const openAIKey = process.env.OPENAI_API_KEY || process.env.openaiKey;
+
+        console.log("[Transcribe] Keys present:", {
+            hasOpenAI: !!openAIKey,
+            hasDeepgram: !!deepgramKey,
+            hasGroq: !!groqKey,
+            hasGemini: !!geminiKey
+        });
 
         let transcript = "";
         let usedProvider = "";
@@ -117,6 +124,33 @@ export async function POST(req: Request) {
                     usedProvider = "Gemini";
                 }
             } catch (e) { console.warn("Gemini failed..."); }
+        }
+
+        if (!transcript) {
+            // ─── Provider 4: Hugging Face (Reliable Fallback) ─────
+            const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.huggingface_API;
+            if (hfKey) {
+                try {
+                    const arrayBuffer = await audioFile.arrayBuffer();
+                    const res = await fetch(
+                        "https://api-inference.huggingface.co/models/openai/whisper-large-v3-turbo",
+                        {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${hfKey}`,
+                                "Content-Type": "audio/webm",
+                            },
+                            body: arrayBuffer,
+                        }
+                    );
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        transcript = data.text;
+                        if (transcript) usedProvider = "HuggingFace";
+                    }
+                } catch (e) { console.warn("HuggingFace failed..."); }
+            }
         }
 
         if (!transcript) {
