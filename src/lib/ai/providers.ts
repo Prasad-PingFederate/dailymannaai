@@ -179,7 +179,7 @@ class GroqProvider implements AIProvider {
                     "Authorization": `Bearer ${this.apiKey}`,
                 },
                 body: JSON.stringify({
-                    model: "llama-3.1-70b-versatile",
+                    model: "llama-3.3-70b-versatile",
                     messages: [{ role: "user", content: prompt }],
                 }),
                 signal: controller.signal,
@@ -279,7 +279,7 @@ class XAIProvider implements AIProvider {
                     "Authorization": `Bearer ${this.apiKey}`,
                 },
                 body: JSON.stringify({
-                    model: "grok-beta",
+                    model: "grok-3-mini-fast",
                     messages: [{ role: "user", content: prompt }],
                 }),
                 signal: controller.signal,
@@ -315,11 +315,11 @@ class OpenRouterProvider implements AIProvider {
     async generateResponse(prompt: string): Promise<string> {
         const fallbackModels = [
             "google/gemini-2.0-flash-exp:free",
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "mistralai/mistral-7b-instruct:free",
-            "deepseek/deepseek-r1:free",
             "meta-llama/llama-3.3-70b-instruct:free",
-            "openchat/openchat-7b:free"
+            "deepseek/deepseek-r1:free",
+            "mistralai/mistral-7b-instruct:free",
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "qwen/qwen-2.5-72b-instruct:free"
         ];
 
         let lastError = "";
@@ -555,9 +555,9 @@ export class AIProviderManager {
         const geminiKey = process.env.GEMINI_API_KEY;
         const openRouterKey = process.env.OPENROUTER_API_KEY;
         const groqKey = process.env.GROQ_API_KEY;
-        const xaiKey = process.env.XAI_API_KEY;
+        const xaiKey = process.env.X_AI_API || process.env.XAI_API_KEY;
         const mistralKey = process.env.MISTRAL_API_KEY; // New
-        const togetherKey = process.env.TOGETHER_API_KEY;
+        const togetherKey = process.env.together_api || process.env.TOGETHER_API_KEY;
 
         // 🏆 ELITE COALITION (Priority Order for 10k Users)
 
@@ -591,10 +591,52 @@ export class AIProviderManager {
             this.providers.push(new XAIProvider(activeXaiKey));
         }
 
-        // 6. OpenRouter (The Universal Catch-All)
+        // 6. Gemini Backup (Second Google Key — Doubles Quota)
+        const geminiBackup = process.env.google_aistudio_key;
+        if (geminiBackup && geminiBackup !== geminiKey) {
+            this.providers.push(new GeminiProvider(geminiBackup));
+            // Rename it so logs are clear
+            const backupProvider = this.providers[this.providers.length - 1];
+            (backupProvider as any).name = "Gemini-Backup";
+        }
+
+        // 7. SambaNova (Lightning Fast Free Tier — LLaMA 3.1 70B)
+        const sambanovaKey = process.env.sambanova_api || process.env.SAMBANOVA_API_KEY;
+        if (sambanovaKey) {
+            this.providers.push(new OpenAICompatibleProvider(
+                "SambaNova",
+                "https://api.sambanova.ai/v1",
+                sambanovaKey,
+                "Meta-Llama-3.3-70B-Instruct"
+            ));
+        }
+
+        // 8. Cerebras (World's Fastest Inference — Free Tier)
+        const cerebrasKey = process.env.cerebras_api || process.env.CEREBRAS_API_KEY;
+        if (cerebrasKey) {
+            this.providers.push(new OpenAICompatibleProvider(
+                "Cerebras",
+                "https://api.cerebras.ai/v1",
+                cerebrasKey,
+                "llama-3.1-8b"
+            ));
+        }
+
+        // 9. OpenRouter (The Universal Catch-All)
         if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
 
-        // 7. Hugging Face (Final Fallback)
+        // 10. DeepInfra (High-Performance GPU Cloud — Free Tier)
+        const deepinfraKey = process.env.deepinfra || process.env.DEEPINFRA_API_KEY;
+        if (deepinfraKey) {
+            this.providers.push(new OpenAICompatibleProvider(
+                "DeepInfra",
+                "https://api.deepinfra.com/v1/openai",
+                deepinfraKey,
+                "meta-llama/Llama-3.3-70B-Instruct"
+            ));
+        }
+
+        // 11. Hugging Face (Final Fallback)
         if (process.env.HUGGINGFACE_API_KEY) {
             this.providers.push(new HuggingFaceProvider(process.env.HUGGINGFACE_API_KEY));
         }
