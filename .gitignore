@@ -73,3 +73,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Embedded repos (not needed for build)
+spurgeon_data/
+llama3_repo/
