@@ -12,9 +12,9 @@ const NotebookCore = dynamic(
         ssr: false,
         loading: () => (
             <div className="h-screen w-screen flex flex-col items-center justify-center bg-background text-foreground">
-                <div className="animate-spin text-4xl mb-4">🛸</div>
-                <h1 className="text-xl font-bold tracking-widest uppercase">Initializing AntiGravity Core</h1>
-                <p className="text-muted text-sm mt-2">Bypassing build-time constraints...</p>
+                <div className="animate-spin text-4xl mb-4">✝️</div>
+                <h1 className="text-xl font-bold tracking-widest uppercase">Initializing DailyMannaAI</h1>
+                <p className="text-muted text-sm mt-2">Preparing your spiritual wisdom engine...</p>
             </div>
         )
     }
