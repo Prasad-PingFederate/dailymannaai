@@ -55,30 +55,23 @@ class GeminiProvider implements AIProvider {
     async generateResponse(prompt: string): Promise<string> {
         // Broad list of stable model identifiers
         const modelNames = [
-            "gemini-3-flash-preview",
             "gemini-2.5-flash",
             "gemini-2.0-flash",
-            "gemini-flash-latest",
-            "gemini-pro-latest"
+            "gemini-pro"
         ];
         let lastError = "";
 
         for (const modelName of modelNames) {
             try {
                 console.log(`[AI] Gemini testing: ${modelName} (v1 API)...`);
-                // Force v1 API which is more stable
                 const model = this.client.getGenerativeModel({ model: modelName }, { apiVersion: "v1" });
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
                 return response.text();
             } catch (error: any) {
                 lastError = error.message || String(error);
-                console.warn(`[AI] Gemini ${modelName} failed: ${lastError}`);
-                // If 404, try next name
-                if (lastError.includes("404") || lastError.toLowerCase().includes("not found")) {
-                    continue;
-                }
-                throw error;
+                console.warn(`[AI] Gemini ${modelName} failed: ${lastError.substring(0, 100)}`);
+                continue; // Always try next model
             }
         }
         throw new Error(`Gemini failed all model attempts. Last error: ${lastError}`);
