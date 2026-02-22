@@ -275,6 +275,52 @@
     color: white;
 }
 
+.speakingControls {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.playPauseBtn {
+    flex: 2;
+    height: 3.5rem;
+    border-radius: 1.25rem;
+    border: none;
+    background: #f59e0b;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+}
+
+.playPauseBtn:hover {
+    background: #d97706;
+}
+
+.stopBtn {
+    flex: 1;
+    height: 3.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+}
+
+.stopBtn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
 .hint {
     font-size: 0.65rem;
     color: #64748b;

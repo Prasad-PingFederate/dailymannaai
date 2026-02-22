@@ -52,9 +52,12 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         transcript,
         error,
         analyserNode,
+        isPaused,
         startListening,
         stopListening,
         speak,
+        pauseSpeech,
+        resumeSpeech,
         cancelSpeech,
     } = useVoice({ language });
 
@@ -129,7 +132,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
             const cy = canvas.height / 2;
             const maxR = Math.min(canvas.width, canvas.height) / 2 - 4;
 
-            if (status === "speaking") {
+            if (status === "speaking" && !isPaused) {
                 for (let i = 3; i >= 0; i--) {
                     const phase = (progress + i * 0.25) % 1;
                     const r = phase * maxR;
@@ -162,7 +165,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         };
 
         animFrameRef.current = requestAnimationFrame(animate);
-    }, []);
+    }, [isPaused]);
 
     useEffect(() => {
         cancelAnimationFrame(animFrameRef.current);
@@ -201,7 +204,9 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         if (status === "listening") {
             stopListening();
         } else if (status === "speaking") {
-            cancelSpeech();
+            // Main button when speaking will toggle pause/resume
+            if (isPaused) resumeSpeech();
+            else pauseSpeech();
         } else if (status === "idle" || status === "error") {
             processedTranscriptRef.current = ""; // Reset for new session
             setIsExpanded(true);
@@ -256,7 +261,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                         />
                         <div className={`${styles.statusBadge} ${styles[status]}`}>
                             <span className={styles.statusIcon}>{STATUS_ICONS[status as VoiceStatus] || "✝"}</span>
-                            <span className={styles.statusText}>{STATUS_LABELS[status as VoiceStatus] || "Idle"}</span>
+                            <span className={styles.statusText}>{isPaused && status === "speaking" ? "Paused" : (STATUS_LABELS[status as VoiceStatus] || "Idle")}</span>
                         </div>
                     </div>
 
@@ -281,28 +286,39 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                     )}
 
                     <div className={styles.controls}>
-                        <button
-                            className={`${styles.mainBtn} ${styles[status]}`}
-                            onClick={handleMicClick}
-                            aria-label={
-                                status === "listening" ? "Stop listening" : "Start listening"
-                            }
-                        >
-                            <span className={styles.btnIcon}>
-                                {status === "listening"
-                                    ? "⏹"
-                                    : status === "speaking"
-                                        ? "🔇"
-                                        : "🎙"}
-                            </span>
-                            <span className={styles.btnLabel}>
-                                {status === "listening"
-                                    ? "Stop"
-                                    : status === "speaking"
-                                        ? "Mute"
-                                        : "Speak"}
-                            </span>
-                        </button>
+                        {status === "speaking" ? (
+                            <div className={styles.speakingControls}>
+                                <button
+                                    className={styles.playPauseBtn}
+                                    onClick={isPaused ? resumeSpeech : pauseSpeech}
+                                    aria-label={isPaused ? "Resume" : "Pause"}
+                                >
+                                    <span className={styles.btnIcon}>{isPaused ? "▶" : "⏸"}</span>
+                                    <span className={styles.btnLabel}>{isPaused ? "Resume" : "Pause"}</span>
+                                </button>
+                                <button
+                                    className={styles.stopBtn}
+                                    onClick={cancelSpeech}
+                                    aria-label="Stop"
+                                >
+                                    <span className={styles.btnIcon}>⏹</span>
+                                    <span className={styles.btnLabel}>Stop</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className={`${styles.mainBtn} ${styles[status]}`}
+                                onClick={handleMicClick}
+                                aria-label={status === "listening" ? "Stop listening" : "Start listening"}
+                            >
+                                <span className={styles.btnIcon}>
+                                    {status === "listening" ? "⏹" : "🎙"}
+                                </span>
+                                <span className={styles.btnLabel}>
+                                    {status === "listening" ? "Stop" : "Speak"}
+                                </span>
+                            </button>
+                        )}
 
                         {(status === "idle" || status === "error") && (
                             <button

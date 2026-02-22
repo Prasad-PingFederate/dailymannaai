@@ -18,6 +18,7 @@ export function useVoice({
     const [transcript, setTranscript] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
+    const [isPaused, setIsPaused] = useState(false);
 
     const recognitionRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -25,6 +26,7 @@ export function useVoice({
     const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // ─── Cleanup ──────────────────────────────────────────────────────────────
     const cleanupAudio = useCallback(() => {
@@ -63,14 +65,9 @@ export function useVoice({
         async (audioBlob: Blob): Promise<string | null> => {
             try {
                 const formData = new FormData();
-                // Give it a proper filename with extension so Whisper knows the format
-                const ext = audioBlob.type.includes("ogg")
-                    ? "ogg"
-                    : audioBlob.type.includes("mp4")
-                        ? "m4a"
-                        : "webm";
+                const ext = audioBlob.type.includes("ogg") ? "ogg" : audioBlob.type.includes("mp4") ? "m4a" : "webm";
                 formData.append("audio", audioBlob, `recording.${ext}`);
-                formData.append("language", language.split("-")[0]); // "en-US" → "en"
+                formData.append("language", language.split("-")[0]);
 
                 const res = await fetch("/api/transcribe", {
                     method: "POST",
@@ -80,7 +77,7 @@ export function useVoice({
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));
                     console.error("[Voice] Server transcription error:", err);
-                    return null; // will fall back to browser
+                    return null;
                 }
 
                 const data = await res.json();
@@ -93,30 +90,21 @@ export function useVoice({
         [language]
     );
 
-    // ─── METHOD 1: Browser Web Speech API (fast, works offline) ──────────────
+    // ─── METHOD 1: Browser Web Speech API ────────────────────────────────────
     const startBrowserSTT = useCallback(async () => {
         setError(null);
         setTranscript("");
 
-        const SpeechRecognitionAPI =
-            (window as any).SpeechRecognition ||
-            (window as any).webkitSpeechRecognition;
-
-        if (!SpeechRecognitionAPI) {
-            return false; // not supported, try recording method
-        }
+        const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognitionAPI) return false;
 
         let micStream: MediaStream;
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (e: any) {
-            setError(
-                e?.name === "NotAllowedError"
-                    ? "Microphone access denied. Please allow mic in browser settings."
-                    : "Could not access microphone."
-            );
+            setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
             setStatus("error");
-            return true; // handled
+            return true;
         }
 
         streamRef.current = micStream;
@@ -127,59 +115,34 @@ export function useVoice({
         recognition.lang = language;
         recognition.interimResults = true;
         recognition.continuous = false;
-        recognition.maxAlternatives = 1;
 
-        let finalText = "";
-        let interimText = "";
-
-        recognition.onstart = () => {
-            setStatus("listening");
-        };
-
+        recognition.onstart = () => setStatus("listening");
         recognition.onresult = (e: any) => {
-            finalText = "";
-            interimText = "";
+            let finalText = "";
+            let interimText = "";
             for (let i = 0; i < e.results.length; i++) {
-                if (e.results[i].isFinal) {
-                    finalText += e.results[i][0].transcript;
-                } else {
-                    interimText += e.results[i][0].transcript;
-                }
+                if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+                else interimText += e.results[i][0].transcript;
             }
-
-            // Reset silence timer
             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = setTimeout(() => {
-                recognition.stop();
-            }, silenceTimeout);
+            silenceTimerRef.current = setTimeout(() => recognition.stop(), silenceTimeout);
         };
 
         recognition.onend = () => {
             cleanupAudio();
-            const result = (finalText || interimText).trim();
-            if (result) {
-                setTranscript(result);
-                setStatus("processing");
-            } else {
-                // Only set error if we aren't planning to try server fallback
-                if (useServerTranscribe) {
-                    setError("No speech detected. Please speak louder.");
-                    setStatus("error");
-                }
-            }
+            setStatus("idle");
         };
 
-        recognition.onerror = (e: any) => {
+        recognition.onerror = () => {
             cleanupAudio();
-            console.warn("[Voice] Browser STT error:", e.error);
-            // We don't set status to error yet, we let startListening handle the fallback
+            setStatus("error");
         };
 
         recognition.start();
         return true;
-    }, [language, setupAnalyser, cleanupAudio, silenceTimeout, useServerTranscribe]);
+    }, [language, setupAnalyser, cleanupAudio, silenceTimeout]);
 
-    // ─── METHOD 2: MediaRecorder + Server Whisper (Firefox + higher accuracy) ─
+    // ─── METHOD 2: MediaRecorder + Server Whisper ────────────────────────────
     const startMediaRecorder = useCallback(async () => {
         setError(null);
         setTranscript("");
@@ -188,11 +151,7 @@ export function useVoice({
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (e: any) {
-            setError(
-                e?.name === "NotAllowedError"
-                    ? "Microphone access denied. Please allow mic in browser settings."
-                    : "Could not access microphone."
-            );
+            setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
             setStatus("error");
             return;
         }
@@ -200,41 +159,25 @@ export function useVoice({
         streamRef.current = micStream;
         await setupAnalyser(micStream);
 
-        // Pick best supported mime type
-        const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg", ""]
-            .find((t) => !t || MediaRecorder.isTypeSupported(t)) ?? "";
-
-        const recorder = new MediaRecorder(
-            micStream,
-            mimeType ? { mimeType } : undefined
-        );
+        const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg", ""].find((t) => !t || MediaRecorder.isTypeSupported(t)) ?? "";
+        const recorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
         mediaRecorderRef.current = recorder;
         chunksRef.current = [];
 
-        recorder.ondataavailable = (e) => {
-            if (e.data?.size > 0) chunksRef.current.push(e.data);
-        };
-
+        recorder.ondataavailable = (e) => { if (e.data?.size > 0) chunksRef.current.push(e.data); };
         recorder.onstop = async () => {
             cleanupAudio();
-
-            const blob = new Blob(chunksRef.current, {
-                type: mimeType || "audio/webm",
-            });
+            const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
             chunksRef.current = [];
-
             if (blob.size < 500) {
                 setError("No audio captured. Please speak clearly.");
                 setStatus("error");
                 return;
             }
-
             setStatus("processing");
-
             const text = await transcribeWithServer(blob);
-            if (text) {
-                setTranscript(text);
-            } else {
+            if (text) setTranscript(text);
+            else {
                 setError("Transcription failed. Please Redeploy on Vercel and check your browser microphone permissions.");
                 setStatus("error");
             }
@@ -242,83 +185,62 @@ export function useVoice({
 
         recorder.start(250);
         setStatus("listening");
-
-        // Auto-stop after 30s
-        silenceTimerRef.current = setTimeout(() => {
-            if (mediaRecorderRef.current?.state === "recording") {
-                mediaRecorderRef.current.stop();
-            }
-        }, 30_000);
+        silenceTimerRef.current = setTimeout(() => { if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop(); }, 30000);
     }, [setupAnalyser, cleanupAudio, transcribeWithServer]);
 
-    // ─── Public: startListening ───────────────────────────────────────────────
     const startListening = useCallback(async () => {
         if (status === "listening" || status === "processing") return;
-
-        // Try browser STT first (faster), fall back to MediaRecorder+Whisper
         const handled = await startBrowserSTT();
-        if (!handled && useServerTranscribe) {
-            await startMediaRecorder();
-        }
+        if (!handled && useServerTranscribe) await startMediaRecorder();
     }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe]);
 
-    // ─── Public: stopListening ────────────────────────────────────────────────
     const stopListening = useCallback(() => {
         recognitionRef.current?.stop();
         recognitionRef.current = null;
-
-        if (mediaRecorderRef.current?.state === "recording") {
-            mediaRecorderRef.current.stop();
-        }
+        if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
         mediaRecorderRef.current = null;
-
         cleanupAudio();
-        // Use setTimeout to avoid state updates during render if called from effect
         setTimeout(() => setStatus("idle"), 10);
     }, [cleanupAudio]);
 
-    // ─── Public: speak (OpenAI TTS with browser fallback) ────────────
-    const speak = useCallback(
-        async (text: string): Promise<void> => {
-            if (!text.trim()) return;
-            setStatus("speaking");
+    // ─── TTS ─────────────────────────────────────────────────────────────────
+    const speak = useCallback(async (text: string): Promise<void> => {
+        if (!text.trim()) return;
+        setStatus("speaking");
+        setIsPaused(false);
 
-            try {
-                // Try server-side OpenAI TTS first
-                const res = await fetch("/api/synthesize", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text }),
-                });
+        try {
+            const res = await fetch("/api/synthesize", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+            });
+            if (!res.ok) throw new Error("Server TTS failed");
 
-                if (!res.ok) throw new Error("Server TTS failed");
+            const audioBlob = await res.blob();
+            const url = URL.createObjectURL(audioBlob);
+            const audio = new Audio(url);
+            audioRef.current = audio;
 
-                const audioBlob = await res.blob();
-                const url = URL.createObjectURL(audioBlob);
-                const audio = new Audio(url);
-
-                return new Promise((resolve) => {
-                    audio.onended = () => {
-                        URL.revokeObjectURL(url);
-                        setStatus("idle");
-                        resolve();
-                    };
-                    audio.onerror = () => {
-                        URL.revokeObjectURL(url);
-                        // Fallback to browser
-                        speakWithBrowser(text).then(resolve);
-                    };
-                    audio.play().catch(() => {
-                        speakWithBrowser(text).then(resolve);
-                    });
-                });
-            } catch (e) {
-                await speakWithBrowser(text);
-                setStatus("idle");
-            }
-        },
-        []
-    );
+            return new Promise((resolve) => {
+                audio.onended = () => {
+                    URL.revokeObjectURL(url);
+                    audioRef.current = null;
+                    setStatus("idle");
+                    resolve();
+                };
+                audio.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    audioRef.current = null;
+                    speakWithBrowser(text).then(resolve);
+                };
+                audio.play().catch(() => speakWithBrowser(text).then(resolve));
+            });
+        } catch (e) {
+            await speakWithBrowser(text);
+            setStatus("idle");
+        }
+    }, []);
 
     const speakWithBrowser = (text: string): Promise<void> => {
         return new Promise((resolve) => {
@@ -331,17 +253,40 @@ export function useVoice({
         });
     };
 
-    // ─── Public: cancelSpeech ─────────────────────────────────────────────────
-    const cancelSpeech = useCallback(() => {
-        window.speechSynthesis?.cancel();
-        setStatus("idle");
+    const pauseSpeech = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            setIsPaused(true);
+        } else if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+            setIsPaused(true);
+        }
     }, []);
 
-    // ─── Cleanup on unmount ───────────────────────────────────────────────────
+    const resumeSpeech = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.play();
+            setIsPaused(false);
+        } else if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            setIsPaused(false);
+        }
+    }, []);
+
+    const cancelSpeech = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+        window.speechSynthesis?.cancel();
+        setStatus("idle");
+        setIsPaused(false);
+    }, []);
+
     useEffect(() => {
         return () => {
             cleanupAudio();
-            recognitionRef.current?.abort();
+            if (audioRef.current) audioRef.current.pause();
             window.speechSynthesis?.cancel();
         };
     }, [cleanupAudio]);
@@ -351,9 +296,12 @@ export function useVoice({
         transcript,
         error,
         analyserNode,
+        isPaused,
         startListening,
         stopListening,
         speak,
+        pauseSpeech,
+        resumeSpeech,
         cancelSpeech,
     };
 }
