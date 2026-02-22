@@ -852,7 +852,15 @@ It's now part of my collective wisdom!`
                 const s = suggestionMatch[1].split("\n").map(line => line.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(l => l.length > 5).slice(0, 3);
                 setSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
             }
-            finalResponse = currentContent;
+
+            // Capture final content from messages
+            setMessages(prev => {
+                const lastMsg = prev[prev.length - 1];
+                if (lastMsg && lastMsg.role === "assistant") {
+                    finalResponse = lastMsg.content;
+                }
+                return prev;
+            });
         } catch (error) {
             console.error("Chat Error:", error);
             setMessages(prev => {
