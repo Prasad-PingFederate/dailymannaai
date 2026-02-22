@@ -44,6 +44,7 @@ import { DEITY_OF_CHRIST_DOCTRINE } from "@/lib/data/deity_of_christ";
 import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
 import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
 import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
+import VoiceInput from "@/components/notebook/VoiceInput";
 
 interface Source {
     id: string;
@@ -798,7 +799,13 @@ It's now part of my collective wisdom!`
 
                 // Clean content of remaining markers
                 currentContent = currentContent.replace(/### RESPONSE START ###/i, "").trim();
-                currentContent = currentContent.split("---SUGGESTIONS---")[0].trim();
+                // Catch both correct and misspelled suggestion markers
+                currentContent = currentContent.split(/---S[UG]*ESTIONS---/i)[0].trim();
+                currentContent = currentContent.split(/---SUGGESTIONS---/i)[0].trim();
+                // Remove [METADATA:...] blocks
+                currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, "").trim();
+                // Remove any leftover THOUGHT tags showing as text
+                currentContent = currentContent.replace(/<\/?THOUGHT>/gi, "").trim();
 
                 // Update the LATEST assistant message
                 setMessages(prev => {
@@ -1987,6 +1994,18 @@ It's now part of my collective wisdom!`
                                     }}
                                     className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
                                     rows={1}
+                                />
+
+                                {/* Voice Input Mic */}
+                                <VoiceInput
+                                    onTranscript={(text) => {
+                                        setInput(text);
+                                        // Auto-send after voice input
+                                        setTimeout(() => handleSendMessage(text), 100);
+                                    }}
+                                    onInterimTranscript={(text) => setInput(text)}
+                                    disabled={isChatting}
+                                    size={20}
                                 />
 
                                 <button
