@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useVoiceServer as useVoice } from "@/hooks/useVoiceServer";
+import { useVoice } from "@/hooks/useVoice";
 import styles from "./VoiceMode.module.css";
 
 export type VoiceStatus =
@@ -56,10 +56,11 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         stopListening,
         speak,
         cancelSpeech,
-    } = useVoice({ language, voice: voiceName });
+    } = useVoice({ language });
 
     const [lastResponse, setLastResponse] = useState<string>("");
     const [isExpanded, setIsExpanded] = useState(false);
+    const processedTranscriptRef = useRef(""); // prevent double-processing
 
     // Draw waveform on canvas
     const drawWaveform = useCallback(() => {
@@ -177,7 +178,9 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
 
     // When transcript is ready, get AI response
     useEffect(() => {
-        if (!transcript) return;
+        if (!transcript || transcript === processedTranscriptRef.current) return;
+
+        processedTranscriptRef.current = transcript;
         onTranscript?.(transcript);
 
         const handleResponse = async () => {
@@ -200,6 +203,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         } else if (status === "speaking") {
             cancelSpeech();
         } else if (status === "idle" || status === "error") {
+            processedTranscriptRef.current = ""; // Reset for new session
             setIsExpanded(true);
             startListening();
         }
@@ -210,6 +214,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         stopListening();
         setIsExpanded(false);
         setLastResponse("");
+        processedTranscriptRef.current = "";
     };
 
     return (

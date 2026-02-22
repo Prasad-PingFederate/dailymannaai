@@ -15,14 +15,36 @@ export async function POST(req: Request) {
 
         const deepgramKey = process.env.DEEPGRAM_API_KEY || process.env.DEEPGRAM_API;
         const groqKey = process.env.GROQ_API_KEY || process.env.groqKey;
-        const hfKey = process.env.HUGGINGFACE_API_KEY;
         const geminiKey = process.env.GEMINI_API_KEY;
+        const openAIKey = process.env.OPENAI_API_KEY;
 
         let transcript = "";
         let usedProvider = "";
 
-        // ─── Provider 1: Deepgram (Fastest & Most Precise) ─────
-        if (deepgramKey && deepgramKey !== "false") {
+        // ─── Browser/Mime-type Robustness ─────────────────────
+        const ext = audioFile.type.includes("ogg") ? "ogg"
+            : audioFile.type.includes("mp4") ? "m4a"
+                : audioFile.type.includes("wav") ? "wav"
+                    : "webm";
+        const namedFile = new File([audioFile], `audio.${ext}`, { type: audioFile.type || "audio/webm" });
+
+        // ─── Provider 0: OpenAI Whisper (Most Reliable) ───────
+        if (!transcript && openAIKey) {
+            try {
+                const { default: OpenAI } = await import("openai");
+                const openai = new OpenAI({ apiKey: openAIKey });
+                const res = await openai.audio.transcriptions.create({
+                    model: "whisper-1",
+                    file: namedFile,
+                    language: language.split("-")[0] as any,
+                });
+                transcript = res.text;
+                if (transcript) usedProvider = "OpenAI";
+            } catch (e) { console.warn("OpenAI failed..."); }
+        }
+
+        // ─── Provider 1: Deepgram (Fastest) ────────────────────
+        if (!transcript && deepgramKey && deepgramKey !== "false") {
             try {
                 const arrayBuffer = await audioFile.arrayBuffer();
                 const res = await fetch("https://api.deepgram.com/v1/listen?smart_format=true&model=nova-2&language=" + language, {
@@ -39,16 +61,14 @@ export async function POST(req: Request) {
                     transcript = data.results?.channels[0]?.alternatives[0]?.transcript;
                     if (transcript) usedProvider = "Deepgram";
                 }
-            } catch (e) {
-                console.warn("Deepgram failed, falling back...");
-            }
+            } catch (e) { console.warn("Deepgram failed..."); }
         }
 
-        // ─── Provider 2: Groq Whisper ──────────────────────────
+        // ─── Provider 2: Groq Whisper (Ultra-Fast) ────────────
         if (!transcript && groqKey && groqKey !== "false") {
             try {
                 const groqForm = new FormData();
-                groqForm.append("file", audioFile, "audio.webm");
+                groqForm.append("file", namedFile);
                 groqForm.append("model", "whisper-large-v3-turbo");
                 groqForm.append("language", language.split("-")[0]);
 
@@ -83,7 +103,7 @@ export async function POST(req: Request) {
                             contents: [{
                                 parts: [
                                     { inlineData: { mimeType, data: base64Audio } },
-                                    { text: "Transcribe the audio accurately. Focus on spiritual/scriptural context if applicable. Output ONLY the text." }
+                                    { text: "Transcribe the audio accurately. Focus on spiritual/scriptural context. Output ONLY the text." }
                                 ]
                             }],
                             generationConfig: { temperature: 0 }
@@ -99,32 +119,8 @@ export async function POST(req: Request) {
             } catch (e) { console.warn("Gemini failed..."); }
         }
 
-        // ─── Provider 4: Hugging Face Whisper ──────────────────
-        if (!transcript && hfKey) {
-            try {
-                const arrayBuffer = await audioFile.arrayBuffer();
-                const res = await fetch(
-                    "https://api-inference.huggingface.co/models/openai/whisper-large-v3-turbo",
-                    {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Bearer ${hfKey}`,
-                            "Content-Type": "audio/webm",
-                        },
-                        body: arrayBuffer,
-                    }
-                );
-
-                if (res.ok) {
-                    const data = await res.json();
-                    transcript = data.text;
-                    usedProvider = "HuggingFace";
-                }
-            } catch (e) { console.error("HF Error:", e); }
-        }
-
         if (!transcript) {
-            return NextResponse.json({ error: "All transcription providers failed. Check API keys and audio quality." }, { status: 503 });
+            return NextResponse.json({ error: "Transcription failed. Check your microphone and API keys." }, { status: 503 });
         }
 
         console.log(`[Transcribe] ✅ ${usedProvider}: "${transcript.substring(0, 100)}..."`);
