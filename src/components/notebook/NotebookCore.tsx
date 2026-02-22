@@ -806,6 +806,12 @@ It's now part of my collective wisdom!`
                 currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, "").trim();
                 // Remove any leftover THOUGHT tags showing as text
                 currentContent = currentContent.replace(/<\/?THOUGHT>/gi, "").trim();
+                // Remove research pipeline debug lines that leak into stream
+                currentContent = currentContent.replace(/^Distilled intent:.*$/gm, "").trim();
+                currentContent = currentContent.replace(/^Found \d+ relevant context fragments?$/gm, "").trim();
+                currentContent = currentContent.replace(/^(Verified with internal canonical archives|Integrated \d+ external truth-points?)$/gm, "").trim();
+                currentContent = currentContent.replace(/^Doctrine Integrity Score:.*$/gm, "").trim();
+                currentContent = currentContent.replace(/^Sovereign Reasoning Mode Active$/gm, "").trim();
 
                 // Update the LATEST assistant message
                 setMessages(prev => {
@@ -1884,26 +1890,38 @@ It's now part of my collective wisdom!`
                                                     )}
                                                     <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/70 backdrop-blur-xl border border-border/50'} rounded-3xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full`}>
                                                         {msg.role === 'assistant' && (msg.thought || msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)) && (
-                                                            <div className="mb-4 pb-4 border-b border-border/30">
-                                                                <details className="group" open={msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)}>
-                                                                    <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-accent/60 cursor-pointer hover:text-accent transition-colors list-none select-none">
-                                                                        <Sparkles size={12} className={`${msg.isThinking ? 'animate-spin' : 'group-open:rotate-180'} transition-transform`} />
-                                                                        <span>{msg.isThinking ? (msg.thinkingPhase || "Analyzing...") : "Internal Reasoning Process"}</span>
+                                                            <div className="mb-4">
+                                                                <details className="group" open={msg.isThinking}>
+                                                                    <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.15em] cursor-pointer hover:opacity-80 transition-all list-none select-none py-2 px-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 hover:border-blue-400/40">
+                                                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${msg.isThinking ? 'bg-blue-500 text-white animate-pulse' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                                            {msg.isThinking ? '⚡' : '💭'}
+                                                                        </span>
+                                                                        <span className="text-blue-400/90">
+                                                                            {msg.isThinking ? (msg.thinkingPhase || "Analyzing...") : "View Reasoning Process"}
+                                                                        </span>
+                                                                        <span className="ml-auto text-blue-400/50 group-open:rotate-180 transition-transform text-[10px]">▼</span>
                                                                     </summary>
-                                                                    <div className="mt-3 text-sm text-muted-foreground/80 italic font-medium leading-relaxed bg-accent/5 p-4 rounded-2xl border border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
-                                                                        {/* Research Steps Log */}
-                                                                        {msg.researchSteps && msg.researchSteps.length > 0 && (
-                                                                            <div className="mb-4 space-y-2 border-b border-accent/10 pb-4 not-italic font-sans">
-                                                                                {msg.researchSteps.map((step: string, idx: number) => (
-                                                                                    <div key={idx} className={`flex items-center gap-2 text-[11px] text-accent/80 animate-in fade-in slide-in-from-left-2 duration-500 ${msg.isThinking && idx === msg.researchSteps.length - 1 ? 'animate-pulse' : ''}`}>
-                                                                                        <CheckCircle2 size={12} className="text-accent" />
-                                                                                        <span className="opacity-80 font-bold">{step}</span>
-                                                                                    </div>
-                                                                                ))}
+                                                                    <div className="mt-2 relative overflow-hidden rounded-xl border border-blue-500/15">
+                                                                        {/* DeepSeek-style left gradient stripe */}
+                                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-blue-400" />
+                                                                        <div className="pl-4 pr-4 py-3 bg-gradient-to-br from-blue-950/30 to-purple-950/20">
+                                                                            {/* Research Steps Log */}
+                                                                            {msg.researchSteps && msg.researchSteps.length > 0 && (
+                                                                                <div className="mb-3 space-y-1.5 border-b border-blue-500/10 pb-3">
+                                                                                    {msg.researchSteps.map((step: string, idx: number) => (
+                                                                                        <div key={idx} className={`flex items-center gap-2 text-[11px] text-blue-300/70 ${msg.isThinking && idx === msg.researchSteps.length - 1 ? 'animate-pulse' : ''}`}>
+                                                                                            <CheckCircle2 size={11} className="text-blue-400/80 flex-shrink-0" />
+                                                                                            <span className="font-medium">{step}</span>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                            {/* Thought content */}
+                                                                            <div className="text-[13px] text-blue-200/60 leading-relaxed font-mono whitespace-pre-wrap">
+                                                                                {msg.thought}
+                                                                                {msg.isThinking && <span className="inline-flex ml-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />}
                                                                             </div>
-                                                                        )}
-                                                                        {msg.thought}
-                                                                        {msg.isThinking && <span className="inline-flex ml-1 w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />}
+                                                                        </div>
                                                                     </div>
                                                                 </details>
                                                             </div>
