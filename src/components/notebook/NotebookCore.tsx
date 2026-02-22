@@ -753,40 +753,47 @@ It's now part of my collective wisdom!`
                 let stillThinking = true;
                 let thinkingPhase = "Analyzing...";
 
-                // Case A: Standard Delimiters
+                // Check for delimiters (case-insensitive)
                 const hasThoughtStart = fullText.toLowerCase().includes("<thought>");
                 const hasThoughtEnd = fullText.toLowerCase().includes("</thought>");
                 const hasResponseStart = fullText.toLowerCase().includes("### response start ###");
 
-                if (hasThoughtStart) {
-                    const tParts = fullText.split(/<THOUGHT>|<\/THOUGHT>/i);
-                    // tParts[0] is before tag, tParts[1] is thought
-                    currentThought = tParts[1] || "";
+                if (hasThoughtEnd) {
+                    // Case A: </THOUGHT> found — split there regardless of opening tag
+                    const contentParts = fullText.split(/<\/THOUGHT>/i);
+                    currentThought = (contentParts[0] || "").replace(/<THOUGHT>/i, "").trim();
+                    currentContent = (contentParts[1] || "").trim();
+                    stillThinking = false;
+                    thinkingPhase = "Reasoning complete.";
 
-                    if (hasThoughtEnd) {
-                        const contentParts = fullText.split(/<\/THOUGHT>/i);
-                        currentContent = contentParts[1] || "";
-                        stillThinking = false;
-                        thinkingPhase = "Reasoning complete.";
-                    } else if (hasResponseStart) {
-                        // AI forgot </THOUGHT> but started response
-                        const contentParts = fullText.split(/### RESPONSE START ###/i);
-                        currentContent = contentParts[1] || "";
-                        stillThinking = false;
-                        thinkingPhase = "Reasoning complete.";
-                    } else {
-                        currentContent = ""; // Still in thought block
-                        stillThinking = true;
-
-                        // Dynamic Phase Display
-                        if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
-                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
-                        else thinkingPhase = "Searching truth archives...";
+                    // Strip ### RESPONSE START ### if present in the answer part
+                    if (currentContent.toLowerCase().includes("### response start ###")) {
+                        currentContent = currentContent.split(/### RESPONSE START ###/i).pop()?.trim() || currentContent;
                     }
+                } else if (hasThoughtStart) {
+                    // Case B: <THOUGHT> found but </THOUGHT> not yet — still thinking
+                    const tParts = fullText.split(/<THOUGHT>/i);
+                    currentThought = tParts[1] || "";
+                    currentContent = ""; // Hide content while thinking
+                    stillThinking = true;
+
+                    // Dynamic Phase Display
+                    if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
+                    else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
+                    else thinkingPhase = "Searching truth archives...";
                 } else if (hasResponseStart) {
+                    // Case C: No thought tags at all, but RESPONSE START found
                     const contentParts = fullText.split(/### RESPONSE START ###/i);
                     currentContent = contentParts[1] || "";
                     stillThinking = false;
+                } else {
+                    // Case D: No delimiters yet — check if we're still receiving thinking
+                    // If text is short, assume still loading/thinking
+                    if (fullText.length < 50) {
+                        currentContent = "";
+                        stillThinking = true;
+                        thinkingPhase = "Searching truth archives...";
+                    }
                 }
 
                 // Clean content of remaining markers
