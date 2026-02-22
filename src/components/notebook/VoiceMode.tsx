@@ -1,0 +1,322 @@
+"use client";
+
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useVoiceServer as useVoice } from "@/hooks/useVoiceServer";
+import styles from "./VoiceMode.module.css";
+
+export type VoiceStatus =
+    | "idle"
+    | "listening"
+    | "processing"
+    | "speaking"
+    | "error";
+
+interface VoiceModeProps {
+    onTranscript?: (text: string) => void;
+    onAIResponse?: (text: string) => void;
+    getAIResponse: (userText: string) => Promise<string>;
+    className?: string;
+    language?: string;
+    voiceName?: any;
+}
+
+const STATUS_LABELS: Record<VoiceStatus, string> = {
+    idle: "Tap to speak",
+    listening: "Listening...",
+    processing: "Thinking...",
+    speaking: "Speaking...",
+    error: "Try again",
+};
+
+const STATUS_ICONS: Record<VoiceStatus, string> = {
+    idle: "✝",
+    listening: "🎙",
+    processing: "✨",
+    speaking: "🔊",
+    error: "⚠",
+};
+
+export const VoiceMode: React.FC<VoiceModeProps> = ({
+    onTranscript,
+    onAIResponse,
+    getAIResponse,
+    className = "",
+    language = "en",
+    voiceName = "shimmer",
+}) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const animFrameRef = useRef<number>(0);
+
+    const {
+        status,
+        transcript,
+        error,
+        analyserNode,
+        startListening,
+        stopListening,
+        speak,
+        cancelSpeech,
+    } = useVoice({ language, voice: voiceName });
+
+    const [lastResponse, setLastResponse] = useState<string>("");
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    // Draw waveform on canvas
+    const drawWaveform = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !analyserNode) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const draw = () => {
+            animFrameRef.current = requestAnimationFrame(draw);
+            analyserNode.getByteTimeDomainData(dataArray);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            gradient.addColorStop(0, "rgba(139, 92, 246, 0.9)");
+            gradient.addColorStop(0.5, "rgba(245, 158, 11, 0.9)");
+            gradient.addColorStop(1, "rgba(139, 92, 246, 0.9)");
+
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = gradient;
+            ctx.beginPath();
+
+            const sliceWidth = canvas.width / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * canvas.height) / 2;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                x += sliceWidth;
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+        };
+
+        draw();
+    }, [analyserNode]);
+
+    // Draw idle pulse when not listening
+    const drawPulse = useCallback((status: VoiceStatus) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        let start: number | null = null;
+
+        const animate = (timestamp: number) => {
+            if (!start) start = timestamp;
+            const progress = (timestamp - start) / 2000;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const maxR = Math.min(canvas.width, canvas.height) / 2 - 4;
+
+            if (status === "speaking") {
+                for (let i = 3; i >= 0; i--) {
+                    const phase = (progress + i * 0.25) % 1;
+                    const r = phase * maxR;
+                    const alpha = (1 - phase) * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(245, 158, 11, ${alpha})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            } else if (status === "processing") {
+                const angle = progress * Math.PI * 4;
+                ctx.beginPath();
+                ctx.arc(cx, cy, maxR * 0.7, angle, angle + Math.PI * 1.5);
+                ctx.strokeStyle = "rgba(139, 92, 246, 0.8)";
+                ctx.lineWidth = 3;
+                ctx.lineCap = "round";
+                ctx.stroke();
+            } else {
+                const breathe = Math.sin(progress * Math.PI * 2) * 0.15 + 0.85;
+                const r = maxR * breathe * 0.4;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(139, 92, 246, ${0.3 + breathe * 0.2})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            animFrameRef.current = requestAnimationFrame(animate);
+        };
+
+        animFrameRef.current = requestAnimationFrame(animate);
+    }, []);
+
+    useEffect(() => {
+        cancelAnimationFrame(animFrameRef.current);
+
+        if (status === "listening" && analyserNode) {
+            drawWaveform();
+        } else {
+            drawPulse(status);
+        }
+
+        return () => cancelAnimationFrame(animFrameRef.current);
+    }, [status, analyserNode, drawWaveform, drawPulse]);
+
+    // When transcript is ready, get AI response
+    useEffect(() => {
+        if (!transcript) return;
+        onTranscript?.(transcript);
+
+        const handleResponse = async () => {
+            try {
+                const response = await getAIResponse(transcript);
+                setLastResponse(response);
+                onAIResponse?.(response);
+                await speak(response);
+            } catch (err) {
+                console.error("Voice AI response error:", err);
+            }
+        };
+
+        handleResponse();
+    }, [transcript, getAIResponse, onAIResponse, onTranscript, speak]);
+
+    const handleMicClick = () => {
+        if (status === "listening") {
+            stopListening();
+        } else if (status === "speaking") {
+            cancelSpeech();
+        } else if (status === "idle" || status === "error") {
+            setIsExpanded(true);
+            startListening();
+        }
+    };
+
+    const handleClose = () => {
+        cancelSpeech();
+        stopListening();
+        setIsExpanded(false);
+        setLastResponse("");
+    };
+
+    return (
+        <div className={`${styles.voiceContainer} ${className}`}>
+            {!isExpanded && (
+                <button
+                    className={`${styles.floatingMic} ${styles[status]}`}
+                    onClick={() => {
+                        setIsExpanded(true);
+                        startListening();
+                    }}
+                    aria-label="Open voice mode"
+                    title="Daily Manna Voice"
+                >
+                    <span className={styles.micIcon}>🎙</span>
+                    <span className={styles.micLabel}>Voice</span>
+                </button>
+            )}
+
+            {isExpanded && (
+                <div className={styles.voicePanel}>
+                    <div className={styles.panelHeader}>
+                        <span className={styles.panelTitle}>✝ Voice Mode</span>
+                        <button
+                            className={styles.closeBtn}
+                            onClick={handleClose}
+                            aria-label="Close voice mode"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div className={styles.visualizerWrapper}>
+                        <canvas
+                            ref={canvasRef}
+                            className={styles.waveCanvas}
+                            width={320}
+                            height={100}
+                        />
+                        <div className={`${styles.statusBadge} ${styles[status]}`}>
+                            <span className={styles.statusIcon}>{STATUS_ICONS[status as VoiceStatus] || "✝"}</span>
+                            <span className={styles.statusText}>{STATUS_LABELS[status as VoiceStatus] || "Idle"}</span>
+                        </div>
+                    </div>
+
+                    {transcript && (
+                        <div className={styles.transcriptBox}>
+                            <p className={styles.transcriptLabel}>You said:</p>
+                            <p className={styles.transcriptText}>{transcript}</p>
+                        </div>
+                    )}
+
+                    {lastResponse && (
+                        <div className={styles.responseBox}>
+                            <p className={styles.responseLabel}>Daily Manna AI:</p>
+                            <p className={styles.responseText}>{lastResponse}</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className={styles.errorBox}>
+                            <p>⚠ {error}</p>
+                        </div>
+                    )}
+
+                    <div className={styles.controls}>
+                        <button
+                            className={`${styles.mainBtn} ${styles[status]}`}
+                            onClick={handleMicClick}
+                            aria-label={
+                                status === "listening" ? "Stop listening" : "Start listening"
+                            }
+                        >
+                            <span className={styles.btnIcon}>
+                                {status === "listening"
+                                    ? "⏹"
+                                    : status === "speaking"
+                                        ? "🔇"
+                                        : "🎙"}
+                            </span>
+                            <span className={styles.btnLabel}>
+                                {status === "listening"
+                                    ? "Stop"
+                                    : status === "speaking"
+                                        ? "Mute"
+                                        : "Speak"}
+                            </span>
+                        </button>
+
+                        {(status === "idle" || status === "error") && (
+                            <button
+                                className={styles.secondaryBtn}
+                                onClick={startListening}
+                                aria-label="Ask again"
+                            >
+                                🔄 Ask Again
+                            </button>
+                        )}
+                    </div>
+
+                    <p className={styles.hint}>
+                        Speak your Bible question or prayer request
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default VoiceMode;

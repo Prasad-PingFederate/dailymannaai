@@ -45,6 +45,7 @@ import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
 import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
 import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
 import VoiceInput from "@/components/notebook/VoiceInput";
+import VoiceMode from "@/components/notebook/VoiceMode";
 
 interface Source {
     id: string;
@@ -645,9 +646,11 @@ It's now part of my collective wisdom!`
         showToast("Added to notes", 'success');
     };
 
-    const handleSendMessage = async (overrideText?: string) => {
+    const handleSendMessage = async (overrideText?: string): Promise<string> => {
         const textToSend = overrideText || input;
-        if (!textToSend.trim()) return;
+        if (!textToSend.trim()) return "";
+
+        let finalResponse = "";
 
         const userMessage = { role: "user", content: textToSend };
         setMessages(prev => [...prev, userMessage]);
@@ -699,8 +702,10 @@ It's now part of my collective wisdom!`
                         return newMsgs;
                     });
                     if (data.suggestions) setSuggestions(data.suggestions);
+                    finalResponse = data.content;
                 }
-                return;
+                setIsChatting(false);
+                return finalResponse;
             }
 
             // --- STREAMING MODE ---
@@ -841,12 +846,11 @@ It's now part of my collective wisdom!`
                 return newMsgs;
             });
 
-            // Post-stream cleanup (Final suggestions extraction)
-            const suggestionMatch = fullText.match(/---SUGGESTIONS---([\s\S]*?)(?:\[METADATA|$)/i);
             if (suggestionMatch) {
                 const s = suggestionMatch[1].split("\n").map(line => line.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(l => l.length > 5).slice(0, 3);
                 setSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
             }
+            finalResponse = currentContent;
         } catch (error) {
             console.error("Chat Error:", error);
             setMessages(prev => {
@@ -864,6 +868,11 @@ It's now part of my collective wisdom!`
         } finally {
             setIsChatting(false);
         }
+        return finalResponse;
+    };
+
+    const getVoiceAIResponse = async (text: string): Promise<string> => {
+        return await handleSendMessage(text);
     };
 
     const handleSummarize = async () => {
@@ -2014,19 +2023,6 @@ It's now part of my collective wisdom!`
                                     rows={1}
                                 />
 
-                                {/* Voice Input Mic */}
-                                <div className="flex-shrink-0">
-                                    <VoiceInput
-                                        onTranscript={(text) => {
-                                            setInput(text);
-                                            // Auto-send after voice input
-                                            setTimeout(() => handleSendMessage(text), 100);
-                                        }}
-                                        onInterimTranscript={(text) => setInput(text)}
-                                        disabled={isChatting}
-                                        size={20}
-                                    />
-                                </div>
 
                                 <button
                                     onClick={() => handleSendMessage()}
@@ -2159,6 +2155,11 @@ It's now part of my collective wisdom!`
                     </div>
                 </div>
             )}
+            {/* Global Voice Mode Component */}
+            <VoiceMode
+                getAIResponse={getVoiceAIResponse}
+                onTranscript={(text) => setInput(text)}
+            />
         </div>
     );
 }
