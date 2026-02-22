@@ -64,6 +64,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const [lastResponse, setLastResponse] = useState<string>("");
     const [isExpanded, setIsExpanded] = useState(false);
     const processedTranscriptRef = useRef(""); // prevent double-processing
+    const isCancelledRef = useRef(false);
 
     // Draw waveform on canvas
     const drawWaveform = useCallback(() => {
@@ -183,17 +184,21 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     useEffect(() => {
         if (!transcript || transcript === processedTranscriptRef.current) return;
 
+        isCancelledRef.current = false; // Reset on new transcript
         processedTranscriptRef.current = transcript;
         onTranscript?.(transcript);
 
         const handleResponse = async () => {
             try {
                 const response = await getAIResponse(transcript);
+                if (isCancelledRef.current) return; // DON'T PROCEED IF CANCELLED
                 setLastResponse(response);
                 onAIResponse?.(response);
                 await speak(response);
             } catch (err) {
-                console.error("Voice AI response error:", err);
+                if (!isCancelledRef.current) {
+                    console.error("Voice AI response error:", err);
+                }
             }
         };
 
@@ -203,12 +208,13 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const handleMicClick = () => {
         if (status === "listening") {
             stopListening();
-        } else if (status === "speaking") {
-            // Main button when speaking will toggle pause/resume
-            if (isPaused) resumeSpeech();
-            else pauseSpeech();
+            isCancelledRef.current = true;
+        } else if (status === "processing" || status === "speaking") {
+            cancelSpeech();
+            isCancelledRef.current = true;
         } else if (status === "idle" || status === "error") {
             processedTranscriptRef.current = ""; // Reset for new session
+            isCancelledRef.current = false;
             setIsExpanded(true);
             startListening();
         }
@@ -298,7 +304,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                                 </button>
                                 <button
                                     className={styles.stopBtn}
-                                    onClick={cancelSpeech}
+                                    onClick={handleMicClick}
                                     aria-label="Stop"
                                 >
                                     <span className={styles.btnIcon}>⏹</span>
@@ -309,13 +315,13 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                             <button
                                 className={`${styles.mainBtn} ${styles[status]}`}
                                 onClick={handleMicClick}
-                                aria-label={status === "listening" ? "Stop listening" : "Start listening"}
+                                aria-label={status === "listening" || status === "processing" ? "Stop" : "Speak"}
                             >
                                 <span className={styles.btnIcon}>
-                                    {status === "listening" ? "⏹" : "🎙"}
+                                    {status === "listening" || status === "processing" ? "⏹" : "🎙"}
                                 </span>
                                 <span className={styles.btnLabel}>
-                                    {status === "listening" ? "Stop" : "Speak"}
+                                    {status === "listening" || status === "processing" ? "Stop" : "Speak"}
                                 </span>
                             </button>
                         )}
@@ -323,7 +329,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                         {(status === "idle" || status === "error") && (
                             <button
                                 className={styles.secondaryBtn}
-                                onClick={startListening}
+                                onClick={handleMicClick}
                                 aria-label="Ask again"
                             >
                                 🔄 Ask Again
