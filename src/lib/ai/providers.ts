@@ -547,9 +547,9 @@ export class AIProviderManager {
     constructor() {
         const geminiKey = process.env.GEMINI_API_KEY;
         const openRouterKey = process.env.OPENROUTER_API_KEY;
-        const groqKey = process.env.GROQ_API_KEY;
+        const groqKey = process.env.GROQ_API_KEY || process.env.groqKey;
         const xaiKey = process.env.X_AI_API || process.env.XAI_API_KEY;
-        const mistralKey = process.env.MISTRAL_API_KEY; // New
+        const mistralKey = process.env.MISTRAL_API_KEY || process.env.mistralKey;
         const togetherKey = process.env.together_api || process.env.TOGETHER_API_KEY;
 
         // 🏆 ELITE COALITION (Priority Order for 10k Users)
