@@ -1997,16 +1997,18 @@ It's now part of my collective wisdom!`
                                 />
 
                                 {/* Voice Input Mic */}
-                                <VoiceInput
-                                    onTranscript={(text) => {
-                                        setInput(text);
-                                        // Auto-send after voice input
-                                        setTimeout(() => handleSendMessage(text), 100);
-                                    }}
-                                    onInterimTranscript={(text) => setInput(text)}
-                                    disabled={isChatting}
-                                    size={20}
-                                />
+                                <div className="flex-shrink-0">
+                                    <VoiceInput
+                                        onTranscript={(text) => {
+                                            setInput(text);
+                                            // Auto-send after voice input
+                                            setTimeout(() => handleSendMessage(text), 100);
+                                        }}
+                                        onInterimTranscript={(text) => setInput(text)}
+                                        disabled={isChatting}
+                                        size={20}
+                                    />
+                                </div>
 
                                 <button
                                     onClick={() => handleSendMessage()}
