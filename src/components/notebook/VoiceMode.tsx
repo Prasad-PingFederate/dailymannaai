@@ -227,9 +227,11 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         if (status === "listening") {
             stopListening();
             isCancelledRef.current = true;
+            setIsExpanded(false); // CLOSE IMMEDIATELY ON STOP
         } else if (status === "processing" || status === "speaking") {
             cancelSpeech();
             isCancelledRef.current = true;
+            setIsExpanded(false); // CLOSE IMMEDIATELY ON CANCEL
         } else if (status === "idle" || status === "error") {
             processedTranscriptRef.current = ""; // Reset for new session
             isCancelledRef.current = false;

@@ -6,7 +6,10 @@ import { TrainingLogger } from "@/lib/ai/training-logger";
 import { searchRelevantChunks } from "@/lib/storage/vector-store";
 import { performWebSearch, formatSearchResults, performImageSearch } from "@/lib/tools/web-search";
 import { resolvePortrait } from "@/lib/ai/image-resolver";
-import { executeHybridSearch } from "@/lib/search/engine"; // Added import
+import { executeHybridSearch } from "@/lib/search/engine";
+import { lookupBibleReference } from "@/lib/bible/lookup";
+import { searchBible } from "@/lib/search/bible-search";
+import { searchDocuments } from "@/lib/search/document-search";
 
 export async function POST(req: Request) {
     try {
@@ -38,29 +41,29 @@ export async function POST(req: Request) {
 
         console.log(`[ChatAPI-DNA] Entry Query: "${query}"`);
 
-        // 🚀 ORCHESTRATED PHASE 1: Intent Analysis & Truth Discovery (SINGLE AI CALL)
-        // We resolve phonetic errors and categorize the intent in one go to save quota.
-        const intentResult = await analyzeResearchIntent(query, history);
+        // 🚀 ORCHESTRATED PHASE 1: Intent Analysis & Truth Discovery (PARALLEL)
+        const [intentResult, directVerse] = await Promise.all([
+            analyzeResearchIntent(query, history),
+            lookupBibleReference(query)
+        ]);
+
         const standaloneQuery = intentResult.standaloneQuery;
 
-        // Pass the result directly to the Hybrid search to skip redundant AI calls
-        const searchResult = await executeHybridSearch(query, intentResult);
-
-        let groundingSources: string[] = [];
-
-        // Handle Specialized Results (Direct Bible, Greeting)
-        if (searchResult.mode === "DIRECT_LOOKUP" && searchResult.content) {
-            const content = searchResult.content;
+        // Handle Direct Scripture Fast-Path
+        if (directVerse && (intentResult.type === "VERSE_LOOKUP" || query.length < 25)) {
             console.log(`[TruthEngine] ⚡ Direct Scripture Match: ${query}`);
             return NextResponse.json({
                 role: "assistant",
-                content: content,
+                content: directVerse,
                 thought: `Direct matched verse "${query}" in the Rock-Solid KJV archives. Bypassing semantic synthesis for absolute scriptural precision.`,
                 suggestions: [`Explain ${query} in depth.`, `Show me cross-references.`, `How does this apply to me?`],
-                citations: [{ id: "kjv-direct", source: "KJV Bible (The Rock)", preview: content.substring(0, 80) + "..." }],
+                citations: [{ id: "kjv-direct", source: "KJV Bible (The Rock)", preview: directVerse.substring(0, 80) + "..." }],
                 metadata: { search_mode: "DIRECT", intent: "SCRIPTURE_PRECISION" }
             });
-        } else if (searchResult.mode === "GREETING" && query.split(" ").length <= 4) {
+        }
+
+        // Handle Greetings
+        if (intentResult.type === "GREETING" && query.split(" ").length <= 4) {
             const greetingPrompt = `The user said: "${query}". Reply with a warm Christian greeting. Keep it short.`;
             const { answer: greeting, thought: greetingThought } = await generateGroundedResponse(greetingPrompt, [], "", history);
             return NextResponse.json({
@@ -72,37 +75,36 @@ export async function POST(req: Request) {
             });
         }
 
-        // Add Hybrid Search Findings to sources
-        if (searchResult.mode === "SEMANTIC_SEARCH") {
-            searchResult.bibleResults.forEach((res: any) => groundingSources.push(`[KJV Bible]: (${res.reference}) ${res.text}`));
-            searchResult.documentResults.forEach((res: any) => groundingSources.push(`[Expert Knowledge]: (${res.title}) ${res.snippet}`));
-        }
-
-        // 🚀 PARALLEL PHASE 2: Deep Research
-        // Search local vectors and high-speed web indices simultaneously.
-        const [webResults, relevantChunks] = await Promise.all([
+        // 🚀 PARALLEL PHASE 2: Deep Research (Everything at once)
+        const [bibleResults, documentResults, webResults, relevantChunks] = await Promise.all([
+            searchBible(intentResult.primaryKeywords),
+            searchDocuments(intentResult.standaloneQuery || query),
             performWebSearch(standaloneQuery),
-            Promise.resolve(searchRelevantChunks(standaloneQuery)) // Wrapped in resolve to keep parallel structure
+            Promise.resolve(searchRelevantChunks(standaloneQuery))
         ]);
 
-        console.log(`[ChatAPI-DNA] Research complete. Local: ${relevantChunks.length} | Web: ${webResults.length} | Bible: ${groundingSources.length}`);
+        let groundingSources: string[] = [];
+        bibleResults.forEach((res: any) => groundingSources.push(`[KJV Bible]: (${res.reference}) ${res.text}`));
+        documentResults.forEach((res: any) => groundingSources.push(`[Expert Knowledge]: (${res.title}) ${res.snippet}`));
 
-        // Handle 0-result edge case
+        console.log(`[ChatAPI-DNA] Research complete. Local: ${relevantChunks.length} | Web: ${webResults.length} | Bible: ${bibleResults.length}`);
+
         let finalChunks = relevantChunks;
         let finalWebResults = webResults;
         let finalStandalone = standaloneQuery;
 
-        if (relevantChunks.length === 0 && webResults.length === 0) {
-            console.log(`[ChatAPI-DNA] Pass 1 yielded 0 results. Broadening query...`);
+        // Broaden query if absolutely no results found
+        if (relevantChunks.length === 0 && webResults.length === 0 && bibleResults.length === 0) {
+            console.log(`[ChatAPI-DNA] No results. Broadening...`);
             const words = standaloneQuery.split(" ");
             finalStandalone = words.length > 2 ? words.slice(-2).join(" ") : standaloneQuery;
             [finalWebResults, finalChunks] = await Promise.all([
-                performWebSearch(`${finalStandalone} biography christian history`),
+                performWebSearch(`${finalStandalone} christian biography`),
                 Promise.resolve(searchRelevantChunks(finalStandalone))
             ]);
         }
 
-        const sourcesText = finalChunks.map(c => `[${c.sourceId}] ${c.content}`);
+        const sourcesText = finalChunks.map((c: any) => `[${c.sourceId}] ${c.content}`);
         const webContext = formatSearchResults(finalWebResults);
 
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
@@ -110,27 +112,23 @@ export async function POST(req: Request) {
         // 3. Grounded Synthesis with Expert Persona (STREAMING)
         const combinedSources = [...groundingSources, ...sourcesText];
 
-        const truthSummary = searchResult.truthAssessment
-            ? `Integrity Score: ${searchResult.truthAssessment.integrityScore}%. ${searchResult.truthAssessment.isSound ? 'Status: Sound.' : 'Status: Warnings Found: ' + searchResult.truthAssessment.warnings.join(", ")}`
-            : "";
-
-        const { stream, provider } = await generateGroundedStream(query, combinedSources, webContext, history, standaloneQuery, truthSummary);
+        const { stream, provider } = await generateGroundedStream(query, combinedSources, webContext, history, standaloneQuery, "");
 
         // Prepare metadata and research steps for the frontend
         const researchSteps = [
             `Distilled intent: "${finalStandalone}"`,
             `Found ${finalChunks.length} relevant context fragments`,
             finalWebResults.length > 0 ? `Integrated ${finalWebResults.length} external truth-points` : "Verified with internal canonical archives",
-            searchResult.truthAssessment ? `Doctrine Integrity Score: ${searchResult.truthAssessment.integrityScore}%` : "Sovereign Reasoning Mode Active"
+            "Sovereign Reasoning Mode Active"
         ];
 
-        const citations = finalChunks.map(c => ({
+        const citations = finalChunks.map((c: any) => ({
             id: c.id,
             source: c.sourceId,
             preview: c.content.substring(0, 80) + "..."
         }));
 
-        const webLinks = finalWebResults.map(r => ({ title: r.title, url: r.url }));
+        const webLinks = finalWebResults.map((r: any) => ({ title: r.title, url: r.url }));
 
         console.log(`[ChatAPI-DNA] Synthesis initiating using ${combinedSources.length} total grounding fragments.`);
 

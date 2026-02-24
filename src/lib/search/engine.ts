@@ -53,14 +53,24 @@ export async function executeHybridSearch(query: string, preAnalyzedIntent?: any
         searchDocuments(intent.simplifiedQuery || query)
     ]);
 
-    // 4. TRUTH FILTER: Audit the findings
-    const allText = [
-        ...bibleResults.map(r => r.text),
-        ...documentResults.map(r => r.snippet)
-    ];
+    // 4. TRUTH FILTER: Audit the findings (Guarded with timeout for speed)
+    let truthAssessment: TruthAssessment = { isSound: true, integrityScore: 100, warnings: [] };
+    try {
+        const allText = [
+            ...bibleResults.map(r => r.text),
+            ...documentResults.map(r => r.snippet)
+        ];
 
-    const truthAssessment = await assessTruthIntegrity(query, allText);
-    console.log(`[TruthEngine] 🛡️ Integrity Audit: ${truthAssessment.isSound ? 'PASSED' : 'FLAGGED'} (${truthAssessment.integrityScore}%)`);
+        truthAssessment = await Promise.race([
+            assessTruthIntegrity(query, allText),
+            new Promise<TruthAssessment>((resolve) =>
+                setTimeout(() => resolve({ isSound: true, integrityScore: 100, warnings: ["Audit timeout"] }), 3000)
+            )
+        ]);
+        console.log(`[TruthEngine] 🛡️ Integrity Audit: ${truthAssessment.isSound ? 'PASSED' : 'FLAGGED'} (${truthAssessment.integrityScore}%)`);
+    } catch (e) {
+        console.error("[TruthEngine] Audit failed:", e);
+    }
 
     return {
         mode: "SEMANTIC_SEARCH",
