@@ -182,27 +182,34 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
 
     // Auto-minimize panel when AI starts thinking/processing
     useEffect(() => {
-        if (status === "processing") {
-            // Give a small delay so user sees "Thinking..." for a moment before it closes
+        // If it's processing (Server Whisper) or idle (Browser STT finished), and we have a transcript
+        const isDoneSpeaking = (status === "processing" || status === "idle") && transcript.length > 0;
+
+        if (isDoneSpeaking) {
             const timer = setTimeout(() => {
-                setIsExpanded(false);
-            }, 1500);
+                if (isExpanded) {
+                    setIsExpanded(false);
+                    console.log("[Voice] Auto-minimizing panel as requested.");
+                }
+            }, 1200); // 1.2s delay to show "Thinking/Done" feedback
             return () => clearTimeout(timer);
         }
-    }, [status]);
+    }, [status, transcript, isExpanded]);
 
     // When transcript is ready, get AI response
     useEffect(() => {
         if (!transcript || transcript === processedTranscriptRef.current) return;
 
-        isCancelledRef.current = false; // Reset on new transcript
+        isCancelledRef.current = false;
         processedTranscriptRef.current = transcript;
         onTranscript?.(transcript);
 
         const handleResponse = async () => {
             try {
+                // If the panel is still open, we might want to stay open during AI thinking,
+                // but the user's specific request was to minimize after recording.
                 const response = await getAIResponse(transcript);
-                if (isCancelledRef.current) return; // DON'T PROCEED IF CANCELLED
+                if (isCancelledRef.current) return;
                 setLastResponse(response);
                 onAIResponse?.(response);
                 await speak(response);
