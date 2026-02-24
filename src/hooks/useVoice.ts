@@ -43,6 +43,8 @@ export function useVoice({
     const isTranscribingRef = useRef(false);
     const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
     const [isPaused, setIsPaused] = useState(false);
+    const accumulatedTranscriptRef = useRef("");
+    const lastSessionFinalTextRef = useRef("");
 
     const recognitionRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -118,6 +120,8 @@ export function useVoice({
     const startBrowserSTT = useCallback(async () => {
         setError(null);
         setTranscript("");
+        accumulatedTranscriptRef.current = "";
+        lastSessionFinalTextRef.current = "";
 
         const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognitionAPI) return false;
@@ -145,22 +149,29 @@ export function useVoice({
             syncStatus("listening");
             setIsLive(true);
         };
-        let finalTranscriptBucket = "";
         recognition.onresult = (e: any) => {
-            let interimTranscriptBucket = "";
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-                const transcriptFragment = e.results[i][0].transcript;
+            let sessionFinal = "";
+            let sessionInterim = "";
+
+            for (let i = 0; i < e.results.length; i++) {
+                const text = e.results[i][0].transcript;
                 if (e.results[i].isFinal) {
-                    finalTranscriptBucket += transcriptFragment + " ";
+                    sessionFinal += text + " ";
                 } else {
-                    interimTranscriptBucket += transcriptFragment;
+                    sessionInterim += text;
                 }
             }
-            const fullText = (finalTranscriptBucket + interimTranscriptBucket).trim();
+
+            lastSessionFinalTextRef.current = sessionFinal;
+            const fullText = (accumulatedTranscriptRef.current + " " + sessionFinal + sessionInterim).trim();
             if (fullText) setTranscript(fullText);
         };
 
         recognition.onend = () => {
+            // Before potential restart, archive the finalized text from this session
+            accumulatedTranscriptRef.current = (accumulatedTranscriptRef.current + " " + lastSessionFinalTextRef.current).trim();
+            lastSessionFinalTextRef.current = "";
+
             // AUTO-RESTART: If the app still thinks it's listening, restart the engine
             // This survives browser-enforced silence timeouts.
             if (statusRef.current === "listening" && recognitionRef.current) {
