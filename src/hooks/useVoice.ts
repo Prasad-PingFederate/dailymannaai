@@ -253,25 +253,21 @@ export function useVoice({
     const startListening = useCallback(async () => {
         if (status === "listening" || status === "processing") return;
 
-        // Detect native support
-        const hasNative = !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-
-        // Firefox Desktop usually has no native recognition support enabled by default
-        // Chrome and Safari (including Mobile) DO support it.
-        const useNative = hasNative && !isFirefox;
-
-        if (useNative) {
-            const handled = await startBrowserSTT();
-            if (!handled && useServerTranscribe) {
-                await startMediaRecorder();
-            }
-        } else if (useServerTranscribe) {
+        // Use Server-side MediaRecorder + Whisper for 100% accuracy and no cutoffs
+        // This is the "MP3 to text" model requested by the user.
+        if (useServerTranscribe) {
             await startMediaRecorder();
         } else {
-            setError("Voice recognition not supported in this browser.");
-            syncStatus("error");
+            // Fallback to native only if server-side is explicitly disabled
+            const hasNative = !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+            if (hasNative && !isFirefox) {
+                await startBrowserSTT();
+            } else {
+                setError("Voice logic not supported or API disabled.");
+                syncStatus("error");
+            }
         }
-    }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe]);
+    }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe, isFirefox]);
 
     const stopListening = useCallback(async (): Promise<void> => {
         if (recognitionRef.current) {

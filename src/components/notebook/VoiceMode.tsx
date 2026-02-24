@@ -147,13 +147,8 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         // We wait for user action.
     }, [status, phase, isSubmitting]);
 
-    // Update main input live as the user speaks
-    useEffect(() => {
-        transcriptRef.current = transcript;
-        if (phase === "recording" && transcript.trim()) {
-            onTranscript?.(transcript.trim());
-        }
-    }, [phase, transcript, onTranscript]);
+    // Simplified: We no longer need transcriptRef or live search sync because
+    // we use high-fidelity server STT (MP3 to Text) which transcribes on stop.
 
     useEffect(() => {
         onActive?.(phase !== "idle");
@@ -183,26 +178,10 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     }, [stopListening, cancelSpeech]);
 
     const handleConfirm = useCallback(async () => {
-        if (isLive && transcript.trim()) {
-            // ✅ Snapshot BEFORE stopListening() can potentially reset state
-            const snapshotText = transcript.trim();
-            transcriptRef.current = snapshotText; // Pin ref immediately
-
-            await stopListening();
-
-            // ✅ Wait briefly for browser STT to fire its final onresult
-            setTimeout(() => {
-                // transcriptRef.current might have updated with more words during the 400ms period
-                // Fall back to snapshot if ref was wiped or is empty
-                const finalText = transcriptRef.current?.trim() || snapshotText;
-                processSubmission(finalText);
-            }, 400);
-        } else {
-            // Fallback (Firefox): wait for onTranscriptionComplete
-            setPhase("processing");
-            await stopListening();
-        }
-    }, [isLive, transcript, stopListening, processSubmission]);
+        // Universal Confirm: stop recording and wait for transcription result
+        setPhase("processing");
+        await stopListening();
+    }, [stopListening]);
 
     // ── Keyboard Shortcuts ───────────────────────────────────────────────────
     useEffect(() => {
@@ -224,20 +203,16 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     return (
         <div className={`${styles.voiceWrapper} ${className} ${phase !== "idle" ? styles.isActive : ""}`}>
 
-            {/* Recording Transcript Preview (Top Float) */}
+            {/* Recording Feedback (Top Float) */}
             {(phase === "recording" || phase === "processing") && (
                 <div className={styles.transcriptPreview}>
                     <p className={styles.liveLabel}>
                         <span className={styles.pulseDot}></span>
-                        {phase === "processing" ? "Finalized Transcript" : (isLive ? "Listening..." : "Capturing audio...")}
+                        {phase === "processing" ? "Transcribing Audio..." : "Recording Audio..."}
                     </p>
-                    {transcript ? (
-                        <p className={styles.transcriptText}>{transcript}</p>
-                    ) : (
-                        <p className={styles.placeholderText}>
-                            {isLive ? "Speak now..." : "Audio is being recorded. Click the tick to transcribe."}
-                        </p>
-                    )}
+                    <p className={styles.transcriptText}>
+                        {transcript || (phase === "processing" ? "Analyzing your question..." : "Speak your question clearly. The text will appear after you click the tick.")}
+                    </p>
                 </div>
             )}
 
