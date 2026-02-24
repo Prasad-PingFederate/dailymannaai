@@ -22,9 +22,12 @@ export function useVoice({
 }: UseVoiceOptions = {}) {
     // Detect mobile to prefer server-side transcription (Whisper is much better on mobile than flaky browser STT)
     const [isMobileDevice, setIsMobileDevice] = useState(false);
+    const [isFirefox, setIsFirefox] = useState(false);
 
     useEffect(() => {
-        setIsMobileDevice(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+        const ua = navigator.userAgent;
+        setIsMobileDevice(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua));
+        setIsFirefox(ua.toLowerCase().includes("firefox"));
     }, []);
     const [status, setStatus] = useState<VoiceStatus>("idle");
     const [transcript, setTranscript] = useState("");
@@ -167,7 +170,7 @@ export function useVoice({
 
         recognition.start();
         return true;
-    }, [language, setupAnalyser, cleanupAudio, silenceTimeout]);
+    }, [language, setupAnalyser, silenceTimeout]);
 
     // ─── METHOD 2: MediaRecorder + Server Whisper ────────────────────────────
     const startMediaRecorder = useCallback(async () => {
@@ -186,7 +189,7 @@ export function useVoice({
         streamRef.current = micStream;
         await setupAnalyser(micStream);
 
-        const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg", ""].find((t) => !t || MediaRecorder.isTypeSupported(t)) ?? "";
+        const mimeType = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/webm", "audio/ogg", "audio/mp4", ""].find((t) => !t || MediaRecorder.isTypeSupported(t)) ?? "";
         const recorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
         mediaRecorderRef.current = recorder;
         chunksRef.current = [];
@@ -201,11 +204,12 @@ export function useVoice({
                 setStatus("error");
                 return;
             }
-            setStatus("processing");
             const text = await transcribeWithServer(blob);
-            if (text) setTranscript(text);
-            else {
-                setError("Transcription failed. Please Redeploy on Vercel and check your browser microphone permissions.");
+            if (text) {
+                setTranscript(text);
+                setStatus("idle");
+            } else {
+                setError("Transcription failed. Please try again.");
                 setStatus("error");
             }
         };
@@ -220,9 +224,13 @@ export function useVoice({
     const startListening = useCallback(async () => {
         if (status === "listening" || status === "processing") return;
 
-        // On mobile, native browser STT is extremely flaky or lacks support for many languages
-        // We prefer MediaRecorder (Whisper/Server) for mobile, and Browser STT for Desktop (if available)
-        const preferServer = isMobileDevice || !((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+        const ua = navigator.userAgent;
+        const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor);
+        const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+        const isFirefox = /Firefox/.test(ua);
+
+        // Force Server-side for anything not Chrome, or if it's mobile
+        const preferServer = isMobileDevice || isSafari || isFirefox || !((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
         if (preferServer && useServerTranscribe) {
             await startMediaRecorder();
@@ -234,34 +242,26 @@ export function useVoice({
         }
     }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe, isMobileDevice]);
 
-    const stopListening = useCallback(async (): Promise<string> => {
+    const stopListening = useCallback(async (): Promise<void> => {
         if (recognitionRef.current) {
             recognitionRef.current.stop();
             recognitionRef.current = null;
+            cleanupAudio();
+            setStatus("idle");
+            return;
         }
 
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-            const resultPromise = new Promise<string>((resolve) => {
-                if (!mediaRecorderRef.current) return resolve("");
-                const originalOnStop = mediaRecorderRef.current.onstop;
-                mediaRecorderRef.current.onstop = async (e) => {
-                    if (originalOnStop) await (originalOnStop as any).call(mediaRecorderRef.current, e);
-                    // The transcript should be updated by now in the original onstop
-                    // But to be safe, we poll for a bit or just look at the state
-                    resolve(""); // The state update will trigger in the component
-                };
-            });
+            setStatus("processing");
             mediaRecorderRef.current.stop();
-            mediaRecorderRef.current = null;
-            cleanupAudio();
-            setTimeout(() => setStatus("idle"), 10);
-            return ""; // Component will react to transcript change
+            // We do NOT call cleanupAudio here; the onstop handler does it
+            // after the blob is processed to avoid cutting off the end.
         }
-
-        cleanupAudio();
-        setTimeout(() => setStatus("idle"), 10);
-        return transcript;
-    }, [cleanupAudio, transcript]);
+        else {
+            cleanupAudio();
+            setStatus("idle");
+        }
+    }, [cleanupAudio]);
 
     // ─── TTS ─────────────────────────────────────────────────────────────────
     const speak = useCallback(async (text: string): Promise<void> => {

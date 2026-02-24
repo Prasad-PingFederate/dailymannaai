@@ -149,6 +149,8 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
             if (!isCancelledRef.current) {
                 handleCancel();
             }
+        } else if (phase === "processing" && status === "error") {
+            setPhase("idle");
         }
     }, [phase, transcript, status, getAIResponse, onTranscript, onAIResponse, speak, handleCancel]);
 
