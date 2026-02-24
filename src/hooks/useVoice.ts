@@ -127,7 +127,7 @@ export function useVoice({
         recognitionRef.current = recognition;
         recognition.lang = language;
         recognition.interimResults = true;
-        recognition.continuous = false;
+        recognition.continuous = true;
 
         recognition.onstart = () => setStatus("listening");
         recognition.onresult = (e: any) => {
