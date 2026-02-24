@@ -79,7 +79,9 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const [error, setError] = useState("");
     const submissionIdRef = useRef<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const isSubmittingRef = useRef(false);
     const isCancelledRef = useRef(false);
+    const transcriptRef = useRef("");
 
     const onTranscriptRef = useRef<((text: string) => void) | undefined>(undefined);
 
@@ -98,8 +100,9 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     });
 
     const processSubmission = useCallback(async (text: string) => {
-        if (!text.trim() || isSubmitting || isCancelledRef.current) return;
+        if (!text.trim() || isSubmittingRef.current || isCancelledRef.current) return;
 
+        isSubmittingRef.current = true;
         setIsSubmitting(true);
         setPhase("processing");
         onTranscript?.(text.trim());
@@ -115,9 +118,10 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
             setError("Failed to get answer.");
             setPhase("idle");
         } finally {
+            isSubmittingRef.current = false;
             setIsSubmitting(false);
         }
-    }, [getAIResponse, onTranscript, onAIResponse, speakAudio, isSubmitting]);
+    }, [getAIResponse, onTranscript, onAIResponse, speakAudio]);
 
     useEffect(() => {
         onTranscriptRef.current = (text) => {
@@ -145,6 +149,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
 
     // Update main input live as the user speaks
     useEffect(() => {
+        transcriptRef.current = transcript;
         if (phase === "recording" && transcript.trim()) {
             onTranscript?.(transcript.trim());
         }
@@ -163,6 +168,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const handleStart = useCallback(() => {
         setError("");
         isCancelledRef.current = false;
+        isSubmittingRef.current = false;
         setIsSubmitting(false);
         submissionIdRef.current = null;
         startListening();
@@ -178,9 +184,11 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
 
     const handleConfirm = useCallback(async () => {
         if (isLive && transcript.trim()) {
-            // If we already have the text (Chrome), submit immediately
             await stopListening();
-            processSubmission(transcript);
+            // ✅ Wait briefly for browser STT to fire its final onresult
+            setTimeout(() => {
+                processSubmission(transcriptRef.current || transcript);
+            }, 400);
         } else {
             // Fallback (Firefox): wait for onTranscriptionComplete
             setPhase("processing");
