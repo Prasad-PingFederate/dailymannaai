@@ -61,6 +61,7 @@ export type VoicePhase = "idle" | "recording" | "processing";
 interface VoiceModeProps {
     onTranscript?: (text: string) => void;
     onAIResponse?: (text: string) => void;
+    onActive?: (active: boolean) => void;
     getAIResponse: (userText: string) => Promise<string>;
     className?: string;
     language?: string;
@@ -69,12 +70,14 @@ interface VoiceModeProps {
 export const VoiceMode: React.FC<VoiceModeProps> = ({
     onTranscript,
     onAIResponse,
+    onActive,
     getAIResponse,
     className = "",
     language = "en",
 }) => {
     const [phase, setPhase] = useState<VoicePhase>("idle");
     const [error, setError] = useState("");
+    const submissionIdRef = useRef<string | null>(null);
 
     const {
         status,
@@ -99,6 +102,10 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     }, [status, phase]);
 
     useEffect(() => {
+        onActive?.(phase !== "idle");
+    }, [phase, onActive]);
+
+    useEffect(() => {
         if (voiceError) setError(voiceError);
     }, [voiceError]);
 
@@ -108,6 +115,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         setError("");
         isCancelledRef.current = false;
         processedTranscriptRef.current = "";
+        submissionIdRef.current = null;
         startListening();
         setPhase("recording");
     }, [startListening]);
@@ -127,6 +135,10 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     // Submission logic that waits for transcription (especially important for fallback mode)
     useEffect(() => {
         if (phase === "processing" && transcript.trim() && !isCancelledRef.current) {
+            // Prevent double submission of the exact same transcript
+            if (submissionIdRef.current === transcript.trim()) return;
+            submissionIdRef.current = transcript.trim();
+
             const submit = async () => {
                 const textToSubmit = transcript.trim();
                 onTranscript?.(textToSubmit);
@@ -134,14 +146,17 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                     const response = await getAIResponse(textToSubmit);
                     if (isCancelledRef.current) {
                         setPhase("idle");
+                        submissionIdRef.current = null;
                         return;
                     }
                     onAIResponse?.(response);
                     setPhase("idle");
+                    submissionIdRef.current = null;
                     await speak(response);
                 } catch (err) {
                     setError("Failed to get answer.");
                     setPhase("idle");
+                    submissionIdRef.current = null;
                 }
             };
             submit();
@@ -151,6 +166,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
             }
         } else if (phase === "processing" && status === "error") {
             setPhase("idle");
+            submissionIdRef.current = null;
         }
     }, [phase, transcript, status, getAIResponse, onTranscript, onAIResponse, speak, handleCancel]);
 

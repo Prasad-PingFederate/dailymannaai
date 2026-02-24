@@ -138,6 +138,7 @@ export default function NotebookWorkspace() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
     const isPlayingRef = useRef(false);
+    const [isVoiceActive, setIsVoiceActive] = useState(false);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -2019,36 +2020,41 @@ It's now part of my collective wisdom!`
                                     <Plus size={22} />
                                 </button>
 
-                                <textarea
-                                    placeholder="Ask DailyMannaAI about Bible or scriptures..."
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSendMessage();
-                                        }
-                                    }}
-                                    className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
-                                    rows={1}
-                                />
+                                {!isVoiceActive && (
+                                    <textarea
+                                        placeholder="Ask DailyMannaAI about Bible or scriptures..."
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSendMessage();
+                                            }
+                                        }}
+                                        className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
+                                        rows={1}
+                                    />
+                                )}
 
 
                                 <div className="flex items-center gap-2 pr-1">
-                                    <button
-                                        onClick={() => handleSendMessage()}
-                                        disabled={!input.trim()}
-                                        className={`p-3 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-lg shadow-accent/40 hover:scale-105 active:scale-95' : 'bg-muted/10 text-muted opacity-30 cursor-not-allowed'}`}
-                                    >
-                                        {isChatting ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <Send size={22} />
-                                        )}
-                                    </button>
+                                    {!isVoiceActive && (
+                                        <button
+                                            onClick={() => handleSendMessage()}
+                                            disabled={!input.trim()}
+                                            className={`p-3 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-lg shadow-accent/40 hover:scale-105 active:scale-95' : 'bg-muted/10 text-muted opacity-30 cursor-not-allowed'}`}
+                                        >
+                                            {isChatting ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <Send size={22} />
+                                            )}
+                                        </button>
+                                    )}
                                     <VoiceMode
                                         getAIResponse={getVoiceAIResponse}
                                         onTranscript={(text) => setInput(text)}
+                                        onActive={(active) => setIsVoiceActive(active)}
                                         className="voice-integration"
                                     />
                                 </div>
