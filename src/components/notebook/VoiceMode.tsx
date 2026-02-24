@@ -81,7 +81,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isCancelledRef = useRef(false);
 
-    const onTranscriptRef = useRef<(text: string) => void>();
+    const onTranscriptRef = useRef<((text: string) => void) | undefined>(undefined);
 
     const {
         status,
