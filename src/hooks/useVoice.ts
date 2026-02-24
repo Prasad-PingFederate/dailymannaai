@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { VoiceStatus } from "@/components/notebook/VoiceMode";
+
+export type VoiceStatus =
+    | "idle"
+    | "listening"
+    | "processing"
+    | "speaking"
+    | "error";
 
 interface UseVoiceOptions {
     language?: string;

@@ -36,6 +36,13 @@ function Spinner() {
  * ─── MAIN COMPONENT ─────────────────────────────────────────────────────────
  */
 
+export type VoiceStatus =
+    | "idle"
+    | "listening"
+    | "processing"
+    | "speaking"
+    | "error";
+
 export type VoicePhase = "idle" | "recording" | "processing";
 
 interface VoiceModeProps {
