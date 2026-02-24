@@ -753,32 +753,37 @@ It's now part of my collective wisdom!`
                 const chunk = decoder.decode(value, { stream: true });
                 fullText += chunk;
 
-                // 🧬 ROBUST PARSING
+                // 🧬 ROBUST PARSING (Handles common misspellings like THOUGHT, THUGHT, THOHT)
                 let currentThought = "";
                 let currentContent = fullText;
                 let stillThinking = true;
                 let thinkingPhase = "Analyzing...";
 
-                // Check for delimiters (case-insensitive)
-                const hasThoughtStart = fullText.toLowerCase().includes("<thought>");
-                const hasThoughtEnd = fullText.toLowerCase().includes("</thought>");
-                const hasResponseStart = fullText.toLowerCase().includes("### response start ###");
+                // Check for delimiters (case-insensitive + misspellings)
+                const thoughtStartRegex = /<(THOUGHT|THUGHT|THOHT)>/i;
+                const thoughtEndRegex = /<\/(THOUGHT|THUGHT|THOHT)>/i;
+                const responseStartRegex = /### RESPONSE START ###/i;
+
+                const hasThoughtStart = thoughtStartRegex.test(fullText);
+                const hasThoughtEnd = thoughtEndRegex.test(fullText);
+                const hasResponseStart = responseStartRegex.test(fullText);
 
                 if (hasThoughtEnd) {
-                    // Case A: </THOUGHT> found — split there regardless of opening tag
-                    const contentParts = fullText.split(/<\/THOUGHT>/i);
-                    currentThought = (contentParts[0] || "").replace(/<THOUGHT>/i, "").trim();
-                    currentContent = (contentParts[1] || "").trim();
+                    // Case A: Ending tag found
+                    const contentParts = fullText.split(thoughtEndRegex);
+                    // contentParts[1] is the tag match, contentParts[2] is text after tag
+                    currentThought = (contentParts[0] || "").replace(thoughtStartRegex, "").trim();
+                    currentContent = (contentParts[2] || "").trim();
                     stillThinking = false;
                     thinkingPhase = "Reasoning complete.";
 
                     // Strip ### RESPONSE START ### if present in the answer part
-                    if (currentContent.toLowerCase().includes("### response start ###")) {
-                        currentContent = currentContent.split(/### RESPONSE START ###/i).pop()?.trim() || currentContent;
+                    if (responseStartRegex.test(currentContent)) {
+                        currentContent = currentContent.split(responseStartRegex).pop()?.trim() || currentContent;
                     }
                 } else if (hasThoughtStart) {
-                    // Case B: <THOUGHT> found but </THOUGHT> not yet — still thinking
-                    const tParts = fullText.split(/<THOUGHT>/i);
+                    // Case B: Opening tag found but not closed yet
+                    const tParts = fullText.split(thoughtStartRegex);
                     currentThought = tParts[1] || "";
                     currentContent = ""; // Hide content while thinking
                     stillThinking = true;
@@ -789,12 +794,11 @@ It's now part of my collective wisdom!`
                     else thinkingPhase = "Searching truth archives...";
                 } else if (hasResponseStart) {
                     // Case C: No thought tags at all, but RESPONSE START found
-                    const contentParts = fullText.split(/### RESPONSE START ###/i);
+                    const contentParts = fullText.split(responseStartRegex);
                     currentContent = contentParts[1] || "";
                     stillThinking = false;
                 } else {
                     // Case D: No delimiters yet — check if we're still receiving thinking
-                    // If text is short, assume still loading/thinking
                     if (fullText.length < 50) {
                         currentContent = "";
                         stillThinking = true;
@@ -802,16 +806,15 @@ It's now part of my collective wisdom!`
                     }
                 }
 
-                // Clean content of remaining markers
+                // Clean content of remaining markers/leaks
                 currentContent = currentContent.replace(/### RESPONSE START ###/i, "").trim();
-                // Catch both correct and misspelled suggestion markers
                 currentContent = currentContent.split(/---S[UG]*ESTIONS---/i)[0].trim();
-                currentContent = currentContent.split(/---SUGGESTIONS---/i)[0].trim();
-                // Remove [METADATA:...] blocks
                 currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, "").trim();
-                // Remove any leftover THOUGHT tags showing as text
-                currentContent = currentContent.replace(/<\/?THOUGHT>/gi, "").trim();
-                // Remove research pipeline debug lines that leak into stream
+
+                // Nuclear option for leftover tags: remove anything like <...> involving THOUGHT/THUGHT/THOHT
+                currentContent = currentContent.replace(/<\/?(THOUGHT|THUGHT|THOHT)>/gi, "").trim();
+
+                // Remove research pipeline debug lines
                 currentContent = currentContent.replace(/^Distilled intent:.*$/gm, "").trim();
                 currentContent = currentContent.replace(/^Found \d+ relevant context fragments?$/gm, "").trim();
                 currentContent = currentContent.replace(/^(Verified with internal canonical archives|Integrated \d+ external truth-points?)$/gm, "").trim();

@@ -180,6 +180,17 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         return () => cancelAnimationFrame(animFrameRef.current);
     }, [status, analyserNode, drawWaveform, drawPulse]);
 
+    // Auto-minimize panel when AI starts thinking/processing
+    useEffect(() => {
+        if (status === "processing") {
+            // Give a small delay so user sees "Thinking..." for a moment before it closes
+            const timer = setTimeout(() => {
+                setIsExpanded(false);
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
+
     // When transcript is ready, get AI response
     useEffect(() => {
         if (!transcript || transcript === processedTranscriptRef.current) return;
