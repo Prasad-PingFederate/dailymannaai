@@ -32,6 +32,11 @@ export function useVoice({
         setIsFirefox(ua.toLowerCase().includes("firefox"));
     }, []);
     const [status, setStatus] = useState<VoiceStatus>("idle");
+    const statusRef = useRef<VoiceStatus>("idle");
+    const syncStatus = (s: VoiceStatus) => {
+        setStatus(s);
+        statusRef.current = s;
+    };
     const [transcript, setTranscript] = useState("");
     const [isLive, setIsLive] = useState(true); // True for Browser STT, False for MediaRecorder fallback
     const [error, setError] = useState<string | null>(null);
@@ -123,7 +128,7 @@ export function useVoice({
         } catch (e: any) {
             console.error("[Voice] Mic access error:", e);
             setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
-            setStatus("error");
+            syncStatus("error");
             return false; // Return false so startListening can try Method 2
         }
 
@@ -137,7 +142,7 @@ export function useVoice({
         recognition.continuous = true;
 
         recognition.onstart = () => {
-            setStatus("listening");
+            syncStatus("listening");
             setIsLive(true);
         };
         let finalTranscriptBucket = "";
@@ -156,22 +161,24 @@ export function useVoice({
         };
 
         recognition.onend = () => {
-            if (status === "listening" && recognitionRef.current) {
+            // AUTO-RESTART: If the app still thinks it's listening, restart the engine
+            // This survives browser-enforced silence timeouts.
+            if (statusRef.current === "listening" && recognitionRef.current) {
                 try {
                     recognitionRef.current.start();
                 } catch (err) {
                     cleanupAudio();
-                    setStatus("idle");
+                    syncStatus("idle");
                 }
             } else {
                 cleanupAudio();
-                setStatus("idle");
+                syncStatus("idle");
             }
         };
 
         recognition.onerror = () => {
             cleanupAudio();
-            setStatus("error");
+            syncStatus("error");
         };
 
         recognition.start();
@@ -188,7 +195,7 @@ export function useVoice({
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (e: any) {
             setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
-            setStatus("error");
+            syncStatus("error");
             return;
         }
 
@@ -207,7 +214,7 @@ export function useVoice({
             chunksRef.current = [];
             if (blob.size < 500) {
                 setError("No audio captured. Please speak clearly.");
-                setStatus("error");
+                syncStatus("error");
                 return;
             }
             if (isTranscribingRef.current) return;
@@ -217,10 +224,10 @@ export function useVoice({
             if (text) {
                 setTranscript(text);
                 onTranscriptionComplete?.(text);
-                setStatus("idle");
+                syncStatus("idle");
             } else {
                 setError("Transcription failed. Please try again.");
-                setStatus("error");
+                syncStatus("error");
             }
             isTranscribingRef.current = false;
         };
@@ -251,7 +258,7 @@ export function useVoice({
             await startMediaRecorder();
         } else {
             setError("Voice recognition not supported in this browser.");
-            setStatus("error");
+            syncStatus("error");
         }
     }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe]);
 
@@ -260,26 +267,26 @@ export function useVoice({
             recognitionRef.current.stop();
             recognitionRef.current = null;
             cleanupAudio();
-            setStatus("idle");
+            syncStatus("idle");
             return;
         }
 
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-            setStatus("processing");
+            syncStatus("processing");
             mediaRecorderRef.current.stop();
             // We do NOT call cleanupAudio here; the onstop handler does it
             // after the blob is processed to avoid cutting off the end.
         }
         else {
             cleanupAudio();
-            setStatus("idle");
+            syncStatus("idle");
         }
     }, [cleanupAudio]);
 
     // ─── TTS ─────────────────────────────────────────────────────────────────
     const speak = useCallback(async (text: string): Promise<void> => {
         if (!text.trim()) return;
-        setStatus("speaking");
+        syncStatus("speaking");
         setIsPaused(false);
 
         try {
@@ -299,7 +306,7 @@ export function useVoice({
                 audio.onended = () => {
                     URL.revokeObjectURL(url);
                     audioRef.current = null;
-                    setStatus("idle");
+                    syncStatus("idle");
                     resolve();
                 };
                 audio.onerror = () => {
@@ -311,7 +318,7 @@ export function useVoice({
             });
         } catch (e) {
             await speakWithBrowser(text);
-            setStatus("idle");
+            syncStatus("idle");
         }
     }, []);
 
@@ -352,7 +359,7 @@ export function useVoice({
             audioRef.current = null;
         }
         window.speechSynthesis?.cancel();
-        setStatus("idle");
+        syncStatus("idle");
         setIsPaused(false);
     }, []);
 
