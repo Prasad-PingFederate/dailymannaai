@@ -1911,32 +1911,32 @@ It's now part of my collective wisdom!`
                                                         {msg.role === 'assistant' && (msg.thought || msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)) && (
                                                             <div className="mb-4">
                                                                 <details className="group" open={msg.isThinking}>
-                                                                    <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.15em] cursor-pointer hover:opacity-80 transition-all list-none select-none py-2 px-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 hover:border-blue-400/40">
-                                                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${msg.isThinking ? 'bg-blue-500 text-white animate-pulse' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                                    <summary className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.15em] cursor-pointer hover:opacity-80 transition-all list-none select-none py-2 px-4 rounded-xl bg-gradient-to-r from-blue-600/15 to-purple-600/15 border border-blue-500/30 hover:border-blue-400/50 shadow-sm relative shine">
+                                                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${msg.isThinking ? 'bg-blue-600 text-white animate-pulse' : 'bg-blue-600/20 text-blue-600 dark:text-blue-400'}`}>
                                                                             {msg.isThinking ? '⚡' : '💭'}
                                                                         </span>
-                                                                        <span className="text-blue-400/90">
+                                                                        <span className="text-blue-700 dark:text-blue-400 font-bold">
                                                                             {msg.isThinking ? (msg.thinkingPhase || "Analyzing...") : "View Reasoning Process"}
                                                                         </span>
-                                                                        <span className="ml-auto text-blue-400/50 group-open:rotate-180 transition-transform text-[10px]">▼</span>
+                                                                        <span className="ml-auto text-blue-600/50 group-open:rotate-180 transition-transform text-[10px]">▼</span>
                                                                     </summary>
-                                                                    <div className="mt-2 relative overflow-hidden rounded-xl border border-blue-500/15">
+                                                                    <div className="mt-2 relative overflow-hidden rounded-2xl border border-blue-500/30 shadow-2xl">
                                                                         {/* DeepSeek-style left gradient stripe */}
-                                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-blue-400" />
-                                                                        <div className="pl-4 pr-4 py-3 bg-gradient-to-br from-blue-950/30 to-purple-950/20">
+                                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-blue-400 z-10" />
+                                                                        <div className="pl-6 pr-4 py-5 bg-slate-900 dark:bg-black/80 backdrop-blur-md">
                                                                             {/* Research Steps Log */}
                                                                             {msg.researchSteps && msg.researchSteps.length > 0 && (
-                                                                                <div className="mb-3 space-y-1.5 border-b border-blue-500/10 pb-3">
+                                                                                <div className="mb-4 space-y-2 border-b border-white/5 pb-4">
                                                                                     {msg.researchSteps.map((step: string, idx: number) => (
-                                                                                        <div key={idx} className={`flex items-center gap-2 text-[11px] text-blue-300/70 ${msg.isThinking && idx === msg.researchSteps.length - 1 ? 'animate-pulse' : ''}`}>
-                                                                                            <CheckCircle2 size={11} className="text-blue-400/80 flex-shrink-0" />
-                                                                                            <span className="font-medium">{step}</span>
+                                                                                        <div key={idx} className={`flex items-start gap-2.5 text-[12px] text-blue-200/90 ${msg.isThinking && idx === msg.researchSteps.length - 1 ? 'animate-pulse' : ''}`}>
+                                                                                            <CheckCircle2 size={13} className="text-blue-400 mt-0.5 flex-shrink-0" />
+                                                                                            <span className="font-semibold leading-tight">{step}</span>
                                                                                         </div>
                                                                                     ))}
                                                                                 </div>
                                                                             )}
                                                                             {/* Thought content */}
-                                                                            <div className="text-[13px] text-blue-200/60 leading-relaxed font-mono whitespace-pre-wrap">
+                                                                            <div className="text-[14px] text-slate-100/90 leading-relaxed font-mono whitespace-pre-wrap select-text">
                                                                                 {msg.thought}
                                                                                 {msg.isThinking && <span className="inline-flex ml-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />}
                                                                             </div>
