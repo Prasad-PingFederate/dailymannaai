@@ -14,6 +14,12 @@ export function useVoice({
     silenceTimeout = 3000,
     useServerTranscribe = true,
 }: UseVoiceOptions = {}) {
+    // Detect mobile to prefer server-side transcription (Whisper is much better on mobile than flaky browser STT)
+    const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+    useEffect(() => {
+        setIsMobileDevice(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    }, []);
     const [status, setStatus] = useState<VoiceStatus>("idle");
     const [transcript, setTranscript] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -102,9 +108,10 @@ export function useVoice({
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (e: any) {
+            console.error("[Voice] Mic access error:", e);
             setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
             setStatus("error");
-            return true;
+            return false; // Return false so startListening can try Method 2
         }
 
         streamRef.current = micStream;
@@ -124,8 +131,15 @@ export function useVoice({
                 if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
                 else interimText += e.results[i][0].transcript;
             }
+
+            // Update state so UI can show it
+            const currentTranscript = finalText || interimText;
+            if (currentTranscript) setTranscript(currentTranscript);
+
             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = setTimeout(() => recognition.stop(), silenceTimeout);
+            silenceTimerRef.current = setTimeout(() => {
+                recognition.stop();
+            }, silenceTimeout);
         };
 
         recognition.onend = () => {
@@ -190,9 +204,20 @@ export function useVoice({
 
     const startListening = useCallback(async () => {
         if (status === "listening" || status === "processing") return;
-        const handled = await startBrowserSTT();
-        if (!handled && useServerTranscribe) await startMediaRecorder();
-    }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe]);
+
+        // On mobile, native browser STT is extremely flaky or lacks support for many languages
+        // We prefer MediaRecorder (Whisper/Server) for mobile, and Browser STT for Desktop (if available)
+        const preferServer = isMobileDevice || !((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+
+        if (preferServer && useServerTranscribe) {
+            await startMediaRecorder();
+        } else {
+            const handled = await startBrowserSTT();
+            if (!handled && useServerTranscribe) {
+                await startMediaRecorder();
+            }
+        }
+    }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe, isMobileDevice]);
 
     const stopListening = useCallback(() => {
         recognitionRef.current?.stop();
