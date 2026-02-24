@@ -44,7 +44,8 @@ import { DEITY_OF_CHRIST_DOCTRINE } from "@/lib/data/deity_of_christ";
 import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
 import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
 import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
-import VoiceMode from "@/components/notebook/VoiceMode";
+import VoiceInput from "@/components/notebook/VoiceInput";
+
 
 interface Source {
     id: string;
@@ -100,6 +101,8 @@ export default function NotebookWorkspace() {
     const [isDraggingToSidebar, setIsDraggingToSidebar] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isSpeakingMap, setIsSpeakingMap] = useState<Record<number, boolean>>({});
+    const [isVoiceActive, setIsVoiceActive] = useState(false);
+
     const [isAudioOverviewOpen, setIsAudioOverviewOpen] = useState(false);
     const [showScrollButton, setShowScrollButton] = useState(false);
     const [dailyManna, setDailyManna] = useState<{ date: string, message: string } | null>(null);
@@ -107,6 +110,7 @@ export default function NotebookWorkspace() {
     const [localImagePath, setLocalImagePath] = useState("");
     const [isLocalImageModalOpen, setLocalImageModalOpen] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
+
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const actionBarRef = useRef<HTMLDivElement>(null);
 
@@ -137,7 +141,7 @@ export default function NotebookWorkspace() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
     const isPlayingRef = useRef(false);
-    const [isVoiceActive, setIsVoiceActive] = useState(false);
+
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -881,9 +885,7 @@ It's now part of my collective wisdom!`
         return finalResponse;
     };
 
-    const getVoiceAIResponse = async (text: string): Promise<string> => {
-        return await handleSendMessage(text);
-    };
+
 
     const handleSummarize = async () => {
         console.log("Summarize Clicked");
@@ -1166,7 +1168,6 @@ It's now part of my collective wisdom!`
     };
 
     const handleSpeakMessage = async (text: string, index: number) => {
-        // TOGGLE LOGIC: If already speaking, STOP it.
         if (isSpeakingMap[index]) {
             if (messageAudioRefs.current[index]) {
                 messageAudioRefs.current[index].pause();
@@ -1198,17 +1199,14 @@ It's now part of my collective wisdom!`
                 audio.onerror = () => {
                     setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
                     delete messageAudioRefs.current[index];
-                    showToast("Audio playback interrupted", "error");
                 };
 
                 audio.play();
-                showToast("Streaming spiritual audio...", "success");
             } else {
                 setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
             }
         } catch (e) {
             console.error("Audio Playback Error:", e);
-            showToast("Failed to generate audio", "error");
             setIsSpeakingMap(prev => ({ ...prev, [index]: false }));
         }
     };
@@ -1221,14 +1219,11 @@ It's now part of my collective wisdom!`
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text: text.substring(0, 10000) })
             });
-
             const data = await res.json();
             if (data.audio_base64) {
                 const byteCharacters = atob(data.audio_base64);
                 const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
+                for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
                 const byteArray = new Uint8Array(byteNumbers);
                 const blob = new Blob([byteArray], { type: 'audio/mpeg' });
                 const url = URL.createObjectURL(blob);
@@ -1246,6 +1241,10 @@ It's now part of my collective wisdom!`
             showToast("Failed to save MP3", "error");
         }
     };
+
+
+
+
 
     const playAudio = () => {
         if (!audioOverview) return;
@@ -1880,6 +1879,7 @@ It's now part of my collective wisdom!`
                                                 <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
                                                     {msg.role === 'assistant' && (
                                                         <div className={`flex flex-wrap items-center gap-3 md:gap-6 px-4 mb-2 transition-opacity ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+
                                                             <button
                                                                 onClick={() => handleSpeakMessage(msg.content, i)}
                                                                 className={`flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95 ${isSpeakingMap[i] ? 'text-accent' : 'text-muted-foreground/70 hover:text-accent'}`}
@@ -1887,12 +1887,15 @@ It's now part of my collective wisdom!`
                                                                 <Volume2 size={isMobile ? 18 : 14} className={isSpeakingMap[i] ? 'animate-pulse' : ''} />
                                                                 {isSpeakingMap[i] ? 'Stop' : 'Listen'}
                                                             </button>
+
                                                             <button
                                                                 onClick={() => downloadMessageMp3(msg.content, msg.content.substring(0, 15))}
                                                                 className="text-muted-foreground/70 hover:text-accent flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95"
                                                             >
                                                                 <FileAudio size={isMobile ? 18 : 14} /> MP3
                                                             </button>
+
+
                                                             <button
                                                                 onClick={() => addNoteAtCursor(msg.content)}
                                                                 className="text-muted-foreground/70 hover:text-accent flex items-center gap-2 text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 active:scale-95"
@@ -2019,43 +2022,40 @@ It's now part of my collective wisdom!`
                                     <Plus size={22} />
                                 </button>
 
-                                {!isVoiceActive && (
-                                    <textarea
-                                        placeholder="Ask DailyMannaAI about Bible or scriptures..."
-                                        value={input}
-                                        onChange={(e) => setInput(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleSendMessage();
-                                            }
-                                        }}
-                                        className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
-                                        rows={1}
-                                    />
-                                )}
+                                <textarea
+                                    placeholder="Ask DailyMannaAI about Bible or scriptures..."
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                    className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
+                                    rows={1}
+                                />
 
 
                                 <div className="flex items-center gap-2 pr-1">
-                                    {!isVoiceActive && (
-                                        <button
-                                            onClick={() => handleSendMessage()}
-                                            disabled={!input.trim()}
-                                            className={`p-3 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-lg shadow-accent/40 hover:scale-105 active:scale-95' : 'bg-muted/10 text-muted opacity-30 cursor-not-allowed'}`}
-                                        >
-                                            {isChatting ? (
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            ) : (
-                                                <Send size={22} />
-                                            )}
-                                        </button>
-                                    )}
-                                    <VoiceMode
-                                        getAIResponse={getVoiceAIResponse}
-                                        onTranscript={(text) => setInput(text)}
-                                        onActive={(active) => setIsVoiceActive(active)}
-                                        className="voice-integration"
+                                    <VoiceInput
+                                        onTranscript={(text) => setInput(prev => (prev ? prev + " " + text : text))}
+                                        onInterimTranscript={(text) => text && setInput(prev => prev.includes("🎙️") || prev.includes("✨") ? text : prev + " " + text)}
+                                        onListeningChange={(active) => setIsVoiceActive(active)}
+                                        className="voice-input-mic"
                                     />
+                                    <button
+                                        onClick={() => handleSendMessage()}
+                                        disabled={!input.trim()}
+                                        className={`p-3 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-lg shadow-accent/40 hover:scale-105 active:scale-95' : 'bg-muted/10 text-muted opacity-30 cursor-not-allowed'}`}
+                                    >
+                                        {isChatting ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <Send size={22} />
+                                        )}
+                                    </button>
+
                                 </div>
                             </div>
 
@@ -2103,7 +2103,7 @@ It's now part of my collective wisdom!`
                         <div className="flex flex-col items-center gap-4 text-center">
                             <div>
                                 <p className="text-xs font-black uppercase tracking-widest text-accent mb-1">
-                                    {isPlaying ? (isPaused ? 'Paused' : 'Now Playing') : 'Ready to Listen'}
+                                    {isPlaying ? (isPaused ? 'Paused' : 'Now Playing') : 'Ready to Play'}
                                 </p>
                                 <p className="text-[10px] text-muted leading-tight">
                                     {isPlaying ? 'David & Sarah are discussing your research' : 'Click play to start the podcast overview'}

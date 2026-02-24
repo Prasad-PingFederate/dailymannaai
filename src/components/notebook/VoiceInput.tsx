@@ -8,8 +8,6 @@ interface VoiceInputProps {
     onListeningChange?: (isListening: boolean) => void;
     disabled?: boolean;
     className?: string;
-    size?: number;
-    language?: string;
 }
 
 export default function VoiceInput({
@@ -18,8 +16,6 @@ export default function VoiceInput({
     onListeningChange,
     disabled = false,
     className = "",
-    size = 20,
-    language = "en",
 }: VoiceInputProps) {
     const [status, setStatus] = useState<"idle" | "ready" | "recording" | "transcribing">("idle");
     const [audioLevel, setAudioLevel] = useState(0);
@@ -32,7 +28,6 @@ export default function VoiceInput({
     const analyserRef = useRef<AnalyserNode | null>(null);
     const animFrameRef = useRef<number>(0);
 
-    // Initial check for mic support
     useEffect(() => {
         if (typeof window !== "undefined" && navigator.mediaDevices) setStatus("ready");
     }, []);
@@ -61,7 +56,6 @@ export default function VoiceInput({
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             streamRef.current = stream;
 
-            // Visualizer
             const source = ctx.createMediaStreamSource(stream);
             const analyser = ctx.createAnalyser();
             analyser.fftSize = 256;
@@ -79,7 +73,6 @@ export default function VoiceInput({
             };
             updateLevel();
 
-            // Recorder - Use simple webm for broad support
             const recorder = new MediaRecorder(stream);
             mediaRecorderRef.current = recorder;
 
@@ -92,10 +85,9 @@ export default function VoiceInput({
                 streamRef.current?.getTracks().forEach(t => t.stop());
 
                 const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-                console.log(`[Voice] Stopped. Blob size: ${audioBlob.size}, mime: ${recorder.mimeType}`);
 
                 if (audioBlob.size < 500) {
-                    setError("I didn't hear clear speech. Try speaking louder.");
+                    setError("I didn't hear clear speech.");
                     setStatus("ready");
                     onListeningChange?.(false);
                     return;
@@ -107,28 +99,18 @@ export default function VoiceInput({
                 try {
                     const fd = new FormData();
                     fd.append("audio", audioBlob);
-                    fd.append("language", language);
 
-                    console.log("[Voice] Calling transcription API...");
                     const res = await fetch("/api/transcribe", { method: "POST", body: fd });
-                    console.log("[Voice] Server response status:", res.status);
-
-                    if (!res.ok) {
-                        const errData = await res.json().catch(() => ({ error: "Server error" }));
-                        throw new Error(errData.error || `HTTP ${res.status}`);
-                    }
+                    if (!res.ok) throw new Error("Server error");
 
                     const data = await res.json();
                     if (data.text) {
-                        console.log("[Voice] Transcription successful:", data.text);
                         onTranscript(data.text);
                     } else {
-                        console.warn("[Voice] Empty response from server.");
-                        setError("Could not understand your voice. Try again.");
+                        setError("Could not understand your voice.");
                     }
                 } catch (e: any) {
-                    console.error("[Voice] Transcription failed:", e);
-                    setError(`Sync Error: ${e.message}`);
+                    setError("Sync Error: " + e.message);
                 } finally {
                     setStatus("ready");
                     onListeningChange?.(false);
@@ -142,7 +124,6 @@ export default function VoiceInput({
             onInterimTranscript?.("🎙️ I am listening...");
 
         } catch (e: any) {
-            console.error("[Voice] Start error:", e);
             setError("Could not access microphone.");
         }
     };
@@ -155,9 +136,9 @@ export default function VoiceInput({
                 type="button"
                 onMouseDown={() => initAudio()}
                 onClick={() => status === "recording" ? stopRecording() : startRecording()}
-                disabled={status === "transcribing"}
+                disabled={status === "transcribing" || disabled}
                 className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${status === "recording" ? 'bg-red-500 scale-110 shadow-lg shadow-red-500/40' : 'bg-accent/10 border border-accent/20 text-accent hover:bg-accent hover:text-white'}`}
-                title={status === "recording" ? "Stop Recording" : "Start Voice Input"}
+                title={status === "recording" ? "Stop Recording" : "Voice Input"}
             >
                 {status === "transcribing" ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -167,7 +148,6 @@ export default function VoiceInput({
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
                 )}
 
-                {/* Level Pulse Ring */}
                 {status === "recording" && (
                     <div
                         className="absolute inset-0 rounded-full border-4 border-red-500/30 transition-transform duration-75 pointer-events-none"

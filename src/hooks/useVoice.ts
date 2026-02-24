@@ -22,23 +22,22 @@ export function useVoice({
     useServerTranscribe = true,
     onTranscriptionComplete,
 }: UseVoiceOptions = {}) {
-    // Detect mobile to prefer server-side transcription (Whisper is much better on mobile than flaky browser STT)
-    const [isMobileDevice, setIsMobileDevice] = useState(false);
     const [isFirefox, setIsFirefox] = useState(false);
 
     useEffect(() => {
         const ua = navigator.userAgent;
-        setIsMobileDevice(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua));
         setIsFirefox(ua.toLowerCase().includes("firefox"));
     }, []);
+
     const [status, setStatus] = useState<VoiceStatus>("idle");
     const statusRef = useRef<VoiceStatus>("idle");
     const syncStatus = (s: VoiceStatus) => {
         setStatus(s);
         statusRef.current = s;
     };
+
     const [transcript, setTranscript] = useState("");
-    const [isLive, setIsLive] = useState(true); // True for Browser STT, False for MediaRecorder fallback
+    const [isLive, setIsLive] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const isTranscribingRef = useRef(false);
     const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
@@ -54,7 +53,6 @@ export function useVoice({
     const chunksRef = useRef<Blob[]>([]);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // ─── Cleanup ──────────────────────────────────────────────────────────────
     const cleanupAudio = useCallback(() => {
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -69,7 +67,6 @@ export function useVoice({
         }
     }, []);
 
-    // ─── Analyser for waveform visualizer ────────────────────────────────────
     const setupAnalyser = useCallback(async (stream: MediaStream) => {
         try {
             const AC = window.AudioContext || (window as any).webkitAudioContext;
@@ -82,11 +79,10 @@ export function useVoice({
             src.connect(analyser);
             setAnalyserNode(analyser);
         } catch (e) {
-            console.warn("[Voice] Analyser setup failed (non-fatal):", e);
+            console.warn("[Voice] Analyser setup failed:", e);
         }
     }, []);
 
-    // ─── Server-side Whisper transcription ───────────────────────────────────
     const transcribeWithServer = useCallback(
         async (audioBlob: Blob): Promise<string | null> => {
             try {
@@ -100,23 +96,16 @@ export function useVoice({
                     body: formData,
                 });
 
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    console.error("[Voice] Server transcription error:", err);
-                    return null;
-                }
-
+                if (!res.ok) return null;
                 const data = await res.json();
                 return (data.text ?? data.transcript ?? "").trim() || null;
             } catch (e) {
-                console.error("[Voice] Server transcription failed:", e);
                 return null;
             }
         },
         [language]
     );
 
-    // ─── METHOD 1: Browser Web Speech API ────────────────────────────────────
     const startBrowserSTT = useCallback(async () => {
         setError(null);
         setTranscript("");
@@ -130,10 +119,9 @@ export function useVoice({
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (e: any) {
-            console.error("[Voice] Mic access error:", e);
-            setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
+            setError("Could not access microphone.");
             syncStatus("error");
-            return false; // Return false so startListening can try Method 2
+            return false;
         }
 
         streamRef.current = micStream;
@@ -152,51 +140,30 @@ export function useVoice({
         recognition.onresult = (e: any) => {
             let sessionFinal = "";
             let sessionInterim = "";
-
             for (let i = 0; i < e.results.length; i++) {
                 const text = e.results[i][0].transcript;
-                if (e.results[i].isFinal) {
-                    sessionFinal += text + " ";
-                } else {
-                    sessionInterim += text;
-                }
+                if (e.results[i].isFinal) sessionFinal += text + " ";
+                else sessionInterim += text;
             }
-
             lastSessionFinalTextRef.current = sessionFinal;
             const fullText = (accumulatedTranscriptRef.current + " " + sessionFinal + sessionInterim).trim();
             if (fullText) setTranscript(fullText);
         };
-
         recognition.onend = () => {
-            // Before potential restart, archive the finalized text from this session
             accumulatedTranscriptRef.current = (accumulatedTranscriptRef.current + " " + lastSessionFinalTextRef.current).trim();
             lastSessionFinalTextRef.current = "";
-
-            // AUTO-RESTART: If the app still thinks it's listening, restart the engine
-            // This survives browser-enforced silence timeouts.
             if (statusRef.current === "listening" && recognitionRef.current) {
-                try {
-                    recognitionRef.current.start();
-                } catch (err) {
-                    cleanupAudio();
-                    syncStatus("idle");
-                }
+                try { recognitionRef.current.start(); } catch { cleanupAudio(); syncStatus("idle"); }
             } else {
                 cleanupAudio();
                 syncStatus("idle");
             }
         };
-
-        recognition.onerror = () => {
-            cleanupAudio();
-            syncStatus("error");
-        };
-
+        recognition.onerror = () => { cleanupAudio(); syncStatus("error"); };
         recognition.start();
         return true;
-    }, [language, setupAnalyser, silenceTimeout]);
+    }, [language, setupAnalyser]);
 
-    // ─── METHOD 2: MediaRecorder + Server Whisper ────────────────────────────
     const startMediaRecorder = useCallback(async () => {
         setError(null);
         setTranscript("");
@@ -205,7 +172,7 @@ export function useVoice({
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (e: any) {
-            setError(e?.name === "NotAllowedError" ? "Microphone access denied. Please allow mic in browser settings." : "Could not access microphone.");
+            setError("Could not access microphone.");
             syncStatus("error");
             return;
         }
@@ -224,7 +191,7 @@ export function useVoice({
             const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
             chunksRef.current = [];
             if (blob.size < 500) {
-                setError("No audio captured. Please speak clearly.");
+                setError("No audio captured.");
                 syncStatus("error");
                 return;
             }
@@ -237,7 +204,7 @@ export function useVoice({
                 onTranscriptionComplete?.(text);
                 syncStatus("idle");
             } else {
-                setError("Transcription failed. Please try again.");
+                setError("Transcription failed.");
                 syncStatus("error");
             }
             isTranscribingRef.current = false;
@@ -246,26 +213,17 @@ export function useVoice({
         recorder.start(250);
         setStatus("listening");
         setIsLive(false);
-        // Increased timeout to 2 minutes to ensure it waits for manual "Tick" click
         silenceTimerRef.current = setTimeout(() => { if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop(); }, 120000);
-    }, [setupAnalyser, cleanupAudio, transcribeWithServer]);
+    }, [setupAnalyser, cleanupAudio, transcribeWithServer, onTranscriptionComplete]);
 
     const startListening = useCallback(async () => {
         if (status === "listening" || status === "processing") return;
-
-        // Use Server-side MediaRecorder + Whisper for 100% accuracy and no cutoffs
-        // This is the "MP3 to text" model requested by the user.
         if (useServerTranscribe) {
             await startMediaRecorder();
         } else {
-            // Fallback to native only if server-side is explicitly disabled
             const hasNative = !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-            if (hasNative && !isFirefox) {
-                await startBrowserSTT();
-            } else {
-                setError("Voice logic not supported or API disabled.");
-                syncStatus("error");
-            }
+            if (hasNative && !isFirefox) await startBrowserSTT();
+            else { syncStatus("error"); }
         }
     }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe, isFirefox]);
 
@@ -277,106 +235,37 @@ export function useVoice({
             syncStatus("idle");
             return;
         }
-
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
             syncStatus("processing");
             mediaRecorderRef.current.stop();
-            // We do NOT call cleanupAudio here; the onstop handler does it
-            // after the blob is processed to avoid cutting off the end.
-        }
-        else {
+        } else {
             cleanupAudio();
             syncStatus("idle");
         }
     }, [cleanupAudio]);
 
-    // ─── TTS ─────────────────────────────────────────────────────────────────
     const speak = useCallback(async (text: string): Promise<void> => {
         if (!text.trim()) return;
         syncStatus("speaking");
-        setIsPaused(false);
-
-        try {
-            const res = await fetch("/api/synthesize", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text }),
-            });
-            if (!res.ok) throw new Error("Server TTS failed");
-
+        const res = await fetch("/api/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+        if (res.ok) {
             const audioBlob = await res.blob();
             const url = URL.createObjectURL(audioBlob);
             const audio = new Audio(url);
             audioRef.current = audio;
-
             return new Promise((resolve) => {
-                audio.onended = () => {
-                    URL.revokeObjectURL(url);
-                    audioRef.current = null;
-                    syncStatus("idle");
-                    resolve();
-                };
-                audio.onerror = () => {
-                    URL.revokeObjectURL(url);
-                    audioRef.current = null;
-                    speakWithBrowser(text).then(resolve);
-                };
-                audio.play().catch(() => speakWithBrowser(text).then(resolve));
+                audio.onended = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
+                audio.onerror = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
+                audio.play();
             });
-        } catch (e) {
-            await speakWithBrowser(text);
-            syncStatus("idle");
-        }
-    }, []);
-
-    const speakWithBrowser = (text: string): Promise<void> => {
-        return new Promise((resolve) => {
-            if (!window.speechSynthesis) return resolve();
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => resolve();
-            utterance.onerror = () => resolve();
-            window.speechSynthesis.speak(utterance);
-        });
-    };
-
-    const pauseSpeech = useCallback(() => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            setIsPaused(true);
-        } else if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.pause();
-            setIsPaused(true);
-        }
-    }, []);
-
-    const resumeSpeech = useCallback(() => {
-        if (audioRef.current) {
-            audioRef.current.play();
-            setIsPaused(false);
-        } else if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-            setIsPaused(false);
         }
     }, []);
 
     const cancelSpeech = useCallback(() => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
-        }
+        if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
         window.speechSynthesis?.cancel();
         syncStatus("idle");
-        setIsPaused(false);
     }, []);
-
-    useEffect(() => {
-        return () => {
-            cleanupAudio();
-            if (audioRef.current) audioRef.current.pause();
-            window.speechSynthesis?.cancel();
-        };
-    }, [cleanupAudio]);
 
     return {
         status,
@@ -388,8 +277,6 @@ export function useVoice({
         startListening,
         stopListening,
         speak,
-        pauseSpeech,
-        resumeSpeech,
         cancelSpeech,
     };
 }
