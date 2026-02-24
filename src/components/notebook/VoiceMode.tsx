@@ -184,10 +184,18 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
 
     const handleConfirm = useCallback(async () => {
         if (isLive && transcript.trim()) {
+            // ✅ Snapshot BEFORE stopListening() can potentially reset state
+            const snapshotText = transcript.trim();
+            transcriptRef.current = snapshotText; // Pin ref immediately
+
             await stopListening();
+
             // ✅ Wait briefly for browser STT to fire its final onresult
             setTimeout(() => {
-                processSubmission(transcriptRef.current || transcript);
+                // transcriptRef.current might have updated with more words during the 400ms period
+                // Fall back to snapshot if ref was wiped or is empty
+                const finalText = transcriptRef.current?.trim() || snapshotText;
+                processSubmission(finalText);
             }, 400);
         } else {
             // Fallback (Firefox): wait for onTranscriptionComplete
