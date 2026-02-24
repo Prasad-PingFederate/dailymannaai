@@ -11,14 +11,16 @@ export type VoiceStatus =
 
 interface UseVoiceOptions {
     language?: string;
+    useServerTranscribe?: boolean;
     silenceTimeout?: number;
-    useServerTranscribe?: boolean; // try server Whisper, fall back to browser if it fails
+    onTranscriptionComplete?: (text: string) => void;
 }
 
 export function useVoice({
     language = "en-US",
     silenceTimeout = 3000,
     useServerTranscribe = true,
+    onTranscriptionComplete,
 }: UseVoiceOptions = {}) {
     // Detect mobile to prefer server-side transcription (Whisper is much better on mobile than flaky browser STT)
     const [isMobileDevice, setIsMobileDevice] = useState(false);
@@ -31,8 +33,9 @@ export function useVoice({
     }, []);
     const [status, setStatus] = useState<VoiceStatus>("idle");
     const [transcript, setTranscript] = useState("");
-    const [isLive, setIsLive] = useState(false); // True for Browser STT, False for MediaRecorder fallback
+    const [isLive, setIsLive] = useState(true); // True for Browser STT, False for MediaRecorder fallback
     const [error, setError] = useState<string | null>(null);
+    const isTranscribingRef = useRef(false);
     const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
     const [isPaused, setIsPaused] = useState(false);
 
@@ -204,14 +207,19 @@ export function useVoice({
                 setStatus("error");
                 return;
             }
+            if (isTranscribingRef.current) return;
+            isTranscribingRef.current = true;
+
             const text = await transcribeWithServer(blob);
             if (text) {
                 setTranscript(text);
+                onTranscriptionComplete?.(text);
                 setStatus("idle");
             } else {
                 setError("Transcription failed. Please try again.");
                 setStatus("error");
             }
+            isTranscribingRef.current = false;
         };
 
         recorder.start(250);

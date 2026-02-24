@@ -78,8 +78,10 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const [phase, setPhase] = useState<VoicePhase>("idle");
     const [error, setError] = useState("");
     const submissionIdRef = useRef<string | null>(null);
-    const isSubmittingRef = useRef(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const isCancelledRef = useRef(false);
+
+    const onTranscriptRef = useRef<(text: string) => void>();
 
     const {
         status,
@@ -88,18 +90,58 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         error: voiceError,
         startListening,
         stopListening,
-        speak,
+        speak: speakAudio,
         cancelSpeech,
-    } = useVoice({ language });
+    } = useVoice({
+        language,
+        onTranscriptionComplete: (text) => onTranscriptRef.current?.(text)
+    });
 
+    const processSubmission = useCallback(async (text: string) => {
+        if (!text.trim() || isSubmitting || isCancelledRef.current) return;
+
+        setIsSubmitting(true);
+        setPhase("processing");
+        onTranscript?.(text.trim());
+
+        try {
+            const response = await getAIResponse(text.trim());
+            if (!isCancelledRef.current) {
+                onAIResponse?.(response);
+                setPhase("idle");
+                await speakAudio(response);
+            }
+        } catch (err) {
+            setError("Failed to get answer.");
+            setPhase("idle");
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [getAIResponse, onTranscript, onAIResponse, speakAudio, isSubmitting]);
+
+    useEffect(() => {
+        onTranscriptRef.current = (text) => {
+            if (phase === "recording" || phase === "processing") {
+                processSubmission(text);
+            }
+        };
+    }, [phase, processSubmission]);
+
+
+    // Handle standard browser recognition completion (Chrome/Safari)
+    useEffect(() => {
+        if (isLive && status === "idle" && phase === "processing" && transcript && !isSubmitting) {
+            processSubmission(transcript);
+        }
+    }, [isLive, status, phase, transcript, isSubmitting, processSubmission]);
 
     // Sync phase - STAY in recording phase until manual confirm/cancel
     useEffect(() => {
-        if (phase === "processing") return;
+        if (phase === "processing" || isSubmitting) return;
         if (status === "listening") setPhase("recording");
-        // We do NOT set idle here if status becomes idle naturally. 
+        // We do NOT set idle here if status becomes idle naturally.
         // We wait for user action.
-    }, [status, phase]);
+    }, [status, phase, isSubmitting]);
 
     useEffect(() => {
         onActive?.(phase !== "idle");
@@ -114,7 +156,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const handleStart = useCallback(() => {
         setError("");
         isCancelledRef.current = false;
-        isSubmittingRef.current = false;
+        setIsSubmitting(false);
         submissionIdRef.current = null;
         startListening();
         setPhase("recording");
@@ -128,69 +170,27 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     }, [stopListening, cancelSpeech]);
 
     const handleConfirm = useCallback(async () => {
-        setPhase("processing");
-        await stopListening();
-    }, [stopListening]);
-
-    // Submission logic that waits for transcription (especially important for fallback mode)
-    useEffect(() => {
-        if (phase === "processing" && transcript.trim() && !isCancelledRef.current) {
-            // CRITICAL: Double-lock to prevent multiple submissions
-            if (isSubmittingRef.current) return;
-            if (submissionIdRef.current === transcript.trim()) return;
-
-            isSubmittingRef.current = true;
-            submissionIdRef.current = transcript.trim();
-
-            const submit = async () => {
-                const textToSubmit = transcript.trim();
-                onTranscript?.(textToSubmit);
-                try {
-                    const response = await getAIResponse(textToSubmit);
-                    if (isCancelledRef.current) {
-                        setPhase("idle");
-                        isSubmittingRef.current = false;
-                        submissionIdRef.current = null;
-                        return;
-                    }
-                    onAIResponse?.(response);
-                    setPhase("idle");
-                    isSubmittingRef.current = false;
-                    submissionIdRef.current = null;
-                    await speak(response);
-                } catch (err) {
-                    setError("Failed to get answer.");
-                    setPhase("idle");
-                    isSubmittingRef.current = false;
-                    submissionIdRef.current = null;
-                }
-            };
-            submit();
-        } else if (phase === "processing" && !transcript.trim() && status === "idle") {
-            if (!isCancelledRef.current) {
-                handleCancel();
-            }
-        } else if (phase === "processing" && status === "error") {
-            setPhase("idle");
-            isSubmittingRef.current = false;
-            submissionIdRef.current = null;
+        if (isLive && transcript.trim()) {
+            // If we already have the text (Chrome), submit immediately
+            await stopListening();
+            processSubmission(transcript);
+        } else {
+            // Fallback (Firefox): wait for onTranscriptionComplete
+            setPhase("processing");
+            await stopListening();
         }
-    }, [phase, transcript, status, getAIResponse, onTranscript, onAIResponse, speak, handleCancel]);
+    }, [isLive, transcript, stopListening, processSubmission]);
 
     // ── Keyboard Shortcuts ───────────────────────────────────────────────────
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-            if (e.code === "Space" && phase === "idle") {
+            if (e.code === "Space" && phase === "idle" && document.activeElement?.tagName !== "TEXTAREA") {
                 e.preventDefault();
                 handleStart();
-            }
-            if (e.code === "Enter" && phase === "recording") {
+            } else if (e.key === "Enter" && phase === "recording") {
                 e.preventDefault();
                 handleConfirm();
-            }
-            if (e.code === "Escape" && phase === "recording") {
+            } else if (e.key === "Escape" && phase !== "idle") {
                 handleCancel();
             }
         };
