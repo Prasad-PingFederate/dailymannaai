@@ -658,7 +658,7 @@ It's now part of my collective wisdom!`
         setSuggestions([]); // Clear previous suggestions
         setIsChatting(true);
 
-        const currentHistory = [...messages];
+        const currentHistory = [...messages, userMessage];
 
         // 🧪 INSTANT FEEDBACK: Add a "Ghost" assistant message immediately
         setMessages(prev => [...prev, {
@@ -764,45 +764,41 @@ It's now part of my collective wisdom!`
                 const thoughtEndRegex = /<\/(THOUGHT|THUGHT|THOHT)>/i;
                 const responseStartRegex = /### RESPONSE START ###/i;
 
-                const hasThoughtStart = thoughtStartRegex.test(fullText);
-                const hasThoughtEnd = thoughtEndRegex.test(fullText);
-                const hasResponseStart = responseStartRegex.test(fullText);
+                const tStartMatch = fullText.match(thoughtStartRegex);
+                const tEndMatch = fullText.match(thoughtEndRegex);
+                const rStartMatch = fullText.match(responseStartRegex);
 
-                if (hasThoughtEnd) {
-                    // Case A: Ending tag found
-                    const contentParts = fullText.split(thoughtEndRegex);
-                    // contentParts[1] is the tag match, contentParts[2] is text after tag
-                    currentThought = (contentParts[0] || "").replace(thoughtStartRegex, "").trim();
-                    currentContent = (contentParts[2] || "").trim();
-                    stillThinking = false;
-                    thinkingPhase = "Reasoning complete.";
-
-                    // Strip ### RESPONSE START ### if present in the answer part
-                    if (responseStartRegex.test(currentContent)) {
-                        currentContent = currentContent.split(responseStartRegex).pop()?.trim() || currentContent;
-                    }
-                } else if (hasThoughtStart) {
-                    // Case B: Opening tag found but not closed yet
-                    const tParts = fullText.split(thoughtStartRegex);
-                    currentThought = tParts[1] || "";
-                    currentContent = ""; // Hide content while thinking
-                    stillThinking = true;
-
-                    // Dynamic Phase Display
-                    if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
-                    else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
-                    else thinkingPhase = "Searching truth archives...";
-                } else if (hasResponseStart) {
-                    // Case C: No thought tags at all, but RESPONSE START found
-                    const contentParts = fullText.split(responseStartRegex);
-                    currentContent = contentParts[1] || "";
-                    stillThinking = false;
-                } else {
-                    // Case D: No delimiters yet — check if we're still receiving thinking
-                    if (fullText.length < 50) {
+                if (tStartMatch) {
+                    const startIndex = tStartMatch.index! + tStartMatch[0].length;
+                    if (tEndMatch) {
+                        const endIndex = tEndMatch.index!;
+                        currentThought = fullText.substring(startIndex, endIndex);
+                        currentContent = fullText.substring(endIndex + tEndMatch[0].length);
+                        stillThinking = false;
+                        thinkingPhase = "Reasoning complete.";
+                    } else {
+                        currentThought = fullText.substring(startIndex);
                         currentContent = "";
                         stillThinking = true;
-                        thinkingPhase = "Searching truth archives...";
+
+                        // Dynamic Phase Display
+                        if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
+                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
+                        else thinkingPhase = "Searching truth archives...";
+                    }
+                } else if (rStartMatch) {
+                    currentContent = fullText.substring(rStartMatch.index! + rStartMatch[0].length);
+                    stillThinking = false;
+                    thinkingPhase = "Response generated.";
+                } else {
+                    // No delimiters yet — if text is short, assume it might be starting to think
+                    if (fullText.length < 100 && fullText.includes("<")) {
+                        currentContent = "";
+                        stillThinking = true;
+                        thinkingPhase = "Initializing search...";
+                    } else {
+                        currentContent = fullText;
+                        stillThinking = false;
                     }
                 }
 
