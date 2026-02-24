@@ -140,23 +140,33 @@ export function useVoice({
             setStatus("listening");
             setIsLive(true);
         };
+        let finalTranscriptBucket = "";
         recognition.onresult = (e: any) => {
-            const currentTranscript = Array.from(e.results)
-                .map((res: any) => res[0].transcript)
-                .join("");
-            if (currentTranscript) setTranscript(currentTranscript.trim());
+            let interimTranscriptBucket = "";
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                const transcriptFragment = e.results[i][0].transcript;
+                if (e.results[i].isFinal) {
+                    finalTranscriptBucket += transcriptFragment + " ";
+                } else {
+                    interimTranscriptBucket += transcriptFragment;
+                }
+            }
+            const fullText = (finalTranscriptBucket + interimTranscriptBucket).trim();
+            if (fullText) setTranscript(fullText);
         };
-        // AUTO-STOP DISABLED: We wait for the user to click the Tick mark manually.
-        /*
-        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = setTimeout(() => {
-            recognition.stop();
-        }, silenceTimeout);
-        */
 
         recognition.onend = () => {
-            cleanupAudio();
-            setStatus("idle");
+            if (status === "listening" && recognitionRef.current) {
+                try {
+                    recognitionRef.current.start();
+                } catch (err) {
+                    cleanupAudio();
+                    setStatus("idle");
+                }
+            } else {
+                cleanupAudio();
+                setStatus("idle");
+            }
         };
 
         recognition.onerror = () => {

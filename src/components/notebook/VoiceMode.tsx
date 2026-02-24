@@ -143,6 +143,13 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         // We wait for user action.
     }, [status, phase, isSubmitting]);
 
+    // Update main input live as the user speaks
+    useEffect(() => {
+        if (phase === "recording" && transcript.trim()) {
+            onTranscript?.(transcript.trim());
+        }
+    }, [phase, transcript, onTranscript]);
+
     useEffect(() => {
         onActive?.(phase !== "idle");
     }, [phase, onActive]);
