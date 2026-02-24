@@ -142,10 +142,13 @@ export function useVoice({
             const currentTranscript = finalText || interimText;
             if (currentTranscript) setTranscript(currentTranscript);
 
+            // AUTO-STOP DISABLED: We wait for the user to click the Tick mark manually.
+            /*
             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = setTimeout(() => {
                 recognition.stop();
             }, silenceTimeout);
+            */
         };
 
         recognition.onend = () => {
@@ -205,7 +208,8 @@ export function useVoice({
 
         recorder.start(250);
         setStatus("listening");
-        silenceTimerRef.current = setTimeout(() => { if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop(); }, 30000);
+        // Increased timeout to 2 minutes to ensure it waits for manual "Tick" click
+        silenceTimerRef.current = setTimeout(() => { if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop(); }, 120000);
     }, [setupAnalyser, cleanupAudio, transcribeWithServer]);
 
     const startListening = useCallback(async () => {
