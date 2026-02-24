@@ -200,6 +200,13 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     useEffect(() => {
         if (!transcript || transcript === processedTranscriptRef.current) return;
 
+        // If the user manually clicked STOP, don't send this transcript
+        if (isCancelledRef.current) {
+            console.log("[Voice] Transcript blocked due to manual stop.");
+            processedTranscriptRef.current = transcript; // Sync so we don't re-trigger
+            return;
+        }
+
         isCancelledRef.current = false;
         processedTranscriptRef.current = transcript;
         onTranscript?.(transcript);
