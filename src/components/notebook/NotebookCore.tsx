@@ -44,7 +44,6 @@ import { DEITY_OF_CHRIST_DOCTRINE } from "@/lib/data/deity_of_christ";
 import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
 import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
 import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
-import VoiceInput from "@/components/notebook/VoiceInput";
 import VoiceMode from "@/components/notebook/VoiceMode";
 
 interface Source {
