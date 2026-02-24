@@ -79,6 +79,7 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     const {
         status,
         transcript,
+        isLive,
         error: voiceError,
         startListening,
         stopListening,
@@ -119,33 +120,37 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
     }, [stopListening, cancelSpeech]);
 
     const handleConfirm = useCallback(async () => {
-        stopListening();
         setPhase("processing");
+        await stopListening();
+    }, [stopListening]);
 
-        const textToSubmit = transcript.trim();
-        if (!textToSubmit) {
-            handleCancel();
-            return;
-        }
-
-        onTranscript?.(textToSubmit);
-
-        try {
-            const response = await getAIResponse(textToSubmit);
-            if (isCancelledRef.current) {
-                setPhase("idle");
-                return;
+    // Submission logic that waits for transcription (especially important for fallback mode)
+    useEffect(() => {
+        if (phase === "processing" && transcript.trim() && !isCancelledRef.current) {
+            const submit = async () => {
+                const textToSubmit = transcript.trim();
+                onTranscript?.(textToSubmit);
+                try {
+                    const response = await getAIResponse(textToSubmit);
+                    if (isCancelledRef.current) {
+                        setPhase("idle");
+                        return;
+                    }
+                    onAIResponse?.(response);
+                    setPhase("idle");
+                    await speak(response);
+                } catch (err) {
+                    setError("Failed to get answer.");
+                    setPhase("idle");
+                }
+            };
+            submit();
+        } else if (phase === "processing" && !transcript.trim() && status === "idle") {
+            if (!isCancelledRef.current) {
+                handleCancel();
             }
-
-            onAIResponse?.(response);
-            setPhase("idle");
-            await speak(response);
-        } catch (err) {
-            console.error("Voice AI Error:", err);
-            setError("Failed to get answer.");
-            setPhase("idle");
         }
-    }, [transcript, stopListening, getAIResponse, onTranscript, onAIResponse, speak, handleCancel]);
+    }, [phase, transcript, status, getAIResponse, onTranscript, onAIResponse, speak, handleCancel]);
 
     // ── Keyboard Shortcuts ───────────────────────────────────────────────────
     useEffect(() => {
@@ -210,9 +215,9 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
                         </div>
 
                         <button
-                            className={`${styles.confirmBtn} ${!transcript ? styles.disabled : ""}`}
+                            className={`${styles.confirmBtn} ${(isLive && !transcript) ? styles.disabled : ""}`}
                             onClick={handleConfirm}
-                            disabled={!transcript}
+                            disabled={isLive && !transcript}
                             title="Confirm (Enter)"
                         >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

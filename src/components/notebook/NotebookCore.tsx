@@ -805,7 +805,8 @@ It's now part of my collective wisdom!`
                 // Clean content of remaining markers/leaks
                 currentContent = currentContent.replace(/### RESPONSE START ###/i, "").trim();
                 currentContent = currentContent.split(/---S[UG]*ESTIONS---/i)[0].trim();
-                currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, "").trim();
+                currentContent = currentContent.replace(/\*?\[METADATA:[^\]]*\]\*?/gi, "").trim();
+                currentContent = currentContent.replace(/\[METADATA:/gi, "").trim(); // Catch partials
 
                 // Nuclear option for leftover tags: remove anything like <...> involving THOUGHT/THUGHT/THOHT
                 currentContent = currentContent.replace(/<\/?(THOUGHT|THUGHT|THOHT)>/gi, "").trim();

@@ -28,6 +28,7 @@ export function useVoice({
     }, []);
     const [status, setStatus] = useState<VoiceStatus>("idle");
     const [transcript, setTranscript] = useState("");
+    const [isLive, setIsLive] = useState(false); // True for Browser STT, False for MediaRecorder fallback
     const [error, setError] = useState<string | null>(null);
     const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
     const [isPaused, setIsPaused] = useState(false);
@@ -129,7 +130,10 @@ export function useVoice({
         recognition.interimResults = true;
         recognition.continuous = true;
 
-        recognition.onstart = () => setStatus("listening");
+        recognition.onstart = () => {
+            setStatus("listening");
+            setIsLive(true);
+        };
         recognition.onresult = (e: any) => {
             let finalText = "";
             let interimText = "";
@@ -208,6 +212,7 @@ export function useVoice({
 
         recorder.start(250);
         setStatus("listening");
+        setIsLive(false);
         // Increased timeout to 2 minutes to ensure it waits for manual "Tick" click
         silenceTimerRef.current = setTimeout(() => { if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop(); }, 120000);
     }, [setupAnalyser, cleanupAudio, transcribeWithServer]);
@@ -229,14 +234,34 @@ export function useVoice({
         }
     }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe, isMobileDevice]);
 
-    const stopListening = useCallback(() => {
-        recognitionRef.current?.stop();
-        recognitionRef.current = null;
-        if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-        mediaRecorderRef.current = null;
+    const stopListening = useCallback(async (): Promise<string> => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
+        }
+
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            const resultPromise = new Promise<string>((resolve) => {
+                if (!mediaRecorderRef.current) return resolve("");
+                const originalOnStop = mediaRecorderRef.current.onstop;
+                mediaRecorderRef.current.onstop = async (e) => {
+                    if (originalOnStop) await (originalOnStop as any).call(mediaRecorderRef.current, e);
+                    // The transcript should be updated by now in the original onstop
+                    // But to be safe, we poll for a bit or just look at the state
+                    resolve(""); // The state update will trigger in the component
+                };
+            });
+            mediaRecorderRef.current.stop();
+            mediaRecorderRef.current = null;
+            cleanupAudio();
+            setTimeout(() => setStatus("idle"), 10);
+            return ""; // Component will react to transcript change
+        }
+
         cleanupAudio();
         setTimeout(() => setStatus("idle"), 10);
-    }, [cleanupAudio]);
+        return transcript;
+    }, [cleanupAudio, transcript]);
 
     // ─── TTS ─────────────────────────────────────────────────────────────────
     const speak = useCallback(async (text: string): Promise<void> => {
@@ -329,6 +354,7 @@ export function useVoice({
     return {
         status,
         transcript,
+        isLive,
         error,
         analyserNode,
         isPaused,
