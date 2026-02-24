@@ -141,25 +141,18 @@ export function useVoice({
             setIsLive(true);
         };
         recognition.onresult = (e: any) => {
-            let finalText = "";
-            let interimText = "";
-            for (let i = 0; i < e.results.length; i++) {
-                if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
-                else interimText += e.results[i][0].transcript;
-            }
-
-            // Update state so UI can show it
-            const currentTranscript = finalText || interimText;
-            if (currentTranscript) setTranscript(currentTranscript);
-
-            // AUTO-STOP DISABLED: We wait for the user to click the Tick mark manually.
-            /*
-            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = setTimeout(() => {
-                recognition.stop();
-            }, silenceTimeout);
-            */
+            const currentTranscript = Array.from(e.results)
+                .map((res: any) => res[0].transcript)
+                .join("");
+            if (currentTranscript) setTranscript(currentTranscript.trim());
         };
+        // AUTO-STOP DISABLED: We wait for the user to click the Tick mark manually.
+        /*
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+            recognition.stop();
+        }, silenceTimeout);
+        */
 
         recognition.onend = () => {
             cleanupAudio();

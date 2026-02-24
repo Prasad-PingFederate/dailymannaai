@@ -202,11 +202,11 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         <div className={`${styles.voiceWrapper} ${className} ${phase !== "idle" ? styles.isActive : ""}`}>
 
             {/* Recording Transcript Preview (Top Float) */}
-            {phase === "recording" && (
+            {(phase === "recording" || phase === "processing") && (
                 <div className={styles.transcriptPreview}>
                     <p className={styles.liveLabel}>
                         <span className={styles.pulseDot}></span>
-                        {isLive ? "Listening..." : "Capturing audio..."}
+                        {phase === "processing" ? "Finalized Transcript" : (isLive ? "Listening..." : "Capturing audio...")}
                     </p>
                     {transcript ? (
                         <p className={styles.transcriptText}>{transcript}</p>
