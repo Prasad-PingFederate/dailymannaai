@@ -92,8 +92,6 @@ export const VoiceMode: React.FC<VoiceModeProps> = ({
         cancelSpeech,
     } = useVoice({ language });
 
-    const processedTranscriptRef = useRef("");
-    const isCancelledRef = useRef(false);
 
     // Sync phase - STAY in recording phase until manual confirm/cancel
     useEffect(() => {
