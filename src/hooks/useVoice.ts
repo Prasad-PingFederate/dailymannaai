@@ -224,23 +224,25 @@ export function useVoice({
     const startListening = useCallback(async () => {
         if (status === "listening" || status === "processing") return;
 
-        const ua = navigator.userAgent;
-        const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor);
-        const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
-        const isFirefox = /Firefox/.test(ua);
+        // Detect native support
+        const hasNative = !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
-        // Force Server-side for anything not Chrome, or if it's mobile
-        const preferServer = isMobileDevice || isSafari || isFirefox || !((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+        // Firefox Desktop usually has no native recognition support enabled by default
+        // Chrome and Safari (including Mobile) DO support it.
+        const useNative = hasNative && !isFirefox;
 
-        if (preferServer && useServerTranscribe) {
-            await startMediaRecorder();
-        } else {
+        if (useNative) {
             const handled = await startBrowserSTT();
             if (!handled && useServerTranscribe) {
                 await startMediaRecorder();
             }
+        } else if (useServerTranscribe) {
+            await startMediaRecorder();
+        } else {
+            setError("Voice recognition not supported in this browser.");
+            setStatus("error");
         }
-    }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe, isMobileDevice]);
+    }, [status, startBrowserSTT, startMediaRecorder, useServerTranscribe]);
 
     const stopListening = useCallback(async (): Promise<void> => {
         if (recognitionRef.current) {
