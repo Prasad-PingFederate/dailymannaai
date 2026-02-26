@@ -887,20 +887,33 @@ It's now part of my collective wisdom!`
                 }
                 return prev;
             });
-        } catch (error) {
-            console.error("Chat Error:", error);
-            setMessages(prev => {
-                const newMsgs = [...prev];
-                const lastIdx = newMsgs.length - 1;
-                if (newMsgs[lastIdx].role === "assistant") {
-                    newMsgs[lastIdx] = {
-                        ...newMsgs[lastIdx],
-                        content: "I'm sorry, I'm unable to provide an answer right now. Please try again in a few moments.",
-                        isThinking: false
-                    };
-                }
-                return newMsgs;
-            });
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                console.log("Chat generation stopped by user.");
+                // Ensure isThinking is turned off but keep the generated text
+                setMessages(prev => {
+                    const newMsgs = [...prev];
+                    const lastIdx = newMsgs.length - 1;
+                    if (newMsgs[lastIdx].role === "assistant") {
+                        newMsgs[lastIdx].isThinking = false;
+                    }
+                    return newMsgs;
+                });
+            } else {
+                console.error("Chat Error:", error);
+                setMessages(prev => {
+                    const newMsgs = [...prev];
+                    const lastIdx = newMsgs.length - 1;
+                    if (newMsgs[lastIdx].role === "assistant") {
+                        newMsgs[lastIdx] = {
+                            ...newMsgs[lastIdx],
+                            content: "I'm sorry, I'm unable to provide an answer right now. Please try again in a few moments.",
+                            isThinking: false
+                        };
+                    }
+                    return newMsgs;
+                });
+            }
         } finally {
             setIsChatting(false);
             abortControllerRef.current = null;
