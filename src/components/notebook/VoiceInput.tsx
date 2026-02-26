@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import WaveformVisualizer from "./WaveformVisualizer";
+import { Mic, Square, X, Sparkles, Loader2 } from "lucide-react";
 
 interface VoiceInputProps {
     onTranscript: (text: string) => void;
@@ -8,6 +10,13 @@ interface VoiceInputProps {
     onListeningChange?: (isListening: boolean) => void;
     disabled?: boolean;
     className?: string;
+}
+
+declare global {
+    interface Window {
+        webkitSpeechRecognition: any;
+        SpeechRecognition: any;
+    }
 }
 
 export default function VoiceInput({
@@ -18,62 +27,105 @@ export default function VoiceInput({
     className = "",
 }: VoiceInputProps) {
     const [status, setStatus] = useState<"idle" | "ready" | "recording" | "transcribing">("idle");
-    const [audioLevel, setAudioLevel] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [interimText, setInterimText] = useState("");
+    const [stream, setStream] = useState<MediaStream | null>(null);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
-    const streamRef = useRef<MediaStream | null>(null);
-    const audioCtxRef = useRef<AudioContext | null>(null);
-    const analyserRef = useRef<AnalyserNode | null>(null);
-    const animFrameRef = useRef<number>(0);
+    const recognitionRef = useRef<any>(null);
+    const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (typeof window !== "undefined" && navigator.mediaDevices) setStatus("ready");
+        if (typeof window !== "undefined") {
+            setStatus("ready");
+        }
     }, []);
 
-    const initAudio = async () => {
-        if (!audioCtxRef.current) {
-            const AC = window.AudioContext || (window as any).webkitAudioContext;
-            audioCtxRef.current = new AC();
-        }
-        if (audioCtxRef.current.state === "suspended") await audioCtxRef.current.resume();
-        return audioCtxRef.current;
-    };
+    const stopRecording = useCallback((isCancel = false) => {
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
-    const stopRecording = useCallback(() => {
+        // Stop recognition
+        if (recognitionRef.current) {
+            recognitionRef.current.onresult = null;
+            recognitionRef.current.onend = null;
+            recognitionRef.current.stop();
+        }
+
+        // Stop media recorder
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            if (isCancel) {
+                mediaRecorderRef.current.onstop = () => {
+                    setStream(null);
+                    setStatus("ready");
+                    onListeningChange?.(false);
+                };
+            }
             mediaRecorderRef.current.stop();
         }
-    }, []);
+
+        // Cleanup tracks
+        stream?.getTracks().forEach(t => t.stop());
+
+        if (isCancel) {
+            setStream(null);
+            setStatus("ready");
+            onListeningChange?.(false);
+            onInterimTranscript?.("");
+            setInterimText("");
+        }
+    }, [stream, onListeningChange, onInterimTranscript]);
 
     const startRecording = async () => {
         setError(null);
+        setInterimText("");
         audioChunksRef.current = [];
 
         try {
-            const ctx = await initAudio();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            streamRef.current = stream;
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setStream(audioStream);
 
-            const source = ctx.createMediaStreamSource(stream);
-            const analyser = ctx.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-            analyserRef.current = analyser;
+            // 1. Setup Browser Recognition (for interim results and silence detection)
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = "en-US";
 
-            const updateLevel = () => {
-                const data = new Uint8Array(256);
-                if (analyserRef.current) {
-                    analyserRef.current.getByteFrequencyData(data);
-                    const avg = data.reduce((a, b) => a + b, 0) / 256;
-                    setAudioLevel(avg);
-                    animFrameRef.current = requestAnimationFrame(updateLevel);
-                }
-            };
-            updateLevel();
+                recognition.onresult = (event: any) => {
+                    let finalTranscript = "";
+                    let interimTranscript = "";
 
-            const recorder = new MediaRecorder(stream);
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    const currentText = finalTranscript || interimTranscript;
+                    if (currentText) {
+                        setInterimText(currentText);
+                        onInterimTranscript?.(currentText);
+
+                        // Reset silence timer on speech
+                        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+                        silenceTimerRef.current = setTimeout(() => {
+                            console.log("Auto-stopping due to silence");
+                            stopRecording();
+                        }, 3000);
+                    }
+                };
+
+                recognition.onerror = (e: any) => console.warn("Recognition error:", e);
+                recognition.start();
+                recognitionRef.current = recognition;
+            }
+
+            // 2. Setup MediaRecorder (for high-accuracy server transcription)
+            const recorder = new MediaRecorder(audioStream);
             mediaRecorderRef.current = recorder;
 
             recorder.ondataavailable = (e) => {
@@ -81,85 +133,151 @@ export default function VoiceInput({
             };
 
             recorder.onstop = async () => {
-                if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-                streamRef.current?.getTracks().forEach(t => t.stop());
+                if (status === "idle" || status === "ready") return; // Cancelled
+
+                setStatus("transcribing");
 
                 const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-
-                if (audioBlob.size < 500) {
-                    setError("I didn't hear clear speech.");
+                if (audioBlob.size < 1000) {
+                    if (!interimText) {
+                        setError("Silence detected.");
+                        setStatus("ready");
+                        onListeningChange?.(false);
+                        return;
+                    }
+                    // If we have interim text but high-acc failed or was too short, use interim
+                    onTranscript(interimText);
                     setStatus("ready");
                     onListeningChange?.(false);
                     return;
                 }
-
-                setStatus("transcribing");
-                onInterimTranscript?.("✨ Thinking...");
 
                 try {
                     const fd = new FormData();
                     fd.append("audio", audioBlob);
 
                     const res = await fetch("/api/transcribe", { method: "POST", body: fd });
-                    if (!res.ok) throw new Error("Server error");
+                    if (!res.ok) throw new Error("Transcription server unavailable");
 
                     const data = await res.json();
                     if (data.text) {
                         onTranscript(data.text);
+                    } else if (interimText) {
+                        onTranscript(interimText); // Fallback to browser recognition
                     } else {
-                        setError("Could not understand your voice.");
+                        setError("I couldn't quite catch that.");
                     }
                 } catch (e: any) {
-                    setError("Sync Error: " + e.message);
+                    if (interimText) {
+                        onTranscript(interimText); // Fallback
+                    } else {
+                        setError("Network error. Please try again.");
+                    }
                 } finally {
                     setStatus("ready");
                     onListeningChange?.(false);
                     onInterimTranscript?.("");
+                    setInterimText("");
+                    setStream(null);
                 }
             };
 
             recorder.start();
             setStatus("recording");
             onListeningChange?.(true);
-            onInterimTranscript?.("🎙️ I am listening...");
 
         } catch (e: any) {
-            setError("Could not access microphone.");
+            setError("Check microphone permissions.");
+            console.error(e);
         }
     };
 
     if (status === "idle") return null;
 
     return (
-        <div className={`relative flex items-center gap-2 ${className}`}>
+        <div className={`relative flex items-center ${className}`}>
+            {/* The Main Pulse Button */}
             <button
                 type="button"
-                onMouseDown={() => initAudio()}
                 onClick={() => status === "recording" ? stopRecording() : startRecording()}
                 disabled={status === "transcribing" || disabled}
-                className={`w-12 h-12 flex items-center justify-center rounded-full transition-all ${status === "recording" ? 'bg-red-500 scale-110 shadow-lg shadow-red-500/40' : 'bg-accent/10 border border-accent/20 text-accent hover:bg-accent hover:text-white'}`}
-                title={status === "recording" ? "Stop Recording" : "Voice Input"}
+                className={`group relative w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 z-50 
+                    ${status === "recording"
+                        ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-110'
+                        : 'bg-accent/10 hover:bg-accent/20 border border-accent/20 text-accent'} 
+                    ${status === "transcribing" ? 'animate-pulse' : ''}`}
             >
                 {status === "transcribing" ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin text-accent" />
                 ) : status === "recording" ? (
-                    <div className="w-4 h-4 bg-white rounded-sm" />
+                    <Square className="w-4 h-4 fill-white text-white" />
                 ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /></svg>
+                    <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 )}
 
+                {/* Animated Rings when recording */}
                 {status === "recording" && (
-                    <div
-                        className="absolute inset-0 rounded-full border-4 border-red-500/30 transition-transform duration-75 pointer-events-none"
-                        style={{ transform: `scale(${1 + (audioLevel / 120)})` }}
-                    />
+                    <>
+                        <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping -z-10" />
+                        <div className="absolute inset-0 rounded-full border-2 border-red-500/30 animate-[ping_1.5s_infinite] -z-10" />
+                    </>
                 )}
             </button>
 
+            {/* Premium "Listening" Overlay */}
+            {status === "recording" && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center animate-in fade-in duration-300">
+                    <div className="max-w-md w-full px-6 flex flex-col items-center gap-8">
+                        {/* Status Brand */}
+                        <div className="flex items-center gap-2 text-accent font-medium tracking-widest uppercase text-xs">
+                            <Sparkles className="w-4 h-4" />
+                            <span>Divine Voice Sync</span>
+                        </div>
+
+                        {/* Waveform */}
+                        <div className="w-full bg-accent/5 rounded-3xl p-8 border border-accent/10 shadow-inner">
+                            <WaveformVisualizer stream={stream} isRecording={true} color="#c8973a" />
+                        </div>
+
+                        {/* Interim Text Display */}
+                        <div className="min-h-[80px] text-center">
+                            <p className="text-xl md:text-2xl font-serif italic text-foreground/90 leading-relaxed">
+                                {interimText || "Listening for your voice..."}
+                                <span className="inline-block w-1 h-6 bg-accent ml-1 animate-pulse" />
+                            </p>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-6 mt-4">
+                            <button
+                                onClick={() => stopRecording(true)}
+                                className="flex flex-col items-center gap-2 text-foreground/40 hover:text-red-400 transition-colors"
+                            >
+                                <div className="p-4 rounded-full bg-white/5 border border-white/10">
+                                    <X className="w-6 h-6" />
+                                </div>
+                                <span className="text-[10px] uppercase tracking-widest font-bold">Cancel</span>
+                            </button>
+
+                            <button
+                                onClick={() => stopRecording()}
+                                className="flex flex-col items-center gap-2 text-accent"
+                            >
+                                <div className="p-6 rounded-full bg-accent text-white shadow-2xl shadow-accent/40 hover:scale-105 transition-transform">
+                                    <Square className="w-8 h-8 fill-white" />
+                                </div>
+                                <span className="text-[10px] uppercase tracking-widest font-bold">Process Revelation</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Toast */}
             {error && (
                 <div
                     onClick={() => setError(null)}
-                    className="absolute bottom-full right-0 mb-4 bg-red-950/95 border border-red-500/50 text-red-100 text-[11px] font-bold p-3 rounded-2xl shadow-2xl cursor-pointer whitespace-nowrap z-[110] animate-in slide-in-from-bottom-2"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-red-950/95 border border-red-500/50 text-red-100 text-[11px] font-bold py-2 px-4 rounded-full shadow-2xl cursor-pointer whitespace-nowrap z-[110] animate-in slide-in-from-bottom-2"
                 >
                     ⚠️ {error}
                 </div>
