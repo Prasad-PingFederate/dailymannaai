@@ -226,13 +226,12 @@ export default function VoiceInput({
                             </p>
                         </div>
 
-                        {/* Visualizer & Controls - Siri Style Row */}
-                        <div className="w-full flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20">
-
+                        {/* Centered Controls - Simplified Layout */}
+                        <div className="w-full flex justify-center items-center gap-12 md:gap-24 pt-4 mt-8 border-t border-accent/10">
                             {/* Abort */}
                             <button
                                 onClick={() => stopRecording(true)}
-                                className="flex flex-col items-center gap-2 group order-2 md:order-1"
+                                className="flex flex-col items-center gap-2 group"
                             >
                                 <div className="p-4 md:p-5 rounded-full bg-accent/5 border border-accent/10 group-hover:bg-red-500/10 group-hover:border-red-500/30 transition-all">
                                     <X className="w-6 h-6 md:w-8 md:h-8 text-foreground/30 group-hover:text-red-500" />
@@ -240,25 +239,15 @@ export default function VoiceInput({
                                 <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-bold text-foreground/30">Abort</span>
                             </button>
 
-                            {/* Centered Visualizer */}
-                            <div className="w-48 h-24 md:w-80 md:h-32 flex items-center justify-center relative order-1 md:order-2">
-                                <div className="absolute inset-0 bg-accent/5 rounded-full blur-[80px] animate-pulse" />
-                                <WaveformVisualizer
-                                    stream={stream}
-                                    isRecording={true}
-                                    color="#c8973a"
-                                />
-                            </div>
-
                             {/* Finish */}
                             <button
                                 onClick={() => stopRecording()}
-                                className="flex flex-col items-center gap-2 group order-3"
+                                className="flex flex-col items-center gap-2 group"
                             >
                                 <div className="p-6 md:p-8 rounded-full bg-accent text-white shadow-[0_0_50px_rgba(200,151,58,0.3)] transition-all group-hover:scale-110 group-active:scale-90">
                                     <Square className="w-10 h-10 md:w-12 md:h-12 fill-white" />
                                 </div>
-                                <span className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-bold text-accent animate-pulse">Finish</span>
+                                <span className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-bold text-accent animate-pulse">Save & Submit</span>
                             </button>
                         </div>
                     </div>
