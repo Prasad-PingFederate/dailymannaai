@@ -677,8 +677,13 @@ It's now part of my collective wisdom!`
             content: "",
             thought: "",
             isThinking: true,
-            thinkingPhase: "Contacting truth archives...",
-            researchSteps: ["Initializing spiritual inquiry...", "Distilling intent from query..."]
+            thinkingPhase: "Consulting the Scriptures...",
+            researchSteps: [
+                "Opening the Divine archives...",
+                "Cross-referencing KJV context...",
+                "Distilling spiritual wisdom for your inquiry...",
+                "Preparing your revelation..."
+            ]
         }]);
 
         try {
