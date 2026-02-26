@@ -209,48 +209,52 @@ export default function VoiceInput({
 
             {/* Listening Overlay */}
             {status === "recording" && (
-                <div className="fixed inset-0 bg-background/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-start overflow-y-auto py-12 md:py-20 animate-in fade-in duration-300">
-                    <div className="max-w-2xl w-full px-6 flex flex-col items-center gap-10">
-                        {/* Status Brand */}
-                        <div className="flex items-center gap-3 text-accent font-bold tracking-widest uppercase text-xs md:text-sm animate-pulse">
-                            <Sparkles className="w-5 h-5" />
-                            <span>Divine Voice Sync</span>
-                        </div>
+                <div className="fixed inset-0 bg-background/95 backdrop-blur-2xl z-[9999] overflow-y-auto animate-in fade-in duration-300">
+                    <div className="min-h-full w-full flex flex-col items-center justify-center py-12 px-6">
+                        <div className="max-w-2xl w-full flex flex-col items-center gap-8 md:gap-12">
+                            {/* Status Brand */}
+                            <div className="flex items-center gap-3 text-accent font-bold tracking-widest uppercase text-[10px] md:text-xs animate-pulse">
+                                <Sparkles className="w-5 h-5" />
+                                <span>Divine Voice Sync</span>
+                            </div>
 
-                        {/* Waveform Card */}
-                        <div className="w-full max-w-md bg-accent/5 rounded-[40px] p-10 border border-accent/10 shadow-inner">
-                            <WaveformVisualizer stream={stream} isRecording={true} color="#c8973a" />
-                        </div>
+                            {/* Waveform Card */}
+                            <div className="w-full max-w-md bg-accent/5 rounded-[40px] p-8 md:p-10 border border-accent/10 shadow-inner">
+                                <WaveformVisualizer stream={stream} isRecording={true} color="#c8973a" />
+                            </div>
 
-                        {/* Interim Text Display - Highly visible */}
-                        <div className="w-full text-center px-4">
-                            <p className="text-3xl md:text-5xl font-serif italic text-foreground leading-tight min-h-[140px]">
-                                {interimText || "Listening for your voice..."}
-                                <span className="inline-block w-1 h-8 md:h-12 bg-accent ml-2 animate-pulse align-middle" />
-                            </p>
-                        </div>
+                            {/* Interim Text Display - Dynamic scaling */}
+                            <div className="w-full text-center px-4 max-w-lg">
+                                <p className="text-2xl md:text-4xl lg:text-5xl font-serif italic text-foreground leading-tight min-h-[100px] flex items-center justify-center">
+                                    <span className="opacity-90">
+                                        {interimText || "Listening for your voice..."}
+                                        <span className="inline-block w-1 h-8 md:h-12 bg-accent ml-2 animate-pulse align-middle" />
+                                    </span>
+                                </p>
+                            </div>
 
-                        {/* Controls */}
-                        <div className="flex items-center gap-10 mt-6 md:mt-10">
-                            <button
-                                onClick={() => stopRecording(true)}
-                                className="flex flex-col items-center gap-3 group"
-                            >
-                                <div className="p-5 rounded-full bg-white/5 border border-white/10 group-hover:bg-red-500/10 group-hover:border-red-500/20 transition-all">
-                                    <X className="w-8 h-8 text-foreground/40 group-hover:text-red-500" />
-                                </div>
-                                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-foreground/40 group-hover:text-red-500">Cancel</span>
-                            </button>
+                            {/* Refined Controls */}
+                            <div className="flex items-center gap-10 mt-4">
+                                <button
+                                    onClick={() => stopRecording(true)}
+                                    className="flex flex-col items-center gap-3 group"
+                                >
+                                    <div className="p-4 md:p-5 rounded-full bg-white/5 border border-white/10 group-hover:bg-red-500/10 group-hover:border-red-500/20 transition-all">
+                                        <X className="w-6 h-6 md:w-8 md:h-8 text-foreground/40 group-hover:text-red-500" />
+                                    </div>
+                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-foreground/30 group-hover:text-red-500">Cancel</span>
+                                </button>
 
-                            <button
-                                onClick={() => stopRecording()}
-                                className="flex flex-col items-center gap-3 group"
-                            >
-                                <div className="p-10 rounded-full bg-accent text-white shadow-[0_0_60px_rgba(200,151,58,0.4)] hover:shadow-accent/60 hover:scale-110 transition-all duration-300">
-                                    <Square className="w-12 h-12 fill-white" />
-                                </div>
-                                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-accent">Process Revelation</span>
-                            </button>
+                                <button
+                                    onClick={() => stopRecording()}
+                                    className="flex flex-col items-center gap-3 group"
+                                >
+                                    <div className="p-8 md:p-10 rounded-full bg-accent text-white shadow-[0_0_50px_rgba(200,151,58,0.3)] hover:shadow-accent/50 hover:scale-105 transition-all duration-300">
+                                        <Square className="w-8 h-8 md:w-10 md:h-10 fill-white" />
+                                    </div>
+                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-accent">Process Revelation</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
