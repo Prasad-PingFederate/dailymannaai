@@ -687,10 +687,13 @@ It's now part of my collective wisdom!`
             researchSteps: [
                 "Opening the Divine archives...",
                 "Cross-referencing KJV context...",
-                "Distilling spiritual wisdom for your inquiry...",
+                "Distilling spiritual wisdom...",
                 "Preparing your revelation..."
             ]
         }]);
+
+        // Explicitly set chatting status before fetch
+        setIsChatting(true);
 
         try {
             const res = await fetch("/api/chat", {
@@ -910,6 +913,11 @@ It's now part of my collective wisdom!`
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
             setIsChatting(false);
+
+            // Clean up any "Thinking" UI immediately
+            setMessages(prev => prev.map(m => m.isThinking ? { ...m, isThinking: false, content: m.content || "Response stopped by user." } : m));
+
+            window.speechSynthesis?.cancel();
 
             // Kill any active AI voice
             if (typeof window !== 'undefined' && window.speechSynthesis) {
