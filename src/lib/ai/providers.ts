@@ -114,16 +114,18 @@ class GeminiProvider implements AIProvider {
     async generateResponse(prompt: string): Promise<string> {
         // Broad list of stable model identifiers
         const modelNames = [
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
+            "gemini-2.0-flash-exp",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
             "gemini-pro"
         ];
         let lastError = "";
 
         for (const modelName of modelNames) {
             try {
-                console.log(`[AI] Gemini testing: ${modelName} (v1 API)...`);
-                const model = this.client.getGenerativeModel({ model: modelName }, { apiVersion: "v1" });
+                console.log(`[AI] Gemini testing: ${modelName}...`);
+                // Use generic approach to allow beta models
+                const model = this.client.getGenerativeModel({ model: modelName });
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
                 return response.text();
@@ -137,7 +139,7 @@ class GeminiProvider implements AIProvider {
     }
 
     async generateStream(prompt: string): Promise<ReadableStream> {
-        const model = this.client.getGenerativeModel({ model: "gemini-2.5-flash" }, { apiVersion: "v1" });
+        const model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContentStream(prompt);
 
         return new ReadableStream({
