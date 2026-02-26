@@ -256,7 +256,7 @@ export default function VoiceInput({
         // Initial silence guard (catches mic-open-then-nothing)
         silenceTimerRef.current = setTimeout(() => stopRecording(false), 10_000);
 
-    }, [sendToApi, deliver, stopRecording, onListeningChange, onInterimTranscript]);
+    };
 
     // ─────────────────────────────────────────────────────────────────────────
     if (status === "idle") return null;
