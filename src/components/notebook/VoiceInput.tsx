@@ -27,6 +27,9 @@ export default function VoiceInput({
     className = "",
 }: VoiceInputProps) {
     const [status, setStatus] = useState<"idle" | "ready" | "recording" | "transcribing">("idle");
+    const statusRef = useRef(status);
+    useEffect(() => { statusRef.current = status; }, [status]);
+
     const [error, setError] = useState<string | null>(null);
     const [interimText, setInterimText] = useState("");
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -133,7 +136,7 @@ export default function VoiceInput({
             };
 
             recorder.onstop = async () => {
-                if (status === "idle" || status === "ready") return; // Cancelled
+                if (statusRef.current === "idle" || statusRef.current === "ready") return; // Cancelled
 
                 setStatus("transcribing");
 
@@ -226,47 +229,47 @@ export default function VoiceInput({
 
             {/* Premium "Listening" Overlay */}
             {status === "recording" && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center animate-in fade-in duration-300">
-                    <div className="max-w-md w-full px-6 flex flex-col items-center gap-8">
+                <div className="fixed inset-0 bg-background/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-start overflow-y-auto py-12 md:py-20 animate-in fade-in duration-300">
+                    <div className="max-w-2xl w-full px-6 flex flex-col items-center gap-10">
                         {/* Status Brand */}
-                        <div className="flex items-center gap-2 text-accent font-medium tracking-widest uppercase text-xs">
-                            <Sparkles className="w-4 h-4" />
+                        <div className="flex items-center gap-3 text-accent font-bold tracking-widest uppercase text-[10px] md:text-xs">
+                            <Sparkles className="w-5 h-5" />
                             <span>Divine Voice Sync</span>
                         </div>
 
-                        {/* Waveform */}
-                        <div className="w-full bg-accent/5 rounded-3xl p-8 border border-accent/10 shadow-inner">
+                        {/* Waveform Card */}
+                        <div className="w-full max-w-md bg-accent/5 rounded-[40px] p-10 border border-accent/10 shadow-inner">
                             <WaveformVisualizer stream={stream} isRecording={true} color="#c8973a" />
                         </div>
 
-                        {/* Interim Text Display */}
-                        <div className="min-h-[80px] text-center">
-                            <p className="text-xl md:text-2xl font-serif italic text-foreground/90 leading-relaxed">
+                        {/* Interim Text Display - Scaled for visibility */}
+                        <div className="w-full text-center px-4">
+                            <p className="text-3xl md:text-5xl font-serif italic text-foreground leading-tight min-h-[140px]">
                                 {interimText || "Listening for your voice..."}
-                                <span className="inline-block w-1 h-6 bg-accent ml-1 animate-pulse" />
+                                <span className="inline-block w-1 h-8 md:h-12 bg-accent ml-2 animate-pulse align-middle" />
                             </p>
                         </div>
 
-                        {/* Controls */}
-                        <div className="flex items-center gap-6 mt-4">
+                        {/* High-Impact Controls */}
+                        <div className="flex items-center gap-10 mt-6 md:mt-10">
                             <button
                                 onClick={() => stopRecording(true)}
-                                className="flex flex-col items-center gap-2 text-foreground/40 hover:text-red-400 transition-colors"
+                                className="flex flex-col items-center gap-3 group"
                             >
-                                <div className="p-4 rounded-full bg-white/5 border border-white/10">
-                                    <X className="w-6 h-6" />
+                                <div className="p-5 rounded-full bg-white/5 border border-white/10 group-hover:bg-red-500/10 group-hover:border-red-500/20 transition-all">
+                                    <X className="w-8 h-8 text-foreground/40 group-hover:text-red-500" />
                                 </div>
-                                <span className="text-[10px] uppercase tracking-widest font-bold">Cancel</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-foreground/40 group-hover:text-red-500">Cancel</span>
                             </button>
 
                             <button
                                 onClick={() => stopRecording()}
-                                className="flex flex-col items-center gap-2 text-accent"
+                                className="flex flex-col items-center gap-3 group"
                             >
-                                <div className="p-6 rounded-full bg-accent text-white shadow-2xl shadow-accent/40 hover:scale-105 transition-transform">
-                                    <Square className="w-8 h-8 fill-white" />
+                                <div className="p-10 rounded-full bg-accent text-white shadow-[0_0_60px_rgba(200,151,58,0.4)] hover:shadow-accent/60 hover:scale-105 transition-all duration-300">
+                                    <Square className="w-12 h-12 fill-white" />
                                 </div>
-                                <span className="text-[10px] uppercase tracking-widest font-bold">Process Revelation</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-accent">Process Revelation</span>
                             </button>
                         </div>
                     </div>
