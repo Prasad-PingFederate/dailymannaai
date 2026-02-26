@@ -141,14 +141,21 @@ export default function NotebookWorkspace() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
     const isPlayingRef = useRef(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 
-    // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [input]);
 
     // Hydration-safe mobile detection
     useEffect(() => {
@@ -2011,18 +2018,11 @@ It's now part of my collective wisdom!`
                             ))}
                         </div>
 
-                        {/* Floating Pill Search Bar */}
+                        {/* ChatGPT-Style Simple & Effective Search Bar */}
                         <div className="relative group">
-                            <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.25)] focus-within:ring-2 ring-accent/40 transition-all p-1.5 px-2 flex items-center gap-2 group-hover:border-accent/30">
-                                <button
-                                    onClick={() => setUploadModalOpen(true)}
-                                    className="p-3 bg-muted/5 hover:bg-accent/10 rounded-full text-muted hover:text-accent transition-all hover:scale-110"
-                                    title="Add Source"
-                                >
-                                    <Plus size={22} />
-                                </button>
-
+                            <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border/40 rounded-[1.8rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] focus-within:ring-1 ring-accent/30 transition-all p-3 md:p-4 pb-3 flex flex-col gap-1.5 group-hover:border-accent/20">
                                 <textarea
+                                    ref={textareaRef}
                                     placeholder="Ask DailyMannaAI about Bible or scriptures..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
@@ -2032,30 +2032,38 @@ It's now part of my collective wisdom!`
                                             handleSendMessage();
                                         }
                                     }}
-                                    className="flex-1 bg-transparent border-none py-3 px-2 text-[17px] focus:outline-none resize-none max-h-40 overflow-y-auto"
+                                    className="w-full bg-transparent border-none py-1.5 px-2 text-[16px] md:text-[17px] focus:outline-none resize-none max-h-60 overflow-y-auto placeholder:text-muted/50 leading-relaxed"
                                     rows={1}
                                 />
 
-
-                                <div className="flex items-center gap-2 pr-1">
-                                    <VoiceInput
-                                        onTranscript={(text) => setInput(text)}
-                                        onInterimTranscript={(text) => text && setInput(text)}
-                                        onListeningChange={(active) => setIsVoiceActive(active)}
-                                        className="voice-input-mic"
-                                    />
+                                <div className="flex items-center justify-between px-1">
                                     <button
-                                        onClick={() => handleSendMessage()}
-                                        disabled={!input.trim()}
-                                        className={`p-3 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-lg shadow-accent/40 hover:scale-105 active:scale-95' : 'bg-muted/10 text-muted opacity-30 cursor-not-allowed'}`}
+                                        onClick={() => setUploadModalOpen(true)}
+                                        className="p-2.5 bg-muted/5 hover:bg-accent/10 rounded-xl text-muted/60 hover:text-accent transition-all hover:scale-105"
+                                        title="Add Source"
                                     >
-                                        {isChatting ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <Send size={22} />
-                                        )}
+                                        <Plus size={22} className="stroke-[2.5px]" />
                                     </button>
 
+                                    <div className="flex items-center gap-3">
+                                        <VoiceInput
+                                            onTranscript={(text) => setInput(text)}
+                                            onInterimTranscript={(text) => text && setInput(text)}
+                                            onListeningChange={(active) => setIsVoiceActive(active)}
+                                            className="voice-input-mic"
+                                        />
+                                        <button
+                                            onClick={() => handleSendMessage()}
+                                            disabled={!input.trim()}
+                                            className={`p-2.5 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
+                                        >
+                                            {isChatting ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <ArrowRight size={22} className="stroke-[3px]" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
