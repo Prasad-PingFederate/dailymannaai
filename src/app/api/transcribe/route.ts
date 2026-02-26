@@ -3,6 +3,24 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+// Per-provider timeout in milliseconds
+const TIMEOUT_MS = {
+    groq: 2_500,
+    deepgram: 2_500,
+    whisper: 3_000,
+} as const;
+
+// Helper: race a fetch against a timeout
+async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    try {
+        return await fetch(url, { ...init, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 export async function POST(req: Request) {
     try {
         const formData = await req.formData();
@@ -15,63 +33,25 @@ export async function POST(req: Request) {
 
         const deepgramKey = process.env.DEEPGRAM_API_KEY || process.env.DEEPGRAM_API || process.env.deepgramKey;
         const groqKey = process.env.GROQ_API_KEY || process.env.groqKey || process.env.groqkey;
-        const geminiKey = process.env.GEMINI_API_KEY || process.env.geminiKey;
         const openAIKey = process.env.OPENAI_API_KEY || process.env.openaiKey;
 
         console.log("[Transcribe] Keys present:", {
             hasOpenAI: !!openAIKey,
             hasDeepgram: !!deepgramKey,
-            hasGroq: !!groqKey,
-            hasGemini: !!geminiKey
+            hasGroq: !!groqKey
         });
 
-        let transcript = "";
-        let usedProvider = "";
-
-        // ─── Browser/Mime-type Robustness ─────────────────────
+        // Browser/Mime-type Robustness
         const ext = audioFile.type.includes("ogg") ? "ogg"
             : audioFile.type.includes("mp4") ? "m4a"
                 : audioFile.type.includes("wav") ? "wav"
                     : "webm";
         const namedFile = new File([audioFile], `audio.${ext}`, { type: audioFile.type || "audio/webm" });
 
-        // ─── Provider 0: OpenAI Whisper (Most Reliable) ───────
-        if (!transcript && openAIKey) {
-            try {
-                const { default: OpenAI } = await import("openai");
-                const openai = new OpenAI({ apiKey: openAIKey });
-                const res = await openai.audio.transcriptions.create({
-                    model: "whisper-1",
-                    file: namedFile,
-                    language: language.split("-")[0] as any,
-                });
-                transcript = res.text;
-                if (transcript) usedProvider = "OpenAI";
-            } catch (e) { console.warn("OpenAI failed..."); }
-        }
+        let transcript = "";
+        let usedProvider = "";
 
-        // ─── Provider 1: Deepgram (Fastest) ────────────────────
-        if (!transcript && deepgramKey && deepgramKey !== "false") {
-            try {
-                const arrayBuffer = await audioFile.arrayBuffer();
-                const res = await fetch("https://api.deepgram.com/v1/listen?smart_format=true&model=nova-2&language=" + language, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Token ${deepgramKey}`,
-                        "Content-Type": audioFile.type || "audio/webm"
-                    },
-                    body: arrayBuffer
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    transcript = data.results?.channels[0]?.alternatives[0]?.transcript;
-                    if (transcript) usedProvider = "Deepgram";
-                }
-            } catch (e) { console.warn("Deepgram failed..."); }
-        }
-
-        // ─── Provider 2: Groq Whisper (Ultra-Fast) ────────────
+        // ─── 1. GROQ WHISPER (Ultra-Fast Priority) ────────────
         if (!transcript && groqKey && groqKey !== "false") {
             try {
                 const groqForm = new FormData();
@@ -79,82 +59,73 @@ export async function POST(req: Request) {
                 groqForm.append("model", "whisper-large-v3-turbo");
                 groqForm.append("language", language.split("-")[0]);
 
-                const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+                const res = await fetchWithTimeout("https://api.groq.com/openai/v1/audio/transcriptions", {
                     method: "POST",
                     headers: { Authorization: `Bearer ${groqKey}` },
                     body: groqForm,
-                });
+                }, TIMEOUT_MS.groq);
 
                 if (res.ok) {
                     const data = await res.json();
-                    transcript = data.text;
-                    usedProvider = "Groq";
+                    if (data.text) {
+                        transcript = data.text;
+                        usedProvider = "Groq";
+                    }
                 }
-            } catch (e) { console.warn("Groq failed..."); }
+            } catch (e) { console.warn("Groq missed timeout or failed"); }
         }
 
-        // ─── Provider 3: Gemini 2.0 Flash ─────────────────────
-        if (!transcript && geminiKey) {
+        // ─── 2. DEEPGRAM (Fastest Alternative) ────────────
+        if (!transcript && deepgramKey && deepgramKey !== "false") {
             try {
                 const arrayBuffer = await audioFile.arrayBuffer();
-                const base64Audio = Buffer.from(arrayBuffer).toString("base64");
-                let mimeType = audioFile.type.split(';')[0];
-                if (!mimeType || mimeType.includes("octet")) mimeType = "audio/webm";
-
-                const res = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { inlineData: { mimeType, data: base64Audio } },
-                                    { text: "Transcribe the audio accurately. Focus on spiritual/scriptural context. Output ONLY the text." }
-                                ]
-                            }],
-                            generationConfig: { temperature: 0 }
-                        })
-                    }
-                );
+                const res = await fetchWithTimeout("https://api.deepgram.com/v1/listen?smart_format=true&model=nova-2&language=" + language, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Token ${deepgramKey}`,
+                        "Content-Type": audioFile.type || "audio/webm"
+                    },
+                    body: arrayBuffer
+                }, TIMEOUT_MS.deepgram);
 
                 if (res.ok) {
                     const data = await res.json();
-                    transcript = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    usedProvider = "Gemini";
-                }
-            } catch (e) { console.warn("Gemini failed..."); }
-        }
-
-        if (!transcript) {
-            // ─── Provider 4: Hugging Face (Reliable Fallback) ─────
-            const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.huggingface_API;
-            if (hfKey) {
-                try {
-                    const arrayBuffer = await audioFile.arrayBuffer();
-                    const res = await fetch(
-                        "https://api-inference.huggingface.co/models/openai/whisper-large-v3-turbo",
-                        {
-                            method: "POST",
-                            headers: {
-                                Authorization: `Bearer ${hfKey}`,
-                                "Content-Type": "audio/webm",
-                            },
-                            body: arrayBuffer,
-                        }
-                    );
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        transcript = data.text;
-                        if (transcript) usedProvider = "HuggingFace";
+                    const txt = data.results?.channels[0]?.alternatives[0]?.transcript;
+                    if (txt) {
+                        transcript = txt;
+                        usedProvider = "Deepgram";
                     }
-                } catch (e) { console.warn("HuggingFace failed..."); }
-            }
+                }
+            } catch (e) { console.warn("Deepgram missed timeout or failed"); }
         }
 
+        // ─── 3. OPENAI WHISPER (Most Reliable Fallback) ───────
+        if (!transcript && openAIKey) {
+            try {
+                const form = new FormData();
+                form.append("file", namedFile);
+                form.append("model", "whisper-1");
+                form.append("language", language.split("-")[0]);
+
+                const res = await fetchWithTimeout("https://api.openai.com/v1/audio/transcriptions", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${openAIKey}` },
+                    body: form
+                }, TIMEOUT_MS.whisper);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.text) {
+                        transcript = data.text;
+                        usedProvider = "OpenAI";
+                    }
+                }
+            } catch (e) { console.warn("OpenAI missed timeout or failed"); }
+        }
+
+        // ─── Done ────────────
         if (!transcript) {
-            return NextResponse.json({ error: "Transcription failed. Check your microphone and API keys." }, { status: 503 });
+            return NextResponse.json({ error: "Transcription failed. Check your API keys.", fallback: true }, { status: 503 });
         }
 
         console.log(`[Transcribe] ✅ ${usedProvider}: "${transcript.substring(0, 100)}..."`);
@@ -162,6 +133,6 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("[Transcribe] Global error:", error);
-        return NextResponse.json({ error: "Transcription system error." }, { status: 500 });
+        return NextResponse.json({ error: "Transcription system error.", fallback: true }, { status: 503 });
     }
 }
