@@ -11,7 +11,7 @@ interface WaveformVisualizerProps {
 export default function WaveformVisualizer({
   stream,
   isRecording,
-  color = "#c8973a", // Default gold color
+  color = "#c8973a",
 }: WaveformVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
@@ -30,7 +30,7 @@ export default function WaveformVisualizer({
 
       const audioCtx = audioCtxRef.current;
       const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
+      analyser.fftSize = 256;
       const source = audioCtx.createMediaStreamSource(stream);
       source.connect(analyser);
       analyserRef.current = analyser;
@@ -38,13 +38,10 @@ export default function WaveformVisualizer({
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      let rotation = 0;
-
       const draw = () => {
         animationRef.current = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
 
-        // Clear with slight trailing for movement effect
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const width = canvas.width;
@@ -52,48 +49,31 @@ export default function WaveformVisualizer({
         const centerX = width / 2;
         const centerY = height / 2;
 
-        // Calculate average volume for pulse
-        const volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-        const pulse = 1 + (volume / 255) * 1.5;
+        // ChatGPT-Style Minimalist Waveform (Symmetric lines)
+        const barWidth = 3;
+        const gap = 2;
+        const totalBars = Math.floor(width / (barWidth + gap));
 
-        rotation += 0.01;
+        for (let i = 0; i < totalBars; i++) {
+          const dataIndex = Math.floor((i / totalBars) * bufferLength);
+          const value = dataArray[dataIndex] / 255.0;
+          const barHeight = 2 + (value * (height - 4));
 
-        // Draw multiple layers of "spirit" waves
-        for (let j = 0; j < 3; j++) {
-          const opacity = (3 - j) / 4;
+          // Mirror from center
+          const x = i * (barWidth + gap);
+          const y = (height - barHeight) / 2;
+
+          // Premium Gradient
+          const grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
+          grad.addColorStop(0, `${color}00`);
+          grad.addColorStop(0.5, color);
+          grad.addColorStop(1, `${color}00`);
+
+          ctx.fillStyle = grad;
           ctx.beginPath();
-          ctx.strokeStyle = `${color}${Math.floor(opacity * 255).toString(16).padStart(2, '0')}`;
-          ctx.lineWidth = 2 + j;
-
-          for (let i = 0; i < bufferLength; i++) {
-            const angle = (i / bufferLength) * Math.PI * 2 + rotation * (j + 1);
-            const value = dataArray[i] / 255.0;
-
-            // Dynamic radius based on frequency and pulse
-            const r = (50 + (value * 80 * pulse)) * (1 - j * 0.1);
-
-            const x = centerX + Math.cos(angle) * r;
-            const y = centerY + Math.sin(angle) * r;
-
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.closePath();
-          ctx.stroke();
-
-          // Fill with a soft glow
-          ctx.fillStyle = `${color}${Math.floor(opacity * 20).toString(16).padStart(2, '0')}`;
-          if (j === 0) ctx.fill();
+          ctx.roundRect(x, y, barWidth, barHeight, 2);
+          ctx.fill();
         }
-
-        // Draw central orb core
-        const coreGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 40 * pulse);
-        coreGradient.addColorStop(0, color);
-        coreGradient.addColorStop(1, `${color}00`);
-        ctx.fillStyle = coreGradient;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 60 * pulse, 0, Math.PI * 2);
-        ctx.fill();
       };
 
       draw();
@@ -115,15 +95,11 @@ export default function WaveformVisualizer({
   }, [isRecording, stream, color]);
 
   return (
-    <div className="relative flex items-center justify-center">
-      {/* Decorative pulsating ring around the canvas */}
-      <div className="absolute w-[200px] h-[200px] border border-accent/10 rounded-full animate-[ping_3s_infinite]" />
-      <canvas
-        ref={canvasRef}
-        className="z-10"
-        width={400}
-        height={400}
-      />
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="w-full h-full opacity-60"
+      width={300}
+      height={60}
+    />
   );
 }

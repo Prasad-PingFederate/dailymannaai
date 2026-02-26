@@ -2047,18 +2047,27 @@ It's now part of my collective wisdom!`
 
                                     <div className="flex items-center gap-3">
                                         <VoiceInput
-                                            onTranscript={(text) => setInput(text)}
+                                            onTranscript={(text) => {
+                                                if (text.trim()) {
+                                                    setInput(text);
+                                                    handleSendMessage(text); // Auto-send for seamless experience
+                                                }
+                                            }}
                                             onInterimTranscript={(text) => text && setInput(text)}
-                                            onListeningChange={(active) => setIsVoiceActive(active)}
+                                            onListeningChange={(active) => {
+                                                setIsVoiceActive(active);
+                                                // Clear loading if mic starts for any reason
+                                                if (active) setIsChatting(false);
+                                            }}
                                             className="voice-input-mic"
                                         />
                                         <button
                                             onClick={() => handleSendMessage()}
-                                            disabled={!input.trim()}
-                                            className={`p-2.5 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
+                                            disabled={!input.trim() || isChatting}
+                                            className={`p-2.5 rounded-full transition-all ${input.trim() && !isChatting ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
                                         >
                                             {isChatting ? (
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                                             ) : (
                                                 <ArrowRight size={22} className="stroke-[3px]" />
                                             )}
