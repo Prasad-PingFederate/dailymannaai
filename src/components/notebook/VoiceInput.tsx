@@ -76,6 +76,9 @@ export default function VoiceInput({
             onListeningChange?.(false);
             onInterimTranscript?.("");
             setInterimText("");
+        } else {
+            // Immediately transition to transcribing to close the overlay
+            setStatus("transcribing");
         }
     }, [stream, onListeningChange, onInterimTranscript]);
 

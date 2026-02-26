@@ -142,6 +142,7 @@ export default function NotebookWorkspace() {
     const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
     const isPlayingRef = useRef(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
 
     useEffect(() => {
@@ -667,9 +668,12 @@ It's now part of my collective wisdom!`
         setMessages(prev => [...prev, userMessage]);
         setInput("");
         setSuggestions([]); // Clear previous suggestions
-        setIsChatting(true);
-
         const currentHistory = [...messages, userMessage];
+
+        // Abort previous if any
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
         // 🧪 INSTANT FEEDBACK: Add a "Ghost" assistant message immediately
         setMessages(prev => [...prev, {
@@ -694,6 +698,7 @@ It's now part of my collective wisdom!`
                     query: textToSend,
                     history: currentHistory
                 }),
+                signal: controller.signal
             });
 
             if (!res.ok) throw new Error("Synthesis failure");
@@ -893,8 +898,18 @@ It's now part of my collective wisdom!`
             });
         } finally {
             setIsChatting(false);
+            abortControllerRef.current = null;
         }
         return finalResponse;
+    };
+
+    const handleAbortChat = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+            setIsChatting(false);
+            showToast("Response stopped", "info");
+        }
     };
 
 
@@ -2058,12 +2073,13 @@ It's now part of my collective wisdom!`
                                             className="voice-input-mic"
                                         />
                                         <button
-                                            onClick={() => handleSendMessage()}
-                                            disabled={!input.trim()}
-                                            className={`p-2.5 rounded-full transition-all ${input.trim() ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
+                                            onClick={() => isChatting ? handleAbortChat() : handleSendMessage()}
+                                            disabled={!input.trim() && !isChatting}
+                                            className={`p-2.5 rounded-full transition-all ${input.trim() || isChatting ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
+                                            title={isChatting ? "Stop generating" : "Send message"}
                                         >
                                             {isChatting ? (
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                <Square size={22} className="fill-white stroke-none" />
                                             ) : (
                                                 <ArrowRight size={22} className="stroke-[3px]" />
                                             )}
