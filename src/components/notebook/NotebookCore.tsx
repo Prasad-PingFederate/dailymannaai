@@ -36,7 +36,8 @@ import {
     Volume2,
     Menu,
     Lightbulb,
-    MessageCircle
+    MessageCircle,
+    Square
 } from "lucide-react";
 import { resolvePortrait, resolveSituationalImage, FALLBACK_IMAGE } from "@/lib/ai/image-resolver";
 import { GODS_LOVE_VERSES } from "@/lib/data/gods_love";
@@ -908,7 +909,7 @@ It's now part of my collective wisdom!`
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
             setIsChatting(false);
-            showToast("Response stopped", "info");
+            showToast("Response stopped", "success");
         }
     };
 
