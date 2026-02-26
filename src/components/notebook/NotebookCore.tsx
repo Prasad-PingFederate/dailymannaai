@@ -669,6 +669,7 @@ It's now part of my collective wisdom!`
         setMessages(prev => [...prev, userMessage]);
         setInput("");
         setSuggestions([]); // Clear previous suggestions
+        setIsChatting(true);
         const currentHistory = [...messages, userMessage];
 
         // Abort previous if any
@@ -909,6 +910,11 @@ It's now part of my collective wisdom!`
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
             setIsChatting(false);
+
+            // Kill any active AI voice
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
 
             // Clean up the "Thinking" state in the messages list
             setMessages(prev => {
