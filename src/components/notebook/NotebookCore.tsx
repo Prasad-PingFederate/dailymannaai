@@ -2039,8 +2039,8 @@ It's now part of my collective wisdom!`
 
                                 <div className="flex items-center gap-2 pr-1">
                                     <VoiceInput
-                                        onTranscript={(text) => setInput(prev => (prev ? prev + " " + text : text))}
-                                        onInterimTranscript={(text) => text && setInput(prev => prev.includes("🎙️") || prev.includes("✨") ? text : prev + " " + text)}
+                                        onTranscript={(text) => setInput(text)}
+                                        onInterimTranscript={(text) => text && setInput(text)}
                                         onListeningChange={(active) => setIsVoiceActive(active)}
                                         className="voice-input-mic"
                                     />

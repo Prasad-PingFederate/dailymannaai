@@ -52,7 +52,7 @@ export default function VoiceInput({
         if (recognitionRef.current) {
             recognitionRef.current.onresult = null;
             recognitionRef.current.onend = null;
-            recognitionRef.current.stop();
+            try { recognitionRef.current.stop(); } catch (e) { }
         }
 
         // Stop media recorder
@@ -64,7 +64,7 @@ export default function VoiceInput({
                     onListeningChange?.(false);
                 };
             }
-            mediaRecorderRef.current.stop();
+            try { mediaRecorderRef.current.stop(); } catch (e) { }
         }
 
         // Cleanup tracks
@@ -88,7 +88,7 @@ export default function VoiceInput({
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             setStream(audioStream);
 
-            // 1. Setup Browser Recognition (for interim results and silence detection)
+            // 1. Setup Browser Recognition
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 const recognition = new SpeechRecognition();
@@ -97,37 +97,30 @@ export default function VoiceInput({
                 recognition.lang = "en-US";
 
                 recognition.onresult = (event: any) => {
-                    let finalTranscript = "";
-                    let interimTranscript = "";
-
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        } else {
-                            interimTranscript += event.results[i][0].transcript;
-                        }
+                    let fullTranscript = "";
+                    for (let i = 0; i < event.results.length; ++i) {
+                        fullTranscript += event.results[i][0].transcript;
                     }
 
-                    const currentText = finalTranscript || interimTranscript;
-                    if (currentText) {
-                        setInterimText(currentText);
-                        onInterimTranscript?.(currentText);
+                    if (fullTranscript) {
+                        setInterimText(fullTranscript);
+                        onInterimTranscript?.(fullTranscript);
 
-                        // Reset silence timer on speech
                         if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-                        silenceTimerRef.current = setTimeout(() => {
-                            console.log("Auto-stopping due to silence");
-                            stopRecording();
-                        }, 3000);
+                        silenceTimerRef.current = setTimeout(() => stopRecording(), 4000);
                     }
                 };
 
-                recognition.onerror = (e: any) => console.warn("Recognition error:", e);
+                recognition.onerror = (e: any) => {
+                    console.warn("Recognition error:", e);
+                    // Silently fail recognition and rely on MediaRecorder
+                };
+
                 recognition.start();
                 recognitionRef.current = recognition;
             }
 
-            // 2. Setup MediaRecorder (for high-accuracy server transcription)
+            // 2. Setup MediaRecorder
             const recorder = new MediaRecorder(audioStream);
             mediaRecorderRef.current = recorder;
 
@@ -136,20 +129,13 @@ export default function VoiceInput({
             };
 
             recorder.onstop = async () => {
-                if (statusRef.current === "idle" || statusRef.current === "ready") return; // Cancelled
+                if (statusRef.current === "idle" || statusRef.current === "ready") return;
 
                 setStatus("transcribing");
 
                 const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-                if (audioBlob.size < 1000) {
-                    if (!interimText) {
-                        setError("Silence detected.");
-                        setStatus("ready");
-                        onListeningChange?.(false);
-                        return;
-                    }
-                    // If we have interim text but high-acc failed or was too short, use interim
-                    onTranscript(interimText);
+                if (audioBlob.size < 500 && !interimText) {
+                    setError("Silence detected.");
                     setStatus("ready");
                     onListeningChange?.(false);
                     return;
@@ -160,22 +146,19 @@ export default function VoiceInput({
                     fd.append("audio", audioBlob);
 
                     const res = await fetch("/api/transcribe", { method: "POST", body: fd });
-                    if (!res.ok) throw new Error("Transcription server unavailable");
+                    if (!res.ok) throw new Error("Sync failure");
 
                     const data = await res.json();
                     if (data.text) {
                         onTranscript(data.text);
                     } else if (interimText) {
-                        onTranscript(interimText); // Fallback to browser recognition
+                        onTranscript(interimText);
                     } else {
-                        setError("I couldn't quite catch that.");
+                        setError("Could not catch that.");
                     }
                 } catch (e: any) {
-                    if (interimText) {
-                        onTranscript(interimText); // Fallback
-                    } else {
-                        setError("Network error. Please try again.");
-                    }
+                    if (interimText) onTranscript(interimText);
+                    else setError("Network error.");
                 } finally {
                     setStatus("ready");
                     onListeningChange?.(false);
@@ -190,8 +173,7 @@ export default function VoiceInput({
             onListeningChange?.(true);
 
         } catch (e: any) {
-            setError("Check microphone permissions.");
-            console.error(e);
+            setError("Check mic permissions.");
         }
     };
 
@@ -199,7 +181,6 @@ export default function VoiceInput({
 
     return (
         <div className={`relative flex items-center ${className}`}>
-            {/* The Main Pulse Button */}
             <button
                 type="button"
                 onClick={() => status === "recording" ? stopRecording() : startRecording()}
@@ -218,7 +199,6 @@ export default function VoiceInput({
                     <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 )}
 
-                {/* Animated Rings when recording */}
                 {status === "recording" && (
                     <>
                         <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping -z-10" />
@@ -227,12 +207,12 @@ export default function VoiceInput({
                 )}
             </button>
 
-            {/* Premium "Listening" Overlay */}
+            {/* Listening Overlay */}
             {status === "recording" && (
                 <div className="fixed inset-0 bg-background/90 backdrop-blur-xl z-[9999] flex flex-col items-center justify-start overflow-y-auto py-12 md:py-20 animate-in fade-in duration-300">
                     <div className="max-w-2xl w-full px-6 flex flex-col items-center gap-10">
                         {/* Status Brand */}
-                        <div className="flex items-center gap-3 text-accent font-bold tracking-widest uppercase text-[10px] md:text-xs">
+                        <div className="flex items-center gap-3 text-accent font-bold tracking-widest uppercase text-xs md:text-sm animate-pulse">
                             <Sparkles className="w-5 h-5" />
                             <span>Divine Voice Sync</span>
                         </div>
@@ -242,7 +222,7 @@ export default function VoiceInput({
                             <WaveformVisualizer stream={stream} isRecording={true} color="#c8973a" />
                         </div>
 
-                        {/* Interim Text Display - Scaled for visibility */}
+                        {/* Interim Text Display - Highly visible */}
                         <div className="w-full text-center px-4">
                             <p className="text-3xl md:text-5xl font-serif italic text-foreground leading-tight min-h-[140px]">
                                 {interimText || "Listening for your voice..."}
@@ -250,7 +230,7 @@ export default function VoiceInput({
                             </p>
                         </div>
 
-                        {/* High-Impact Controls */}
+                        {/* Controls */}
                         <div className="flex items-center gap-10 mt-6 md:mt-10">
                             <button
                                 onClick={() => stopRecording(true)}
@@ -266,7 +246,7 @@ export default function VoiceInput({
                                 onClick={() => stopRecording()}
                                 className="flex flex-col items-center gap-3 group"
                             >
-                                <div className="p-10 rounded-full bg-accent text-white shadow-[0_0_60px_rgba(200,151,58,0.4)] hover:shadow-accent/60 hover:scale-105 transition-all duration-300">
+                                <div className="p-10 rounded-full bg-accent text-white shadow-[0_0_60px_rgba(200,151,58,0.4)] hover:shadow-accent/60 hover:scale-110 transition-all duration-300">
                                     <Square className="w-12 h-12 fill-white" />
                                 </div>
                                 <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-accent">Process Revelation</span>
@@ -280,7 +260,7 @@ export default function VoiceInput({
             {error && (
                 <div
                     onClick={() => setError(null)}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-red-950/95 border border-red-500/50 text-red-100 text-[11px] font-bold py-2 px-4 rounded-full shadow-2xl cursor-pointer whitespace-nowrap z-[110] animate-in slide-in-from-bottom-2"
+                    className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[11px] font-bold py-3 px-6 rounded-full shadow-2xl cursor-pointer z-[10000] animate-in slide-in-from-bottom-2"
                 >
                     ⚠️ {error}
                 </div>
