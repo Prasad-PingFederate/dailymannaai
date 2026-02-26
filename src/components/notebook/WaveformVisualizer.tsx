@@ -11,7 +11,7 @@ interface WaveformVisualizerProps {
 export default function WaveformVisualizer({
   stream,
   isRecording,
-  color = "#c8973a", // Default gold color from Daily Manna
+  color = "#c8973a", // Default gold color
 }: WaveformVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
@@ -27,10 +27,10 @@ export default function WaveformVisualizer({
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      
+
       const audioCtx = audioCtxRef.current;
       const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
+      analyser.fftSize = 512;
       const source = audioCtx.createMediaStreamSource(stream);
       source.connect(analyser);
       analyserRef.current = analyser;
@@ -38,41 +38,62 @@ export default function WaveformVisualizer({
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
+      let rotation = 0;
+
       const draw = () => {
         animationRef.current = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
 
+        // Clear with slight trailing for movement effect
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const width = canvas.width;
         const height = canvas.height;
-        const barWidth = (width / bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
+        const centerX = width / 2;
+        const centerY = height / 2;
 
-        // Draw symmetric waveform from center
-        for (let i = 0; i < bufferLength; i++) {
-          barHeight = (dataArray[i] / 255) * (height * 0.8);
+        // Calculate average volume for pulse
+        const volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+        const pulse = 1 + (volume / 255) * 1.5;
 
-          // Gradient for a premium look
-          const gradient = ctx.createLinearGradient(0, height / 2 - barHeight / 2, 0, height / 2 + barHeight / 2);
-          gradient.addColorStop(0, `${color}00`);
-          gradient.addColorStop(0.5, color);
-          gradient.addColorStop(1, `${color}00`);
+        rotation += 0.01;
 
-          ctx.fillStyle = gradient;
-          
-          // Draw top and bottom parts for a modern "pill" bar look
-          const barX = x;
-          const barY = (height - barHeight) / 2;
-          
-          // Rounded bars
+        // Draw multiple layers of "spirit" waves
+        for (let j = 0; j < 3; j++) {
+          const opacity = (3 - j) / 4;
           ctx.beginPath();
-          ctx.roundRect(barX, barY, barWidth - 2, barHeight, 4);
-          ctx.fill();
+          ctx.strokeStyle = `${color}${Math.floor(opacity * 255).toString(16).padStart(2, '0')}`;
+          ctx.lineWidth = 2 + j;
 
-          x += barWidth;
+          for (let i = 0; i < bufferLength; i++) {
+            const angle = (i / bufferLength) * Math.PI * 2 + rotation * (j + 1);
+            const value = dataArray[i] / 255.0;
+
+            // Dynamic radius based on frequency and pulse
+            const r = (50 + (value * 80 * pulse)) * (1 - j * 0.1);
+
+            const x = centerX + Math.cos(angle) * r;
+            const y = centerY + Math.sin(angle) * r;
+
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+
+          // Fill with a soft glow
+          ctx.fillStyle = `${color}${Math.floor(opacity * 20).toString(16).padStart(2, '0')}`;
+          if (j === 0) ctx.fill();
         }
+
+        // Draw central orb core
+        const coreGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 40 * pulse);
+        coreGradient.addColorStop(0, color);
+        coreGradient.addColorStop(1, `${color}00`);
+        ctx.fillStyle = coreGradient;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 60 * pulse, 0, Math.PI * 2);
+        ctx.fill();
       };
 
       draw();
@@ -81,8 +102,8 @@ export default function WaveformVisualizer({
         cancelAnimationFrame(animationRef.current);
       }
       if (canvasRef.current) {
-         const ctx = canvasRef.current.getContext("2d");
-         ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        const ctx = canvasRef.current.getContext("2d");
+        ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
 
@@ -94,11 +115,15 @@ export default function WaveformVisualizer({
   }, [isRecording, stream, color]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-full h-16 opacity-80"
-      width={300}
-      height={64}
-    />
+    <div className="relative flex items-center justify-center">
+      {/* Decorative pulsating ring around the canvas */}
+      <div className="absolute w-[200px] h-[200px] border border-accent/10 rounded-full animate-[ping_3s_infinite]" />
+      <canvas
+        ref={canvasRef}
+        className="z-10"
+        width={400}
+        height={400}
+      />
+    </div>
   );
 }

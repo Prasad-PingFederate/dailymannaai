@@ -207,56 +207,82 @@ export default function VoiceInput({
                 )}
             </button>
 
-            {/* Listening Overlay */}
+            {/* World-Class Premium Voice Overlay */}
             {status === "recording" && (
-                <div className="fixed inset-0 bg-background/95 backdrop-blur-2xl z-[9999] overflow-y-auto animate-in fade-in duration-300">
-                    <div className="min-h-full w-full flex flex-col items-center justify-center py-12 px-6">
-                        <div className="max-w-2xl w-full flex flex-col items-center gap-8 md:gap-12">
-                            {/* Status Brand */}
-                            <div className="flex items-center gap-3 text-accent font-bold tracking-widest uppercase text-[10px] md:text-xs animate-pulse">
-                                <Sparkles className="w-5 h-5" />
-                                <span>Divine Voice Sync</span>
-                            </div>
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-[9999] flex flex-col overflow-hidden animate-in fade-in duration-500">
 
-                            {/* Waveform Card */}
-                            <div className="w-full max-w-md bg-accent/5 rounded-[40px] p-8 md:p-10 border border-accent/10 shadow-inner">
-                                <WaveformVisualizer stream={stream} isRecording={true} color="#c8973a" />
-                            </div>
-
-                            {/* Interim Text Display - Dynamic scaling */}
-                            <div className="w-full text-center px-4 max-w-lg">
-                                <p className="text-2xl md:text-4xl lg:text-5xl font-serif italic text-foreground leading-tight min-h-[100px] flex items-center justify-center">
-                                    <span className="opacity-90">
-                                        {interimText || "Listening for your voice..."}
-                                        <span className="inline-block w-1 h-8 md:h-12 bg-accent ml-2 animate-pulse align-middle" />
-                                    </span>
-                                </p>
-                            </div>
-
-                            {/* Refined Controls */}
-                            <div className="flex items-center gap-10 mt-4">
-                                <button
-                                    onClick={() => stopRecording(true)}
-                                    className="flex flex-col items-center gap-3 group"
-                                >
-                                    <div className="p-4 md:p-5 rounded-full bg-white/5 border border-white/10 group-hover:bg-red-500/10 group-hover:border-red-500/20 transition-all">
-                                        <X className="w-6 h-6 md:w-8 md:h-8 text-foreground/40 group-hover:text-red-500" />
-                                    </div>
-                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-foreground/30 group-hover:text-red-500">Cancel</span>
-                                </button>
-
-                                <button
-                                    onClick={() => stopRecording()}
-                                    className="flex flex-col items-center gap-3 group"
-                                >
-                                    <div className="p-8 md:p-10 rounded-full bg-accent text-white shadow-[0_0_50px_rgba(200,151,58,0.3)] hover:shadow-accent/50 hover:scale-105 transition-all duration-300">
-                                        <Square className="w-8 h-8 md:w-10 md:h-10 fill-white" />
-                                    </div>
-                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-accent">Process Revelation</span>
-                                </button>
-                            </div>
+                    {/* Header: Branding */}
+                    <div className="absolute top-10 left-0 right-0 flex justify-center z-[10001]">
+                        <div className="flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
+                            <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+                            <span className="text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase text-white/90">
+                                Divine Voice Sync
+                            </span>
                         </div>
                     </div>
+
+                    {/* Middle: Focus Area (Waveform) */}
+                    <div className="flex-1 flex flex-col items-center justify-center relative px-6">
+                        {/* Soft Ambient Glow Behind Waveform */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-accent/10 rounded-full blur-[120px] -z-10 animate-pulse" />
+
+                        <div className="w-full max-w-lg scale-110 md:scale-125">
+                            <WaveformVisualizer
+                                stream={stream}
+                                isRecording={true}
+                                color="#c8973a"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Bottom Section: Transcript & Fixed Controls */}
+                    <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-10 p-8 pb-14 md:pb-20 z-[10001]">
+
+                        {/* Enhanced Transcript Display: Limited height, own scrollbar */}
+                        <div className="w-full text-center max-h-40 overflow-y-auto px-4 group scrollbar-hide hover:scrollbar-default transition-all">
+                            <p className="text-2xl md:text-4xl font-serif italic text-white/90 leading-tight tracking-[0.01em] selection:bg-accent/30 drop-shadow-lg">
+                                {interimText || (
+                                    <span className="opacity-40 flex items-center justify-center gap-3">
+                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        Listening for your soul...
+                                    </span>
+                                )}
+                                <span className="inline-block w-1.5 h-8 md:h-12 bg-accent ml-3 animate-[pulse_1s_infinite] align-middle rounded-full shadow-[0_0_15px_rgba(200,151,58,0.5)]" />
+                            </p>
+                        </div>
+
+                        {/* High-Impact Sticky Controls: Always visible, never moves */}
+                        <div className="flex items-center gap-12 md:gap-16">
+                            {/* Cancel Button */}
+                            <button
+                                onClick={() => stopRecording(true)}
+                                className="flex flex-col items-center gap-3 group outline-none"
+                            >
+                                <div className="p-5 md:p-6 rounded-full bg-white/5 border border-white/10 group-hover:bg-red-500/10 group-hover:border-red-500/30 transition-all duration-300 group-active:scale-90">
+                                    <X className="w-8 h-8 md:w-10 md:h-10 text-white/30 group-hover:text-red-500" />
+                                </div>
+                                <span className="text-[10px] md:text-[11px] uppercase tracking-[0.25em] font-bold text-white/20 group-hover:text-red-500/80 transition-colors">Abort</span>
+                            </button>
+
+                            {/* Main Finish Button (The stop button) */}
+                            <button
+                                onClick={() => stopRecording()}
+                                className="flex flex-col items-center gap-4 group outline-none"
+                            >
+                                <div className="relative">
+                                    {/* Rotating outer ring */}
+                                    <div className="absolute inset-0 rounded-full border-2 border-accent/20 border-t-accent animate-spin duration-[3s]" />
+                                    <div className="p-10 md:p-12 rounded-full bg-accent text-white shadow-[0_0_80px_rgba(200,151,58,0.4)] transition-all duration-500 group-hover:scale-110 group-hover:shadow-accent/60 group-active:scale-95">
+                                        <Square className="w-12 h-12 md:w-14 md:h-14 fill-white" />
+                                    </div>
+                                </div>
+                                <span className="text-[11px] md:text-[12px] uppercase tracking-[0.3em] font-bold text-accent drop-shadow-[0_0_10px_rgba(200,151,58,0.3)] animate-pulse">Save Revelation</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Background Glassmorphic Layer */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black pointer-events-none" />
                 </div>
             )}
 
