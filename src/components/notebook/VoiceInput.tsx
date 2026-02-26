@@ -195,11 +195,12 @@ export default function VoiceInput({
             <button
                 type="button"
                 onClick={() => status === "recording" ? stopRecording() : startRecording()}
-                disabled={disabled}
+                disabled={status === "transcribing" || disabled}
                 className={`group relative w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 z-50 
                     ${status === "recording"
                         ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-110'
-                        : 'bg-accent/10 hover:bg-accent/20 border border-accent/20 text-accent'}`}
+                        : 'bg-accent/10 hover:bg-accent/20 border border-accent/20 text-accent'}
+                    ${status === "transcribing" ? 'opacity-50 cursor-wait' : ''}`}
             >
                 {status === "recording" ? (
                     <Square className="w-4 h-4 fill-white text-white" />

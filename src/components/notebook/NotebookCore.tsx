@@ -909,6 +909,17 @@ It's now part of my collective wisdom!`
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
             setIsChatting(false);
+
+            // Clean up the "Thinking" state in the messages list
+            setMessages(prev => {
+                const newMessages = [...prev];
+                const lastIdx = newMessages.length - 1;
+                if (lastIdx >= 0 && newMessages[lastIdx].role === "assistant" && newMessages[lastIdx].isThinking) {
+                    newMessages[lastIdx] = { ...newMessages[lastIdx], isThinking: false };
+                }
+                return newMessages;
+            });
+
             showToast("Response stopped", "success");
         }
     };
