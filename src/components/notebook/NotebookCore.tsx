@@ -2078,6 +2078,7 @@ It's now part of my collective wisdom!`
                                 <button
                                     key={idx}
                                     onClick={tool.action}
+                                    title={tool.label === 'Image Studio' ? 'Generate Image' : tool.label}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold transition-all hover:scale-105 active:scale-95 whitespace-nowrap shadow-sm ${tool.color}`}
                                 >
                                     {tool.icon}
