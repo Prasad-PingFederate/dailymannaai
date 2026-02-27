@@ -46,6 +46,8 @@ import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
 import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
 import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
 import VoiceInput from "@/components/notebook/VoiceInput";
+import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
+import { Image as ImageIcon } from "lucide-react";
 
 
 interface Source {
@@ -110,6 +112,7 @@ export default function NotebookWorkspace() {
     const [isDailyMannaOpen, setIsDailyMannaOpen] = useState(false);
     const [localImagePath, setLocalImagePath] = useState("");
     const [isLocalImageModalOpen, setLocalImageModalOpen] = useState(false);
+    const [isStudioOpen, setIsStudioOpen] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -1552,6 +1555,11 @@ It's now part of my collective wisdom!`
                 </div>
             )}
 
+            {/* Image Studio Overlap */}
+            {isStudioOpen && (
+                <BibleQuoteGenerator onClose={() => setIsStudioOpen(false)} />
+            )}
+
             {/* Local Image Viewer Modal */}
             {isLocalImageModalOpen && (
                 <div className="absolute inset-0 z-[200] flex items-center justify-center p-6 bg-background/90 backdrop-blur-md animate-in fade-in">
@@ -1835,6 +1843,13 @@ It's now part of my collective wisdom!`
                                         )}
                                     </div>
                                     <span className="text-[10px] font-bold font-mono">{dailyManna.date}</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setIsStudioOpen(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-white hover:bg-accent/90 transition-all font-black uppercase tracking-widest text-[10px] shadow-lg shadow-accent/20"
+                                >
+                                    <ImageIcon size={14} /> Image Studio
                                 </button>
 
                                 {isDailyMannaOpen && (
