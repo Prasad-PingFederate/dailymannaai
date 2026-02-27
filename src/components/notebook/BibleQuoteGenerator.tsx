@@ -123,8 +123,19 @@ function drawCross(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: 
 
 function drawGlowOrb(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string) {
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    g.addColorStop(0, color.replace(")", ", 0.6)").replace("rgb", "rgba"));
-    g.addColorStop(0.5, color.replace(")", ", 0.15)").replace("rgb", "rgba"));
+    let color0 = color;
+    let color5 = color;
+
+    if (color.startsWith("rgba")) {
+        color0 = color.replace(/,[\s\d.]+\)$/, `, 0.6)`);
+        color5 = color.replace(/,[\s\d.]+\)$/, `, 0.15)`);
+    } else {
+        color0 = color.replace(")", ", 0.6)").replace("rgb", "rgba");
+        color5 = color.replace(")", ", 0.15)").replace("rgb", "rgba");
+    }
+
+    g.addColorStop(0, color0);
+    g.addColorStop(0.5, color5);
     g.addColorStop(1, "transparent");
     ctx.fillStyle = g;
     ctx.beginPath();
