@@ -511,7 +511,9 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
         const link = document.createElement("a");
         link.download = `dailymanna-${state.reference.replace(/\s/g, "-").replace(":", "-")}-${Date.now()}.png`;
         link.href = canvas.toDataURL("image/png", 1.0);
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     };
 
     const handleCopyImage = async () => {
