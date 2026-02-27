@@ -362,8 +362,52 @@ function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, 
 }
 
 // ─────────────────────────────────────────────
+//  SUB-COMPONENTS & STYLES
+// ─────────────────────────────────────────────
+
+function SectionTitle({ icon, title }: { icon: string, title: string }) {
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ color: "#c9a84c", fontSize: 16 }}>{icon}</span>
+            <span
+                style={{
+                    fontSize: 13,
+                    letterSpacing: 2,
+                    textTransform: "uppercase",
+                    color: "#a89050",
+                    fontFamily: "Georgia, serif",
+                }}
+            >
+                {title}
+            </span>
+        </div>
+    );
+}
+
+const card = {
+    background: "rgba(255,255,255,0.02)",
+    border: "1px solid rgba(201,168,76,0.1)",
+    borderRadius: 14,
+    padding: "20px 22px",
+    backdropFilter: "blur(10px)",
+};
+
+const catBtn = {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "12px 8px",
+    borderRadius: 10,
+    cursor: "pointer",
+    fontFamily: "Georgia, serif",
+    transition: "all 0.2s",
+    gap: 4,
+};
+
+// ─────────────────────────────────────────────
 //  MAIN COMPONENT
 // ─────────────────────────────────────────────
+
 
 export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -992,49 +1036,3 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
     );
 }
 
-// ─────────────────────────────────────────────
-//  SUB-COMPONENTS
-// ─────────────────────────────────────────────
-
-function SectionTitle({ icon, title }: { icon: string, title: string }) {
-    return (
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: "#c9a84c", fontSize: 16 }}>{icon}</span>
-            <span
-                style={{
-                    fontSize: 13,
-                    letterSpacing: 2,
-                    textTransform: "uppercase",
-                    color: "#a89050",
-                    fontFamily: "Georgia, serif",
-                }}
-            >
-                {title}
-            </span>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────
-//  STYLE CONSTANTS
-// ─────────────────────────────────────────────
-
-const card = {
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(201,168,76,0.1)",
-    borderRadius: 14,
-    padding: "20px 22px",
-    backdropFilter: "blur(10px)",
-};
-
-const catBtn = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "12px 8px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontFamily: "Georgia, serif",
-    transition: "all 0.2s",
-    gap: 4,
-};
