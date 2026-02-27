@@ -1845,13 +1845,6 @@ It's now part of my collective wisdom!`
                                     <span className="text-[10px] font-bold font-mono">{dailyManna.date}</span>
                                 </button>
 
-                                <button
-                                    onClick={() => setIsStudioOpen(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-white hover:bg-accent/90 transition-all font-black uppercase tracking-widest text-[10px] shadow-lg shadow-accent/20"
-                                >
-                                    <ImageIcon size={14} /> Image Studio
-                                </button>
-
                                 {isDailyMannaOpen && (
                                     <div className="absolute right-0 top-14 w-[calc(100vw-2rem)] sm:w-[400px] bg-card-bg border border-border rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] p-6 z-[100] animate-in slide-in-from-top-4 duration-300">
                                         <div className="flex items-center justify-between mb-4">
@@ -2079,7 +2072,8 @@ It's now part of my collective wisdom!`
                                 { label: 'Summarize', icon: <FileStack size={14} />, action: handleSummarize, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
                                 { label: 'Refine', icon: <Wand2 size={14} />, action: handleRefine, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
                                 { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
-                                { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' }
+                                { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' },
+                                { label: 'Image Studio', icon: <ImageIcon size={14} />, action: () => setIsStudioOpen(true), color: 'text-rose-500 bg-rose-500/15 border-rose-500/30' }
                             ].map((tool, idx) => (
                                 <button
                                     key={idx}
