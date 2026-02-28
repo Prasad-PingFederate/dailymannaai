@@ -7,66 +7,19 @@ import { useState, useRef, useEffect, useCallback } from "react";
 // ─────────────────────────────────────────────
 
 const THEMES = [
-    {
-        id: "golgotha",
-        name: "Golgotha",
-        description: "The Cross at Calvary",
-        bg: ["#0a0a0f", "#1a0a2e", "#2d1b4e"],
-        accent: "#c9a84c",
-        text: "#f5e6c8",
-        sub: "#d4af7a",
-        glow: "rgba(201,168,76,0.3)",
-    },
-    {
-        id: "dawn",
-        name: "New Dawn",
-        description: "His Mercies Are New",
-        bg: ["#1a0533", "#8b2fc9", "#f97316"],
-        accent: "#fbbf24",
-        text: "#fff7ed",
-        sub: "#fed7aa",
-        glow: "rgba(251,191,36,0.35)",
-    },
-    {
-        id: "seaofgalilee",
-        name: "Sea of Galilee",
-        description: "Walk on Water",
-        bg: ["#0c1445", "#1e3a5f", "#0e7490"],
-        accent: "#38bdf8",
-        text: "#e0f2fe",
-        sub: "#bae6fd",
-        glow: "rgba(56,189,248,0.3)",
-    },
-    {
-        id: "eden",
-        name: "Garden of Eden",
-        description: "In the Beginning",
-        bg: ["#052e16", "#14532d", "#15803d"],
-        accent: "#86efac",
-        text: "#f0fdf4",
-        sub: "#bbf7d0",
-        glow: "rgba(134,239,172,0.3)",
-    },
-    {
-        id: "heavenly",
-        name: "Heavenly Realm",
-        description: "As It Is in Heaven",
-        bg: ["#0f172a", "#1e3a8a", "#3730a3"],
-        accent: "#a5b4fc",
-        text: "#eef2ff",
-        sub: "#c7d2fe",
-        glow: "rgba(165,180,252,0.35)",
-    },
-    {
-        id: "desert",
-        name: "Wilderness",
-        description: "40 Days in the Desert",
-        bg: ["#1c0a00", "#7c2d12", "#c2410c"],
-        accent: "#fb923c",
-        text: "#fff7ed",
-        sub: "#fed7aa",
-        glow: "rgba(251,146,60,0.3)",
-    },
+    // --- PHOTO THEMES ---
+    { id: "forest", name: "Forest", description: "Peace in nature", type: "photo", url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1080&h=1080&fit=crop&q=80", overlay: "rgba(10,50,20,0.55)", accent: "#86efac", text: "#f0fdf4", sub: "#bbf7d0", glow: "rgba(134,239,172,0.3)" },
+    { id: "mountains", name: "Mountains", description: "Faith moving mountains", type: "photo", url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1080&h=1080&fit=crop&q=80", overlay: "rgba(10,30,80,0.5)", accent: "#a5b4fc", text: "#eef2ff", sub: "#c7d2fe", glow: "rgba(165,180,252,0.3)" },
+    { id: "ocean", name: "Ocean", description: "Deep as His love", type: "photo", url: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1080&h=1080&fit=crop&q=80", overlay: "rgba(10,40,60,0.6)", accent: "#38bdf8", text: "#e0f2fe", sub: "#bae6fd", glow: "rgba(56,189,248,0.3)" },
+    { id: "sunrise", name: "Sunrise", description: "His mercies are new", type: "photo", url: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=1080&h=1080&fit=crop&q=80", overlay: "rgba(80,40,0,0.4)", accent: "#fbbf24", text: "#fff7ed", sub: "#fed7aa", glow: "rgba(251,191,36,0.3)" },
+    { id: "stars", name: "Stars", description: "He numbers the stars", type: "photo", url: "https://images.unsplash.com/photo-1502481851512-e9e2529bfbf9?w=1080&h=1080&fit=crop&q=80", overlay: "rgba(0,0,20,0.6)", accent: "#fde047", text: "#fefce8", sub: "#fef08a", glow: "rgba(253,224,71,0.3)" },
+    { id: "wheat", name: "Harvest", description: "Fields are ready", type: "photo", url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1080&h=1080&fit=crop&q=80", overlay: "rgba(60,30,0,0.5)", accent: "#fb923c", text: "#fff7ed", sub: "#fed7aa", glow: "rgba(251,146,60,0.3)" },
+
+    // --- GRADIENT THEMES ---
+    { id: "golgotha", name: "Golgotha", description: "The Cross at Calvary", type: "gradient", bg: ["#0a0a0f", "#1a0a2e", "#2d1b4e"], accent: "#c9a84c", text: "#f5e6c8", sub: "#d4af7a", glow: "rgba(201,168,76,0.3)" },
+    { id: "dawn", name: "New Dawn", description: "His Mercies Are New", type: "gradient", bg: ["#1a0533", "#8b2fc9", "#f97316"], accent: "#fbbf24", text: "#fff7ed", sub: "#fed7aa", glow: "rgba(251,191,36,0.35)" },
+    { id: "seaofgalilee", name: "Sea of Galilee", description: "Walk on Water", type: "gradient", bg: ["#0c1445", "#1e3a5f", "#0e7490"], accent: "#38bdf8", text: "#e0f2fe", sub: "#bae6fd", glow: "rgba(56,189,248,0.3)" },
+    { id: "eden", name: "Garden of Eden", description: "In the Beginning", type: "gradient", bg: ["#052e16", "#14532d", "#15803d"], accent: "#86efac", text: "#f0fdf4", sub: "#bbf7d0", glow: "rgba(134,239,172,0.3)" },
 ];
 
 const CATEGORIES = [
@@ -193,7 +146,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     return lines;
 }
 
-function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, size, fontFamily, category }: any) {
+async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, size, fontFamily, category }: any) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const { w, h } = size;
@@ -203,14 +156,49 @@ function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, 
     const isStory = h > w;
     const isWide = w > h * 1.4;
 
-    // ── Background gradient ──
-    const bgGrad = ctx.createLinearGradient(0, 0, w * 0.3, h);
-    theme.bg.forEach((c: string, i: number) => bgGrad.addColorStop(i / (theme.bg.length - 1), c));
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, w, h);
+    // ── Background ──
+    if (theme.type === "photo" && theme.url) {
+        await new Promise((resolve) => {
+            const img = new window.Image();
+            img.crossOrigin = "anonymous";
+            img.src = theme.url;
+            img.onload = () => {
+                const imgAspect = img.width / img.height;
+                const canvasAspect = w / h;
+                let drawW, drawH, drawX, drawY;
+
+                if (imgAspect > canvasAspect) {
+                    drawH = h;
+                    drawW = h * imgAspect;
+                    drawX = -(drawW - w) / 2;
+                    drawY = 0;
+                } else {
+                    drawW = w;
+                    drawH = w / imgAspect;
+                    drawX = 0;
+                    drawY = -(drawH - h) / 2;
+                }
+
+                ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                ctx.fillStyle = theme.overlay || "rgba(0,0,0,0.5)";
+                ctx.fillRect(0, 0, w, h);
+                resolve(null);
+            };
+            img.onerror = () => {
+                ctx.fillStyle = "#111";
+                ctx.fillRect(0, 0, w, h);
+                resolve(null);
+            };
+        });
+    } else {
+        const bgGrad = ctx.createLinearGradient(0, 0, w * 0.3, h);
+        theme.bg.forEach((c: string, i: number) => bgGrad.addColorStop(i / (theme.bg.length - 1), c));
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+    }
 
     // ── Starfield for dark themes ──
-    if (["golgotha", "heavenly", "dawn"].includes(theme.id)) {
+    if (["golgotha", "heavenly", "dawn"].includes(theme.id) || theme.id === "stars") {
         drawStarfield(ctx, w, h, isStory ? 80 : 50);
     }
 
@@ -446,31 +434,36 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
     });
 
     useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        renderBibleImage(canvas, {
-            quote: state.quote,
-            reference: state.reference,
-            theme: state.theme,
-            size: state.size,
-            fontFamily: state.font.family,
-            category: state.category,
-        });
-
-        const preview = previewRef.current;
-        if (preview) {
-            const previewCanvas = document.createElement("canvas");
-            const maxPreviewW = 520;
-            const scale = maxPreviewW / state.size.w;
-            previewCanvas.width = state.size.w * scale;
-            previewCanvas.height = state.size.h * scale;
-            const pCtx = previewCanvas.getContext("2d");
-            if (pCtx) {
-                pCtx.scale(scale, scale);
-                pCtx.drawImage(canvas, 0, 0);
-                preview.src = previewCanvas.toDataURL("image/png");
+        let isCancelled = false;
+        const updateCanvas = async () => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            await renderBibleImage(canvas, {
+                quote: state.quote,
+                reference: state.reference,
+                theme: state.theme,
+                size: state.size,
+                fontFamily: state.font.family,
+                category: state.category,
+            });
+            if (isCancelled) return;
+            const preview = previewRef.current;
+            if (preview) {
+                const previewCanvas = document.createElement("canvas");
+                const maxPreviewW = 520;
+                const scale = maxPreviewW / state.size.w;
+                previewCanvas.width = state.size.w * scale;
+                previewCanvas.height = state.size.h * scale;
+                const pCtx = previewCanvas.getContext("2d");
+                if (pCtx) {
+                    pCtx.scale(scale, scale);
+                    pCtx.drawImage(canvas, 0, 0);
+                    preview.src = previewCanvas.toDataURL("image/png");
+                }
             }
-        }
+        };
+        updateCanvas();
+        return () => { isCancelled = true; };
     }, [state]);
 
     const handleGenerate = useCallback(async () => {
@@ -497,10 +490,10 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
         }
     }, [state.category, state.customTopic]);
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        renderBibleImage(canvas, {
+        await renderBibleImage(canvas, {
             quote: state.quote,
             reference: state.reference,
             theme: state.theme,
@@ -733,7 +726,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                         key={theme.id}
                                         onClick={() => setState((st) => ({ ...st, theme }))}
                                         style={{
-                                            background: `linear-gradient(135deg, ${theme.bg[0]}, ${theme.bg[theme.bg.length - 1]})`,
+                                            background: theme.type === "photo" ? `linear-gradient(${theme.overlay}, ${theme.overlay}), url('${theme.url}') center/cover` : `linear-gradient(135deg, ${theme.bg?.[0]}, ${theme.bg?.[theme.bg?.length - 1]})`,
                                             border: `2px solid ${s.theme.id === theme.id ? theme.accent : "transparent"}`,
                                             borderRadius: 10,
                                             padding: "12px 8px",
