@@ -258,10 +258,11 @@ export async function GET(req: Request) {
                 webSolution = await searchTavily(q);
                 insight = webSolution?.answer;
 
-                // 2. Try Google Scraper (The "Crawler" fallback)
+                // 2. Try Google Scraper (Broad Fallback)
                 if (!webSolution || !webSolution.results || webSolution.results.length === 0) {
-                    console.log("[SearchEngine] 🔍 Falling back to Live Google Crawler for:", q);
-                    const googleResults = await google.search(q + " christian news", {
+                    console.log("[SearchEngine] 🔍 Falling back to Live World Crawler for:", q);
+                    // Search for broader general news to ensure we get results
+                    const googleResults = await google.search(q, {
                         safe: true,
                         parse_ads: false
                     });
@@ -274,7 +275,7 @@ export async function GET(req: Request) {
                         title: r.title,
                         description: r.description,
                         link: r.url,
-                        source: new URL(r.url).hostname,
+                        source: r.url ? new URL(r.url).hostname : "World News",
                         grace_rank: 0.6
                     }));
                 } else {
@@ -282,7 +283,7 @@ export async function GET(req: Request) {
                         title: r.title,
                         description: r.content,
                         link: r.url,
-                        source: new URL(r.url).hostname,
+                        source: r.url ? new URL(r.url).hostname : "Live Feed",
                         grace_rank: 0.8
                     }));
                 }
@@ -290,9 +291,9 @@ export async function GET(req: Request) {
                 console.error("[CrawlerError]", err);
             }
 
-            // Final fallback if everything fails
+            // Final fallback insight if even Google fails
             if (!insight) {
-                insight = `The solution to ${q} is found in steadfast faith and practical action. Align your hearts with scripture and stay informed with godly perspectives.`;
+                insight = `The situation regarding ${q} is developing. Stay grounded in prayer and search for local updates while we continue scanning for deeper scriptural perspectives.`;
             }
 
             return NextResponse.json({
@@ -302,13 +303,13 @@ export async function GET(req: Request) {
                     bible: bible.slice(0, 5),
                     news: news.slice(0, 4),
                     devotionals: [
-                        { title: `Living for ${q}`, description: `Daily walk in faith regarding ${q}...`, source: "Daily Manna" },
-                        { title: `Overcoming ${q}`, description: `Practical steps to conquer challenges involving ${q}.`, source: "Grace Daily" },
-                        { title: `The Peace of ${q}`, description: "Finding tranquility in His Word.", source: "Morning Dew" }
+                        { title: `Wisdom for ${q}`, description: `Daily walk in faith regarding ${q}...`, source: "Daily Manna" },
+                        { title: `Overcoming Challenges`, description: `Practical steps to conquer difficulties in light of ${q}.`, source: "Grace Daily" },
+                        { title: `Seeking Peace`, description: "Finding tranquility in His Word.", source: "Morning Dew" }
                     ].slice(0, 3),
                     sermons: [
-                        { title: `The Power of ${q}`, speaker: "Pastor John Doe", length: "45 mins" },
-                        { title: `Walking in ${q}`, speaker: "Evangelist Jane Smith", length: "32 mins" }
+                        { title: `The Power of Faith in ${q}`, speaker: "Pastor John Doe", length: "45 mins" },
+                        { title: `Walking Through ${q}`, speaker: "Evangelist Jane Smith", length: "32 mins" }
                     ].slice(0, 2),
                     insight: insight
                 }
