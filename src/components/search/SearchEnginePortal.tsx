@@ -392,7 +392,7 @@ function SolutionDashboard({
                     </p>
 
                     {/* Deep Crawl Suggestion */}
-                    {solution.deepCrawlAvailable && (
+                    {solution && solution.deepCrawlAvailable && (
                         <div className="pt-6">
                             <button
                                 onClick={async () => {
@@ -455,7 +455,7 @@ function SolutionDashboard({
                 <SectionHeader icon={<Newspaper size={16} />} label="4 World Perspectives" color="text-sky-400" />
                 {solution.news?.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {(solution.news as SearchResult[]).map((n, i) => {
+                        {(solution.news || []).map((n: any, i: number) => {
                             const cleanUrl = sanitizeUrl(n.link);
                             if (!cleanUrl) return null;
                             return (
@@ -766,11 +766,6 @@ export default function SearchEnginePortal() {
         if (!q) return;
 
         setIsSearching(true);
-        setHasSearched(true);
-        setResults([]);
-        setInstantAnswer(null);
-        setSolution(null);
-
         try {
             const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=${searchFilter}`);
             const data = await res.json();
@@ -778,6 +773,9 @@ export default function SearchEnginePortal() {
                 setResults(data.results || []);
                 setInstantAnswer(data.instantAnswer);
                 setSolution(data.solution);
+                setHasSearched(true);
+            } else {
+                console.error("Search failed with status:", res.status);
             }
         } catch (err) {
             console.error("Search failed:", err);
