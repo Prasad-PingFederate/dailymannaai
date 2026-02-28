@@ -695,6 +695,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                         {/* Standard Generate button */}
                         <button
                             onClick={handleGenerate}
+                            title="Generate a fresh, unique scripture or quote"
                             disabled={isAnyLoading}
                             style={{
                                 width: "100%",
