@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Inner transparent background for bounding box alignment -->
+  <rect width="100" height="100" fill="transparent" />
+  
+  <!-- Improved continuous path cross: perfectly symmetrical arms, elegant thickness, no overlapping artifact lines, blood red color -->
+  <path d="M45 10 L55 10 L55 30 L75 30 L75 40 L55 40 L55 90 L45 90 L45 40 L25 40 L25 30 L45 30 Z" fill="#b00b0b" />
+</svg>

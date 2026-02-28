@@ -45,6 +45,8 @@ import { BILLY_GRAHAM_SERMONS } from "@/lib/data/billy_graham_sermons";
 import { JOHN_WESLEY_SERMONS } from "@/lib/data/john_wesley_sermons";
 import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
 import VoiceInput from "@/components/notebook/VoiceInput";
+import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
+import { Image as ImageIcon } from "lucide-react";
 
 
 interface Source {
@@ -108,6 +110,7 @@ export default function NotebookWorkspace() {
     const [isDailyMannaOpen, setIsDailyMannaOpen] = useState(false);
     const [localImagePath, setLocalImagePath] = useState("");
     const [isLocalImageModalOpen, setLocalImageModalOpen] = useState(false);
+    const [isStudioOpen, setIsStudioOpen] = useState(false);
     const messageAudioRefs = useRef<Record<number, HTMLAudioElement>>({});
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -948,14 +951,9 @@ It's now part of my collective wisdom!`
             showToast("Response stopped", "success");
         }
     };
-
-
-
-
-
     const handleRefine = async () => {
-        if (!noteContent || noteContent.trim().length === 0) {
-            alert("Please write some notes first, then I can help refine them.");
+        if (!noteContent || noteContent.trim().length < 10) {
+            alert("Please write some notes first to refine them.");
             return;
         }
 
@@ -964,26 +962,22 @@ It's now part of my collective wisdom!`
             const res = await fetch("/api/refine", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: noteContent }),
+                body: JSON.stringify({
+                    content: noteContent,
+                    sources: sources.filter(s => s.selected).map(s => s.name)
+                }),
             });
 
             const data = await res.json();
-
-            if (res.ok) {
-                setNoteContent(data.refined);
-                setMessages(prev => [...prev, {
-                    role: "assistant",
-                    content: "I've refined your notes! Check the editor to see the improvements."
-                }]);
+            if (res.ok && data.refinedContent) {
+                setNoteContent(data.refinedContent);
+                showToast("Research notes refined and polished!", "success");
             } else {
-                throw new Error(data.error || "Failed to refine text");
+                throw new Error(data.error || "Failed to refine notes");
             }
         } catch (error: any) {
             console.error("Refine Error:", error);
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: `Sorry, I had trouble refining your notes: ${error.message}`
-            }]);
+            showToast(`Refinement failed: ${error.message}`, "error");
         } finally {
             setIsRefining(false);
         }
@@ -1506,6 +1500,11 @@ It's now part of my collective wisdom!`
                 </div>
             )}
 
+            {/* Image Studio Overlap */}
+            {isStudioOpen && (
+                <BibleQuoteGenerator onClose={() => setIsStudioOpen(false)} />
+            )}
+
             {/* Local Image Viewer Modal */}
             {isLocalImageModalOpen && (
                 <div className="absolute inset-0 z-[200] flex items-center justify-center p-6 bg-background/90 backdrop-blur-md animate-in fade-in">
@@ -2017,11 +2016,13 @@ It's now part of my collective wisdom!`
                             {[
                                 { label: 'Refine', icon: <Wand2 size={14} />, action: handleRefine, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
                                 { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
-                                { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' }
+                                { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' },
+                                { label: 'Image Studio', icon: <ImageIcon size={14} />, action: () => setIsStudioOpen(true), color: 'text-rose-500 bg-rose-500/15 border-rose-500/30' }
                             ].map((tool, idx) => (
                                 <button
                                     key={idx}
                                     onClick={tool.action}
+                                    title={tool.label === 'Image Studio' ? 'Generate Image' : tool.label}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold transition-all hover:scale-105 active:scale-95 whitespace-nowrap shadow-sm ${tool.color}`}
                                 >
                                     {tool.icon}
@@ -2080,15 +2081,6 @@ It's now part of my collective wisdom!`
                                 </div>
                             </div>
 
-                            {/* Sources/Status Indicator (Inside Floating Context) */}
-                            <div className="absolute -top-6 left-6 flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100 transition-opacity drop-shadow-sm">
-                                <span className={`${sources.filter(s => s.selected).length > 0 ? 'text-accent' : 'text-muted'}`}>
-                                    {sources.filter(s => s.selected).length} SOURCES ACTIVE
-                                </span>
-                                <span className="text-amber-500 flex items-center gap-1">
-                                    <Sparkles size={10} /> BORN AGAIN AI
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
