@@ -461,6 +461,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
         font: FONTS[0],
         customTopic: "",
         aiBgUrl: null as string | null, // Used to store generated AI background, overrides theme if set
+        usedReferences: [] as string[], // Track used verse references to avoid duplicates
     });
 
     const [ui, setUi] = useState({
@@ -512,7 +513,11 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
             const response = await fetch('/api/bible-quote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category: state.category, customTopic: state.customTopic }),
+                body: JSON.stringify({
+                    category: state.category,
+                    customTopic: state.customTopic,
+                    usedReferences: state.usedReferences // Send history so we don't repeat verses
+                }),
             });
             if (!response.ok) throw new Error('API call failed');
             const result = await response.json();
@@ -523,6 +528,8 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                 reference: result.reference,
                 reflection: result.reflection || "",
                 testament: result.testament || "",
+                // Append the new reference to our memory bank
+                usedReferences: [...s.usedReferences, result.reference]
             }));
             setUi((u) => ({ ...u, loading: false, generated: true }));
         } catch (e) {

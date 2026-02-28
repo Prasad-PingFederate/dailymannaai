@@ -14,11 +14,15 @@ const TOPIC_MAP: Record<string, string> = {
 
 export async function POST(req: Request) {
     try {
-        const { category, customTopic } = await req.json();
+        const { category, customTopic, usedReferences = [] } = await req.json();
         const topic = customTopic || TOPIC_MAP[category] || 'Christian encouragement';
 
+        const avoidConstraint = usedReferences.length > 0
+            ? `\nCRITICAL: Do NOT use any of these references that have already been shown: ${usedReferences.join(', ')}.`
+            : '';
+
         const prompt = `You are a deeply knowledgeable Christian theologian and pastor.
-Generate ONE powerful Bible verse about: ${topic}.
+Generate ONE powerful Bible verse about: ${topic}.${avoidConstraint}
 
 Return ONLY valid JSON (no markdown block, just the raw JSON text):
 {
@@ -31,7 +35,8 @@ Return ONLY valid JSON (no markdown block, just the raw JSON text):
 Ensure the verse is:
 - Doctrinally sound and Christ-centered
 - Directly relevant to the topic
-- Complete (full verse, not truncated)`;
+- Complete (full verse, not truncated)
+- DIFFERENT from any verses listed in the critical avoid list`;
 
         const { response } = await getProviderManager().generateResponse(prompt);
 
