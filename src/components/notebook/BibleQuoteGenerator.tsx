@@ -171,15 +171,11 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     return lines;
 }
 
-function buildAiImageUrl(category: string, verse: string) {
-    const seed = Math.floor(Math.random() * 99999);
+function buildAiImagePrompt(category: string, verse: string) {
     const baseTheme = CATEGORY_THEMES[category] || "beautiful Christian religious scenery";
     const randomScene = RANDOM_SCENES[Math.floor(Math.random() * RANDOM_SCENES.length)];
-    const prompt = `${baseTheme}, featuring ${randomScene}, highly detailed painting, masterwork, beautiful lighting, cinematic, photorealistic, 4k`;
-
-    // Using pollinations.ai for free, fast AI image generation without API key
-    const encoded = encodeURIComponent(prompt + ", ultra HD, cinematic, high quality, professional photography");
-    return `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&seed=${seed}&nologo=true&enhance=true`;
+    // Build a high quality, cinematic prompt
+    return `${baseTheme}, featuring ${randomScene}, highly detailed painting, masterwork, beautiful lighting, cinematic, photorealistic, 4k, ultra HD, high quality. No text, no words, no watermark.`;
 }
 
 async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, size, fontFamily, category, aiBgUrl }: any) {
@@ -731,20 +727,37 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                         <div style={{ display: "flex", gap: "10px" }}>
                             {/* AI Background Generate Button */}
                             <button
-                                onClick={() => {
+                                onClick={async () => {
                                     setUi(u => ({ ...u, loading: true, error: null }));
-                                    const newUrl = buildAiImageUrl(state.category, state.quote);
+                                    const prompt = buildAiImagePrompt(state.category, state.quote);
 
-                                    // Preload the image before returning so that it doesn't blink stark black
-                                    const img = new window.Image();
-                                    img.onload = () => {
-                                        setState(st => ({ ...st, aiBgUrl: newUrl }));
-                                        setUi(u => ({ ...u, loading: false }));
-                                    };
-                                    img.onerror = () => {
+                                    try {
+                                        const response = await fetch('/api/generate-image', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ prompt, category: state.category })
+                                        });
+
+                                        if (!response.ok) throw new Error("Image API Failed");
+                                        const data = await response.json();
+
+                                        if (data.url) {
+                                            const img = new window.Image();
+                                            img.crossOrigin = "anonymous";
+                                            img.onload = () => {
+                                                setState(st => ({ ...st, aiBgUrl: data.url }));
+                                                setUi(u => ({ ...u, loading: false }));
+                                            };
+                                            img.onerror = () => {
+                                                setUi(u => ({ ...u, loading: false, error: "Failed to render API image. Try again." }));
+                                            }
+                                            img.src = data.url;
+                                        } else {
+                                            throw new Error(data.error || "Generation Failed");
+                                        }
+                                    } catch (e) {
                                         setUi(u => ({ ...u, loading: false, error: "AI model busy. Try the Photo API below." }));
                                     }
-                                    img.src = newUrl;
                                 }}
                                 disabled={ui.loading}
                                 style={{
