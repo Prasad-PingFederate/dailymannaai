@@ -461,13 +461,17 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
     });
 
     const [ui, setUi] = useState({
-        loading: false,
+        loading: false,          // For Scripture Search
+        loadingAi: false,        // For AI Background Generation
+        loadingPhoto: false,     // For Photo API Generation
         generating: false,
         error: null as string | null,
         generated: false,
         tab: "theme", // theme | size | font | topic
         copied: false,
     });
+
+    const isAnyLoading = ui.loading || ui.loadingAi || ui.loadingPhoto;
 
     useEffect(() => {
         let isCancelled = false;
@@ -691,7 +695,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                         {/* Standard Generate button */}
                         <button
                             onClick={handleGenerate}
-                            disabled={ui.loading}
+                            disabled={isAnyLoading}
                             style={{
                                 width: "100%",
                                 background: ui.loading
@@ -704,7 +708,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                 fontSize: 16,
                                 fontWeight: "bold",
                                 fontFamily: "Georgia, serif",
-                                cursor: ui.loading ? "not-allowed" : "pointer",
+                                cursor: isAnyLoading ? "not-allowed" : "pointer",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -728,7 +732,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                             {/* AI Background Generate Button */}
                             <button
                                 onClick={async () => {
-                                    setUi(u => ({ ...u, loading: true, error: null }));
+                                    setUi(u => ({ ...u, loadingAi: true, error: null }));
                                     const prompt = buildAiImagePrompt(state.category, state.quote);
 
                                     try {
@@ -746,33 +750,33 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                             img.crossOrigin = "anonymous";
                                             img.onload = () => {
                                                 setState(st => ({ ...st, aiBgUrl: data.url }));
-                                                setUi(u => ({ ...u, loading: false }));
+                                                setUi(u => ({ ...u, loadingAi: false }));
                                             };
                                             img.onerror = () => {
-                                                setUi(u => ({ ...u, loading: false, error: "Failed to render API image. Try again." }));
+                                                setUi(u => ({ ...u, loadingAi: false, error: "Failed to render API image. Try again." }));
                                             }
                                             img.src = data.url;
                                         } else {
                                             throw new Error(data.error || "Generation Failed");
                                         }
                                     } catch (e) {
-                                        setUi(u => ({ ...u, loading: false, error: "AI model busy. Try the Photo API below." }));
+                                        setUi(u => ({ ...u, loadingAi: false, error: "AI model busy. Try the Photo API below." }));
                                     }
                                 }}
-                                disabled={ui.loading}
+                                disabled={isAnyLoading}
                                 style={{
                                     flex: 1,
-                                    background: ui.loading
+                                    background: ui.loadingAi
                                         ? "rgba(100,200,100,0.1)"
                                         : "linear-gradient(135deg, #225522, #44aa44)",
                                     border: "1px solid #44aa44",
                                     borderRadius: 12,
                                     padding: "16px 10px",
-                                    color: ui.loading ? "#558855" : "#ffffff",
+                                    color: ui.loadingAi ? "#558855" : "#ffffff",
                                     fontSize: 14,
                                     fontWeight: "bold",
                                     fontFamily: "Georgia, serif",
-                                    cursor: ui.loading ? "not-allowed" : "pointer",
+                                    cursor: isAnyLoading ? "not-allowed" : "pointer",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -781,13 +785,13 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                     transition: "all 0.3s",
                                 }}
                             >
-                                ✨ AI Background
+                                {ui.loadingAi ? "Generating..." : "✨ AI Background"}
                             </button>
 
                             {/* Free Photo API Button */}
                             <button
                                 onClick={() => {
-                                    setUi(u => ({ ...u, loading: true, error: null }));
+                                    setUi(u => ({ ...u, loadingPhoto: true, error: null }));
                                     const seed = Math.floor(Math.random() * 99999);
                                     // LoremFlickr works reliably with CORS and provides great thematic random images
                                     const fallbackUrl = `https://loremflickr.com/1080/1080/nature,${state.category}?lock=${seed}`;
@@ -796,27 +800,27 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                     img.crossOrigin = "anonymous";
                                     img.onload = () => {
                                         setState(st => ({ ...st, aiBgUrl: fallbackUrl }));
-                                        setUi(u => ({ ...u, loading: false }));
+                                        setUi(u => ({ ...u, loadingPhoto: false }));
                                     };
                                     img.onerror = () => {
-                                        setUi(u => ({ ...u, loading: false, error: "Failed to load Photo API. Try again." }));
+                                        setUi(u => ({ ...u, loadingPhoto: false, error: "Failed to load Photo API. Try again." }));
                                     }
                                     img.src = fallbackUrl;
                                 }}
-                                disabled={ui.loading}
+                                disabled={isAnyLoading}
                                 style={{
                                     flex: 1,
-                                    background: ui.loading
+                                    background: ui.loadingPhoto
                                         ? "rgba(100,150,250,0.1)"
                                         : "linear-gradient(135deg, #225588, #4488c0)",
                                     border: "1px solid #4488c0",
                                     borderRadius: 12,
                                     padding: "16px 10px",
-                                    color: ui.loading ? "#5588cc" : "#ffffff",
+                                    color: ui.loadingPhoto ? "#5588cc" : "#ffffff",
                                     fontSize: 14,
                                     fontWeight: "bold",
                                     fontFamily: "Georgia, serif",
-                                    cursor: ui.loading ? "not-allowed" : "pointer",
+                                    cursor: isAnyLoading ? "not-allowed" : "pointer",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -825,7 +829,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                     transition: "all 0.3s",
                                 }}
                             >
-                                📷 Photo API
+                                {ui.loadingPhoto ? "Loading..." : "📷 Photo API"}
                             </button>
                         </div>
                     </div>
