@@ -158,8 +158,9 @@ export async function generateGroundedResponse(query: string, sources: string[],
 
     ---SUGGESTIONS---
     [3 thoughtful follow-up questions]
-    [METADATA:SUBJECT=Subject Name]
-    `;
+    
+    METADATA:SUBJECT=Subject Name
+    [Do NOT put brackets around the metadata line]
 
     try {
         let attempt = 1;
@@ -178,150 +179,152 @@ export async function generateGroundedResponse(query: string, sources: string[],
             }
 
             console.log(`[AI - DNA] Detected Safety / Bias Refusal from ${provider}. Attempting override...`);
-            attempt++;
-        }
+    attempt++;
+}
 
-        if (!finalResponse) {
-            finalResponse = "The Research Core is currently re-calibrating. Please try again.";
-        }
+if (!finalResponse) {
+    finalResponse = "The Research Core is currently re-calibrating. Please try again.";
+}
 
-        console.log(`[AI - DNA] Synthesis complete via: ${finalProvider} `);
+console.log(`[AI - DNA] Synthesis complete via: ${finalProvider} `);
 
-        // 🧬 CHAIN-OF-THOUGHT EXTRACTION: Pull out the reasoning block (Case-Insensitive + Fallbacks)
-        let thought = "";
+// 🧬 CHAIN-OF-THOUGHT EXTRACTION: Pull out the reasoning block (Case-Insensitive + Fallbacks)
+let thought = "";
 
-        // Strategy 1: XML-style tags (Standard)
-        const thoughtMatch = finalResponse.match(/<THOUGHT>([\s\S]*?)<\/THOUGHT>/i);
-        if (thoughtMatch) {
-            thought = thoughtMatch[1].trim();
-            finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
-        } else {
-            // Strategy 2: Markdown headers (Fallback)
-            const mdMatch = finalResponse.match(/(\*\*Thinking\*\*|\*\*Reasoning\*\*|### Thinking):?([\s\S]*?)(?=### RESPONSE START ###|\*\*Answer\*\*|$)/i);
-            if (mdMatch) {
-                thought = mdMatch[2].trim();
-                finalResponse = finalResponse.replace(mdMatch[0], "").trim();
-            }
-        }
-
-        // Clean prompt leakage (strip everything before the delimiter)
-        if (finalResponse.includes("### RESPONSE START ###")) {
-            finalResponse = finalResponse.split("### RESPONSE START ###").pop()?.trim() || finalResponse;
-        } else if (finalResponse.includes("EXPERT AI RESPONSE:")) {
-            finalResponse = finalResponse.split("EXPERT AI RESPONSE:").pop()?.trim() || finalResponse;
-        }
-
-        // Extract metadata before splitting by suggestions
-        let suggestedSubject = "";
-        const metadataMatch = finalResponse.match(/\[METADATA:SUBJECT=(.+?)\]/);
-        if (metadataMatch) {
-            suggestedSubject = metadataMatch[1].trim();
-            finalResponse = finalResponse.replace(metadataMatch[0], "").trim();
-        }
-
-        const parts = finalResponse.split("---SUGGESTIONS---");
-        let answer = parts[0].trim();
-
-        // 🧪 POST-SYNTHESIS CLEANER: Forcefully strip excessive symbols
-
-        // 1. Convert all headers (anything starting with #) to clean BOLD text
-        answer = answer.replace(/^#+ (.*)$/gm, '**$1**');
-
-        // 2. Strip single-star italics (e.g. *text* -> text)
-        // We do this by replacing * with nothing if it's not a double-star bold
-        answer = answer.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '$1');
-
-        // 3. Remove cases where symbols are tripled or more
-        answer = answer.replace(/\*{3,}/g, '**');
-
-        // 🧪 ANTI-REPETITION POLISH: Detect and strip runaway headers
-        const answerLines = answer.split('\n');
-        if (answerLines.length > 10) {
-            const firstHeader = answerLines.find(l => l.startsWith('###'));
-            if (firstHeader) {
-                // If the same header repeats many times, take only the section up to the first repeat
-                const firstOccurence = answer.indexOf(firstHeader);
-                const secondOccurence = answer.indexOf(firstHeader, firstOccurence + firstHeader.length);
-                if (secondOccurence > -1) {
-                    console.warn("[AI-DNA] Repetitive loop detected in answer. Truncating...");
-                    answer = answer.substring(0, secondOccurence).trim();
-                }
-            }
-        }
-
-        const suggestions = parts[1]
-            ? parts[1].split("\n").map(s => s.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(s => s.length > 5).slice(0, 3)
-            : ["Tell me more about this.", "How does this apply to me?", "What does the Bible say?"];
-
-        // If no metadata found, fallback to original heuristic
-        if (!suggestedSubject) {
-            const lines = answer.split('\n');
-            const headerMatch = answer.match(/^#+\s*(.+)$/m);
-            if (headerMatch) {
-                suggestedSubject = headerMatch[1].trim();
-            } else {
-                for (let i = 0; i < Math.min(lines.length, 3); i++) {
-                    const line = lines[i].trim();
-                    const match = line.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/);
-                    if (match) {
-                        suggestedSubject = match[1];
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (suggestedSubject) {
-            suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
-        }
-
-        // 📊 Log enriched interaction to DB (Supabase - User Data)
-        if (prisma) {
-            prisma.interaction.create({
-                data: {
-                    query: query.substring(0, 1000),
-                    answer: answer.substring(0, 5000),
-                    provider: finalProvider || "Unknown",
-                    subject: suggestedSubject || "General",
-                    latency: 0
-                }
-            }).catch(e => console.error("[DB] Logging failed:", e.message));
-        }
-
-        // 🧠 Log high-fidelity RESEARCH DATA to MongoDB (AI Training)
-        TrainingLogger.log({
-            timestamp: new Date().toISOString(),
-            request: {
-                query: query,
-                provider: "Brain-Synthesizer",
-                model: finalProvider,
-                systemPrompt: "SPIRITUAL RESEARCH DISCIPLE",
-                historyContextCount: recentHistory.length
-            },
-            response: {
-                answer: answer,
-                thought: thought,
-                latency: 0,
-                modelUsed: finalProvider
-            },
-            metadata: {
-                sources_count: sources.length,
-                has_web_context: !!webContext,
-                subject: suggestedSubject
-            }
-        }).catch(e => console.error("[MongoDB] Research logging failed:", e.message));
-
-        return { answer, thought, suggestions, suggestedSubject };
-    } catch (error: any) {
-        console.error('[AI-DNA] Core synthesis error:', error.message);
-
-        return {
-            answer: "I encountered an issue processing your request. Please try again.",
-            thought: "",
-            suggestions: ["Try asking: Who is Jesus?", "Try asking: John 3:16"],
-            suggestedSubject: ""
-        };
+// Strategy 1: XML-style tags (Standard)
+const thoughtMatch = finalResponse.match(/<THOUGHT>([\s\S]*?)<\/THOUGHT>/i);
+if (thoughtMatch) {
+    thought = thoughtMatch[1].trim();
+    finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
+} else {
+    // Strategy 2: Markdown headers (Fallback)
+    const mdMatch = finalResponse.match(/(\*\*Thinking\*\*|\*\*Reasoning\*\*|### Thinking):?([\s\S]*?)(?=### RESPONSE START ###|\*\*Answer\*\*|$)/i);
+    if (mdMatch) {
+        thought = mdMatch[2].trim();
+        finalResponse = finalResponse.replace(mdMatch[0], "").trim();
     }
+}
+
+// Clean prompt leakage (strip everything before the delimiter)
+if (finalResponse.includes("### RESPONSE START ###")) {
+    finalResponse = finalResponse.split("### RESPONSE START ###").pop()?.trim() || finalResponse;
+} else if (finalResponse.includes("EXPERT AI RESPONSE:")) {
+    finalResponse = finalResponse.split("EXPERT AI RESPONSE:").pop()?.trim() || finalResponse;
+}
+
+// Extract metadata before splitting by suggestions
+let suggestedSubject = "";
+const metadataMatch = finalResponse.match(/METADATA:SUBJECT=\s*([^\[\]\n]+)/);
+if (metadataMatch) {
+    suggestedSubject = metadataMatch[1].trim();
+    finalResponse = finalResponse.replace(metadataMatch[0], "").trim();
+    // remove any hanging brackets
+    finalResponse = finalResponse.replace(/\[\s*\]/g, "").trim();
+}
+
+const parts = finalResponse.split("---SUGGESTIONS---");
+let answer = parts[0].trim();
+
+// 🧪 POST-SYNTHESIS CLEANER: Forcefully strip excessive symbols
+
+// 1. Convert all headers (anything starting with #) to clean BOLD text
+answer = answer.replace(/^#+ (.*)$/gm, '**$1**');
+
+// 2. Strip single-star italics (e.g. *text* -> text)
+// We do this by replacing * with nothing if it's not a double-star bold
+answer = answer.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '$1');
+
+// 3. Remove cases where symbols are tripled or more
+answer = answer.replace(/\*{3,}/g, '**');
+
+// 🧪 ANTI-REPETITION POLISH: Detect and strip runaway headers
+const answerLines = answer.split('\n');
+if (answerLines.length > 10) {
+    const firstHeader = answerLines.find(l => l.startsWith('###'));
+    if (firstHeader) {
+        // If the same header repeats many times, take only the section up to the first repeat
+        const firstOccurence = answer.indexOf(firstHeader);
+        const secondOccurence = answer.indexOf(firstHeader, firstOccurence + firstHeader.length);
+        if (secondOccurence > -1) {
+            console.warn("[AI-DNA] Repetitive loop detected in answer. Truncating...");
+            answer = answer.substring(0, secondOccurence).trim();
+        }
+    }
+}
+
+const suggestions = parts[1]
+    ? parts[1].split("\n").map(s => s.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(s => s.length > 5).slice(0, 3)
+    : ["Tell me more about this.", "How does this apply to me?", "What does the Bible say?"];
+
+// If no metadata found, fallback to original heuristic
+if (!suggestedSubject) {
+    const lines = answer.split('\n');
+    const headerMatch = answer.match(/^#+\s*(.+)$/m);
+    if (headerMatch) {
+        suggestedSubject = headerMatch[1].trim();
+    } else {
+        for (let i = 0; i < Math.min(lines.length, 3); i++) {
+            const line = lines[i].trim();
+            const match = line.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/);
+            if (match) {
+                suggestedSubject = match[1];
+                break;
+            }
+        }
+    }
+}
+
+if (suggestedSubject) {
+    suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
+}
+
+// 📊 Log enriched interaction to DB (Supabase - User Data)
+if (prisma) {
+    prisma.interaction.create({
+        data: {
+            query: query.substring(0, 1000),
+            answer: answer.substring(0, 5000),
+            provider: finalProvider || "Unknown",
+            subject: suggestedSubject || "General",
+            latency: 0
+        }
+    }).catch(e => console.error("[DB] Logging failed:", e.message));
+}
+
+// 🧠 Log high-fidelity RESEARCH DATA to MongoDB (AI Training)
+TrainingLogger.log({
+    timestamp: new Date().toISOString(),
+    request: {
+        query: query,
+        provider: "Brain-Synthesizer",
+        model: finalProvider,
+        systemPrompt: "SPIRITUAL RESEARCH DISCIPLE",
+        historyContextCount: recentHistory.length
+    },
+    response: {
+        answer: answer,
+        thought: thought,
+        latency: 0,
+        modelUsed: finalProvider
+    },
+    metadata: {
+        sources_count: sources.length,
+        has_web_context: !!webContext,
+        subject: suggestedSubject
+    }
+}).catch(e => console.error("[MongoDB] Research logging failed:", e.message));
+
+return { answer, thought, suggestions, suggestedSubject };
+    } catch (error: any) {
+    console.error('[AI-DNA] Core synthesis error:', error.message);
+
+    return {
+        answer: "I encountered an issue processing your request. Please try again.",
+        thought: "",
+        suggestions: ["Try asking: Who is Jesus?", "Try asking: John 3:16"],
+        suggestedSubject: ""
+    };
+}
 }
 
 export async function generateGroundedStream(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string) {
@@ -406,8 +409,8 @@ export async function generateGroundedStream(query: string, sources: string[], w
     ---SUGGESTIONS---
     [3 thoughtful follow-up questions]
     
-    [METADATA:SUBJECT=Subject Name]
-    `;
+    METADATA:SUBJECT=Subject Name
+    [Do NOT put brackets around the metadata line]
 
     return getProviderManager().generateStream(prompt);
 }
