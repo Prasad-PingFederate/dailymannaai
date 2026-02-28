@@ -29,7 +29,6 @@ import {
     ExternalLink,
     Mic2,
     ArrowRight,
-    FileStack,
     Wand2,
     FileAudio,
     CheckCircle2,
@@ -79,7 +78,6 @@ export default function NotebookWorkspace() {
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
-    const [isSummarizing, setIsSummarizing] = useState(false);
     const [isRefining, setIsRefining] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
@@ -417,7 +415,7 @@ export default function NotebookWorkspace() {
                 fullContent: data.preview || "Text content extracted successfully."
             }]);
 
-            // CRITICAL: Ensure the server has this content in the vector store for SUMMARIZE
+            // CRITICAL: Ensure the server has this content in the vector store
             if (isPDF && body && headers) {
                 // The client-side parse already sent it to /api/ingest which saved it to Vector DB
                 console.log("Vector DB Sync preserved via /api/ingest");
@@ -953,51 +951,7 @@ It's now part of my collective wisdom!`
 
 
 
-    const handleSummarize = async () => {
-        console.log("Summarize Clicked");
-        const selectedSourceIds = sources.filter(s => s.selected).map(s => s.id);
 
-        if (selectedSourceIds.length === 0) {
-            alert("Please select at least one source to summarize.");
-            return;
-        }
-
-        setIsSummarizing(true);
-        try {
-            const selectedSources = sources.filter(s => s.selected);
-            const res = await fetch("/api/summarize", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    sources: selectedSources.map(s => ({
-                        name: s.name,
-                        content: s.fullContent || ""
-                    }))
-                }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                // Add summary to notes
-                setNoteContent(prev => prev + (prev ? "\n\n" : "") + "## Summary\n\n" + data.summary);
-                setMessages(prev => [...prev, {
-                    role: "assistant",
-                    content: `I've created a summary of ${data.sourceCount} source(s) and added it to your notes!`
-                }]);
-            } else {
-                throw new Error(data.error || "Failed to generate summary");
-            }
-        } catch (error: any) {
-            console.error("Summarize Error:", error);
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: `Sorry, I had trouble creating the summary: ${error.message}`
-            }]);
-        } finally {
-            setIsSummarizing(false);
-        }
-    };
 
     const handleRefine = async () => {
         if (!noteContent || noteContent.trim().length === 0) {
@@ -2061,7 +2015,6 @@ It's now part of my collective wisdom!`
                         {/* Compact Tool Row (Subtle) */}
                         <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1 px-2">
                             {[
-                                { label: 'Summarize', icon: <FileStack size={14} />, action: handleSummarize, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
                                 { label: 'Refine', icon: <Wand2 size={14} />, action: handleRefine, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
                                 { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
                                 { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' }

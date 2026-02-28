@@ -741,7 +741,7 @@ export class AIProviderManager {
                             error: error.message,
                             stack: error.stack
                         }
-                    }).catch(e => console.error("[DB] Error logging failed:", e.message));
+                    }).catch((e: any) => console.error("[DB] Error logging failed:", e.message));
                 }
             }
         }

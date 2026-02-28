@@ -285,7 +285,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
                     subject: suggestedSubject || "General",
                     latency: 0
                 }
-            }).catch(e => console.error("[DB] Logging failed:", e.message));
+            }).catch((e: any) => console.error("[DB] Logging failed:", e.message));
         }
 
         // 🧠 Log high-fidelity RESEARCH DATA to MongoDB (AI Training)
