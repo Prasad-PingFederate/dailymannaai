@@ -22,9 +22,6 @@ export default function SearchEnginePortal() {
     const [isSearching, setIsSearching] = useState(false);
     const [hasTyped, setHasTyped] = useState(false);
 
-    // READER STATE
-    const [activeArticle, setActiveArticle] = useState<any>(null);
-
     const handleSearch = async (e?: React.FormEvent, currentType?: string) => {
         if (e) e.preventDefault();
         const searchQuery = query.trim();
@@ -59,57 +56,8 @@ export default function SearchEnginePortal() {
         }
     }, [filter]);
 
-    const openReader = (item: any) => {
-        if (item.link) {
-            setActiveArticle(item);
-            document.body.style.overflow = 'hidden';
-        }
-    };
-
-    const closeReader = () => {
-        setActiveArticle(null);
-        document.body.style.overflow = 'auto';
-    };
-
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100 relative flex flex-col items-center selection:bg-sky-500/30 overflow-x-hidden">
-
-            {/* --- INTEGRATED DIVINE READER --- */}
-            {activeArticle && (
-                <div className="fixed inset-0 z-[100] flex flex-col bg-[#020617] animate-in slide-in-from-bottom duration-500">
-                    {/* Reader Header */}
-                    <div className="w-full h-16 border-b border-white/10 bg-slate-900/50 backdrop-blur-3xl flex items-center justify-between px-6">
-                        <button onClick={closeReader} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
-                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                            <span className="text-xs font-black uppercase tracking-widest">Back to Manna</span>
-                        </button>
-
-                        <div className="flex-1 text-center px-10">
-                            <h2 className="text-slate-200 text-sm font-bold truncate max-w-xl mx-auto">{activeArticle.title}</h2>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <a href={activeArticle.link} target="_blank" rel="noopener noreferrer" className="p-2 bg-white/5 rounded-full hover:bg-sky-500 transition-all text-slate-400 hover:text-white" title="Open in New Tab">
-                                <Maximize2 size={16} />
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Reader Content / Iframe */}
-                    <div className="flex-1 w-full bg-white relative overflow-hidden">
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-0">
-                            <div className="w-12 h-12 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mt-6 animate-pulse">Establishing Secure Stream...</p>
-                        </div>
-                        <iframe
-                            src={activeArticle.link}
-                            className="w-full h-full relative z-10 border-none"
-                            title="Divine Reader"
-                        />
-                    </div>
-                </div>
-            )}
-
             {/* Ambient Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-sky-500 rounded-full blur-[150px]" />
@@ -138,7 +86,7 @@ export default function SearchEnginePortal() {
             {/* --- MAIN SEARCH AREA --- */}
             <main className={`flex-1 w-full flex flex-col items-center transition-all duration-700 z-10 px-4 ${hasTyped ? 'pt-4' : 'pt-40'}`}>
 
-                {/* Vertical Center Logo (Hidden when searching) */}
+                {/* Vertical Center Logo */}
                 <div className={`text-center space-y-8 mb-16 transition-all duration-700 ${hasTyped ? 'opacity-0 -translate-y-20 h-0 overflow-hidden' : 'opacity-100'}`}>
                     <div className="inline-block px-4 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-[10px] font-black tracking-[0.4em] text-sky-400 uppercase mb-6 animate-pulse">
                         Powered by 5!4!3!2!1! Model
@@ -147,7 +95,7 @@ export default function SearchEnginePortal() {
                         DAILY<span className="text-sky-400">MANNA</span>AI
                     </h1>
                     <p className="text-slate-400 max-w-lg mx-auto text-lg font-medium opacity-80 leading-relaxed italic">
-                        "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
+                        "Seek, and ye shall find; knock, and it shall be opened unto you."
                     </p>
                 </div>
 
@@ -269,21 +217,28 @@ export default function SearchEnginePortal() {
                                                     <div className="h-px flex-1 bg-amber-500/10 ml-6" />
                                                 </div>
                                                 <div className="grid grid-cols-1 gap-6">
-                                                    {(solution.bible || []).map((b: any, i: number) => (
-                                                        <div key={i} className="group bg-white/[0.03] hover:bg-white/[0.05] p-8 rounded-[2rem] border border-white/5 hover:border-amber-500/30 transition-all duration-300">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <span className="text-amber-500 text-[10px] font-black uppercase">{b.title}</span>
-                                                                <button onClick={() => openReader({ ...b, link: `https://www.biblegateway.com/passage/?search=${encodeURIComponent(b.title)}&version=KJV` })} className="text-slate-500 hover:text-white transition-colors">
-                                                                    <Maximize2 size={14} />
-                                                                </button>
-                                                            </div>
-                                                            <p className="text-slate-200 text-lg font-serif italic group-hover:text-white transition-colors leading-relaxed">"{b.description}"</p>
-                                                        </div>
-                                                    ))}
+                                                    {(solution.bible || []).map((b: any, i: number) => {
+                                                        const bibleLink = `https://www.biblegateway.com/passage/?search=${encodeURIComponent(b.title)}&version=KJV`;
+                                                        return (
+                                                            <a
+                                                                key={i}
+                                                                href={bibleLink}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="group bg-white/[0.03] hover:bg-white/[0.05] p-8 rounded-[2rem] border border-white/5 hover:border-amber-500/30 transition-all duration-300 block cursor-link"
+                                                            >
+                                                                <div className="flex items-center justify-between mb-4">
+                                                                    <span className="text-amber-500 text-[10px] font-black uppercase">{b.title}</span>
+                                                                    <ExternalLink size={14} className="text-slate-500 group-hover:text-white transition-colors" />
+                                                                </div>
+                                                                <p className="text-slate-200 text-lg font-serif italic group-hover:text-white transition-colors leading-relaxed">"{b.description}"</p>
+                                                            </a>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
 
-                                            {/* News (4) - Modern Context */}
+                                            {/* News (4) - Modern Context (Pure Global Crawler Mode) */}
                                             <div className="space-y-8">
                                                 <div className="flex items-center justify-between px-4">
                                                     <div className="flex items-center gap-3 text-sm font-black text-sky-400 uppercase tracking-[0.2em]"><Newspaper size={18} /> 4 World Perspectives</div>
@@ -298,7 +253,7 @@ export default function SearchEnginePortal() {
                                                             rel="noopener noreferrer"
                                                             className="block group cursor-pointer"
                                                         >
-                                                            <div className="bg-white/5 hover:bg-white/10 p-6 rounded-[2rem] border border-white/5 hover:border-sky-500/30 transition-all duration-500 h-full flex flex-col justify-between">
+                                                            <div className="bg-white/5 hover:bg-white/10 p-6 rounded-[2rem] border border-white/5 hover:border-sky-500/40 transition-all duration-500 h-full flex flex-col justify-between shadow-xl">
                                                                 <div>
                                                                     <div className="flex items-center justify-between mb-4">
                                                                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{n.source || "Global Perspective"}</span>
@@ -311,7 +266,7 @@ export default function SearchEnginePortal() {
                                                             </div>
                                                         </a>
                                                     ))) : (
-                                                        <div className="col-span-2 py-10 text-center text-slate-500 italic border border-white/5 rounded-3xl">Scanning Global News... Try searching again in 5 seconds.</div>
+                                                        <div className="col-span-2 py-10 text-center text-slate-500 italic border border-white/5 rounded-3xl">Crawler indexing live results... Try again in 5 seconds.</div>
                                                     )}
                                                 </div>
                                             </div>
@@ -361,7 +316,7 @@ export default function SearchEnginePortal() {
                                                     href={res.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="block cursor-pointer group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] transition-all hover:bg-white/[0.04] hover:border-sky-500/30"
+                                                    className="block group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] transition-all hover:bg-white/[0.04] hover:border-sky-500/30"
                                                 >
                                                     <div className="flex justify-between items-start mb-4">
                                                         <h3 className="text-2xl font-bold text-white group-hover:text-sky-400 transition-colors leading-tight">{res.title}</h3>
@@ -389,7 +344,7 @@ export default function SearchEnginePortal() {
                                             <h3 className="text-white font-black uppercase text-xs tracking-widest">Divine Engine Status</h3>
                                             <div className="flex items-center gap-2 text-green-400">
                                                 <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                                                <span className="text-[10px] font-black uppercase tracking-tighter">Live Reader Active</span>
+                                                <span className="text-[10px] font-black uppercase tracking-tighter">Crawler Live</span>
                                             </div>
                                         </div>
 
@@ -399,7 +354,7 @@ export default function SearchEnginePortal() {
                                                 {[
                                                     { icon: <Search size={12} />, label: "Astra AI Vector Index" },
                                                     { icon: <Sparkles size={12} />, label: "5!4!3!2!1! Model Synthesis" },
-                                                    { icon: <Maximize2 size={12} />, label: "Integrated Search Reader" },
+                                                    { icon: <ExternalLink size={12} />, label: "Secure External Dispatch" },
                                                     { icon: <Clock size={12} />, label: "Real-time Google Crawler" }
                                                 ].map((t, i) => (
                                                     <div key={i} className="flex items-center gap-3 text-slate-300 text-xs font-bold">
@@ -412,7 +367,7 @@ export default function SearchEnginePortal() {
 
                                         <div className="pt-6 border-t border-white/5">
                                             <div className="bg-sky-500/10 p-4 rounded-2xl border border-sky-500/20 text-xs font-serif italic text-slate-300">
-                                                "Stay within the portal. All truth is indexed here for your study."
+                                                "Results are dispatched to original sources to preserve full context."
                                             </div>
                                         </div>
                                     </div>
