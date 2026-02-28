@@ -760,7 +760,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                             throw new Error(data.error || "Generation Failed");
                                         }
                                     } catch (e) {
-                                        setUi(u => ({ ...u, loadingAi: false, error: "AI model busy. Try the Photo API below." }));
+                                        setUi(u => ({ ...u, loadingAi: false, error: "AI model busy. Try the Nature Photo below." }));
                                     }
                                 }}
                                 disabled={isAnyLoading}
@@ -803,7 +803,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                         setUi(u => ({ ...u, loadingPhoto: false }));
                                     };
                                     img.onerror = () => {
-                                        setUi(u => ({ ...u, loadingPhoto: false, error: "Failed to load Photo API. Try again." }));
+                                        setUi(u => ({ ...u, loadingPhoto: false, error: "Failed to load Nature Photo. Try again." }));
                                     }
                                     img.src = fallbackUrl;
                                 }}
@@ -829,7 +829,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                     transition: "all 0.3s",
                                 }}
                             >
-                                {ui.loadingPhoto ? "Loading..." : "📷 Photo API"}
+                                {ui.loadingPhoto ? "Loading..." : "📷 Nature Photo"}
                             </button>
                         </div>
                     </div>
