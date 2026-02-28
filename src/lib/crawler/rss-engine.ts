@@ -102,7 +102,7 @@ async function crawlFeed(feedSource: any) {
         }
 
         console.log(`✅ [RSS-Crawl] Finished ${feedSource.name}: ${savedCount} saved, ${skippedCount} items were duplicates.`);
-        return { savedCount };
+        return { savedCount, scannedCount: feed.items.length };
 
     } catch (err: any) {
         console.error(`❌ [RSS-Crawl] Feed Failure: ${feedSource.name} - ${err.message}`);
@@ -124,7 +124,8 @@ export async function runFullRSSCrawl() {
     );
 
     const totalSaved = results.reduce((acc, r) => acc + r.savedCount, 0);
+    const totalScanned = results.reduce((acc, r) => acc + (r as any).scannedCount || 0, 0);
     console.log(`📊 [RSS-Crawl] COMPLETE. Total New Christian Articles Saved: ${totalSaved}`);
 
-    return { totalSaved };
+    return { totalSaved, totalScanned };
 }

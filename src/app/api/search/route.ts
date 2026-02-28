@@ -110,36 +110,60 @@ function isBibleReference(text: string) {
  */
 async function searchInternalNews(query: string) {
     try {
-        const db = await getAstraDatabase();
-        if (!db) return [];
+        // 1. Try Astra DB (High Volume)
+        const db = await getAstraDatabase().catch(() => null);
+        if (db) {
+            const collection = db.collection('christian_news');
+            const cursor = collection.find(
+                {
+                    $or: [
+                        { title: { $regex: query, $options: 'i' } },
+                        { content: { $regex: query, $options: 'i' } }
+                    ]
+                },
+                {
+                    sort: { grace_rank: -1 },
+                    limit: 20
+                }
+            );
 
-        const collection = db.collection('christian_news');
-
-        const cursor = collection.find(
-            {
-                $or: [
-                    { title: { $regex: query } },
-                    { content: { $regex: query } }
-                ]
-            },
-            {
-                sort: { grace_rank: -1 },
-                limit: 20
+            const articles = await cursor.toArray();
+            if (articles.length > 0) {
+                return articles.map(a => ({
+                    title: a.title,
+                    description: a.summary || (a.content ? a.content.substring(0, 300) + '...' : ''),
+                    link: a.url,
+                    source: a.source_name,
+                    grace_rank: a.grace_rank,
+                    bible_refs: a.bible_refs || []
+                }));
             }
-        );
+        }
 
-        const articles = await cursor.toArray();
+        // 2. Fallback to Local MongoDB
+        const localDb = await import('@/lib/mongodb').then(m => m.getDatabase()).catch(() => null);
+        if (localDb) {
+            const localCollection = localDb.collection('christian_news');
+            const localArticles = await localCollection.find({
+                $or: [
+                    { title: { $regex: query, $options: 'i' } },
+                    { content: { $regex: query, $options: 'i' } }
+                ]
+            }).sort({ grace_rank: -1 }).limit(20).toArray();
 
-        return articles.map(a => ({
-            title: a.title,
-            description: a.summary || (a.content ? a.content.substring(0, 300) + '...' : ''),
-            link: a.url,
-            source: a.source_name,
-            grace_rank: a.grace_rank,
-            bible_refs: a.bible_refs || []
-        }));
+            return localArticles.map(a => ({
+                title: a.title,
+                description: a.summary || (a.content ? a.content.substring(0, 300) + '...' : ''),
+                link: a.url,
+                source: a.source_name,
+                grace_rank: a.grace_rank,
+                bible_refs: a.bible_refs || []
+            }));
+        }
+
+        return [];
     } catch (err) {
-        console.error("Astra News Search Failed:", err);
+        console.error("News Search Failed:", err);
         return [];
     }
 }
