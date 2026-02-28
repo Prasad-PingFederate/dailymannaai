@@ -2102,15 +2102,6 @@ It's now part of my collective wisdom!`
                                 </div>
                             </div>
 
-                            {/* Sources/Status Indicator (Inside Floating Context) */}
-                            <div className="absolute -top-6 left-6 flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 group-focus-within:opacity-100 transition-opacity drop-shadow-sm">
-                                <span className={`${sources.filter(s => s.selected).length > 0 ? 'text-accent' : 'text-muted'}`}>
-                                    {sources.filter(s => s.selected).length} SOURCES ACTIVE
-                                </span>
-                                <span className="text-amber-500 flex items-center gap-1">
-                                    <Sparkles size={10} /> BORN AGAIN AI
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
