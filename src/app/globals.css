@@ -9,6 +9,19 @@
   --border: #e0e0e0;
   --card-bg: #ffffff;
   --glass: rgba(255, 255, 255, 0.7);
+
+  /* DailyManna Premium Theme Tokens */
+  --navy: #0D1B2A;
+  --deep-blue: #1A3A5C;
+  --royal: #1E4D8C;
+  --gold: #C9962B;
+  --gold-light: #E8B84B;
+  --gold-pale: #F5E6C3;
+  --cream: #FBF7EE;
+  --parchment: #F2EAD8;
+  --glow: rgba(201, 150, 43, 0.25);
+  --shadow-deep: 0 20px 60px rgba(13, 27, 42, 0.4);
+  --shadow-card: 0 4px 24px rgba(13, 27, 42, 0.12);
 }
 
 @theme inline {
