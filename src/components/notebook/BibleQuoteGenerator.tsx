@@ -763,6 +763,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                         setUi(u => ({ ...u, loadingAi: false, error: "AI model busy. Try the Nature Photo below." }));
                                     }
                                 }}
+                                title="Generate a different AI painting for this quote"
                                 disabled={isAnyLoading}
                                 style={{
                                     flex: 1,
@@ -807,6 +808,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                     }
                                     img.src = fallbackUrl;
                                 }}
+                                title="Fetch a different random nature photograph"
                                 disabled={isAnyLoading}
                                 style={{
                                     flex: 1,
