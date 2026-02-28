@@ -22,21 +22,22 @@ export async function POST(req: Request) {
             : '';
 
         const prompt = `You are a deeply knowledgeable Christian theologian and pastor.
-Generate ONE powerful Bible verse about: ${topic}.${avoidConstraint}
+Generate ONE powerful piece of encouragement about: ${topic}. 
+You should randomly choose between EITHER a Bible verse OR a quote from a famous faithful preacher (like Billy Graham, Charles Spurgeon, etc.).${avoidConstraint}
 
 Return ONLY valid JSON (no markdown block, just the raw JSON text):
 {
-  "quote": "exact Bible verse text in KJV or NIV",
-  "reference": "Book Chapter:Verse",
-  "reflection": "One devotional sentence, max 20 words",
-  "testament": "Old" or "New"
+  "quote": "exact Bible verse text OR exact quote from the preacher",
+  "reference": "Book Chapter:Verse OR Preacher Name (e.g. 'Billy Graham')",
+  "reflection": "One devotional sentence about the quote, max 20 words",
+  "testament": "Old", "New", or leave empty/null if it is a preacher quote
 }
 
-Ensure the verse is:
-- Doctrinally sound and Christ-centered
+Ensure the chosen text is:
+- Doctrinally sound, Christ-centered, and inspiring
 - Directly relevant to the topic
-- Complete (full verse, not truncated)
-- DIFFERENT from any verses listed in the critical avoid list`;
+- Complete (full verse or quote, not truncated)
+- DIFFERENT from any references listed in the critical avoid list`;
 
         const { response } = await getProviderManager().generateResponse(prompt);
 
