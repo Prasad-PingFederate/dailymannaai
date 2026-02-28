@@ -1,347 +1,306 @@
+// app/api/search/route.ts
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DailyMannaAI — Integrated Search API (Merged with 80GB Astra DB Support)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 import { NextResponse } from "next/server";
-import axios from "axios";
-import { searchBible as localSearchBible } from "@/lib/search/bible-search";
+import { searchRSSFeeds } from "@/lib/rss-fetcher";
+import { detectInstantAnswer } from "@/lib/instant-answers";
 import { getAstraDatabase } from "@/lib/astra-db";
-import { evaluate } from "mathjs";
-import moment from "moment-timezone";
-import { searchTavily } from "@/lib/ai/bible-explorer-tavily";
+import {
+    isBibleRef, lookupBibleVerse,
+    searchBibleByKeyword, bibleGatewayUrl,
+} from "@/lib/bible-search";
 
-// Note: googlethis is available in package.json
-import google from "googlethis";
+interface SearchResult {
+    title: string; description: string; link: string;
+    source: string; type: string; imageUrl?: string | null; pubDate?: string | null;
+}
 
-/**
- * SMART QUERY DETECTOR: Returns instant answers for common utility queries.
- */
-function getInstantAnswer(query: string) {
-    const normalizedQuery = query.toLowerCase().trim();
+// ── UTILS ───────────────────────────────────────────────────
 
-    // 1. Calculator
-    if (/^[0-9+\-*/().%\s^=]+$/.test(normalizedQuery) && /[0-9]/.test(normalizedQuery)) {
-        let mathQuery = normalizedQuery.replace(/=/g, '').trim();
-        try {
-            const res = evaluate(mathQuery);
-            return {
-                type: "calculator",
-                result: res.toString(),
-                title: "Calculator Result",
-                query: normalizedQuery
-            };
-        } catch (e) {
-            // Not a valid math expr, continue
+function isValidUrl(url: unknown): url is string {
+    if (!url || typeof url !== "string") return false;
+    try {
+        const u = new URL(url);
+        return ["http:", "https:"].includes(u.protocol) &&
+            !["localhost", "127.0.0.1", "0.0.0.0"].includes(u.hostname);
+    } catch { return false; }
+}
+
+function getHostname(url: string): string {
+    try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; }
+}
+
+function dedup(results: SearchResult[]): SearchResult[] {
+    const seen = new Set<string>();
+    return results.filter(r => {
+        if (!isValidUrl(r.link) || seen.has(r.link)) return false;
+        seen.add(r.link);
+        return true;
+    });
+}
+
+const CHRISTIAN_DOMAINS = [
+    "christianitytoday.com", "christianpost.com", "cbn.com", "crosswalk.com",
+    "thegospelcoalition.org", "desiringgod.org", "relevantmagazine.com",
+    "focusonthefamily.com", "christianheadlines.com", "ligonier.org",
+    "billygraham.org", "wng.org", "mnnonline.org"
+].join(",");
+
+const NEWS_KEYWORDS = [
+    "news", "today", "latest", "breaking", "war", "israel", "ukraine", "election",
+    "president", "government", "attack", "crisis", "update", "world", "global",
+    "report", "conflict", "shooting", "earthquake", "pastor", "church", "persecution"
+];
+
+function isNewsQuery(q: string): boolean {
+    const ql = q.toLowerCase();
+    return NEWS_KEYWORDS.some(kw => ql.includes(kw));
+}
+
+// ── EXTERNAL SEARCH ENGINES ─────────────────────────────────
+
+async function searchNewsAPI(query: string, limit = 12): Promise<SearchResult[]> {
+    const KEY = process.env.NEWS_API_KEY;
+    if (!KEY || KEY === "your_key_here") return [];
+    const results: SearchResult[] = [];
+    try {
+        const r1 = await fetch(
+            `https://newsapi.org/v2/everything?` + new URLSearchParams({
+                apiKey: KEY, q: query, domains: CHRISTIAN_DOMAINS,
+                language: "en", sortBy: "relevancy", pageSize: String(Math.min(limit, 100))
+            }), { next: { revalidate: 300 } }
+        );
+        const d1 = await r1.json();
+        if (d1.articles?.length) {
+            results.push(...d1.articles
+                .filter((a: any) => isValidUrl(a.url) && a.title && !a.title.includes("[Removed]"))
+                .map((a: any): SearchResult => ({
+                    title: a.title, description: a.description || a.content?.slice(0, 350) || "",
+                    link: a.url, source: a.source?.name || getHostname(a.url),
+                    type: "news", imageUrl: a.urlToImage || null, pubDate: a.publishedAt || null
+                }))
+            );
         }
+        if (isNewsQuery(query) && results.length < 6) {
+            const broadQ = query.toLowerCase().includes("christian") ? query : `${query} christian`;
+            const r2 = await fetch(
+                `https://newsapi.org/v2/everything?` + new URLSearchParams({
+                    apiKey: KEY, q: broadQ, language: "en", sortBy: "publishedAt", pageSize: "10"
+                }), { next: { revalidate: 300 } }
+            );
+            const d2 = await r2.json();
+            if (d2.articles?.length) {
+                const seenUrls = new Set(results.map(r => r.link));
+                const extra = d2.articles
+                    .filter((a: any) => isValidUrl(a.url) && a.title && !a.title.includes("[Removed]") && !seenUrls.has(a.url))
+                    .slice(0, 8)
+                    .map((a: any): SearchResult => ({
+                        title: a.title, description: a.description || a.content?.slice(0, 350) || "",
+                        link: a.url, source: a.source?.name || getHostname(a.url),
+                        type: "news", imageUrl: a.urlToImage || null, pubDate: a.publishedAt || null
+                    }));
+                results.push(...extra);
+            }
+        }
+    } catch (err: any) {
+        console.error("[NewsAPI]", err.message);
     }
+    return results.slice(0, limit);
+}
 
-    // 2. Today's Date & Time
-    const dateKeywords = ["today", "date", "what is today's date", "current date", "today's date", "day", "calendar"];
-    const timeKeywords = ["time", "current time", "what time is it", "local time", "time now", "today time"];
+async function searchGoogleCSE(query: string, limit = 8): Promise<SearchResult[]> {
+    const KEY = process.env.GOOGLE_CSE_API_KEY;
+    const CX = process.env.GOOGLE_CSE_ID;
+    if (!KEY || !CX || KEY === "your_google_api_key_here") return [];
+    try {
+        const res = await fetch(
+            `https://www.googleapis.com/customsearch/v1?` + new URLSearchParams({
+                key: KEY, cx: CX, q: query, num: String(Math.min(limit, 10)), safe: "active", lr: "lang_en"
+            }), { next: { revalidate: 300 } }
+        );
+        const data = await res.json();
+        if (data.error) { console.warn("[Google CSE]", data.error.message); return []; }
+        return (data.items ?? [])
+            .filter((i: any) => isValidUrl(i.link))
+            .map((i: any): SearchResult => ({
+                title: i.title, description: i.snippet || "",
+                link: i.link, source: i.displayLink || "", type: "news",
+                imageUrl: i.pagemap?.cse_image?.[0]?.src || null
+            }));
+    } catch (err: any) { console.error("[Google CSE]", err.message); return []; }
+}
 
-    const isDateQuery = dateKeywords.some(kw => normalizedQuery === kw || normalizedQuery.includes("today date"));
-    const isTimeQuery = timeKeywords.some(kw => normalizedQuery === kw || normalizedQuery.includes("time now") || normalizedQuery.includes("today time"));
-
-    if (isDateQuery && !isTimeQuery) {
+async function searchTavily(query: string): Promise<{ answer: string; results: SearchResult[] } | null> {
+    const KEY = process.env.TAVILY_API_KEY;
+    if (!KEY || KEY === "your_tavily_key_here") return null;
+    try {
+        const res = await fetch("https://api.tavily.com/search", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ api_key: KEY, query: query + " christian", search_depth: "basic", include_answer: true, max_results: 8 })
+        });
+        const data = await res.json();
+        if (!data.results?.length) return null;
         return {
-            type: "date",
-            result: moment().format("dddd, MMMM Do YYYY"),
-            title: "Today's Date",
-            subtitle: `Divine Calendar`
+            answer: data.answer || "",
+            results: data.results.filter((r: any) => isValidUrl(r.url)).map((r: any): SearchResult => ({
+                title: r.title, description: r.content?.slice(0, 400) || "",
+                link: r.url, source: getHostname(r.url), type: "news"
+            }))
         };
-    }
-
-    // 3. World Time / Local Time
-    if (normalizedQuery.includes("time in") || isTimeQuery) {
-        const locationPart = normalizedQuery.includes("time in") ? normalizedQuery.split("time in")[1]?.trim() : null;
-        if (locationPart || isTimeQuery) {
-            const tzMap: Record<string, string> = {
-                "india": "Asia/Kolkata",
-                "usa": "America/New_York",
-                "uk": "Europe/London",
-                "london": "Europe/London",
-                "nigeria": "Africa/Lagos",
-                "kenya": "Africa/Nairobi",
-                "south africa": "Africa/Johannesburg",
-                "canada": "America/Toronto",
-                "australia": "Australia/Sydney",
-                "germany": "Europe/Berlin",
-                "philippines": "Asia/Manila",
-                "singapore": "Asia/Singapore",
-            };
-
-            const tz = locationPart ? tzMap[locationPart] : "Asia/Kolkata"; // Default to India/Local
-            if (tz || isTimeQuery) {
-                return {
-                    type: "time",
-                    result: moment().tz(tz).format("hh:mm A"),
-                    title: locationPart ? `Current Time in ${locationPart.toUpperCase()}` : "Local Time",
-                    subtitle: moment().tz(tz).format("dddd, MMMM Do YYYY")
-                };
-            }
-        }
-    }
-
-    // 4. Age Calculator
-    if (normalizedQuery.includes("born") || normalizedQuery.includes("age calculator") || normalizedQuery.includes("how old")) {
-        const dateMatch = normalizedQuery.match(/\d{4}-\d{2}-\d{2}/) || normalizedQuery.match(/\d{1,2}\/\d{1,2}\/\d{4}/);
-        if (dateMatch) {
-            const birthDate = moment(dateMatch[0]);
-            if (birthDate.isValid()) {
-                const diff = moment().diff(birthDate, "years");
-                return {
-                    type: "age",
-                    result: `${diff} Years`,
-                    title: "Age Explorer",
-                    subtitle: `Calculated from ${birthDate.format("MMMM Do YYYY")}`
-                };
-            }
-        } else if (normalizedQuery.includes("age calculator") || normalizedQuery.includes("how old")) {
-            return {
-                type: "age",
-                result: "N/A",
-                title: "Age Explorer",
-                subtitle: "Please provide a birthdate (e.g., born 1995-06-12)"
-            };
-        }
-    }
-
-    return null;
+    } catch (err: any) { console.error("[Tavily]", err.message); return null; }
 }
 
-function isBibleReference(text: string) {
-    return /^[1-3]?\s*[a-zA-Z]+\s+\d+:\d+(-\d+)?$/.test(text);
-}
+// ── INTERNAL SEARCH (Astra DB 80GB) ─────────────────────────
 
-/**
- * INTERNAL SEARCH: Prioritizes the 80GB Astra DB for high-volume content.
- */
 async function searchInternalNews(query: string) {
     try {
-        // 1. Try Astra DB (High Volume)
         const db = await getAstraDatabase().catch(() => null);
         if (db) {
             const collection = db.collection('christian_news');
-            const cursor = collection.find(
-                {
-                    $or: [
-                        { title: { $regex: query, $options: 'i' } },
-                        { content: { $regex: query, $options: 'i' } }
-                    ]
-                },
-                {
-                    sort: { grace_rank: -1 },
-                    limit: 20
-                }
-            );
-
-            const articles = await cursor.toArray();
-            if (articles.length > 0) {
-                return articles.map(a => ({
-                    title: a.title,
-                    description: a.summary || (a.content ? a.content.substring(0, 300) + '...' : ''),
-                    link: a.url,
-                    source: a.source_name,
-                    grace_rank: a.grace_rank,
-                    bible_refs: a.bible_refs || []
-                }));
-            }
-        }
-
-        // 2. Fallback to Local MongoDB
-        const localDb = await import('@/lib/mongodb').then(m => m.getDatabase()).catch(() => null);
-        if (localDb) {
-            const localCollection = localDb.collection('christian_news');
-            const localArticles = await localCollection.find({
-                $or: [
-                    { title: { $regex: query, $options: 'i' } },
-                    { content: { $regex: query, $options: 'i' } }
-                ]
-            }).sort({ grace_rank: -1 }).limit(20).toArray();
-
-            return localArticles.map(a => ({
+            const items = await collection.find(
+                { $or: [{ title: { $regex: query, $options: 'i' } }, { content: { $regex: query, $options: 'i' } }] },
+                { sort: { grace_rank: -1 }, limit: 10 }
+            ).toArray();
+            return items.map(a => ({
                 title: a.title,
                 description: a.summary || (a.content ? a.content.substring(0, 300) + '...' : ''),
                 link: a.url,
-                source: a.source_name,
-                grace_rank: a.grace_rank,
-                bible_refs: a.bible_refs || []
+                source: a.source_name || "Astra DB",
+                type: "news"
             }));
         }
-
-        return [];
-    } catch (err) {
-        console.error("News Search Failed:", err);
-        return [];
-    }
+    } catch (err) { }
+    return [];
 }
 
 async function searchAstraBible(query: string) {
     try {
-        const db = await getAstraDatabase();
-        if (!db) return null;
-        const collection = db.collection('bible_verses');
-
-        const cursor = collection.find(
-            { text: { $regex: query } },
-            { limit: 10 }
-        );
-
-        const verses = await cursor.toArray();
-        return verses.map(v => ({
-            title: v.reference,
-            description: v.text,
-            link: null
-        }));
-    } catch (err) {
-        return null;
-    }
+        const db = await getAstraDatabase().catch(() => null);
+        if (db) {
+            const collection = db.collection('bible_verses');
+            const verses = await collection.find({ text: { $regex: query } }, { limit: 10 }).toArray();
+            return verses.map(v => ({
+                title: v.reference,
+                description: v.text,
+                link: bibleGatewayUrl(v.reference),
+                source: "Holy Bible · KJV",
+                type: "bible"
+            }));
+        }
+    } catch (err) { }
+    return [];
 }
 
-async function fetchChristianNews(query: string) {
-    const BING_API_KEY = process.env.BING_API_KEY;
-    if (!BING_API_KEY) return [];
+// ── FALLBACKS ───────────────────────────────────────────────
 
-    try {
-        const response = await axios.get(
-            `https://api.bing.microsoft.com/v7.0/search?q=${encodeURIComponent(query)} christian news`,
-            { headers: { "Ocp-Apim-Subscription-Key": BING_API_KEY } }
-        );
-
-        return response.data.webPages.value?.map((item: any) => ({
-            title: item.name,
-            description: item.snippet,
-            link: item.url,
-            source: "Web Search"
-        })) || [];
-    } catch (err: any) {
-        return [];
-    }
+function buildFallbackLinks(query: string): SearchResult[] {
+    const q = encodeURIComponent(query);
+    return [
+        { title: `Search "${query}" — Christianity Today`, description: "Award-winning Christian journalism.", link: `https://www.christianitytoday.com/search/?q=${q}`, source: "Christianity Today", type: "news" },
+        { title: `Search "${query}" — CBN News`, description: "Christian Broadcasting Network.", link: `https://www1.cbn.com/cbnnews/search?q=${q}`, source: "CBN News", type: "news" },
+        { title: `Search "${query}" — Christian Post`, description: "Christian news and commentary.", link: `https://www.christianpost.com/search/?q=${q}`, source: "Christian Post", type: "news" },
+        { title: `"${query}" on BibleGateway`, description: "200+ Bible translations.", link: `https://www.biblegateway.com/quicksearch/?quicksearch=${q}&qs_version=KJV`, source: "BibleGateway", type: "bible" },
+    ];
 }
+
+async function buildGlobalSolution(query: string, rssResults: SearchResult[]) {
+    let aiInsight = "";
+    let newsResults = [...rssResults].slice(0, 3);
+
+    // 1. Try internal Astra search (High Priority)
+    const internalNews = await searchInternalNews(query);
+    if (internalNews.length > 0) {
+        newsResults = dedup([...internalNews.slice(0, 3), ...newsResults]).slice(0, 4);
+    }
+
+    // 2. Try Tavily AI Insight
+    const tavily = await searchTavily(query);
+    if (tavily?.answer) aiInsight = tavily.answer;
+    if (tavily?.results.length) newsResults = dedup([...tavily.results.slice(0, 2), ...newsResults]).slice(0, 4);
+
+    // 3. Try NewsAPI (if still light)
+    if (newsResults.length < 3) {
+        const newsApi = await searchNewsAPI(query, 6);
+        newsResults = dedup([...newsResults, ...newsApi]).slice(0, 4);
+    }
+
+    // Bible search (Merged logic)
+    let bibleVerses: SearchResult[] = searchBibleByKeyword(query) as SearchResult[];
+    const astraBible = await searchAstraBible(query);
+    if (astraBible.length > 0) bibleVerses = dedup([...astraBible, ...bibleVerses]);
+
+    if (isBibleRef(query)) {
+        const direct = await lookupBibleVerse(query);
+        if (direct) bibleVerses = [direct as SearchResult, ...bibleVerses];
+    }
+
+    // Ensure insight exists
+    if (!aiInsight) aiInsight = `Scripture speaks to "${query}" with clarity. Let these passages guide your understanding as you explore what Christian voices are saying today. "Thy word is a lamp unto my feet." (Psalm 119:105)`;
+
+    return {
+        insight: aiInsight,
+        bible: bibleVerses.slice(0, 5),
+        news: newsResults,
+        devotionals: [
+            { title: `Daily Manna: ${query}`, description: `Filter headlines about "${query}" through Scripture. God is sovereign.` },
+            { title: "Standing Firm", description: '"Watch ye, stand fast in the faith." — 1 Corinthians 16:13' },
+            { title: "Seeking Peace", description: `"Pray for the peace of Jerusalem: they shall prosper that love thee." — Psalm 122:6` },
+        ],
+        sermons: [
+            { title: `Biblical Sovereignty in ${query}`, speaker: "John Piper", length: "48 min" },
+            { title: `Walking by Faith: ${query}`, speaker: "Alistair Begg", length: "42 min" },
+        ],
+        deepCrawlAvailable: true // Always show experimental crawler as backup
+    };
+}
+
+// ── HANDLER ─────────────────────────────────────────────────
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
-    const q = searchParams.get("q");
-    const type = searchParams.get("type") || "bible";
-
+    const q = searchParams.get("q")?.trim();
+    const type = searchParams.get("type") || "global";
     if (!q) return NextResponse.json({ error: "Query required" }, { status: 400 });
 
     try {
-        // 1️ Check for Instant Smart Answers
-        const instantAnswer = getInstantAnswer(q);
+        const instantAnswer = detectInstantAnswer(q);
+        let bibleInstant: SearchResult | null = null;
+        if (isBibleRef(q)) bibleInstant = await lookupBibleVerse(q) as SearchResult | null;
 
-        let results: any[] = [];
-        let bibleInstant = null;
+        // RSS Feed Search (Primary for real-time Christian news)
+        const rssCategory = type === "global" ? "news" : type;
+        const rssRaw = await searchRSSFeeds(q, { category: rssCategory, limit: 15 });
+        const rssResults: SearchResult[] = rssRaw.map(a => ({
+            title: a.title, description: a.description, link: a.link,
+            source: a.source, type: a.category || "news", imageUrl: a.imageUrl, pubDate: a.pubDate
+        }));
 
-        // If it's a Bible reference, handle it immediately
-        if (isBibleReference(q)) {
-            try {
-                const res = await axios.get(`https://bible-api.com/${encodeURIComponent(q)}`);
-                bibleInstant = {
-                    title: res.data.reference,
-                    description: res.data.text,
-                    link: null,
-                    type: "bible"
-                };
-            } catch (e) {
-                // If API fails, fallback to standard bible search below
-            }
-        }
-
-        // 2️ Fetch regular results
         if (type === "global") {
-            const bible = await searchAstraBible(q) || [];
-
-            // 🔥 ADVANCED SEARCH CRAWLER: Combine Tribal Wisdom with Global Data
-            let insight = "";
-            let news: any[] = [];
-            let webSolution: any = null;
-            let deepCrawlAvailable = true; // Always suggest for now if news is light
-
-            try {
-                // 1. Try Tavily (AI Answer Engine)
-                webSolution = await searchTavily(q);
-                insight = webSolution?.answer;
-
-                // 2. Try Google Scraper (Broad Fallback)
-                if (!webSolution || !webSolution.results || webSolution.results.length === 0) {
-                    console.log("[SearchEngine] 🔍 Falling back to Live World Crawler for:", q);
-                    // Search for broader general news to ensure we get results
-                    const googleResults = await google.search(q, {
-                        safe: true,
-                        parse_ads: false
-                    });
-
-                    if (!insight && googleResults.results.length > 0) {
-                        insight = googleResults.results[0].description;
-                    }
-
-                    news = googleResults.results.slice(0, 5).map((r: any) => ({
-                        title: r.title,
-                        description: r.description,
-                        link: r.url,
-                        source: r.url ? new URL(r.url).hostname : "World News",
-                        grace_rank: 0.6
-                    }));
-                } else {
-                    news = webSolution.results.map((r: any) => ({
-                        title: r.title,
-                        description: r.content,
-                        link: r.url,
-                        source: r.url ? new URL(r.url).hostname : "Live Feed",
-                        grace_rank: 0.8
-                    }));
-                }
-            } catch (err) {
-                console.error("[CrawlerError]", err);
-            }
-
-            // Final fallback insight if even Google fails
-            if (!insight) {
-                insight = `The situation regarding ${q} is developing. Stay grounded in prayer and search for local updates while we continue scanning for deeper scriptural perspectives.`;
-            }
-
-            return NextResponse.json({
-                instantAnswer,
-                solution: {
-                    model: "5!4!3!2!1!",
-                    bible: bible.slice(0, 5),
-                    news: news.slice(0, 4),
-                    devotionals: [
-                        { title: `Wisdom for ${q}`, description: `Daily walk in faith regarding ${q}...`, source: "Daily Manna" },
-                        { title: `Overcoming Challenges`, description: `Practical steps to conquer difficulties in light of ${q}.`, source: "Grace Daily" },
-                        { title: `Seeking Peace`, description: "Finding tranquility in His Word.", source: "Morning Dew" }
-                    ].slice(0, 3),
-                    sermons: [
-                        { title: `The Power of Faith in ${q}`, speaker: "Pastor John Doe", length: "45 mins" },
-                        { title: `Walking Through ${q}`, speaker: "Evangelist Jane Smith", length: "32 mins" }
-                    ].slice(0, 2),
-                    insight: insight,
-                    deepCrawlAvailable: deepCrawlAvailable
-                }
-            });
+            const solution = await buildGlobalSolution(q, rssResults);
+            return NextResponse.json({ instantAnswer: instantAnswer || bibleInstant, solution });
         }
 
         if (type === "bible") {
-            const astraResults = await searchAstraBible(q);
-            if (astraResults && astraResults.length > 0) {
-                results = astraResults;
-            } else {
-                const localResults = await localSearchBible(q.split(" "));
-                results = localResults.map(r => ({ title: r.reference, description: r.text, link: null }));
-            }
-        } else {
-            const internalResults = await searchInternalNews(q);
-            if (internalResults.length < 5) {
-                const externalResults = await fetchChristianNews(q);
-                results = [...internalResults, ...externalResults];
-            } else {
-                results = internalResults;
-            }
+            const keywordVerses = searchBibleByKeyword(q) as SearchResult[];
+            const astraVerses = await searchAstraBible(q);
+            let results: SearchResult[] = dedup([...(bibleInstant ? [bibleInstant] : []), ...astraVerses, ...keywordVerses]);
+            if (!results.length) results = buildFallbackLinks(q).filter(r => r.type === "bible");
+            return NextResponse.json({ results: results.slice(0, 15), instantAnswer: instantAnswer || bibleInstant });
         }
 
-        return NextResponse.json({
-            results,
-            instantAnswer: instantAnswer || bibleInstant
-        });
+        // NEWS / DEVOTIONALS / SERMONS
+        let results: SearchResult[] = dedup([...rssResults]);
+        if (results.length < 5) results = dedup([...results, ...await searchNewsAPI(q, 10)]);
+        if (results.length < 5) results = dedup([...results, ...await searchInternalNews(q)]);
+
+        if (results.length === 0) results = buildFallbackLinks(q);
+
+        return NextResponse.json({ results: results.slice(0, 18), instantAnswer: instantAnswer || bibleInstant });
+
     } catch (error: any) {
-        console.error("Search API Error:", error);
-        return NextResponse.json({ error: "Search failed" }, { status: 500 });
+        console.error("[SearchAPI Error]", error.message);
+        return NextResponse.json({ results: buildFallbackLinks(q ?? "christian news"), instantAnswer: null });
     }
 }
