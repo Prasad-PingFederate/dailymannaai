@@ -6,6 +6,9 @@ import { evaluate } from "mathjs";
 import moment from "moment-timezone";
 import { searchTavily } from "@/lib/ai/bible-explorer-tavily";
 
+// Note: googlethis is available in package.json
+import google from "googlethis";
+
 /**
  * SMART QUERY DETECTOR: Returns instant answers for common utility queries.
  */
@@ -244,20 +247,53 @@ export async function GET(req: Request) {
         // 2️ Fetch regular results
         if (type === "global") {
             const bible = await searchAstraBible(q) || [];
-            const newsInternal = await searchInternalNews(q) || [];
 
-            // 🔥 CRAWLER ENGINE: Fetch live web insights
-            const webSolution = await searchTavily(q);
-            const insight = webSolution?.answer || `The solution to ${q} is found in steadfast faith and practical action. Align your hearts with scripture and stay informed with godly perspectives.`;
+            // 🔥 ADVANCED SEARCH CRAWLER: Combine Tribal Wisdom with Global Data
+            let insight = "";
+            let news: any[] = [];
+            let webSolution: any = null;
 
-            // Map web results to model if internal is low
-            const news = newsInternal.length > 0 ? newsInternal : (webSolution?.results?.map((r: any) => ({
-                title: r.title,
-                description: r.content,
-                link: r.url,
-                source: new URL(r.url).hostname,
-                grace_rank: 0.5
-            })) || []);
+            try {
+                // 1. Try Tavily (AI Answer Engine)
+                webSolution = await searchTavily(q);
+                insight = webSolution?.answer;
+
+                // 2. Try Google Scraper (The "Crawler" fallback)
+                if (!webSolution || !webSolution.results || webSolution.results.length === 0) {
+                    console.log("[SearchEngine] 🔍 Falling back to Live Google Crawler for:", q);
+                    const googleResults = await google.search(q + " christian news", {
+                        safe: true,
+                        parse_ads: false
+                    });
+
+                    if (!insight && googleResults.results.length > 0) {
+                        insight = googleResults.results[0].description;
+                    }
+
+                    news = googleResults.results.slice(0, 5).map((r: any) => ({
+                        title: r.title,
+                        description: r.description,
+                        link: r.url,
+                        source: new URL(r.url).hostname,
+                        grace_rank: 0.6
+                    }));
+                } else {
+                    news = webSolution.results.map((r: any) => ({
+                        title: r.title,
+                        description: r.content,
+                        link: r.url,
+                        source: new URL(r.url).hostname,
+                        grace_rank: 0.8
+                    }));
+                }
+            } catch (err) {
+                console.error("[CrawlerError]", err);
+            }
+
+            // Final fallback if everything fails
+            if (!insight) {
+                insight = `The solution to ${q} is found in steadfast faith and practical action. Align your hearts with scripture and stay informed with godly perspectives.`;
+            }
 
             return NextResponse.json({
                 instantAnswer,
@@ -266,8 +302,8 @@ export async function GET(req: Request) {
                     bible: bible.slice(0, 5),
                     news: news.slice(0, 4),
                     devotionals: [
-                        { title: `Living for ${q}`, description: `A daily walk in faith regarding ${q}...`, source: "Daily Manna" },
-                        { title: `Overcoming ${q}`, description: "Practical steps to conquer daily challenges.", source: "Grace Daily" },
+                        { title: `Living for ${q}`, description: `Daily walk in faith regarding ${q}...`, source: "Daily Manna" },
+                        { title: `Overcoming ${q}`, description: `Practical steps to conquer challenges involving ${q}.`, source: "Grace Daily" },
                         { title: `The Peace of ${q}`, description: "Finding tranquility in His Word.", source: "Morning Dew" }
                     ].slice(0, 3),
                     sermons: [
