@@ -684,13 +684,13 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                         </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "10px" }}>
+                    <div style={{ display: "flex", gap: "10px", flexDirection: "column" }}>
                         {/* Standard Generate button */}
                         <button
                             onClick={handleGenerate}
                             disabled={ui.loading}
                             style={{
-                                flex: 2,
+                                width: "100%",
                                 background: ui.loading
                                     ? "rgba(201,168,76,0.3)"
                                     : "linear-gradient(135deg, #c9a84c, #f0c060, #c9a84c)",
@@ -721,47 +721,93 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                             )}
                         </button>
 
-                        {/* AI Background Generate Button */}
-                        <button
-                            onClick={() => {
-                                setUi(u => ({ ...u, loading: true }));
-                                const newUrl = buildAiImageUrl(state.category, state.quote);
+                        <div style={{ display: "flex", gap: "10px" }}>
+                            {/* AI Background Generate Button */}
+                            <button
+                                onClick={() => {
+                                    setUi(u => ({ ...u, loading: true, error: null }));
+                                    const newUrl = buildAiImageUrl(state.category, state.quote);
 
-                                // Preload the image before returning so that it doesn't blink stark black
-                                const img = new window.Image();
-                                img.onload = () => {
-                                    setState(st => ({ ...st, aiBgUrl: newUrl }));
-                                    setUi(u => ({ ...u, loading: false }));
-                                };
-                                img.onerror = () => {
-                                    setUi(u => ({ ...u, loading: false, error: "Failed to load AI image. Try again." }));
-                                }
-                                img.src = newUrl;
-                            }}
-                            disabled={ui.loading}
-                            style={{
-                                flex: 3,
-                                background: ui.loading
-                                    ? "rgba(100,200,100,0.1)"
-                                    : "linear-gradient(135deg, #225522, #44aa44)",
-                                border: "1px solid #44aa44",
-                                borderRadius: 12,
-                                padding: "18px 20px",
-                                color: ui.loading ? "#558855" : "#ffffff",
-                                fontSize: 16,
-                                fontWeight: "bold",
-                                fontFamily: "Georgia, serif",
-                                cursor: ui.loading ? "not-allowed" : "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 8,
-                                letterSpacing: 1,
-                                transition: "all 0.3s",
-                            }}
-                        >
-                            {ui.loading ? "Generating..." : "✨ Generate AI Background"}
-                        </button>
+                                    // Preload the image before returning so that it doesn't blink stark black
+                                    const img = new window.Image();
+                                    img.onload = () => {
+                                        setState(st => ({ ...st, aiBgUrl: newUrl }));
+                                        setUi(u => ({ ...u, loading: false }));
+                                    };
+                                    img.onerror = () => {
+                                        setUi(u => ({ ...u, loading: false, error: "AI model busy. Try the Photo API below." }));
+                                    }
+                                    img.src = newUrl;
+                                }}
+                                disabled={ui.loading}
+                                style={{
+                                    flex: 1,
+                                    background: ui.loading
+                                        ? "rgba(100,200,100,0.1)"
+                                        : "linear-gradient(135deg, #225522, #44aa44)",
+                                    border: "1px solid #44aa44",
+                                    borderRadius: 12,
+                                    padding: "16px 10px",
+                                    color: ui.loading ? "#558855" : "#ffffff",
+                                    fontSize: 14,
+                                    fontWeight: "bold",
+                                    fontFamily: "Georgia, serif",
+                                    cursor: ui.loading ? "not-allowed" : "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                    letterSpacing: 0.5,
+                                    transition: "all 0.3s",
+                                }}
+                            >
+                                ✨ AI Background
+                            </button>
+
+                            {/* Free Photo API Button */}
+                            <button
+                                onClick={() => {
+                                    setUi(u => ({ ...u, loading: true, error: null }));
+                                    const seed = Math.floor(Math.random() * 99999);
+                                    // LoremFlickr works reliably with CORS and provides great thematic random images
+                                    const fallbackUrl = `https://loremflickr.com/1080/1080/nature,${state.category}?lock=${seed}`;
+
+                                    const img = new window.Image();
+                                    img.crossOrigin = "anonymous";
+                                    img.onload = () => {
+                                        setState(st => ({ ...st, aiBgUrl: fallbackUrl }));
+                                        setUi(u => ({ ...u, loading: false }));
+                                    };
+                                    img.onerror = () => {
+                                        setUi(u => ({ ...u, loading: false, error: "Failed to load Photo API. Try again." }));
+                                    }
+                                    img.src = fallbackUrl;
+                                }}
+                                disabled={ui.loading}
+                                style={{
+                                    flex: 1,
+                                    background: ui.loading
+                                        ? "rgba(100,150,250,0.1)"
+                                        : "linear-gradient(135deg, #225588, #4488c0)",
+                                    border: "1px solid #4488c0",
+                                    borderRadius: 12,
+                                    padding: "16px 10px",
+                                    color: ui.loading ? "#5588cc" : "#ffffff",
+                                    fontSize: 14,
+                                    fontWeight: "bold",
+                                    fontFamily: "Georgia, serif",
+                                    cursor: ui.loading ? "not-allowed" : "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                    letterSpacing: 0.5,
+                                    transition: "all 0.3s",
+                                }}
+                            >
+                                📷 Photo API
+                            </button>
+                        </div>
                     </div>
 
                     {ui.error && (
