@@ -2,8 +2,33 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
-// ─────────────────────────────────────────────
-//  CONSTANTS & DATA
+// ─── AI BACKGROUND SETTINGS ──────────────────────────────────────────────────
+const CATEGORY_THEMES: Record<string, string> = {
+    "faith": "golden sunbeams breaking through clouds over a calm lake, divine light rays, peaceful and majestic",
+    "love": "beautiful red roses garden with soft bokeh light, warm golden hour, romantic and heavenly",
+    "strength": "majestic eagle soaring above mountain peaks at sunrise, powerful clouds, epic lighting",
+    "peace": "serene green meadow with gentle stream, wildflowers, soft morning mist, peaceful countryside",
+    "hope": "vibrant rainbow over a green valley after rain, dramatic sky, hopeful and uplifting",
+    "wisdom": "ancient olive tree with gnarled roots in golden light, wise and timeless, Mediterranean",
+    "prayer": "child kneeling in prayer in a field of flowers at sunset, soft golden light, spiritual",
+    "salvation": "cross on a hilltop at sunrise with dramatic heavenly rays, powerful spiritual scene",
+};
+
+const RANDOM_SCENES = [
+    "lush vineyard with purple grapes at harvest, golden hour light",
+    "tropical waterfall surrounded by exotic birds and butterflies",
+    "beautiful koi fish pond with lotus flowers",
+    "flock of white doves flying over a wheat field",
+    "colorful fruit market with pomegranates figs and grapes",
+    "baby lamb resting in green pasture with wildflowers",
+    "lion resting majestically on a rocky cliff at sunset",
+    "butterfly garden with hundreds of colorful butterflies",
+    "ancient cedar trees with rays of light filtering through",
+    "pomegranate tree heavy with red fruit against blue sky",
+    "herd of deer in misty morning forest, golden light",
+    "olive grove with silver leaves shimmering in sunlight",
+    "sea of galilee at sunrise with fishing boats",
+];
 // ─────────────────────────────────────────────
 
 const THEMES = [
@@ -146,7 +171,18 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     return lines;
 }
 
-async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, size, fontFamily, category }: any) {
+function buildAiImageUrl(category: string, verse: string) {
+    const seed = Math.floor(Math.random() * 99999);
+    const baseTheme = CATEGORY_THEMES[category] || "beautiful Christian religious scenery";
+    const randomScene = RANDOM_SCENES[Math.floor(Math.random() * RANDOM_SCENES.length)];
+    const prompt = `${baseTheme}, featuring ${randomScene}, highly detailed painting, masterwork, beautiful lighting, cinematic, photorealistic, 4k`;
+
+    // Using pollinations.ai for free, fast AI image generation without API key
+    const encoded = encodeURIComponent(prompt + ", ultra HD, cinematic, high quality, professional photography");
+    return `https://image.pollinations.ai/prompt/${encoded}?width=1080&height=1080&seed=${seed}&nologo=true&enhance=true`;
+}
+
+async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, theme, size, fontFamily, category, aiBgUrl }: any) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const { w, h } = size;
@@ -157,11 +193,13 @@ async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, t
     const isWide = w > h * 1.4;
 
     // ── Background ──
-    if (theme.type === "photo" && theme.url) {
+    const targetUrl = aiBgUrl || (theme.type === "photo" ? theme.url : null);
+
+    if (targetUrl) {
         await new Promise((resolve) => {
             const img = new window.Image();
             img.crossOrigin = "anonymous";
-            img.src = theme.url;
+            img.src = targetUrl;
             img.onload = () => {
                 const imgAspect = img.width / img.height;
                 const canvasAspect = w / h;
@@ -180,7 +218,7 @@ async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, t
                 }
 
                 ctx.drawImage(img, drawX, drawY, drawW, drawH);
-                ctx.fillStyle = theme.overlay || "rgba(0,0,0,0.5)";
+                ctx.fillStyle = aiBgUrl ? "rgba(0,0,0,0.4)" : (theme.overlay || "rgba(0,0,0,0.5)");
                 ctx.fillRect(0, 0, w, h);
                 resolve(null);
             };
@@ -422,6 +460,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
         size: SIZES[0],
         font: FONTS[0],
         customTopic: "",
+        aiBgUrl: null as string | null, // Used to store generated AI background, overrides theme if set
     });
 
     const [ui, setUi] = useState({
@@ -445,6 +484,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                 size: state.size,
                 fontFamily: state.font.family,
                 category: state.category,
+                aiBgUrl: state.aiBgUrl,
             });
             if (isCancelled) return;
             const preview = previewRef.current;
@@ -500,6 +540,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
             size: state.size,
             fontFamily: state.font.family,
             category: state.category,
+            aiBgUrl: state.aiBgUrl,
         });
         const link = document.createElement("a");
         link.download = `dailymanna-${state.reference.replace(/\s/g, "-").replace(":", "-")}-${Date.now()}.png`;
@@ -643,40 +684,85 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                         </div>
                     </div>
 
-                    {/* Generate button */}
-                    <button
-                        onClick={handleGenerate}
-                        disabled={ui.loading}
-                        style={{
-                            background: ui.loading
-                                ? "rgba(201,168,76,0.3)"
-                                : "linear-gradient(135deg, #c9a84c, #f0c060, #c9a84c)",
-                            border: "none",
-                            borderRadius: 12,
-                            padding: "18px 28px",
-                            color: ui.loading ? "#8a7a5a" : "#1a0a2e",
-                            fontSize: 16,
-                            fontWeight: "bold",
-                            fontFamily: "Georgia, serif",
-                            cursor: ui.loading ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 10,
-                            letterSpacing: 1,
-                            boxShadow: ui.loading ? "none" : "0 4px 30px rgba(201,168,76,0.4)",
-                            transition: "all 0.3s",
-                        }}
-                    >
-                        {ui.loading ? (
-                            <>
-                                <span className="animate-spin inline-block">✝</span>
-                                Searching the Scriptures...
-                            </>
-                        ) : (
-                            <>✝ Generate Scripture Image</>
-                        )}
-                    </button>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                        {/* Standard Generate button */}
+                        <button
+                            onClick={handleGenerate}
+                            disabled={ui.loading}
+                            style={{
+                                flex: 2,
+                                background: ui.loading
+                                    ? "rgba(201,168,76,0.3)"
+                                    : "linear-gradient(135deg, #c9a84c, #f0c060, #c9a84c)",
+                                border: "none",
+                                borderRadius: 12,
+                                padding: "18px 20px",
+                                color: ui.loading ? "#8a7a5a" : "#1a0a2e",
+                                fontSize: 16,
+                                fontWeight: "bold",
+                                fontFamily: "Georgia, serif",
+                                cursor: ui.loading ? "not-allowed" : "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 10,
+                                letterSpacing: 1,
+                                boxShadow: ui.loading ? "none" : "0 4px 30px rgba(201,168,76,0.4)",
+                                transition: "all 0.3s",
+                            }}
+                        >
+                            {ui.loading ? (
+                                <>
+                                    <span className="animate-spin inline-block">✝</span>
+                                    Searching...
+                                </>
+                            ) : (
+                                <>✝ Find Scripture</>
+                            )}
+                        </button>
+
+                        {/* AI Background Generate Button */}
+                        <button
+                            onClick={() => {
+                                setUi(u => ({ ...u, loading: true }));
+                                const newUrl = buildAiImageUrl(state.category, state.quote);
+
+                                // Preload the image before returning so that it doesn't blink stark black
+                                const img = new window.Image();
+                                img.onload = () => {
+                                    setState(st => ({ ...st, aiBgUrl: newUrl }));
+                                    setUi(u => ({ ...u, loading: false }));
+                                };
+                                img.onerror = () => {
+                                    setUi(u => ({ ...u, loading: false, error: "Failed to load AI image. Try again." }));
+                                }
+                                img.src = newUrl;
+                            }}
+                            disabled={ui.loading}
+                            style={{
+                                flex: 3,
+                                background: ui.loading
+                                    ? "rgba(100,200,100,0.1)"
+                                    : "linear-gradient(135deg, #225522, #44aa44)",
+                                border: "1px solid #44aa44",
+                                borderRadius: 12,
+                                padding: "18px 20px",
+                                color: ui.loading ? "#558855" : "#ffffff",
+                                fontSize: 16,
+                                fontWeight: "bold",
+                                fontFamily: "Georgia, serif",
+                                cursor: ui.loading ? "not-allowed" : "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                letterSpacing: 1,
+                                transition: "all 0.3s",
+                            }}
+                        >
+                            {ui.loading ? "Generating..." : "✨ Generate AI Background"}
+                        </button>
+                    </div>
 
                     {ui.error && (
                         <div
@@ -724,7 +810,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                 {THEMES.map((theme) => (
                                     <button
                                         key={theme.id}
-                                        onClick={() => setState((st) => ({ ...st, theme }))}
+                                        onClick={() => setState((st) => ({ ...st, theme, aiBgUrl: null }))}
                                         style={{
                                             background: theme.type === "photo" ? `linear-gradient(${theme.overlay}, ${theme.overlay}), url('${theme.url}') center/cover` : `linear-gradient(135deg, ${theme.bg?.[0]}, ${theme.bg?.[theme.bg?.length - 1]})`,
                                             border: `2px solid ${s.theme.id === theme.id ? theme.accent : "transparent"}`,
