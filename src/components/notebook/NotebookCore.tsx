@@ -82,7 +82,7 @@ export default function NotebookWorkspace() {
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
     const [isSummarizing, setIsSummarizing] = useState(false);
-    const [isRefining, setIsRefining] = useState(false);
+
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [selectedVoice, setSelectedVoice] = useState<'male' | 'female'>('male');
@@ -1002,41 +1002,7 @@ It's now part of my collective wisdom!`
         }
     };
 
-    const handleRefine = async () => {
-        if (!noteContent || noteContent.trim().length === 0) {
-            alert("Please write some notes first, then I can help refine them.");
-            return;
-        }
 
-        setIsRefining(true);
-        try {
-            const res = await fetch("/api/refine", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: noteContent }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setNoteContent(data.refined);
-                setMessages(prev => [...prev, {
-                    role: "assistant",
-                    content: "I've refined your notes! Check the editor to see the improvements."
-                }]);
-            } else {
-                throw new Error(data.error || "Failed to refine text");
-            }
-        } catch (error: any) {
-            console.error("Refine Error:", error);
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: `Sorry, I had trouble refining your notes: ${error.message}`
-            }]);
-        } finally {
-            setIsRefining(false);
-        }
-    };
 
     const handleGrammarCheck = async () => {
         if (!noteContent || noteContent.trim().length < 5) {
@@ -2070,7 +2036,6 @@ It's now part of my collective wisdom!`
                         <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1 px-2">
                             {[
                                 { label: 'Summarize', icon: <FileStack size={14} />, action: handleSummarize, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
-                                { label: 'Refine', icon: <Wand2 size={14} />, action: handleRefine, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
                                 { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
                                 { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' },
                                 { label: 'Image Studio', icon: <ImageIcon size={14} />, action: () => setIsStudioOpen(true), color: 'text-rose-500 bg-rose-500/15 border-rose-500/30' }
