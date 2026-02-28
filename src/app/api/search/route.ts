@@ -4,6 +4,7 @@ import { searchBible as localSearchBible } from "@/lib/search/bible-search";
 import { getAstraDatabase } from "@/lib/astra-db";
 import { evaluate } from "mathjs";
 import moment from "moment-timezone";
+import { searchTavily } from "@/lib/ai/bible-explorer-tavily";
 
 /**
  * SMART QUERY DETECTOR: Returns instant answers for common utility queries.
@@ -243,7 +244,20 @@ export async function GET(req: Request) {
         // 2️ Fetch regular results
         if (type === "global") {
             const bible = await searchAstraBible(q) || [];
-            const news = await searchInternalNews(q) || [];
+            const newsInternal = await searchInternalNews(q) || [];
+
+            // 🔥 CRAWLER ENGINE: Fetch live web insights
+            const webSolution = await searchTavily(q);
+            const insight = webSolution?.answer || `The solution to ${q} is found in steadfast faith and practical action. Align your hearts with scripture and stay informed with godly perspectives.`;
+
+            // Map web results to model if internal is low
+            const news = newsInternal.length > 0 ? newsInternal : (webSolution?.results?.map((r: any) => ({
+                title: r.title,
+                description: r.content,
+                link: r.url,
+                source: new URL(r.url).hostname,
+                grace_rank: 0.5
+            })) || []);
 
             return NextResponse.json({
                 instantAnswer,
@@ -252,7 +266,7 @@ export async function GET(req: Request) {
                     bible: bible.slice(0, 5),
                     news: news.slice(0, 4),
                     devotionals: [
-                        { title: `Living for ${q}`, description: "A daily walk in faith regarding this topic...", source: "Daily Manna" },
+                        { title: `Living for ${q}`, description: `A daily walk in faith regarding ${q}...`, source: "Daily Manna" },
                         { title: `Overcoming ${q}`, description: "Practical steps to conquer daily challenges.", source: "Grace Daily" },
                         { title: `The Peace of ${q}`, description: "Finding tranquility in His Word.", source: "Morning Dew" }
                     ].slice(0, 3),
@@ -260,7 +274,7 @@ export async function GET(req: Request) {
                         { title: `The Power of ${q}`, speaker: "Pastor John Doe", length: "45 mins" },
                         { title: `Walking in ${q}`, speaker: "Evangelist Jane Smith", length: "32 mins" }
                     ].slice(0, 2),
-                    insight: `The solution to ${q} is found in steadfast faith and practical action. Align your hearts with scripture and stay informed with godly perspectives.`
+                    insight: insight
                 }
             });
         }
