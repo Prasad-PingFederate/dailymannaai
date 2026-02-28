@@ -2,13 +2,6 @@
   <!-- Inner transparent background for bounding box alignment -->
   <rect width="100" height="100" fill="transparent" />
   
-  <!-- Classic elegant thin cross to match the website's logo standard, explicitly shaded in blood red -->
-  <!-- Top bar -->
-  <rect x="44" y="10" width="12" height="25" fill="#c31010" />
-  <!-- Bottom bar -->
-  <rect x="44" y="35" width="12" height="55" fill="#c31010" />
-  <!-- Left arm -->
-  <rect x="20" y="35" width="24" height="12" fill="#c31010" />
-  <!-- Right arm -->
-  <rect x="56" y="35" width="24" height="12" fill="#c31010" />
+  <!-- Improved continuous path cross: perfectly symmetrical arms, elegant thickness, no overlapping artifact lines, blood red color -->
+  <path d="M45 10 L55 10 L55 30 L75 30 L75 40 L55 40 L55 90 L45 90 L45 40 L25 40 L25 30 L45 30 Z" fill="#b00b0b" />
 </svg>
