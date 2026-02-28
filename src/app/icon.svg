@@ -1,4 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="40" fill="transparent" stroke="#E51C24" stroke-width="10" />
-  <path d="M 50 25 L 50 75 M 30 42 L 70 42" stroke="#f5e6c8" stroke-width="8" stroke-linecap="round" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Inner transparent background for bounding box alignment -->
+  <rect width="100" height="100" fill="transparent" />
+  
+  <!-- Classic elegant thin cross to match the website's logo standard, explicitly shaded in blood red -->
+  <!-- Top bar -->
+  <rect x="44" y="10" width="12" height="25" fill="#c31010" />
+  <!-- Bottom bar -->
+  <rect x="44" y="35" width="12" height="55" fill="#c31010" />
+  <!-- Left arm -->
+  <rect x="20" y="35" width="24" height="12" fill="#c31010" />
+  <!-- Right arm -->
+  <rect x="56" y="35" width="24" height="12" fill="#c31010" />
 </svg>
