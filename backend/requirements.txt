@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+websockets
+celery
+redis
+sqlalchemy
+psycopg2-binary
+scrapy
+feedparser
+newspaper3k
+crochet
+lxml
+beautifulsoup4
+pytest
+requests

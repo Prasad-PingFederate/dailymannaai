@@ -252,6 +252,7 @@ export async function GET(req: Request) {
             let insight = "";
             let news: any[] = [];
             let webSolution: any = null;
+            let deepCrawlAvailable = true; // Always suggest for now if news is light
 
             try {
                 // 1. Try Tavily (AI Answer Engine)
@@ -311,7 +312,8 @@ export async function GET(req: Request) {
                         { title: `The Power of Faith in ${q}`, speaker: "Pastor John Doe", length: "45 mins" },
                         { title: `Walking Through ${q}`, speaker: "Evangelist Jane Smith", length: "32 mins" }
                     ].slice(0, 2),
-                    insight: insight
+                    insight: insight,
+                    deepCrawlAvailable: deepCrawlAvailable
                 }
             });
         }

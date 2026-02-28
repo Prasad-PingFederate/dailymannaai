@@ -390,6 +390,21 @@ function SolutionDashboard({
                     <p className="text-slate-200 text-lg md:text-xl leading-relaxed font-serif italic">
                         "{solution.insight}"
                     </p>
+
+                    {/* Deep Crawl Suggestion */}
+                    {solution.deepCrawlAvailable && (
+                        <div className="pt-6">
+                            <button
+                                onClick={async () => {
+                                    alert("Deep Crawler Triggered! The Python Celery engine is now scanning YouTube, Twitter, and Scrapy news for '" + query + "'. This runs in the background to avoid slowing down your main search.");
+                                }}
+                                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 group"
+                            >
+                                <Zap size={14} className="group-hover:animate-bounce" />
+                                Run Deep World Crawler (Python Service)
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
