@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Book, Newspaper, Sparkles, MessageCircle, X, ExternalLink, Filter } from "lucide-react";
+import { Search, Book, Newspaper, Sparkles, MessageCircle, X, ExternalLink, Filter, Clock, Calculator, Calendar } from "lucide-react";
 import Link from "next/link";
 
 interface SearchResult {
@@ -17,6 +17,7 @@ export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
     const [filter, setFilter] = useState<"bible" | "news" | "devotionals" | "sermons">("bible");
     const [results, setResults] = useState<SearchResult[]>([]);
+    const [instantAnswer, setInstantAnswer] = useState<any>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [hasTyped, setHasTyped] = useState(false);
     const [dailyVerse] = useState({ ref: "John 3:16", text: "For God so loved the world that He gave His one and only Son..." });
@@ -31,11 +32,13 @@ export default function SearchEnginePortal() {
         setIsSearching(true);
         setHasTyped(true);
         setResults([]); // Clear previous results
+        setInstantAnswer(null);
         try {
             const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`);
             const data = await res.json();
-            if (res.ok && data.results) {
-                setResults(data.results);
+            if (res.ok) {
+                setResults(data.results || []);
+                setInstantAnswer(data.instantAnswer);
             }
         } catch (error) {
             console.error("Search failed:", error);
@@ -205,6 +208,47 @@ export default function SearchEnginePortal() {
                                         <Book size={14} className="text-sky-400" />
                                         Found {results.length} results for <span className="text-sky-400 italic">"{query}"</span> in {filter.toUpperCase()}
                                     </div>
+
+                                    {/* --- INSTANT ANSWER WIDGET --- */}
+                                    {instantAnswer && (
+                                        <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-8 mb-10 overflow-hidden relative group animate-in zoom-in-95 duration-500">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                {instantAnswer.type === 'calculator' && <Calculator size={100} />}
+                                                {instantAnswer.type === 'time' && <Clock size={100} />}
+                                                {instantAnswer.type === 'date' && <Calendar size={100} />}
+                                                {instantAnswer.type === 'bible' && <Book size={100} />}
+                                                {instantAnswer.type === 'age' && <Sparkles size={100} />}
+                                            </div>
+
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-2 text-sky-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+                                                    <Sparkles size={12} className="animate-pulse" />
+                                                    {instantAnswer.title || "Instant Answer"}
+                                                </div>
+
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="text-5xl md:text-6xl font-black text-white tracking-tighter">
+                                                        {instantAnswer.result || instantAnswer.description}
+                                                    </div>
+                                                    {instantAnswer.subtitle && (
+                                                        <div className="text-slate-400 text-sm font-medium tracking-wide mt-2">
+                                                            {instantAnswer.subtitle}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {instantAnswer.type === 'bible' && (
+                                                    <div className="mt-8 pt-8 border-t border-white/5">
+                                                        <Link href="/notebook" className="inline-flex items-center gap-2 text-xs font-bold text-sky-400 hover:underline tracking-widest uppercase">
+                                                            View in Study Notebook <ExternalLink size={12} />
+                                                        </Link>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500/0 via-sky-500/50 to-sky-500/0" />
+                                        </div>
+                                    )}
 
                                     <div className="space-y-12">
                                         {results.map((res, i) => (
