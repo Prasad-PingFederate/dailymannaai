@@ -11,7 +11,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const key = searchParams.get('key');
 
-    if (process.env.CRAWLER_KEY && key !== process.env.CRAWLER_KEY) {
+    const crawlerKey = process.env.Dailymanna_CRAWLER_KEY;
+    if (crawlerKey && key !== crawlerKey) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
