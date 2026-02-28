@@ -849,14 +849,7 @@ export default function SearchEnginePortal() {
                     >
                         DAILY<span className="text-sky-400">MANNA</span>AI
                     </button>
-                    <Link
-                        href="/notebook"
-                        className="flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08]
-                       px-5 py-2.5 rounded-full text-sm font-semibold transition-all backdrop-blur-md"
-                    >
-                        <MessageCircle size={13} className="text-sky-400" />
-                        Notebook
-                    </Link>
+                    {/* Notebook link moved to filter tabs */}
                 </header>
             )}
 
@@ -923,14 +916,23 @@ export default function SearchEnginePortal() {
                         {/* Filter chips */}
                         <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
                             {FILTERS.map(f => (
-                                <FilterChip
-                                    key={f.id}
-                                    id={f.id}
-                                    label={f.label}
-                                    icon={f.icon}
-                                    active={filter === f.id}
-                                    onClick={() => onFilterChange(f.id as FilterType)}
-                                />
+                                <React.Fragment key={f.id}>
+                                    <FilterChip
+                                        id={f.id}
+                                        label={f.label}
+                                        icon={f.icon}
+                                        active={filter === f.id}
+                                        onClick={() => onFilterChange(f.id as FilterType)}
+                                    />
+                                    {f.id === "news" && (
+                                        <Link
+                                            href="/notebook"
+                                            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-white text-[10px] font-black uppercase tracking-widest transition-all duration-200 whitespace-nowrap"
+                                        >
+                                            <MessageCircle size={13} className="text-sky-400" /> Notebook
+                                        </Link>
+                                    )}
+                                </React.Fragment>
                             ))}
                         </div>
                     </form>
