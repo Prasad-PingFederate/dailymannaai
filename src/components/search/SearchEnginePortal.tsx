@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Book, Newspaper, Sparkles, MessageCircle, X, ExternalLink, Filter, Clock, Calculator, Calendar, PlayCircle, Quote } from "lucide-react";
+import { Search, Book, Newspaper, Sparkles, MessageCircle, X, ExternalLink, Filter, Clock, Calculator, Calendar, PlayCircle, Quote, ChevronLeft, Maximize2 } from "lucide-react";
 import Link from "next/link";
 
 interface SearchResult {
@@ -21,6 +21,9 @@ export default function SearchEnginePortal() {
     const [instantAnswer, setInstantAnswer] = useState<any>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [hasTyped, setHasTyped] = useState(false);
+
+    // READER STATE
+    const [activeArticle, setActiveArticle] = useState<any>(null);
 
     const handleSearch = async (e?: React.FormEvent, currentType?: string) => {
         if (e) e.preventDefault();
@@ -56,8 +59,57 @@ export default function SearchEnginePortal() {
         }
     }, [filter]);
 
+    const openReader = (item: any) => {
+        if (item.link) {
+            setActiveArticle(item);
+            document.body.style.overflow = 'hidden';
+        }
+    };
+
+    const closeReader = () => {
+        setActiveArticle(null);
+        document.body.style.overflow = 'auto';
+    };
+
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100 relative flex flex-col items-center selection:bg-sky-500/30 overflow-x-hidden">
+
+            {/* --- INTEGRATED DIVINE READER --- */}
+            {activeArticle && (
+                <div className="fixed inset-0 z-[100] flex flex-col bg-[#020617] animate-in slide-in-from-bottom duration-500">
+                    {/* Reader Header */}
+                    <div className="w-full h-16 border-b border-white/10 bg-slate-900/50 backdrop-blur-3xl flex items-center justify-between px-6">
+                        <button onClick={closeReader} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
+                            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                            <span className="text-xs font-black uppercase tracking-widest">Back to Manna</span>
+                        </button>
+
+                        <div className="flex-1 text-center px-10">
+                            <h2 className="text-slate-200 text-sm font-bold truncate max-w-xl mx-auto">{activeArticle.title}</h2>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <a href={activeArticle.link} target="_blank" rel="noopener noreferrer" className="p-2 bg-white/5 rounded-full hover:bg-sky-500 transition-all text-slate-400 hover:text-white" title="Open in New Tab">
+                                <Maximize2 size={16} />
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Reader Content / Iframe */}
+                    <div className="flex-1 w-full bg-white relative overflow-hidden">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-0">
+                            <div className="w-12 h-12 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mt-6 animate-pulse">Establishing Secure Stream...</p>
+                        </div>
+                        <iframe
+                            src={activeArticle.link}
+                            className="w-full h-full relative z-10 border-none"
+                            title="Divine Reader"
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Ambient Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-sky-500 rounded-full blur-[150px]" />
@@ -207,9 +259,6 @@ export default function SearchEnginePortal() {
                                                     <p className="text-slate-200 text-xl md:text-2xl leading-relaxed font-serif italic max-w-3xl">
                                                         "{solution.insight}"
                                                     </p>
-                                                    <div className="flex items-center gap-4 pt-4">
-                                                        <span className="text-slate-500 text-[9px] font-black tracking-widest uppercase">Verified Knowledge Output</span>
-                                                    </div>
                                                 </div>
                                             </div>
 
@@ -224,9 +273,9 @@ export default function SearchEnginePortal() {
                                                         <div key={i} className="group bg-white/[0.03] hover:bg-white/[0.05] p-8 rounded-[2rem] border border-white/5 hover:border-amber-500/30 transition-all duration-300">
                                                             <div className="flex items-center justify-between mb-4">
                                                                 <span className="text-amber-500 text-[10px] font-black uppercase">{b.title}</span>
-                                                                <Link href={`https://www.biblegateway.com/passage/?search=${encodeURIComponent(b.title)}&version=KJV`} target="_blank" className="text-slate-500 hover:text-white transition-colors">
-                                                                    <ExternalLink size={14} />
-                                                                </Link>
+                                                                <button onClick={() => openReader({ ...b, link: `https://www.biblegateway.com/passage/?search=${encodeURIComponent(b.title)}&version=KJV` })} className="text-slate-500 hover:text-white transition-colors">
+                                                                    <Maximize2 size={14} />
+                                                                </button>
                                                             </div>
                                                             <p className="text-slate-200 text-lg font-serif italic group-hover:text-white transition-colors leading-relaxed">"{b.description}"</p>
                                                         </div>
@@ -234,15 +283,15 @@ export default function SearchEnginePortal() {
                                                 </div>
                                             </div>
 
-                                            {/* News (4) - Modern Context (Powered by "Google Crawler") */}
+                                            {/* News (4) - Modern Context */}
                                             <div className="space-y-8">
                                                 <div className="flex items-center justify-between px-4">
                                                     <div className="flex items-center gap-3 text-sm font-black text-sky-400 uppercase tracking-[0.2em]"><Newspaper size={18} /> 4 World Perspectives</div>
                                                     <div className="h-px flex-1 bg-sky-500/10 ml-6" />
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {(solution.news || []).length > 0 ? (solution.news.map((n: any, i: number) => (
-                                                        <Link key={i} href={n.link || "#"} target="_blank" className="block group">
+                                                    {(solution.news && solution.news.length > 0) ? (solution.news.map((n: any, i: number) => (
+                                                        <div key={i} onClick={() => openReader(n)} className="cursor-pointer block group">
                                                             <div className="bg-white/5 hover:bg-white/10 p-6 rounded-[2rem] border border-white/5 hover:border-sky-500/30 transition-all duration-500 h-full flex flex-col justify-between">
                                                                 <div>
                                                                     <div className="flex items-center justify-between mb-4">
@@ -252,16 +301,16 @@ export default function SearchEnginePortal() {
                                                                     <h3 className="text-white font-bold text-lg mb-4 line-clamp-2 group-hover:text-sky-400 transition-colors leading-tight">{n.title}</h3>
                                                                 </div>
                                                                 <p className="text-slate-400 text-sm line-clamp-2 italic mb-4">"{n.description}"</p>
-                                                                <div className="text-[9px] text-sky-400 font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Read Full Report →</div>
+                                                                <div className="text-[9px] text-sky-400 font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Read Inside DailyMannaAI →</div>
                                                             </div>
-                                                        </Link>
+                                                        </div>
                                                     ))) : (
-                                                        <div className="col-span-2 py-10 text-center text-slate-500 italic border border-white/5 rounded-3xl">Search Crawler identifying modern context...</div>
+                                                        <div className="col-span-2 py-10 text-center text-slate-500 italic border border-white/5 rounded-3xl">Scanning Global News... Try searching again in 5 seconds.</div>
                                                     )}
                                                 </div>
                                             </div>
 
-                                            {/* Devotionals (3) & Sermons (2) Combined for aesthetics */}
+                                            {/* Combined Bottom Sections */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                                                 <div className="space-y-8">
                                                     <div className="flex items-center gap-3 text-sm font-black text-indigo-400 uppercase tracking-[0.2em] pl-4"><Sparkles size={18} /> 3 Daily Mannas</div>
@@ -297,32 +346,22 @@ export default function SearchEnginePortal() {
                                         </div>
                                     )}
 
-                                    {/* Standard Results Fallback (If not in Global mode) */}
+                                    {/* Standard Results Fallback */}
                                     {!solution && results.length > 0 && (
                                         <div className="space-y-10">
-                                            <div className="flex items-center gap-4 mb-8">
-                                                <div className="h-px flex-1 bg-white/10" />
-                                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em]">Historical Search Archives</div>
-                                                <div className="h-px flex-1 bg-white/10" />
-                                            </div>
                                             {results.map((res, i) => (
-                                                <div key={i} className="group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] transition-all hover:bg-white/[0.04] hover:border-sky-500/30">
+                                                <div key={i} onClick={() => openReader(res)} className="cursor-pointer group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] transition-all hover:bg-white/[0.04] hover:border-sky-500/30">
                                                     <div className="flex justify-between items-start mb-4">
                                                         <h3 className="text-2xl font-bold text-white group-hover:text-sky-400 transition-colors leading-tight">{res.title}</h3>
-                                                        {res.link && (
-                                                            <Link href={res.link} target="_blank" className="p-2 bg-white/5 rounded-full text-slate-400 hover:text-white transition-all">
-                                                                <ExternalLink size={16} />
-                                                            </Link>
-                                                        )}
+                                                        <div className="p-2 bg-white/5 rounded-full text-slate-400 group-hover:text-white transition-all">
+                                                            <Maximize2 size={16} />
+                                                        </div>
                                                     </div>
                                                     <p className="text-slate-400 text-lg leading-relaxed line-clamp-3 font-medium opacity-80">{res.description}</p>
                                                     {res.source && (
                                                         <div className="mt-6 flex items-center gap-3">
                                                             <div className="w-2 h-2 rounded-full bg-sky-500" />
                                                             <span className="text-[10px] font-black text-sky-400 uppercase tracking-widest">{res.source}</span>
-                                                            {res.grace_rank && (
-                                                                <span className="text-[10px] font-black text-slate-600 ml-auto">GRACE_RANK: {res.grace_rank.toFixed(2)}</span>
-                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -331,14 +370,14 @@ export default function SearchEnginePortal() {
                                     )}
                                 </div>
 
-                                {/* Sidebar / Related Elements */}
+                                {/* Sidebar */}
                                 <div className="lg:col-span-4 space-y-10">
-                                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8 sticky top-10">
+                                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8 sticky top-10 backdrop-blur-3xl">
                                         <div className="space-y-2">
                                             <h3 className="text-white font-black uppercase text-xs tracking-widest">Divine Engine Status</h3>
                                             <div className="flex items-center gap-2 text-green-400">
                                                 <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                                                <span className="text-[10px] font-black uppercase">Crawler Live</span>
+                                                <span className="text-[10px] font-black uppercase tracking-tighter">Live Reader Active</span>
                                             </div>
                                         </div>
 
@@ -348,7 +387,7 @@ export default function SearchEnginePortal() {
                                                 {[
                                                     { icon: <Search size={12} />, label: "Astra AI Vector Index" },
                                                     { icon: <Sparkles size={12} />, label: "5!4!3!2!1! Model Synthesis" },
-                                                    { icon: <Quote size={12} />, label: "Doctrine Verification" },
+                                                    { icon: <Maximize2 size={12} />, label: "Integrated Search Reader" },
                                                     { icon: <Clock size={12} />, label: "Real-time Google Crawler" }
                                                 ].map((t, i) => (
                                                     <div key={i} className="flex items-center gap-3 text-slate-300 text-xs font-bold">
@@ -361,7 +400,7 @@ export default function SearchEnginePortal() {
 
                                         <div className="pt-6 border-t border-white/5">
                                             <div className="bg-sky-500/10 p-4 rounded-2xl border border-sky-500/20 text-xs font-serif italic text-slate-300">
-                                                "The search for Truth is never in vain when conducted with a sincere heart."
+                                                "Stay within the portal. All truth is indexed here for your study."
                                             </div>
                                         </div>
                                     </div>
@@ -370,7 +409,7 @@ export default function SearchEnginePortal() {
                         ) : (
                             <div className="text-center py-40 flex flex-col items-center gap-8 group">
                                 <div className="relative">
-                                    <div className="absolute inset-0 bg-sky-500/20 blur-[60px] rounded-full scale-150 group-hover:scale-125 transition-transform duration-1000" />
+                                    <div className="absolute inset-0 bg-sky-500/20 blur-[60px] rounded-full scale-150 transition-transform duration-1000" />
                                     <div className="w-24 h-24 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center relative backdrop-blur-3xl group-hover:rotate-12 transition-all duration-700">
                                         <Search className="text-slate-400 w-10 h-10 group-hover:text-sky-400 transition-colors" />
                                     </div>
