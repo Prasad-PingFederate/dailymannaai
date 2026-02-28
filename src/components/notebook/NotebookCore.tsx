@@ -986,7 +986,7 @@ It's now part of my collective wisdom!`
                 setNoteContent(prev => prev + (prev ? "\n\n" : "") + "## Summary\n\n" + data.summary);
                 setMessages(prev => [...prev, {
                     role: "assistant",
-                    content: `I've created a summary of ${data.sourceCount} source(s) and added it to your notes!`
+                    content: `I've created a summary of ${data.sourceCount} source(s) and added it to your **Study Notes**! Switch to the "Notes" tab to view and edit it.`
                 }]);
             } else {
                 throw new Error(data.error || "Failed to generate summary");
