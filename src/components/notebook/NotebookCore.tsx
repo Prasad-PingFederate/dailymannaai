@@ -81,7 +81,6 @@ export default function NotebookWorkspace() {
     ]);
     const [audioOverview, setAudioOverview] = useState<null | { title: string; script: string }>(null);
     const [isGeneratingAudio, setGeneratingAudio] = useState(false);
-    const [isSummarizing, setIsSummarizing] = useState(false);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
@@ -955,52 +954,6 @@ It's now part of my collective wisdom!`
     };
 
 
-
-    const handleSummarize = async () => {
-        console.log("Summarize Clicked");
-        const selectedSourceIds = sources.filter(s => s.selected).map(s => s.id);
-
-        if (selectedSourceIds.length === 0) {
-            alert("Please select at least one source to summarize.");
-            return;
-        }
-
-        setIsSummarizing(true);
-        try {
-            const selectedSources = sources.filter(s => s.selected);
-            const res = await fetch("/api/summarize", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    sources: selectedSources.map(s => ({
-                        name: s.name,
-                        content: s.fullContent || ""
-                    }))
-                }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                // Add summary to notes
-                setNoteContent(prev => prev + (prev ? "\n\n" : "") + "## Summary\n\n" + data.summary);
-                setMessages(prev => [...prev, {
-                    role: "assistant",
-                    content: `I've created a summary of ${data.sourceCount} source(s) and added it to your **Study Notes**! Switch to the "Notes" tab to view and edit it.`
-                }]);
-            } else {
-                throw new Error(data.error || "Failed to generate summary");
-            }
-        } catch (error: any) {
-            console.error("Summarize Error:", error);
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: `Sorry, I had trouble creating the summary: ${error.message}`
-            }]);
-        } finally {
-            setIsSummarizing(false);
-        }
-    };
 
 
 
@@ -2035,7 +1988,6 @@ It's now part of my collective wisdom!`
                         {/* Compact Tool Row (Subtle) */}
                         <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1 px-2">
                             {[
-                                { label: 'Summarize', icon: <FileStack size={14} />, action: handleSummarize, color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
                                 { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
                                 { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' },
                                 { label: 'Image Studio', icon: <ImageIcon size={14} />, action: () => setIsStudioOpen(true), color: 'text-rose-500 bg-rose-500/15 border-rose-500/30' }
