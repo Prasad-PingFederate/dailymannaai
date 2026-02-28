@@ -65,7 +65,7 @@ export default function SearchEnginePortal() {
                 <div className="flex items-center gap-10">
                     <div
                         className="flex items-center gap-1 cursor-pointer"
-                        onClick={() => { setHasTyped(false); setQuery(""); setResults([]); }}
+                        onClick={() => { setHasTyped(false); setQuery(""); setResults([]); setInstantAnswer(null); }}
                     >
                         <span className="font-['Cinzel'] text-2xl font-bold tracking-tight">
                             DAILY<span className="text-sky-400">MANNA</span>AI
@@ -201,13 +201,9 @@ export default function SearchEnginePortal() {
                                 </div>
                                 <div className="text-slate-400 text-sm font-medium tracking-[0.2em] uppercase animate-pulse">Connecting to Global Index...</div>
                             </div>
-                        ) : results.length > 0 ? (
+                        ) : (results.length > 0 || instantAnswer) ? (
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
                                 <div className="lg:col-span-3 space-y-10">
-                                    <div className="flex items-center gap-3 text-xs text-slate-500 font-bold uppercase tracking-[0.2em] border-b border-white/5 pb-4">
-                                        <Book size={14} className="text-sky-400" />
-                                        Found {results.length} results for <span className="text-sky-400 italic">"{query}"</span> in {filter.toUpperCase()}
-                                    </div>
 
                                     {/* --- INSTANT ANSWER WIDGET --- */}
                                     {instantAnswer && (
@@ -250,107 +246,118 @@ export default function SearchEnginePortal() {
                                         </div>
                                     )}
 
-                                    <div className="space-y-12">
-                                        {results.map((res, i) => (
-                                            <div key={i} className="group relative">
-                                                <div className="absolute -inset-4 bg-white/[0.02] rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    {results.length > 0 && (
+                                        <>
+                                            <div className="flex items-center gap-3 text-xs text-slate-500 font-bold uppercase tracking-[0.2em] border-b border-white/5 pb-4">
+                                                <Book size={14} className="text-sky-400" />
+                                                Found {results.length} results for <span className="text-sky-400 italic">"{query}"</span> in {filter.toUpperCase()}
+                                            </div>
 
-                                                {filter === 'bible' ? (
-                                                    <div className="relative space-y-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-0.5 w-6 bg-sky-500" />
-                                                            <span className="text-xs font-black text-sky-400 tracking-[0.3em] uppercase">{res.title}</span>
-                                                        </div>
-                                                        <p className="text-slate-200 text-xl font-serif leading-relaxed group-hover:text-white transition-colors">
-                                                            "{res.description}"
-                                                        </p>
-                                                        <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                                            <span>KING JAMES VERSION (KJV)</span>
-                                                            <div className="w-1 h-1 rounded-full bg-slate-700" />
-                                                            <span>AUTHENTIC SCRIPTURE</span>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="relative space-y-3">
-                                                        <div className="flex items-center gap-3 text-[10px] font-black tracking-[0.2em] uppercase">
-                                                            <span className="text-sky-400">{res.source || "Discovery Index"}</span>
-                                                            {res.grace_rank && res.grace_rank > 0.8 && (
-                                                                <span className="bg-amber-400/10 text-amber-300 px-2 py-0.5 rounded border border-amber-400/20 flex items-center gap-1">
-                                                                    <Sparkles size={10} /> VERIFIED MINISTRY
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <a
-                                                            href={res.link}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="block"
-                                                        >
-                                                            <h3 className="text-2xl text-white font-bold group-hover:text-sky-400 transition-colors leading-tight inline-flex items-center gap-2">
-                                                                {res.title}
-                                                                <ExternalLink size={16} className="opacity-0 group-hover:opacity-100 -translate-y-1 transition-all" />
-                                                            </h3>
-                                                        </a>
-                                                        <p className="text-slate-400 text-base leading-relaxed line-clamp-2 max-w-3xl">
-                                                            {res.description}
-                                                        </p>
+                                            <div className="space-y-12">
+                                                {results.map((res, i) => (
+                                                    <div key={i} className="group relative">
+                                                        <div className="absolute -inset-4 bg-white/[0.02] rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-                                                        {res.bible_refs && res.bible_refs.length > 0 && (
-                                                            <div className="flex flex-wrap gap-2 pt-2">
-                                                                {res.bible_refs.map((ref, idx) => (
-                                                                    <button
-                                                                        key={idx}
-                                                                        onClick={() => {
-                                                                            setFilter('bible');
-                                                                            setQuery(ref);
-                                                                            handleSearch(undefined, 'bible');
-                                                                        }}
-                                                                        className="flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-[10px] font-bold text-sky-400 hover:bg-sky-500/20 transition-all uppercase tracking-wider"
-                                                                    >
-                                                                        <Book size={10} />
-                                                                        {ref}
-                                                                    </button>
-                                                                ))}
+                                                        {filter === 'bible' ? (
+                                                            <div className="relative space-y-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-0.5 w-6 bg-sky-500" />
+                                                                    <span className="text-xs font-black text-sky-400 tracking-[0.3em] uppercase">{res.title}</span>
+                                                                </div>
+                                                                <p className="text-slate-200 text-xl font-serif leading-relaxed group-hover:text-white transition-colors">
+                                                                    "{res.description}"
+                                                                </p>
+                                                                <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                                                    <span>KING JAMES VERSION (KJV)</span>
+                                                                    <div className="w-1 h-1 rounded-full bg-slate-700" />
+                                                                    <span>AUTHENTIC SCRIPTURE</span>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative space-y-3">
+                                                                <div className="flex items-center gap-3 text-[10px] font-black tracking-[0.2em] uppercase">
+                                                                    <span className="text-sky-400">{res.source || "Discovery Index"}</span>
+                                                                    {res.grace_rank && res.grace_rank > 0.8 && (
+                                                                        <span className="bg-amber-400/10 text-amber-300 px-2 py-0.5 rounded border border-amber-400/20 flex items-center gap-1">
+                                                                            <Sparkles size={10} /> VERIFIED MINISTRY
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <a
+                                                                    href={res.link}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block"
+                                                                >
+                                                                    <h3 className="text-2xl text-white font-bold group-hover:text-sky-400 transition-colors leading-tight inline-flex items-center gap-2">
+                                                                        {res.title}
+                                                                        <ExternalLink size={16} className="opacity-0 group-hover:opacity-100 -translate-y-1 transition-all" />
+                                                                    </h3>
+                                                                </a>
+                                                                <p className="text-slate-400 text-base leading-relaxed line-clamp-2 max-w-3xl">
+                                                                    {res.description}
+                                                                </p>
+
+                                                                {res.bible_refs && res.bible_refs.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-2 pt-2">
+                                                                        {res.bible_refs.map((ref, idx) => (
+                                                                            <button
+                                                                                key={idx}
+                                                                                onClick={() => {
+                                                                                    setFilter('bible');
+                                                                                    setQuery(ref);
+                                                                                    handleSearch(undefined, 'bible');
+                                                                                }}
+                                                                                className="flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-400/20 text-[10px] font-bold text-sky-400 hover:bg-sky-500/20 transition-all uppercase tracking-wider"
+                                                                            >
+                                                                                <Book size={10} />
+                                                                                {ref}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
-                                                )}
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </>
+                                    )}
                                 </div>
 
-                                {/* Right Sidebar (Knowledge Panel Style) */}
+                                {/* Right Sidebar */}
                                 <div className="hidden lg:block space-y-8">
                                     <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 sticky top-10">
                                         <div className="text-[10px] font-bold text-sky-400 tracking-[0.4em] mb-6 uppercase">Divine Insight</div>
-                                        <h2 className="text-3xl font-black text-white mb-6 tracking-tighter">{query}</h2>
+                                        <h2 className="text-3xl font-black text-white mb-6 tracking-tighter line-clamp-2">{query}</h2>
                                         <div className="text-sm text-slate-400 leading-relaxed font-sans mb-10 border-l-2 border-sky-500/30 pl-6">
-                                            Synthesizing theological context and scriptural foundations for <span className="text-sky-300">"{query}"</span> across our global Christian index.
+                                            {instantAnswer ? "Smart utility detected a specific query and returned a specialized answer." : `Synthesizing theological context for "${query}" across our global Christian index.`}
                                         </div>
 
-                                        <div className="pt-8 border-t border-white/5">
-                                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Cross References</div>
-                                            <div className="space-y-6">
-                                                {results.slice(0, 4).map((r, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="flex gap-4 items-start group cursor-pointer"
-                                                        onClick={() => {
-                                                            if (filter === 'bible') {
-                                                                setQuery(r.title);
-                                                                handleSearch(undefined, 'bible');
-                                                            }
-                                                        }}
-                                                    >
-                                                        <div className="w-6 h-6 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400 text-[10px] group-hover:bg-sky-400 group-hover:text-white transition-all font-bold">
-                                                            {idx + 1}
+                                        {results.length > 0 && (
+                                            <div className="pt-8 border-t border-white/5">
+                                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Cross References</div>
+                                                <div className="space-y-6">
+                                                    {results.slice(0, 4).map((r, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="flex gap-4 items-start group cursor-pointer"
+                                                            onClick={() => {
+                                                                if (filter === 'bible') {
+                                                                    setQuery(r.title);
+                                                                    handleSearch(undefined, 'bible');
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className="w-6 h-6 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400 text-[10px] group-hover:bg-sky-400 group-hover:text-white transition-all font-bold">
+                                                                {idx + 1}
+                                                            </div>
+                                                            <span className="text-xs font-bold text-slate-300 group-hover:text-sky-400 transition-colors leading-tight">{r.title}</span>
                                                         </div>
-                                                        <span className="text-xs font-bold text-slate-300 group-hover:text-sky-400 transition-colors leading-tight">{r.title}</span>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

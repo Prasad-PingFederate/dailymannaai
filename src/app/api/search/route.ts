@@ -12,9 +12,10 @@ function getInstantAnswer(query: string) {
     const normalizedQuery = query.toLowerCase().trim();
 
     // 1. Calculator
-    if (/^[0-9+\-*/().%\s^]+$/.test(normalizedQuery) && /[0-9]/.test(normalizedQuery)) {
+    if (/^[0-9+\-*/().%\s^=]+$/.test(normalizedQuery) && /[0-9]/.test(normalizedQuery)) {
+        let mathQuery = normalizedQuery.replace(/=/g, '').trim();
         try {
-            const res = evaluate(normalizedQuery);
+            const res = evaluate(mathQuery);
             return {
                 type: "calculator",
                 result: res.toString(),
@@ -27,7 +28,7 @@ function getInstantAnswer(query: string) {
     }
 
     // 2. Today's Date
-    const todayKeywords = ["today", "date", "what is today's date", "current date", "today's date"];
+    const todayKeywords = ["today", "date", "what is today's date", "current date", "today's date", "day"];
     if (todayKeywords.some(kw => normalizedQuery === kw || normalizedQuery.includes("today date"))) {
         return {
             type: "date",
@@ -38,9 +39,10 @@ function getInstantAnswer(query: string) {
     }
 
     // 3. World Time
-    if (normalizedQuery.includes("time in")) {
-        const locationPart = normalizedQuery.split("time in")[1]?.trim();
-        if (locationPart) {
+    const timeKeywords = ["time", "current time", "what time is it", "local time"];
+    if (normalizedQuery.includes("time in") || timeKeywords.includes(normalizedQuery)) {
+        const locationPart = normalizedQuery.includes("time in") ? normalizedQuery.split("time in")[1]?.trim() : null;
+        if (locationPart || timeKeywords.includes(normalizedQuery)) {
             const tzMap: Record<string, string> = {
                 "india": "Asia/Kolkata",
                 "usa": "America/New_York",
@@ -56,12 +58,12 @@ function getInstantAnswer(query: string) {
                 "singapore": "Asia/Singapore",
             };
 
-            const tz = tzMap[locationPart];
-            if (tz) {
+            const tz = locationPart ? tzMap[locationPart] : "Asia/Kolkata"; // Default to India/Local
+            if (tz || !locationPart) {
                 return {
                     type: "time",
                     result: moment().tz(tz).format("hh:mm A"),
-                    title: `Current Time in ${locationPart.toUpperCase()}`,
+                    title: locationPart ? `Current Time in ${locationPart.toUpperCase()}` : "Local Time",
                     subtitle: moment().tz(tz).format("dddd, MMMM Do YYYY")
                 };
             }
