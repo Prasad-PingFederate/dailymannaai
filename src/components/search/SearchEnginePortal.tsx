@@ -9,6 +9,8 @@ interface SearchResult {
     description: string;
     link?: string;
     source?: string;
+    grace_rank?: number;
+    bible_refs?: string[];
 }
 
 export default function SearchEnginePortal() {
@@ -206,11 +208,16 @@ export default function SearchEnginePortal() {
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-1">
-                                                        <div className="text-xs text-[#202124] mb-1 truncate font-sans">
+                                                        <div className="flex items-center gap-2 text-xs text-[#202124] mb-1 truncate font-sans">
                                                             {res.link ? (
-                                                                <span className="text-gray-400">{res.link.split('/')[2]}</span>
+                                                                <span className="text-gray-400">{res.source || res.link.split('/')[2]}</span>
                                                             ) : (
-                                                                <span className="text-gray-400">Content Source</span>
+                                                                <span className="text-gray-400">{res.source || "Content Source"}</span>
+                                                            )}
+                                                            {res.grace_rank && res.grace_rank > 0.8 && (
+                                                                <span className="flex items-center gap-0.5 bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-sm font-bold text-[9px] uppercase tracking-wide">
+                                                                    <Sparkles size={8} /> Verified Ministry
+                                                                </span>
                                                             )}
                                                         </div>
                                                         <a
@@ -226,6 +233,23 @@ export default function SearchEnginePortal() {
                                                         <p className="text-[#4d5156] text-[15px] leading-relaxed font-sans line-clamp-2">
                                                             {res.description}
                                                         </p>
+                                                        {res.bible_refs && res.bible_refs.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                                {res.bible_refs.map((ref, idx) => (
+                                                                    <span
+                                                                        key={idx}
+                                                                        onClick={() => {
+                                                                            setFilter('bible');
+                                                                            setQuery(ref);
+                                                                            handleSearch(undefined, 'bible');
+                                                                        }}
+                                                                        className="text-[10px] font-bold text-[#4285f4] bg-[#4285f4]/5 hover:bg-[#4285f4]/10 px-2 py-0.5 rounded-full cursor-pointer transition-colors flex items-center gap-1"
+                                                                    >
+                                                                        <Book size={10} /> {ref}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
