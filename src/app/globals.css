@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #202124;
-  --accent: #4285f4;
-  --accent-secondary: #34a853;
-  --muted: #70757a;
-  --border: #dadce0;
-  --card-bg: #ffffff;
-  --glass: rgba(255, 255, 255, 0.9);
+  --background: #020617;
+  --foreground: #f8fafc;
+  --accent: #38bdf8;
+  --accent-secondary: #fcd34d;
+  --muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(15, 23, 42, 0.6);
+  --glass: rgba(15, 23, 42, 0.4);
 
-  /* Light Theme Specifics */
-  --shadow-card: 0 1px 6px rgba(32, 33, 36, 0.28);
-  --shadow-deep: 0 4px 16px rgba(0, 0, 0, 0.1);
+  /* Dark Theme Specifics */
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  --shadow-deep: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  --stars-opacity: 0.5;
 }
 
 @theme inline {
@@ -176,6 +177,36 @@ body {
 
 .animate-pulse-slow {
   animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--stars-opacity);
+  background: radial-gradient(1px 1px at 20px 30px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 40px 70px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 50px 160px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 90px 40px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 130px 80px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 160px 120px, #fff, rgba(0, 0, 0, 0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: stars-move 100s linear infinite;
+}
+
+@keyframes stars-move {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 1000px 1000px;
+  }
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
