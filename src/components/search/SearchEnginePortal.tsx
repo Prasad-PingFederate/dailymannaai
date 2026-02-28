@@ -291,7 +291,13 @@ export default function SearchEnginePortal() {
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     {(solution.news && solution.news.length > 0) ? (solution.news.map((n: any, i: number) => (
-                                                        <div key={i} onClick={() => openReader(n)} className="cursor-pointer block group">
+                                                        <a
+                                                            key={i}
+                                                            href={n.link}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block group cursor-pointer"
+                                                        >
                                                             <div className="bg-white/5 hover:bg-white/10 p-6 rounded-[2rem] border border-white/5 hover:border-sky-500/30 transition-all duration-500 h-full flex flex-col justify-between">
                                                                 <div>
                                                                     <div className="flex items-center justify-between mb-4">
@@ -301,9 +307,9 @@ export default function SearchEnginePortal() {
                                                                     <h3 className="text-white font-bold text-lg mb-4 line-clamp-2 group-hover:text-sky-400 transition-colors leading-tight">{n.title}</h3>
                                                                 </div>
                                                                 <p className="text-slate-400 text-sm line-clamp-2 italic mb-4">"{n.description}"</p>
-                                                                <div className="text-[9px] text-sky-400 font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Read Inside DailyMannaAI →</div>
+                                                                <div className="text-[9px] text-sky-400 font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Open Original Source <ExternalLink size={10} className="inline ml-1" /></div>
                                                             </div>
-                                                        </div>
+                                                        </a>
                                                     ))) : (
                                                         <div className="col-span-2 py-10 text-center text-slate-500 italic border border-white/5 rounded-3xl">Scanning Global News... Try searching again in 5 seconds.</div>
                                                     )}
@@ -350,11 +356,17 @@ export default function SearchEnginePortal() {
                                     {!solution && results.length > 0 && (
                                         <div className="space-y-10">
                                             {results.map((res, i) => (
-                                                <div key={i} onClick={() => openReader(res)} className="cursor-pointer group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] transition-all hover:bg-white/[0.04] hover:border-sky-500/30">
+                                                <a
+                                                    key={i}
+                                                    href={res.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block cursor-pointer group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] transition-all hover:bg-white/[0.04] hover:border-sky-500/30"
+                                                >
                                                     <div className="flex justify-between items-start mb-4">
                                                         <h3 className="text-2xl font-bold text-white group-hover:text-sky-400 transition-colors leading-tight">{res.title}</h3>
                                                         <div className="p-2 bg-white/5 rounded-full text-slate-400 group-hover:text-white transition-all">
-                                                            <Maximize2 size={16} />
+                                                            <ExternalLink size={16} />
                                                         </div>
                                                     </div>
                                                     <p className="text-slate-400 text-lg leading-relaxed line-clamp-3 font-medium opacity-80">{res.description}</p>
@@ -364,7 +376,7 @@ export default function SearchEnginePortal() {
                                                             <span className="text-[10px] font-black text-sky-400 uppercase tracking-widest">{res.source}</span>
                                                         </div>
                                                     )}
-                                                </div>
+                                                </a>
                                             ))}
                                         </div>
                                     )}
