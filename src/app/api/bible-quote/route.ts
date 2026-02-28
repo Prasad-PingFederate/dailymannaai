@@ -38,10 +38,10 @@ export async function POST(req: Request) {
             try {
                 const collection = db.collection('sermons_archive');
 
-                // Get all possible preachers and random skip
-                // Note: Astra native random requires sorting or skipping mathematically, doing light skip approximation
-                const skipAmount = Math.floor(Math.random() * 50); // Just a small skip since db might be huge
-                const sermonCursor = await collection.find({}, { limit: 10 });
+                // Astra native random requires skipping mathematically. 
+                // There are hundreds of sermons, so we'll pick a random skip between 0-250.
+                const skipAmount = Math.floor(Math.random() * 250);
+                const sermonCursor = await collection.find({}, { skip: skipAmount, limit: 10 });
                 const sermonsList = await sermonCursor.toArray();
 
                 if (sermonsList && sermonsList.length > 0) {
@@ -101,7 +101,9 @@ Return ONLY valid JSON (no markdown block):
 
         const prompt = `You are a deeply knowledgeable Christian theologian and pastor.
 Generate ONE powerful piece of encouragement about: ${topic}. 
-You should randomly choose between EITHER a Bible verse OR a quote from a famous faithful preacher (like Billy Graham, Charles Spurgeon, etc.).${avoidConstraint}
+You should randomly choose between EITHER a Bible verse OR a quote from a famous faithful preacher like Billy Graham.
+
+CRITICAL INSTRUCTION: The user heavily prefers quotes spoken by Jesus Christ, St. Paul, Peter, John, or famous preachers like Billy Graham! Bias your selection towards these figures!${avoidConstraint}
 
 Return ONLY valid JSON (no markdown block, just the raw JSON text):
 {
