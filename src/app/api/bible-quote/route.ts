@@ -48,28 +48,44 @@ export async function POST(req: Request) {
                     // Pick a random sermon
                     const randomSermon = sermonsList[Math.floor(Math.random() * sermonsList.length)];
 
-                    // Extract a readable 2-3 sentence quote from the content text
+                    // Extract a raw chunk from the content text
                     if (randomSermon.content && randomSermon.content.length > 100) {
                         const words = randomSermon.content.split(/\s+/);
-                        const startWordIdx = Math.floor(Math.random() * (words.length - 40));
-                        let snippet = words.slice(Math.max(0, startWordIdx), startWordIdx + 30).join(" ");
-
-                        // Clean up boundaries
-                        snippet = snippet.replace(/^[a-z]/, (c: string) => c.toUpperCase()); // Capitalize start
-                        if (!snippet.endsWith('.')) snippet += "...";
+                        const startWordIdx = Math.floor(Math.random() * Math.max(1, words.length - 80));
+                        let rawSnippet = words.slice(Math.max(0, startWordIdx), startWordIdx + 80).join(" ");
 
                         const preacherName = randomSermon.preacher || "Classic Sermon";
-                        const refMatch = preacherName + " - " + (randomSermon.title || "Archive");
 
-                        // Make sure we aren't repeating it based on frontend tracker
-                        if (!usedReferences.includes(refMatch)) {
-                            console.log("Successfully fetched quote from AstraDB!");
-                            return NextResponse.json({
-                                quote: snippet,
-                                reference: refMatch,
-                                reflection: "A deep thought from the classic archives of faith.",
-                                testament: ""
-                            });
+                        // Let Gemini beautifully reframe the raw text into a proper, grammatical quote
+                        const formatPrompt = `You are a pastor editing a daily devotional. 
+Take this raw, incomplete chunk from a historic sermon by ${preacherName}:
+"${rawSnippet}"
+
+Extract and politely reframe the BEST 1-2 sentences from it so it sounds like a complete, beautiful standalone quote.
+Return ONLY valid JSON (no markdown block):
+{
+  "quote": "the perfectly framed 1-2 sentence quote",
+  "reference": "${preacherName}",
+  "reflection": "One devotional sentence about this, max 15 words",
+  "testament": ""
+}`;
+                        const { response: llmFormatted } = await getProviderManager().generateResponse(formatPrompt);
+                        const cleanText = llmFormatted.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+
+                        try {
+                            const data = JSON.parse(cleanText);
+                            // Make sure we aren't repeating it based on frontend tracker
+                            if (!usedReferences.includes(data.quote.substring(0, 20))) {
+                                console.log("Successfully fetched AND formatted quote from AstraDB!");
+                                return NextResponse.json({
+                                    quote: data.quote,
+                                    reference: data.reference, // Just the name, fixes the canvas overlap bug
+                                    reflection: data.reflection,
+                                    testament: ""
+                                });
+                            }
+                        } catch (parseErr) {
+                            console.warn("Failed to parse LLM formatted Astra quote, falling back to native LLM", parseErr);
                         }
                     }
                 }
