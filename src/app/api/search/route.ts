@@ -27,9 +27,14 @@ function getInstantAnswer(query: string) {
         }
     }
 
-    // 2. Today's Date
-    const todayKeywords = ["today", "date", "what is today's date", "current date", "today's date", "day"];
-    if (todayKeywords.some(kw => normalizedQuery === kw || normalizedQuery.includes("today date"))) {
+    // 2. Today's Date & Time
+    const dateKeywords = ["today", "date", "what is today's date", "current date", "today's date", "day", "calendar"];
+    const timeKeywords = ["time", "current time", "what time is it", "local time", "time now", "today time"];
+
+    const isDateQuery = dateKeywords.some(kw => normalizedQuery === kw || normalizedQuery.includes("today date"));
+    const isTimeQuery = timeKeywords.some(kw => normalizedQuery === kw || normalizedQuery.includes("time now") || normalizedQuery.includes("today time"));
+
+    if (isDateQuery && !isTimeQuery) {
         return {
             type: "date",
             result: moment().format("dddd, MMMM Do YYYY"),
@@ -38,11 +43,10 @@ function getInstantAnswer(query: string) {
         };
     }
 
-    // 3. World Time
-    const timeKeywords = ["time", "current time", "what time is it", "local time"];
-    if (normalizedQuery.includes("time in") || timeKeywords.includes(normalizedQuery)) {
+    // 3. World Time / Local Time
+    if (normalizedQuery.includes("time in") || isTimeQuery) {
         const locationPart = normalizedQuery.includes("time in") ? normalizedQuery.split("time in")[1]?.trim() : null;
-        if (locationPart || timeKeywords.includes(normalizedQuery)) {
+        if (locationPart || isTimeQuery) {
             const tzMap: Record<string, string> = {
                 "india": "Asia/Kolkata",
                 "usa": "America/New_York",
@@ -59,7 +63,7 @@ function getInstantAnswer(query: string) {
             };
 
             const tz = locationPart ? tzMap[locationPart] : "Asia/Kolkata"; // Default to India/Local
-            if (tz || !locationPart) {
+            if (tz || isTimeQuery) {
                 return {
                     type: "time",
                     result: moment().tz(tz).format("hh:mm A"),
@@ -71,7 +75,7 @@ function getInstantAnswer(query: string) {
     }
 
     // 4. Age Calculator
-    if (normalizedQuery.includes("born")) {
+    if (normalizedQuery.includes("born") || normalizedQuery.includes("age calculator") || normalizedQuery.includes("how old")) {
         const dateMatch = normalizedQuery.match(/\d{4}-\d{2}-\d{2}/) || normalizedQuery.match(/\d{1,2}\/\d{1,2}\/\d{4}/);
         if (dateMatch) {
             const birthDate = moment(dateMatch[0]);
@@ -84,6 +88,13 @@ function getInstantAnswer(query: string) {
                     subtitle: `Calculated from ${birthDate.format("MMMM Do YYYY")}`
                 };
             }
+        } else if (normalizedQuery.includes("age calculator") || normalizedQuery.includes("how old")) {
+            return {
+                type: "age",
+                result: "N/A",
+                title: "Age Explorer",
+                subtitle: "Please provide a birthdate (e.g., born 1995-06-12)"
+            };
         }
     }
 
