@@ -47,6 +47,7 @@ import { APOSTOLIC_TEACHINGS } from "@/lib/data/apostolic_teachings";
 import VoiceInput from "@/components/notebook/VoiceInput";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
+import Link from "next/link";
 
 
 interface Source {
@@ -1729,7 +1730,7 @@ It's now part of my collective wisdom!`
             <main className="flex-1 min-w-0 flex flex-col bg-background relative overflow-hidden transition-all duration-500">
                 <header className="absolute top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-2 md:px-4 bg-transparent pt-safe">
                     <div className="flex items-center gap-2 md:gap-4">
-                        <div className="flex items-center gap-1.5 md:gap-2 group cursor-pointer hover:opacity-80 transition-opacity">
+                        <Link href="/" className="flex items-center gap-1.5 md:gap-2 group cursor-pointer hover:opacity-80 transition-opacity">
                             <div className="text-red-600 flex-shrink-0" title="DailyMannaAI">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
@@ -1738,7 +1739,7 @@ It's now part of my collective wisdom!`
                             <span className="font-bold text-sm text-muted-foreground flex items-center gap-1">
                                 DailyMannaAI <ChevronRight size={14} className="opacity-50" />
                             </span>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Daily Manna Mini-Message (Header Right) */}
