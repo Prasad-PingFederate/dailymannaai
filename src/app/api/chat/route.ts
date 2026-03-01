@@ -189,7 +189,10 @@ export async function POST(req: Request) {
         if (isConflictMode && newsArticles.length > 0) {
             enhancedQuery = `${query}
 
-[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: DO NOT write this as one continuous essay. You MUST provide two strictly separated sections with a physical line (---) between them.
+[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: 
+1. YOU MUST START WITH <THOUGHT> [Your internal reasoning] </THOUGHT>.
+2. THEN OUTPUT THE DELIMITER: ### RESPONSE START ###
+3. THEN PROVIDE THE ANALYSIS IN TWO STRICTLY SEPARATED SECTIONS:
 
 **PART 1: THE PROPHETIC WORLD BRIEFING**
 Summarize the current global conflicts and news headlines provided above in 3-4 factual, sharp sentences. Finish this section COMPLETELY.
@@ -219,7 +222,12 @@ CONNECTION: [1-2 sentences explaining how this verse connects specifically to to
 
 Provide exactly 3 Bible connections, using the most relevant prophecy scriptures from Ezekiel, Zechariah, Matthew 24, Daniel, or Revelation.`;
         } else if (isNewsMode && newsArticles.length > 0) {
-            enhancedQuery = `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
+            enhancedQuery = `${query}
+
+[USER WANTS NEWS]: 
+1. YOU MUST START WITH <THOUGHT> [Your internal reasoning] </THOUGHT>.
+2. THEN OUTPUT THE DELIMITER: ### RESPONSE START ###
+3. Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
         } else {
             enhancedQuery = query;
         }
