@@ -300,6 +300,46 @@ async function buildGlobalSolution(query: string, rssResults: SearchResult[]) {
     };
 }
 
+// ── BRAND LOGO RESOLVER (Aggregator peeling) ───────────────
+const SOURCE_DOMAINS: Record<string, string> = {
+    "BBC News": "bbc.co.uk", "BBC": "bbc.co.uk",
+    "CNN": "cnn.com", "Fox News": "foxnews.com",
+    "NBC News": "nbcnews.com", "ABC News": "abcnews.go.com",
+    "Hindustan Times": "hindustantimes.com", "The Hindu": "thehindu.com",
+    "India Today": "indiatoday.in", "India TV News": "indiatvnews.com",
+    "Al Jazeera": "aljazeera.com", "NDTV": "ndtv.com",
+    "Times of India": "timesofindia.indiatimes.com", "TOI": "timesofindia.indiatimes.com",
+    "Sky News": "skynews.com", "The Guardian": "theguardian.com",
+    "NY Times": "nytimes.com", "NPR": "npr.org",
+    "USA Today": "usatoday.com", "France 24": "france24.com",
+    "Le Monde": "lemonde.fr", "Reuters": "reuters.com",
+    "AP News": "apnews.com", "Bloomberg": "bloomberg.com",
+    "Yahoo News": "news.yahoo.com", "CBS News": "cbsnews.com",
+    "Christianity Today": "christianitytoday.com", "Christian Post": "christianpost.com",
+    "CBN News": "cbn.com", "CBN Israel": "cbn.com",
+    "Crosswalk": "crosswalk.com", "Got Questions": "gotquestions.org",
+    "The Gospel Coalition": "thegospelcoalition.org", "Desiring God": "desiringgod.org",
+    "Grace to You": "gty.org", "Ligonier": "ligonier.org",
+    "Focus on the Family": "focusonthefamily.com", "Billy Graham": "billygraham.org",
+    "Our Daily Bread": "odb.org", "SermonAudio": "sermonaudio.com"
+};
+
+function resolveFavicon(source: string, originalLink: string): string | undefined {
+    const s = source.trim();
+    // Try exact or partial match for domain mapping
+    for (const [k, domain] of Object.entries(SOURCE_DOMAINS)) {
+        if (s.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(s.toLowerCase())) {
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        }
+    }
+    // Fallback to original link's domain
+    try {
+        const url = new URL(originalLink);
+        if (url.hostname.includes("google.com")) return undefined; // Let frontend handle or use default
+        return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+    } catch { return undefined; }
+}
+
 // ── HANDLER ─────────────────────────────────────────────────
 
 export async function GET(req: Request) {
@@ -322,7 +362,8 @@ export async function GET(req: Request) {
         const rssRaw = await searchRSSFeeds(q, { category: rssCategory, limit: 100 });
         const rssResults: SearchResult[] = rssRaw.map(a => ({
             title: a.title, description: a.description, link: a.link,
-            source: a.source, type: a.category || "news", imageUrl: a.imageUrl, pubDate: a.pubDate
+            source: a.source, type: a.category || "news", imageUrl: a.imageUrl, pubDate: a.pubDate,
+            favicon: resolveFavicon(a.source, a.link)
         }));
 
         if (type === "global") {

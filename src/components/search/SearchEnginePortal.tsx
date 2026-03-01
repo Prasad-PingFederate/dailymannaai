@@ -725,7 +725,7 @@ function NewsCard({
             <div className="p-6 flex-1">
                 <div className="flex items-center gap-2 mb-3">
                     <img
-                        src={faviconUrl(cleanUrl)} alt="" className="w-4 h-4 rounded-sm"
+                        src={item.favicon || faviconUrl(cleanUrl)} alt="" className="w-4 h-4 rounded-sm"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest truncate">{item.source || host}</span>
