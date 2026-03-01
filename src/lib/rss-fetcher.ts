@@ -113,12 +113,19 @@ const RSS_FEEDS = [
 // These are fetched first with no caching for maximum recency
 const BREAKING_FEEDS = RSS_FEEDS.filter(f => f.cat === "breaking");
 
-// ── CORE FEEDS: High-quality representative set to speed up default searches ──
-// Fetching 100+ feeds in parallel causes massive latency/timeouts.
+// ── CORE FEEDS: Diversified subset to ensure pluralism in sources ─────────────
+// We limit Google to 2 and add key global/christian/india direct sites.
 const CORE_FEEDS = [
-    ...BREAKING_FEEDS,
-    ...RSS_FEEDS.filter(f => ["BBC News", "Reuters Top News", "AP Top News", "Times of India", "Christianity Today", "CBN News", "Christian Post"].includes(f.name))
-].slice(0, 20); // Hard limit to 20 for extreme performance
+    // Top-tier aggregators (limited)
+    RSS_FEEDS.find(f => f.name === "Google News World")!,
+    RSS_FEEDS.find(f => f.name === "Google News India")!,
+    // Top World Direct Sources
+    ...RSS_FEEDS.filter(f => ["BBC World", "Reuters World", "AP World", "Al Jazeera", "Sky News World"].includes(f.name)),
+    // Top Christian Direct Sources
+    ...RSS_FEEDS.filter(f => ["Christianity Today", "Christian Post", "CBN News", "CBN Israel", "World Mag"].includes(f.name)),
+    // Top India Direct Sources
+    ...RSS_FEEDS.filter(f => ["India Today", "The Hindu", "Hindustan Times", "NDTV Top Stories", "Times of India"].includes(f.name))
+].filter(Boolean).slice(0, 25);
 
 
 // ── KEYWORD IMPORTANCE WEIGHTS ───────────────────────────────
@@ -146,8 +153,6 @@ function scoreArticle(article: RSSArticle, terms: string[]): number {
         else if (hoursOld < 48) score += 0;   // <48 hours — recent
         else score -= 2;   // older than 2 days — deprioritize
     }
-    // Google News / breaking feeds get a small source boost
-    if (article.category === "breaking") score += 3;
     return score;
 }
 
