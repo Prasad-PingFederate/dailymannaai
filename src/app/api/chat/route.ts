@@ -10,6 +10,21 @@ import { executeHybridSearch } from "@/lib/search/engine";
 import { lookupBibleReference } from "@/lib/bible/lookup";
 import { searchBible } from "@/lib/search/bible-search";
 import { searchDocuments } from "@/lib/search/document-search";
+import { searchRSSFeeds, getLatestChristianNews, RSSArticle } from "@/lib/rss-fetcher";
+
+// ── NEWS INTENT DETECTION ──────────────────────────────────────────────────────
+const NEWS_KEYWORDS = [
+    "news", "latest", "current", "today", "happening", "update", "updates",
+    "recent", "right now", "what's going on", "whats going on", "breaking",
+    "headline", "headlines", "event", "events", "world news", "christian news",
+    "tell me about", "what happened", "anything new", "new developments",
+    "this week", "this month", "trending", "hot topic"
+];
+
+function detectNewsIntent(query: string): boolean {
+    const q = query.toLowerCase();
+    return NEWS_KEYWORDS.some(kw => q.includes(kw));
+}
 
 export async function POST(req: Request) {
     try {
@@ -75,12 +90,20 @@ export async function POST(req: Request) {
             });
         }
 
+        // 🌐 DETECT NEWS INTENT
+        const isNewsMode = detectNewsIntent(query);
+
         // 🚀 PARALLEL PHASE 2: Deep Research (Everything at once)
-        const [bibleResults, documentResults, webResults, relevantChunks] = await Promise.all([
+        const [bibleResults, documentResults, webResults, relevantChunks, newsArticles] = await Promise.all([
             searchBible(intentResult.primaryKeywords),
             searchDocuments(intentResult.standaloneQuery || query),
             performWebSearch(standaloneQuery),
-            Promise.resolve(searchRelevantChunks(standaloneQuery))
+            Promise.resolve(searchRelevantChunks(standaloneQuery)),
+            isNewsMode
+                ? searchRSSFeeds(query, { limit: 6 }).then(arts =>
+                    arts.length > 0 ? arts : getLatestChristianNews(6)
+                ).catch(() => [] as RSSArticle[])
+                : Promise.resolve([] as RSSArticle[])
         ]);
 
         let groundingSources: string[] = [];
@@ -107,12 +130,74 @@ export async function POST(req: Request) {
         const sourcesText = finalChunks.map((c: any) => `[${c.sourceId}] ${c.content}`);
         const webContext = formatSearchResults(finalWebResults);
 
-        console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length}`);
+        console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length} | News: ${newsArticles.length}`);
+
+        // 3. Build news context if in news mode
+        let newsContext = "";
+        if (isNewsMode && newsArticles.length > 0) {
+            newsContext = `\n\nCURRENT NEWS HEADLINES (fetched live for context):\n` +
+                newsArticles.map((a, i) => `${i + 1}. [${a.source}] ${a.title} — ${a.description}`).join("\n");
+        }
+
+        // Enhance the query with news mode instruction
+        const enhancedQuery = isNewsMode && newsArticles.length > 0
+            ? `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`
+            : query;
 
         // 3. Grounded Synthesis with Expert Persona (STREAMING)
         const combinedSources = [...groundingSources, ...sourcesText];
 
-        const { stream, provider } = await generateGroundedStream(query, combinedSources, webContext, history, standaloneQuery, "");
+        const { stream, provider } = await generateGroundedStream(enhancedQuery, combinedSources, webContext + newsContext, history, standaloneQuery, "");
+
+        // If news mode, return JSON with news articles embedded (no stream)
+        if (isNewsMode && newsArticles.length > 0) {
+            // Collect the full streamed response
+            const decoder = new TextDecoder();
+            let fullText = "";
+            const reader = (stream as any).getReader?.();
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    fullText += decoder.decode(value, { stream: true });
+                }
+            }
+
+            // Clean up the AI response text
+            let aiContent = fullText;
+            aiContent = aiContent.replace(/### RESPONSE START ###/gi, "");
+            aiContent = aiContent.split(/---SUGGESTIONS?---/i)[0];
+            aiContent = aiContent.replace(/<\/?TH[A-Z]{1,8}>/gi, "");
+            aiContent = aiContent.replace(/\[METADATA:[^\]]*\]/gi, "");
+            aiContent = aiContent.trim();
+
+            // Extract thought
+            let thought = "";
+            const thoughtMatch = fullText.match(/<TH[A-Z]{1,8}>([\.\s\S]*?)<\/TH[A-Z]{1,8}>/i);
+            if (thoughtMatch) thought = thoughtMatch[1].trim();
+
+            return NextResponse.json({
+                role: "assistant",
+                content: aiContent || "Here is what's happening in the world today, with a spiritual perspective:",
+                thought: thought || "Fetching live news and seeking spiritual insight...",
+                isNewsMode: true,
+                newsArticles: newsArticles.map(a => ({
+                    title: a.title,
+                    description: a.description,
+                    link: a.link,
+                    source: a.source,
+                    pubDate: a.pubDate,
+                    imageUrl: a.imageUrl,
+                    category: a.category,
+                })),
+                suggestions: [
+                    "What does the Bible say about these times?",
+                    "How should I pray for the world?",
+                    "Show me hope for troubled times."
+                ],
+                metadata: { search_mode: "NEWS_AI", provider }
+            });
+        }
 
         // Prepare metadata and research steps for the frontend
         const researchSteps = [

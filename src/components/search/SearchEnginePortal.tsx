@@ -88,6 +88,72 @@ function CopyButton({ text }: { text: string }) {
     );
 }
 
+// ─── AI NEWS CARD ─────────────────────────────────────────────────────────────
+
+interface AiNewsArticle {
+    title: string;
+    description: string;
+    link: string;
+    source: string;
+    pubDate?: string | null;
+    imageUrl?: string | null;
+    category?: string;
+}
+
+function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number }) {
+    const host = (() => { try { return new URL(article.link).hostname.replace(/^www\./, ""); } catch { return ""; } })();
+    const faviconSrc = host ? `https://www.google.com/s2/favicons?domain=${host}&sz=32` : "";
+    const timeAgo = article.pubDate ? (() => {
+        const diff = Date.now() - new Date(article.pubDate).getTime();
+        const h = Math.floor(diff / 3_600_000);
+        const d = Math.floor(diff / 86_400_000);
+        return h < 1 ? "Just now" : h < 24 ? `${h}h ago` : `${d}d ago`;
+    })() : null;
+
+    return (
+        <div
+            className="group relative bg-white hover:bg-slate-50 rounded-2xl border border-slate-200
+                 hover:border-sky-400/40 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md
+                 animate-in fade-in slide-in-from-bottom-3"
+            style={{ animationDelay: `${index * 70}ms`, animationFillMode: "both" }}
+        >
+            <div className="p-5">
+                {/* Source row */}
+                <div className="flex items-center gap-2 mb-3">
+                    {faviconSrc && (
+                        <img src={faviconSrc} alt="" className="w-3.5 h-3.5 rounded-sm"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    )}
+                    <span className="text-[9px] font-black text-sky-600 uppercase tracking-widest truncate">{article.source || host}</span>
+                    {timeAgo && <span className="ml-auto text-[9px] text-slate-400 font-medium flex-shrink-0">{timeAgo}</span>}
+                </div>
+
+                {/* Title */}
+                <h4 className="text-slate-900 font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-sky-700 transition-colors">
+                    {article.title}
+                </h4>
+
+                {/* Description */}
+                {article.description && (
+                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">{article.description}</p>
+                )}
+            </div>
+
+            {/* Read button */}
+            <div className="px-5 pb-4">
+                <button
+                    onClick={() => { const u = article.link; if (u) window.open(u, "_blank", "noopener,noreferrer"); }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl
+                       bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-black uppercase tracking-wider
+                       transition-all active:scale-95"
+                >
+                    <ArrowUpRight size={11} /> Read Article
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // ─── RESULT CARD ─────────────────────────────────────────────────────────────
 
 function ResultCard({
@@ -748,9 +814,100 @@ function Sidebar() {
     );
 }
 
+// ─── DEEPSEEK-STYLE THOUGHT PANEL ─────────────────────────────────────────────
+
+function ThoughtPanel({
+    thought, isThinking, phase, startTime,
+}: {
+    thought: string;
+    isThinking: boolean;
+    phase?: string;
+    startTime?: number;
+}) {
+    const [open, setOpen] = React.useState(true);
+    const [elapsed, setElapsed] = React.useState(0);
+
+    // Tick elapsed seconds while thinking
+    React.useEffect(() => {
+        if (!isThinking || !startTime) return;
+        const id = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 500);
+        return () => clearInterval(id);
+    }, [isThinking, startTime]);
+
+    const finalElapsed = !isThinking && startTime
+        ? Math.floor((Date.now() - startTime) / 1000)
+        : elapsed;
+
+    return (
+        <div className="mb-8">
+            {/* ── Header bar ── */}
+            <button
+                onClick={() => setOpen(o => !o)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                           bg-slate-100 hover:bg-slate-200/70
+                           border border-slate-200 transition-all duration-200"
+            >
+                {isThinking ? (
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex gap-1">
+                            {[0, 1, 2].map(d => (
+                                <span
+                                    key={d}
+                                    className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce"
+                                    style={{ animationDelay: `${d * 0.18}s` }}
+                                />
+                            ))}
+                        </div>
+                        <span className="text-[12px] font-semibold text-slate-600">
+                            {phase || "Thinking…"}
+                        </span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-2.5 h-2.5 text-emerald-600" fill="none" viewBox="0 0 12 12">
+                                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+                        <span className="text-[12px] font-semibold text-slate-600">
+                            Thought for {finalElapsed}s
+                        </span>
+                    </div>
+                )}
+
+                <div className="ml-auto flex items-center gap-2.5">
+                    {isThinking && (
+                        <span className="text-[10px] tabular-nums text-slate-400 font-mono">{elapsed}s</span>
+                    )}
+                    <ChevronRight
+                        size={14}
+                        className={`text-slate-400 transition-transform duration-200 ${open ? "rotate-90" : "rotate-0"}`}
+                    />
+                </div>
+            </button>
+
+            {/* ── Collapsible body ── */}
+            {open && (
+                <div className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50
+                                overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="max-h-48 overflow-y-auto px-5 py-4
+                                    text-[12.5px] leading-relaxed text-slate-500
+                                    font-mono whitespace-pre-wrap break-words">
+                        {thought || (isThinking ? "Gathering insights…" : "")}
+                        {isThinking && (
+                            <span className="inline-block w-1.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse align-middle" />
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
 type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio";
+
 
 export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
@@ -830,6 +987,7 @@ export default function SearchEnginePortal() {
             thought: "",
             isThinking: true,
             thinkingPhase: "Consulting the Scriptures...",
+            thinkStartTime: Date.now(),
             researchSteps: [
                 "Opening the Divine archives...",
                 "Cross-referencing KJV context...",
@@ -863,7 +1021,9 @@ export default function SearchEnginePortal() {
                                 ...newMsgs[lastIdx],
                                 content: data.content,
                                 thought: data.thought,
-                                isThinking: false
+                                isThinking: false,
+                                isNewsMode: data.isNewsMode || false,
+                                newsArticles: data.newsArticles || [],
                             };
                         }
                         return newMsgs;
@@ -895,8 +1055,9 @@ export default function SearchEnginePortal() {
                 let stillThinking = true;
                 let thinkingPhase = "Analyzing...";
 
-                const thoughtStartRegex = /<(THOUGHT|THUGHT|THOHT)>/i;
-                const thoughtEndRegex = /<\/(THOUGHT|THUGHT|THOHT)>/i;
+                // Broad fuzzy regex — catches THOUGHT, THOUG, THUGHT, THGHT, OUG variants, etc.
+                const thoughtStartRegex = /<TH[A-Z]{1,8}>/i;
+                const thoughtEndRegex = /<\/TH[A-Z]{1,8}>/i;
                 const responseStartRegex = /### RESPONSE START ###/i;
 
                 const tStartMatch = fullText.match(thoughtStartRegex);
@@ -915,29 +1076,33 @@ export default function SearchEnginePortal() {
                         currentThought = fullText.substring(startIndex);
                         currentContent = "";
                         stillThinking = true;
-                        if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
-                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
-                        else thinkingPhase = "Searching truth archives...";
+                        if (currentThought.length > 400) thinkingPhase = "Weighing every scripture…";
+                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing sources…";
+                        else thinkingPhase = "Searching truth archives…";
                     }
                 } else if (rStartMatch) {
                     currentContent = fullText.substring(rStartMatch.index! + rStartMatch[0].length);
                     stillThinking = false;
                     thinkingPhase = "Response generated.";
                 } else {
-                    if (fullText.length < 100 && fullText.includes("<")) {
+                    if (fullText.length < 120 && fullText.includes("<")) {
                         currentContent = "";
                         stillThinking = true;
-                        thinkingPhase = "Initializing search...";
+                        thinkingPhase = "Initializing…";
                     } else {
                         currentContent = fullText;
                         stillThinking = false;
-                        thinkingPhase = "Speaking...";
+                        thinkingPhase = "Speaking…";
                     }
                 }
 
-                currentContent = currentContent.replace(/### RESPONSE START ###/i, "").trim();
-                currentContent = currentContent.split(/---S[UG]*ESTIONS---/i)[0].trim();
-                currentContent = currentContent.replace(/<\/?(THOUGHT|THUGHT|THOHT)>/gi, "").trim();
+                // ── Nuclear content cleanup: strip ALL thought tags, metadata, suggestions ──
+                currentContent = currentContent.replace(/### RESPONSE START ###/gi, "");
+                currentContent = currentContent.split(/---SUGGESTIONS?---/i)[0];
+                currentContent = currentContent.replace(/<\/?TH[A-Z]{1,8}>/gi, "");   // all thought tag variants
+                currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, ""); // [METADATA:X=Y]
+                currentContent = currentContent.replace(/\[METADATA:[^\n]*/gi, "");   // partial metadata lines
+                currentContent = currentContent.trim();
 
                 setAiMessages(prev => {
                     const newMsgs = [...prev];
@@ -1186,21 +1351,12 @@ export default function SearchEnginePortal() {
                                                 )}
 
                                                 {msg.role === 'assistant' && (msg.thought || msg.isThinking) && (
-                                                    <div className="mb-10">
-                                                        <details className="group" open={msg.isThinking}>
-                                                            <summary className="flex items-center gap-4 px-6 py-4 rounded-3xl bg-sky-500/[0.07] border border-sky-400/20 cursor-pointer hover:bg-sky-500/15 transition-all list-none">
-                                                                <div className={`w-2.5 h-2.5 rounded-full ${msg.isThinking ? 'bg-sky-400 animate-pulse' : 'bg-sky-400/50'}`} />
-                                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-sky-400">
-                                                                    {msg.isThinking ? (msg.thinkingPhase || "Seeking Divine Wisdom...") : "View Spiritual Insight"}
-                                                                </span>
-                                                                <ChevronRight size={16} className="ml-auto text-sky-500/40 group-open:rotate-90 transition-transform" />
-                                                            </summary>
-                                                            <div className="mt-6 p-8 rounded-3xl bg-slate-100 border border-slate-200 text-sm md:text-base font-serif italic text-slate-600 leading-relaxed whitespace-pre-wrap">
-                                                                {msg.thought}
-                                                                {msg.isThinking && <span className="inline-block w-2.5 h-5 bg-sky-500/50 ml-1 animate-pulse" />}
-                                                            </div>
-                                                        </details>
-                                                    </div>
+                                                    <ThoughtPanel
+                                                        thought={msg.thought || ""}
+                                                        isThinking={msg.isThinking}
+                                                        phase={msg.thinkingPhase}
+                                                        startTime={msg.thinkStartTime}
+                                                    />
                                                 )}
 
                                                 {msg.role === 'assistant' && (
@@ -1210,6 +1366,23 @@ export default function SearchEnginePortal() {
                                                 <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-800 font-serif italic'}`}>
                                                     {msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
                                                 </div>
+
+                                                {/* Live News Cards — only shown when AI returns news results */}
+                                                {msg.role === 'assistant' && msg.isNewsMode && msg.newsArticles && msg.newsArticles.length > 0 && (
+                                                    <div className="mt-8 not-italic">
+                                                        <div className="flex items-center gap-2 mb-4">
+                                                            <Newspaper size={13} className="text-sky-500" />
+                                                            <span className="text-[10px] font-black text-sky-600 uppercase tracking-[0.3em]">Live News</span>
+                                                            <div className="h-px flex-1 bg-slate-100" />
+                                                            <span className="text-[9px] text-slate-400 font-medium">Fetched just now</span>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                                                            {msg.newsArticles.map((article: AiNewsArticle, ni: number) => (
+                                                                <AiNewsCard key={ni} article={article} index={ni} />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Suggestions for last message */}
