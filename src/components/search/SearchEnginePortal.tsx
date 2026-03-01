@@ -5,7 +5,8 @@ import {
     Search, Book, Newspaper, Sparkles, MessageCircle, X,
     ExternalLink, Clock, Calculator, Calendar, PlayCircle, Quote,
     ChevronLeft, Globe, Share2, BookOpen, ChevronRight, Zap,
-    ArrowUpRight, Filter, CheckCircle, Star, Hash, Copy, Check
+    ArrowUpRight, Filter, CheckCircle, Star, Hash, Copy, Check,
+    Bell
 } from "lucide-react";
 import Link from "next/link";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
@@ -117,6 +118,22 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
                  animate-in fade-in slide-in-from-bottom-3"
             style={{ animationDelay: `${index * 70}ms`, animationFillMode: "both" }}
         >
+            <style jsx global>{`
+                @keyframes bell-ring {
+                    0% { transform: rotate(0); }
+                    10% { transform: rotate(25deg); }
+                    20% { transform: rotate(-20deg); }
+                    30% { transform: rotate(15deg); }
+                    40% { transform: rotate(-10deg); }
+                    50% { transform: rotate(5deg); }
+                    60% { transform: rotate(0); }
+                    100% { transform: rotate(0); }
+                }
+                .animate-bell {
+                    animation: bell-ring 1.5s ease-in-out infinite;
+                    transform-origin: top center;
+                }
+            `}</style>
             <div className="p-5">
                 {/* Source row */}
                 <div className="flex items-center gap-2 mb-3">
@@ -1001,6 +1018,59 @@ export default function SearchEnginePortal() {
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
     const abortAiControllerRef = useRef<AbortController | null>(null);
 
+    // ▸ Prophetic Alerts State
+    const [alertsEnabled, setAlertsEnabled] = useState(false);
+    const [isSentinelScanning, setIsSentinelScanning] = useState(false);
+
+    // ── PROPHETIC SENTINEL LOOP ──────────────────────────────────────────────────
+
+    const togglePropheticAlerts = async () => {
+        if (!("Notification" in window)) {
+            alert("This browser does not support desktop notifications.");
+            return;
+        }
+
+        if (Notification.permission === "granted") {
+            setAlertsEnabled(!alertsEnabled);
+        } else {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                setAlertsEnabled(true);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (!alertsEnabled) return;
+
+        // Immediately start scanning if enabled
+        const scan = async () => {
+            setIsSentinelScanning(true);
+            try {
+                const res = await fetch("/api/alerts/scan");
+                const data = await res.json();
+
+                if (data.active && data.alert) {
+                    new Notification(data.alert.title, {
+                        body: `${data.alert.source}: ${data.alert.body.substring(0, 100)}...`,
+                        icon: "https://www.google.com/s2/favicons?domain=dailymannaai.com&sz=128",
+                        tag: data.alert.link, // avoid dups
+                    }).onclick = () => {
+                        window.open(data.alert.link, "_blank");
+                    };
+                }
+            } catch (err) {
+                console.error("Sentinel Poll Error:", err);
+            } finally {
+                setIsSentinelScanning(false);
+            }
+        };
+
+        scan();
+        const poll = setInterval(scan, 300_000); // Poll every 5 minutes (300,000ms)
+        return () => clearInterval(poll);
+    }, [alertsEnabled]);
+
     const handleSearch = useCallback(async (searchQuery: string, searchFilter: FilterType) => {
         const q = searchQuery.trim();
         if (!q) return;
@@ -1377,25 +1447,54 @@ export default function SearchEnginePortal() {
 
                         {/* Filter chips */}
                         <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
-                            {FILTERS.map(f => (
-                                <React.Fragment key={f.id}>
-                                    <FilterChip
-                                        id={f.id}
-                                        label={f.label}
-                                        icon={f.icon}
-                                        active={filter === f.id}
-                                        onClick={() => onFilterChange(f.id as FilterType)}
-                                    />
-                                    {f.id === "news" && (
-                                        <Link
-                                            href="/notebook"
-                                            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-black text-[10px] font-black uppercase tracking-widest transition-all duration-200 whitespace-nowrap shadow-sm"
+                            {/* Search type filters */}
+                            <div className="flex items-center gap-3 mt-4">
+                                <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
+                                    {FILTERS.map((f) => (
+                                        <button
+                                            key={f.id}
+                                            onClick={() => onFilterChange(f.id as FilterType)}
+                                            className={`
+                                                flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                                                ${filter === f.id
+                                                    ? 'bg-white text-sky-600 shadow-sm ring-1 ring-slate-200'
+                                                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'}
+                                            `}
                                         >
-                                            <MessageCircle size={13} className="text-black" /> Notebook
-                                        </Link>
+                                            {f.icon}
+                                            {f.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Prophetic Sentinel Toggle */}
+                                <button
+                                    onClick={togglePropheticAlerts}
+                                    className={`
+                                        group flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all duration-500
+                                        ${alertsEnabled
+                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 shadow-amber-500/5'
+                                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white hover:border-amber-400 hover:text-amber-600 hover:shadow-md'}
+                                    `}
+                                    title={alertsEnabled ? "Prophetic Sentinel is Watching..." : "Enable Prophetic Alerts"}
+                                >
+                                    <div className="relative">
+                                        <Bell size={14} className={alertsEnabled ? 'animate-bell text-amber-500' : ''} />
+                                        {alertsEnabled && (
+                                            <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white animate-pulse" />
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col items-start leading-none">
+                                        <span className="text-[9px] font-black uppercase tracking-widest mb-0.5">Prophetic Alerts</span>
+                                        <span className={`text-[8px] font-medium tracking-tight ${alertsEnabled ? 'text-amber-500' : 'text-slate-400'}`}>
+                                            {alertsEnabled ? (isSentinelScanning ? 'Scanning...' : 'SENTINEL ACTIVE') : 'DISABLED'}
+                                        </span>
+                                    </div>
+                                    {alertsEnabled && (
+                                        <Zap size={11} className="ml-1 text-amber-500 animate-pulse" />
                                     )}
-                                </React.Fragment>
-                            ))}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
