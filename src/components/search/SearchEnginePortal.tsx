@@ -1308,10 +1308,12 @@ export default function SearchEnginePortal() {
                     stillThinking = false;
                     thinkingPhase = "Response generated.";
                 } else {
-                    if (fullText.length < 120 && fullText.includes("<")) {
+                    // Safety: If no tags are found yet, keep the "thinking" bar active for a bit 
+                    // to allow the model time to emit its structure.
+                    if (fullText.length < 300) {
                         currentContent = "";
                         stillThinking = true;
-                        thinkingPhase = "Initializing…";
+                        thinkingPhase = "Preparing revelation…";
                     } else {
                         currentContent = fullText;
                         stillThinking = false;

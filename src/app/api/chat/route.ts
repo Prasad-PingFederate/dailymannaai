@@ -189,10 +189,8 @@ export async function POST(req: Request) {
         if (isConflictMode && newsArticles.length > 0) {
             enhancedQuery = `${query}
 
-[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: 
-1. YOU MUST START WITH <THOUGHT> [Your internal reasoning] </THOUGHT>.
-2. THEN OUTPUT THE DELIMITER: ### RESPONSE START ###
-3. THEN PROVIDE THE ANALYSIS IN TWO STRICTLY SEPARATED SECTIONS:
+[INSTRUCTION — PROPHETIC SENTINEL MODE]: 
+Provide a structured response in two strictly separated sections.
 
 **PART 1: THE PROPHETIC WORLD BRIEFING**
 Summarize the current global conflicts and news headlines provided above in 3-4 factual, sharp sentences. Finish this section COMPLETELY.
@@ -200,8 +198,7 @@ Summarize the current global conflicts and news headlines provided above in 3-4 
 ---
 
 **PART 2: BIBLICAL CONTEXT & THE SECOND COMING**
-Start this section on a totally fresh line after the divider.
-Explain how these specific global events relate to Bible Prophecy and the promised Second Coming of Jesus Christ. Speak with authority, clarity, and hope.
+After the divider, explain how these global events relate to Bible Prophecy and the promised Second Coming of Jesus Christ. Speak with authority, clarity, and hope.
 
 **BIBLE CONNECTIONS (MANDATORY)**
 At the end, output this EXACT block:
@@ -220,14 +217,9 @@ VERSE: [Quote the KJV verse exactly]
 CONNECTION: [1-2 sentences explaining how this verse connects specifically to today's news and the second coming]
 ---BIBLE_CONNECTIONS_END---
 
-Provide exactly 3 Bible connections, using the most relevant prophecy scriptures from Ezekiel, Zechariah, Matthew 24, Daniel, or Revelation.`;
+Provide exactly 3 Bible connections using Ezekiel, Zechariah, Matthew 24, Daniel, or Revelation.`;
         } else if (isNewsMode && newsArticles.length > 0) {
-            enhancedQuery = `${query}
-
-[USER WANTS NEWS]: 
-1. YOU MUST START WITH <THOUGHT> [Your internal reasoning] </THOUGHT>.
-2. THEN OUTPUT THE DELIMITER: ### RESPONSE START ###
-3. Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
+            enhancedQuery = `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
         } else {
             enhancedQuery = query;
         }

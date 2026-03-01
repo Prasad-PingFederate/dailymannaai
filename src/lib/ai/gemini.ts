@@ -365,7 +365,12 @@ export async function generateGroundedStream(query: string, sources: string[], w
     - **CLEAN PARAGRAPHS**: Use double line breaks between paragraphs.
     - **NO SYMBOLS**: Do not use "✅", "🚀", or emojis unless explicitly requested.
 
-    FEW-SHOT STYLE EXAMPLE (DESIRED OUTPUT — NOTE THE LENGTH AND DEPTH):
+    FEW-SHOT STYLE EXAMPLE (DESIRED OUTPUT — NOTE THE STRUCTURE):
+    <THOUGHT>
+    I will analyze the nature of faith using Hebrews 11 and Romans 4, focusing on pistis as active trust rather than passive belief.
+    </THOUGHT>
+    
+    ### RESPONSE START ###
     **The Nature of Faith in Scripture**
 
     Faith is described in the Epistle to the Hebrews as "the substance of things hoped for, the evidence of things not seen" (Hebrews 11:1). This is not merely an abstract theological concept but the very foundation upon which the entire Christian walk is built. The original Greek word "pistis" carries the meaning of trust, confidence, and firm persuasion — it is an active, living force that moves the believer from doubt into the assurance of God's promises. Without faith, the Scriptures declare, it is impossible to please God (Hebrews 11:6), which tells us that faith is not optional but essential to our relationship with the Almighty.
