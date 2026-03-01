@@ -6,7 +6,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export interface InstantAnswer {
-    type: "calculator" | "date" | "time" | "age" | "bible" | "tithe";
+    type: "calculator" | "date" | "time" | "age" | "bible" | "tithe" | "knowledge";
     title: string;
     result: string;
     subtitle: string;
@@ -41,6 +41,39 @@ const TZ: Record<string, string> = {
     bangladesh: "Asia/Dhaka", dhaka: "Asia/Dhaka",
     indonesia: "Asia/Jakarta", jakarta: "Asia/Jakarta",
     malaysia: "Asia/Kuala_Lumpur", thailand: "Asia/Bangkok", vietnam: "Asia/Ho_Chi_Minh",
+};
+
+// ── KNOWLEDGE CACHE (Dynamic Factual Quick-Hits) ─────────────
+const KNOWLEDGE_MAP: Record<string, { answer: string; sub: string; link?: string }> = {
+    "usa president": { answer: "Donald J. Trump", sub: "47th President of the United States (Inaugurated Jan 20, 2025)", link: "https://www.whitehouse.gov/administration/president-trump/" },
+    "president of usa": { answer: "Donald J. Trump", sub: "47th President of the United States", link: "https://www.whitehouse.gov/administration/president-trump/" },
+    "us president": { answer: "Donald J. Trump", sub: "47th President of the United States", link: "https://www.whitehouse.gov/administration/president-trump/" },
+    "prime minister of india": { answer: "Narendra Modi", sub: "14th Prime Minister of India since 2014", link: "https://www.pmindia.gov.in/" },
+    "india prime minister": { answer: "Narendra Modi", sub: "Serving since May 2014", link: "https://www.pmindia.gov.in/" },
+    "pm of india": { answer: "Narendra Modi", sub: "Serving since May 2014", link: "https://www.pmindia.gov.in/" },
+    "president of india": { answer: "Droupadi Murmu", sub: "15th President of India since July 2022", link: "https://presidentofindia.nic.in/" },
+    "uk prime minister": { answer: "Keir Starmer", sub: "Prime Minister of the United Kingdom since July 2024", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
+    "prime minister of uk": { answer: "Keir Starmer", sub: "Serving since July 2024", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
+    "france president": { answer: "Emmanuel Macron", sub: "President of France since 2017", link: "https://www.elysee.fr/en/" },
+    "president of france": { answer: "Emmanuel Macron", sub: "Serving since May 2017 · Renaissance Party", link: "https://www.elysee.fr/en/" },
+    "israel prime minister": { answer: "Benjamin Netanyahu", sub: "Prime Minister of Israel · Likud Party", link: "https://www.gov.il/en/departments/prime_ministers_office" },
+    "prime minister of israel": { answer: "Benjamin Netanyahu", sub: "Serving since Dec 2022", link: "https://www.gov.il/en/departments/prime_ministers_office" },
+    "canada prime minister": { answer: "Justin Trudeau", sub: "Prime Minister of Canada · Liberal Party", link: "https://pm.gc.ca/" },
+    "prime minister of canada": { answer: "Justin Trudeau", sub: "Serving since 2015", link: "https://pm.gc.ca/" },
+    "australia prime minister": { answer: "Anthony Albanese", sub: "Prime Minister of Australia · Labor Party", link: "https://www.pm.gov.au/" },
+    "prime minister of australia": { answer: "Anthony Albanese", sub: "Serving since 2022", link: "https://www.pm.gov.au/" },
+    "germany chancellor": { answer: "Olaf Scholz", sub: "Chancellor of Germany · SPD", link: "https://www.bundeskanzler.de/bk-en" },
+    "chancellor of germany": { answer: "Olaf Scholz", sub: "Serving since 2021", link: "https://www.bundeskanzler.de/bk-en" },
+    "japan prime minister": { answer: "Shigeru Ishiba", sub: "Prime Minister of Japan · Liberal Democratic Party", link: "https://www.kantei.go.jp/foreign/index-e.html" },
+    "prime minister of japan": { answer: "Shigeru Ishiba", sub: "Serving since Oct 2024", link: "https://www.kantei.go.jp/foreign/index-e.html" },
+    "brazil president": { answer: "Luiz Inácio Lula da Silva", sub: "President of Brazil · Workers' Party", link: "https://www.gov.br/planalto/pt-br" },
+    "president of brazil": { answer: "Luiz Inácio Lula da Silva", sub: "Serving since 2023", link: "https://www.gov.br/planalto/pt-br" },
+    "russia president": { answer: "Vladimir Putin", sub: "President of Russia · Independent/United Russia", link: "http://en.kremlin.ru/" },
+    "president of russia": { answer: "Vladimir Putin", sub: "Serving since 2012", link: "http://en.kremlin.ru/" },
+    "china president": { answer: "Xi Jinping", sub: "President of China · Communist Party", link: "http://english.www.gov.cn/" },
+    "president of china": { answer: "Xi Jinping", sub: "Serving since 2013", link: "http://english.www.gov.cn/" },
+    "pakistan prime minister": { answer: "Shehbaz Sharif", sub: "Prime Minister of Pakistan · PML-N", link: "https://pmo.gov.pk/" },
+    "prime minister of pakistan": { answer: "Shehbaz Sharif", sub: "Serving since 2024", link: "https://pmo.gov.pk/" },
 };
 
 function findTZ(location: string): string {
@@ -230,6 +263,13 @@ export function detectInstantAnswer(query: string): InstantAnswer | null {
     if (toMi) { const mi = parseFloat(toMi[1]) * 0.621371; return { type: "calculator", icon: "📏", title: "Distance", result: `${mi.toFixed(2)} miles`, subtitle: `${toMi[1]} km = ${mi.toFixed(4)} miles` }; }
     const toKm = ql.match(/^(\d+(?:\.\d+)?)\s*mi(?:les?)?\s+(?:to|in)\s+km/i);
     if (toKm) { const km = parseFloat(toKm[1]) * 1.60934; return { type: "calculator", icon: "📏", title: "Distance", result: `${km.toFixed(2)} km`, subtitle: `${toKm[1]} miles = ${km.toFixed(4)} km` }; }
+
+    // ── 11. KNOWLEDGE QUICK-HITS ─────────────────────────────
+    const cleanQ = ql.replace(/^(who\s+is|what\s+is|tell\s+me\s+about|the)\s+/i, "").replace(/[?]/g, "").trim();
+    if (KNOWLEDGE_MAP[cleanQ]) {
+        const k = KNOWLEDGE_MAP[cleanQ];
+        return { type: "knowledge", icon: "💎", title: "Instant Knowledge", result: k.answer, subtitle: k.sub, link: k.link };
+    }
 
     return null;
 }

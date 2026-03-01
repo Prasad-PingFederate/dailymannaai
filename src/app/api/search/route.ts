@@ -252,7 +252,14 @@ async function buildGlobalSolution(query: string, rssResults: SearchResult[]) {
             { title: `Biblical Sovereignty in ${query}`, speaker: "John Piper", length: "48 min" },
             { title: `Walking by Faith: ${query}`, speaker: "Alistair Begg", length: "42 min" },
         ],
-        deepCrawlAvailable: true // Always show experimental crawler as backup
+        deepCrawlAvailable: true, // Always show experimental crawler as backup
+        dynamicInstantAnswer: tavily?.answer ? {
+            type: "knowledge",
+            title: "AI Synthesis Insight",
+            result: tavily.answer.split(".")[0] + ".", // Take first sentence as main result
+            subtitle: tavily.answer.split(".").slice(1).join(".").trim().substring(0, 200) + "...",
+            icon: "💎"
+        } : null
     };
 }
 
@@ -279,7 +286,8 @@ export async function GET(req: Request) {
 
         if (type === "global") {
             const solution = await buildGlobalSolution(q, rssResults);
-            return NextResponse.json({ instantAnswer: instantAnswer || bibleInstant, solution });
+            const finalInstant = instantAnswer || bibleInstant || solution.dynamicInstantAnswer;
+            return NextResponse.json({ instantAnswer: finalInstant, solution });
         }
 
         if (type === "bible") {
