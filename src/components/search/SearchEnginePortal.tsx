@@ -1270,18 +1270,37 @@ export default function SearchEnginePortal() {
 
                 if (tStartMatch) {
                     const startIndex = tStartMatch.index! + tStartMatch[0].length;
+
+                    // Priority 1: Closing tag found
                     if (tEndMatch) {
                         const endIndex = tEndMatch.index!;
                         currentThought = fullText.substring(startIndex, endIndex);
                         currentContent = fullText.substring(endIndex + tEndMatch[0].length);
                         stillThinking = false;
                         thinkingPhase = "Reasoning complete.";
-                    } else {
+                    }
+                    // Priority 2: Response delimiter found (Escape hatch if closing tag is missing)
+                    else if (rStartMatch) {
+                        const endIndex = rStartMatch.index!;
+                        currentThought = fullText.substring(startIndex, endIndex);
+                        currentContent = fullText.substring(endIndex + rStartMatch[0].length);
+                        stillThinking = false;
+                        thinkingPhase = "Response generated.";
+                    }
+                    // Priority 3: Character limit safety (Escape hatch for runaway thoughts)
+                    else if (fullText.length - startIndex > 500) {
+                        currentThought = fullText.substring(startIndex, startIndex + 150) + "...";
+                        currentContent = fullText.substring(startIndex);
+                        stillThinking = false;
+                        thinkingPhase = "Speaking…";
+                    }
+                    // Still thinking
+                    else {
                         currentThought = fullText.substring(startIndex);
                         currentContent = "";
                         stillThinking = true;
-                        if (currentThought.length > 400) thinkingPhase = "Weighing every scripture…";
-                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing sources…";
+                        if (currentThought.length > 250) thinkingPhase = "Weighing every scripture…";
+                        else if (currentThought.length > 100) thinkingPhase = "Cross-referencing sources…";
                         else thinkingPhase = "Searching truth archives…";
                     }
                 } else if (rStartMatch) {
