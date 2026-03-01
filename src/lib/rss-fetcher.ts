@@ -15,9 +15,39 @@ export interface RSSArticle {
     type: "article";
 }
 
-// ── 25 LIVE CHRISTIAN RSS FEEDS (all free, no auth) ─────────
+// ── 50+ LIVE RSS FEEDS: Christian + 25 Major World News (no auth) ────────
 const RSS_FEEDS = [
-    // ▸ NEWS
+    // ════════════════════════════════════════════════════════
+    // ▸ MAJOR WORLD NEWS — 25 Top Global Sources
+    // ════════════════════════════════════════════════════════
+    { url: "https://feeds.bbci.co.uk/news/rss.xml", name: "BBC News", cat: "world" },
+    { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC World", cat: "world" },
+    { url: "https://feeds.reuters.com/reuters/topNews", name: "Reuters Top News", cat: "world" },
+    { url: "https://feeds.reuters.com/reuters/worldNews", name: "Reuters World", cat: "world" },
+    { url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", name: "NY Times", cat: "world" },
+    { url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", name: "NY Times World", cat: "world" },
+    { url: "https://www.theguardian.com/world/rss", name: "The Guardian World", cat: "world" },
+    { url: "https://www.theguardian.com/uk/rss", name: "The Guardian UK", cat: "world" },
+    { url: "http://rss.cnn.com/rss/cnn_topstories.rss", name: "CNN Top Stories", cat: "world" },
+    { url: "http://rss.cnn.com/rss/cnn_world.rss", name: "CNN World", cat: "world" },
+    { url: "https://moxie.foxnews.com/google-publisher/world.xml", name: "Fox News World", cat: "world" },
+    { url: "https://moxie.foxnews.com/google-publisher/latest.xml", name: "Fox News Latest", cat: "world" },
+    { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera", cat: "world" },
+    { url: "https://feeds.washingtonpost.com/rss/world", name: "Washington Post World", cat: "world" },
+    { url: "https://www.npr.org/rss/rss.php?id=1001", name: "NPR News", cat: "world" },
+    { url: "https://www.npr.org/rss/rss.php?id=1004", name: "NPR World", cat: "world" },
+    { url: "https://feeds.skynews.com/feeds/rss/world.xml", name: "Sky News World", cat: "world" },
+    { url: "https://feeds.skynews.com/feeds/rss/home.xml", name: "Sky News Home", cat: "world" },
+    { url: "https://www.euronews.com/rss?level=theme&name=news", name: "Euronews", cat: "world" },
+    { url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms", name: "Times of India", cat: "world" },
+    { url: "https://www.dw.com/rss/rss.xml", name: "DW News", cat: "world" },
+    { url: "https://feeds.a.dj.com/rss/RSSWorldNews.xml", name: "Wall Street Journal World", cat: "world" },
+    { url: "https://abcnews.go.com/abcnews/topstories", name: "ABC News", cat: "world" },
+    { url: "https://abcnews.go.com/abcnews/internationalheadlines", name: "ABC News International", cat: "world" },
+    { url: "https://www.cbsnews.com/latest/rss/world", name: "CBS News World", cat: "world" },
+    // ════════════════════════════════════════════════════════
+    // ▸ CHRISTIAN NEWS
+    // ════════════════════════════════════════════════════════
     { url: "https://www.christianitytoday.com/rss/ct.xml", name: "Christianity Today", cat: "news" },
     { url: "https://www.christianpost.com/rss/", name: "Christian Post", cat: "news" },
     { url: "https://www.cbn.com/cbnnews/rss/feed/?type=full", name: "CBN News", cat: "news" },
@@ -25,10 +55,11 @@ const RSS_FEEDS = [
     { url: "https://www.christianheadlines.com/rss/", name: "Christian Headlines", cat: "news" },
     { url: "https://relevantmagazine.com/feed/", name: "Relevant Magazine", cat: "news" },
     { url: "https://www.mnnonline.org/feed/", name: "Mission Network News", cat: "missions" },
-    // ▸ ISRAEL / MIDDLE EAST (critical for "israel news today")
     { url: "https://www.cbn.com/cbnnews/israel/rss/feed/?type=full", name: "CBN Israel", cat: "news" },
     { url: "https://www.christianpost.com/rss/section/world/", name: "Christian Post World", cat: "news" },
     { url: "https://www.opendoorsusa.org/feed/", name: "Open Doors", cat: "missions" },
+    { url: "https://wng.org/rss", name: "World Mag", cat: "news" },
+    { url: "https://www.baptistpress.com/feed/", name: "Baptist Press", cat: "news" },
     // ▸ THEOLOGY
     { url: "https://www.thegospelcoalition.org/feed/", name: "The Gospel Coalition", cat: "theology" },
     { url: "https://www.desiringgod.org/rss", name: "Desiring God", cat: "theology" },
@@ -42,14 +73,12 @@ const RSS_FEEDS = [
     // ▸ SERMONS
     { url: "https://www.sermonaudio.com/rss/newest.asp", name: "SermonAudio", cat: "sermon" },
     { url: "https://www.truthforlife.org/rss/sermons/", name: "Truth for Life", cat: "sermon" },
-    // ▸ APOLOGETICS
+    // ▸ APOLOGETICS / Q&A
     { url: "https://www.gotquestions.org/gotquestions-rss.xml", name: "Got Questions", cat: "qa" },
     { url: "https://coldcasechristianity.com/feed/", name: "Cold Case Christianity", cat: "apologetics" },
     { url: "https://www.str.org/w/rss.xml", name: "Stand to Reason", cat: "apologetics" },
     // ▸ FAMILY
     { url: "https://www.focusonthefamily.com/rss/", name: "Focus on the Family", cat: "family" },
-    // ▸ WORLD MISSIONS
-    { url: "https://wng.org/rss", name: "World Mag", cat: "news" },
 ];
 
 // ── KEYWORD IMPORTANCE WEIGHTS ───────────────────────────────
@@ -136,9 +165,9 @@ export async function searchRSSFeeds(query: string, options: {
 } = {}): Promise<RSSArticle[]> {
     const { limit = 15 } = options;
 
-    // Pick feeds — always include news feeds for broader coverage
+    // Pick feeds — always include news + world feeds for broader coverage
     const feeds = options.category && options.category !== "news"
-        ? RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "news")
+        ? RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "news" || f.cat === "world")
         : RSS_FEEDS;
 
     // Fetch all feeds in parallel
