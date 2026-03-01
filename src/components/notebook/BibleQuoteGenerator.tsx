@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { X } from "lucide-react";
 
 // ─── AI BACKGROUND SETTINGS ──────────────────────────────────────────────────
 const CATEGORY_THEMES: Record<string, string> = {
