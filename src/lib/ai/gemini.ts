@@ -143,9 +143,9 @@ export async function generateGroundedResponse(query: string, sources: string[],
     "${query}"
     ${standaloneFocusedQuery ? `(RESOLVED FOR DEEP ANALYSIS: ${standaloneFocusedQuery})` : ""}
 
-    RESPONSE FORMAT:
+    RESPONSE FORMAT (STRICT):
     <THOUGHT>
-    [2-3 concise sentences: intent, key sources, response plan. Keep this SHORT.]
+    [INTERNAL REASONING: Keep this under 150 characters. Just 1 short sentence on intent and plan. SPEED IS CRITICAL. DO NOT MISS THE CLOSING TAG.]
     </THOUGHT>
     
     ### RESPONSE START ###
@@ -392,7 +392,7 @@ export async function generateGroundedStream(query: string, sources: string[], w
 
     RESPONSE FORMAT (STRICT):
     <THOUGHT>
-    [INTERNAL REASONING: Keep this under 150 characters. Just 1 short sentence on intent and plan. SPEED IS CRITICAL.]
+    [INTERNAL REASONING: Keep this under 150 characters. Just 1 short sentence on intent and plan. SPEED IS CRITICAL. DO NOT MISS THE CLOSING TAG.]
     </THOUGHT>
     
     ### RESPONSE START ###

@@ -1301,9 +1301,14 @@ export default function SearchEnginePortal() {
                 }
 
                 // ── Nuclear content cleanup: strip ALL thought tags, metadata, suggestions ──
+                // This strips complete tags: <THOUGHT>, </THOHT>, etc.
                 currentContent = currentContent.replace(/### RESPONSE START ###/gi, "");
                 currentContent = currentContent.split(/---SUGGESTIONS?---/i)[0];
-                currentContent = currentContent.replace(/<\/?TH[A-Z]{1,8}>/gi, "");   // all thought tag variants
+
+                // Aggressive strip: handles partials like <THOUG, </THOHT even without the closing > 
+                // We use a broad range but keep the < prefix to avoid stripping real words.
+                currentContent = currentContent.replace(/<[\\/]?TH[A-Z]{0,10}(?:>|(?=\s|###|$))/gi, "");
+
                 currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, ""); // [METADATA:X=Y]
                 currentContent = currentContent.replace(/\[METADATA:[^\n]*/gi, "");   // partial metadata lines
                 currentContent = currentContent.trim();
