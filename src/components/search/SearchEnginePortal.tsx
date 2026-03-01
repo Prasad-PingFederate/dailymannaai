@@ -1085,19 +1085,22 @@ export default function SearchEnginePortal() {
             const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=${searchFilter}`);
             const data = await res.json();
             if (res.ok) {
-                setResults(data.results || []);
-                setInstantAnswer(data.instantAnswer);
-                setSolution(data.solution);
+                // Ensure results is always an array to prevent .length or .map crashes
+                setResults(Array.isArray(data?.results) ? data.results : []);
+                setInstantAnswer(data?.instantAnswer || null);
+                setSolution(data?.solution || null);
                 setHasSearched(true);
             } else {
                 console.error("Search failed with status:", res.status);
+                setResults([]);
             }
         } catch (err) {
             console.error("Search failed:", err);
+            setResults([]);
         } finally {
             setIsSearching(false);
         }
-    }, [aiMessages]);
+    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching]);
 
     const handleAiSendMessage = async (textToSend: string): Promise<string> => {
         if (!textToSend.trim()) return "";
@@ -1356,7 +1359,7 @@ export default function SearchEnginePortal() {
         { id: "studio", label: "Image Studio", icon: <ImageIcon size={13} /> },
     ] as const;
 
-    const hasContent = results.length > 0 || instantAnswer || solution;
+    const hasContent = (results?.length ?? 0) > 0 || instantAnswer || solution;
 
     return (
         <div className="min-h-screen bg-white text-slate-900 relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
@@ -1395,7 +1398,7 @@ export default function SearchEnginePortal() {
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100
                             border border-slate-200 text-[10px] font-black tracking-[0.4em] text-slate-500 uppercase">
                             <div className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-                            Powered by 5!4!3!2!1! Model
+                            AI Powered Revelation
                         </div>
                         <h1 className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter text-slate-900 drop-shadow-xl leading-none">
                             DAILY<span className="text-black">MANNA</span>AI
@@ -1610,7 +1613,7 @@ export default function SearchEnginePortal() {
                                 <div className="lg:col-span-8 space-y-10">
                                     {instantAnswer && <InstantAnswerWidget data={instantAnswer} />}
                                     {solution && <SolutionDashboard solution={solution} query={query} onPreview={openPreview} />}
-                                    {!solution && results.length > 0 && (
+                                    {!solution && results && results.length > 0 && (
                                         <div className="space-y-4">
                                             <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-1">
                                                 {results.length} results
