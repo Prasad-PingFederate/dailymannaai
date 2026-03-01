@@ -8,6 +8,8 @@ import {
     ArrowUpRight, Filter, CheckCircle, Star, Hash, Copy, Check
 } from "lucide-react";
 import Link from "next/link";
+import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
+import { Image as ImageIcon } from "lucide-react";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -748,7 +750,7 @@ function Sidebar() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
-type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai";
+type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio";
 
 export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
@@ -1031,6 +1033,7 @@ export default function SearchEnginePortal() {
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
         { id: "devotionals", label: "Devotionals", icon: <Quote size={13} /> },
         { id: "sermons", label: "Sermons", icon: <MessageCircle size={13} /> },
+        { id: "studio", label: "Image Studio", icon: <ImageIcon size={13} /> },
     ] as const;
 
     const hasContent = results.length > 0 || instantAnswer || solution;
@@ -1148,7 +1151,7 @@ export default function SearchEnginePortal() {
                 </div>
 
                 {/* ── RESULTS AREA ── */}
-                {hasSearched && (
+                {(hasSearched || filter === "studio") && (
                     <div className="w-full max-w-7xl px-4 md:px-8 mt-14 pb-32" ref={chatContainerRef}>
                         {isSearching && filter !== "ai" ? (
                             <LoadingState />
@@ -1226,6 +1229,10 @@ export default function SearchEnginePortal() {
                                         <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
                                     </div>
                                 )}
+                            </div>
+                        ) : filter === "studio" ? (
+                            <div className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px]">
+                                <BibleQuoteGenerator />
                             </div>
                         ) : hasContent ? (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

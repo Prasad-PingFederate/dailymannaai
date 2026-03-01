@@ -401,14 +401,15 @@ async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, t
 function SectionTitle({ icon, title }: { icon: string, title: string }) {
     return (
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: "#c9a84c", fontSize: 16 }}>{icon}</span>
+            <span style={{ color: "#0284c7", fontSize: 16 }}>{icon}</span>
             <span
                 style={{
-                    fontSize: 13,
-                    letterSpacing: 2,
+                    fontSize: 11,
+                    letterSpacing: 3,
                     textTransform: "uppercase",
-                    color: "#a89050",
-                    fontFamily: "Georgia, serif",
+                    color: "#64748b",
+                    fontWeight: "900",
+                    fontFamily: "var(--font-cinzel), serif",
                 }}
             >
                 {title}
@@ -418,11 +419,11 @@ function SectionTitle({ icon, title }: { icon: string, title: string }) {
 }
 
 const card = {
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(201,168,76,0.1)",
-    borderRadius: 14,
-    padding: "20px 22px",
-    backdropFilter: "blur(10px)",
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: 24,
+    padding: "24px 28px",
+    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.05)",
 };
 
 const catBtn = {
@@ -577,49 +578,34 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
 
     return (
         <div
-            className="absolute inset-0 z-[120] bg-[#0a0a0f] text-[#f5e6c8] font-['Georgia',serif] overflow-y-auto"
+            className="w-full bg-white text-slate-800 font-serif overflow-y-auto min-h-screen pb-40"
         >
             {/* ── Header ── */}
             <div
-                className="sticky top-0 z-10"
-                style={{
-                    background: "linear-gradient(180deg, #1a0a2e 0%, #0a0a0f 100%)",
-                    borderBottom: "1px solid rgba(201,168,76,0.2)",
-                    padding: "20px 32px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 12,
-                }}
+                className="sticky top-0 z-10 px-8 py-6 flex items-center justify-between flex-wrap gap-4
+                           bg-white/80 backdrop-blur-xl border-b border-slate-100"
             >
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <span style={{ fontSize: 32, filter: "drop-shadow(0 0 10px rgba(201,168,76,0.8))" }}>✝</span>
                     <div>
                         <div
-                            style={{
-                                fontSize: 22,
-                                fontWeight: "bold",
-                                color: "#c9a84c",
-                                letterSpacing: 1,
-                                textShadow: "0 0 20px rgba(201,168,76,0.5)",
-                            }}
+                            className="text-xl font-['Cinzel'] font-black tracking-tight text-slate-900"
                         >
-                            DailyManna AI
+                            DAILY<span className="text-sky-500">MANNA</span>AI
                         </div>
-                        <div style={{ fontSize: 11, color: "#8a7a5a", letterSpacing: 3, textTransform: "uppercase" }}>
+                        <div className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-1">
                             Bible Quote Image Studio
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-[#8a7a5a] italic">
-                    "Thy word is a lamp unto my feet" — Psalm 119:105
+                <div className="flex items-center gap-4 text-[11px] text-slate-400 font-black uppercase tracking-wider">
+                    "Thy word is a lamp unto my feet"
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 ml-4 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 not-italic font-bold tracking-wider uppercase transition text-[#f5e6c8]"
+                            className="ml-4 p-2 rounded-full hover:bg-slate-100 transition-colors"
                         >
-                            Close Studio
+                            <X size={18} />
                         </button>
                     )}
                 </div>
@@ -653,11 +639,11 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                         ...catBtn as any,
                                         background:
                                             s.category === cat.id
-                                                ? "linear-gradient(135deg, #c9a84c22, #c9a84c44)"
-                                                : "rgba(255,255,255,0.04)",
-                                        border: `1px solid ${s.category === cat.id ? "#c9a84c" : "rgba(255,255,255,0.08)"}`,
-                                        color: s.category === cat.id ? "#c9a84c" : "#8a8a8a",
-                                        boxShadow: s.category === cat.id ? "0 0 16px rgba(201,168,76,0.2)" : "none",
+                                                ? "#f0f9ff"
+                                                : "#ffffff",
+                                        border: `1px solid ${s.category === cat.id ? "#0ea5e9" : "#e2e8f0"}`,
+                                        color: s.category === cat.id ? "#0369a1" : "#64748b",
+                                        boxShadow: s.category === cat.id ? "0 4px 12px rgba(14,165,233,0.15)" : "none",
                                     }}
                                 >
                                     <span style={{ fontSize: 18, marginBottom: 4 }}>{cat.icon}</span>
@@ -678,14 +664,16 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                 onChange={(e) => setState((st) => ({ ...st, customTopic: e.target.value }))}
                                 style={{
                                     flex: 1,
-                                    background: "rgba(255,255,255,0.05)",
-                                    border: "1px solid rgba(201,168,76,0.25)",
-                                    borderRadius: 8,
-                                    padding: "10px 14px",
-                                    color: "#f5e6c8",
+                                    background: "#ffffff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 12,
+                                    padding: "12px 16px",
+                                    color: "#1e293b",
                                     fontSize: 14,
-                                    fontFamily: "Georgia, serif",
+                                    fontWeight: "500",
+                                    fontFamily: "inherit",
                                     outline: "none",
+                                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)"
                                 }}
                             />
                         </div>
