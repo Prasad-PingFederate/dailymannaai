@@ -21,9 +21,47 @@ const NEWS_KEYWORDS = [
     "this week", "this month", "trending", "hot topic"
 ];
 
+// ── CONFLICT / PROPHECY INTENT DETECTION ───────────────────────────────────────
+const CONFLICT_KEYWORDS = [
+    // War & conflict
+    "war", "conflict", "battle", "attack", "missile", "bomb", "strike", "military",
+    "ceasefire", "invasion", "troops", "army", "nuclear", "weapon", "airstrike",
+    "refugee", "casualties", "sanctions", "terrorism", "terrorist",
+    // Israel & Middle East
+    "israel", "gaza", "palestine", "hamas", "hezbollah", "jerusalem", "tel aviv",
+    "west bank", "iran", "lebanon", "syria", "iraq", "yemen", "middle east",
+    "holy land", "netanyahu", "idf",
+    // End times / prophecy
+    "prophecy", "end times", "apocalypse", "armageddon", "antichrist",
+    "tribulation", "rapture", "judgment",
+    // Global upheaval
+    "earthquake", "tsunami", "famine", "pandemic", "plague", "disaster",
+    "ukraine", "russia", "china", "north korea", "nato"
+];
+
+// Prophetic Bible connections database — pre-seeded for instant matching
+const PROPHECY_SEED = `
+KEY PROPHETIC SCRIPTURES FOR WORLD EVENTS:
+- Israel/Middle East: Ezekiel 38-39 (Gog & Magog), Zechariah 12:1-3 (Jerusalem a cup of trembling), Isaiah 17:1 (Damascus), Joel 3:1-2 (nations gathered against Israel), Luke 21:20-24 (Jerusalem surrounded by armies)
+- Wars & Rumours of War: Matthew 24:6-7 ("ye shall hear of wars and rumours of wars"), Mark 13:7-8, Revelation 6:3-4 (red horse of war)
+- Peace & Sudden Destruction: 1 Thessalonians 5:3 ("when they shall say peace and safety then sudden destruction")
+- Earthquakes/Disasters: Matthew 24:7 (famines, pestilences, earthquakes), Revelation 6:12, Haggai 2:6-7
+- Russia/North: Ezekiel 38:2-3,15 ("from the north... Magog"), Daniel 11:40-44
+- End of Days Signs: Daniel 12:4 (knowledge shall increase), 2 Timothy 3:1-5 (perilous times), Revelation 13 (global system)
+- Hope & Comfort: Romans 8:28, Isaiah 41:10, Psalm 46:1-3, Revelation 21:4 (no more tears)
+`;
+
 function detectNewsIntent(query: string): boolean {
     const q = query.toLowerCase();
     return NEWS_KEYWORDS.some(kw => q.includes(kw));
+}
+
+function detectConflictIntent(query: string, articles: RSSArticle[]): boolean {
+    const q = query.toLowerCase();
+    if (CONFLICT_KEYWORDS.some(kw => q.includes(kw))) return true;
+    // Also check if any fetched articles are conflict-related
+    const combined = articles.map(a => `${a.title} ${a.description}`).join(" ").toLowerCase();
+    return CONFLICT_KEYWORDS.some(kw => combined.includes(kw));
 }
 
 export async function POST(req: Request) {
@@ -133,16 +171,52 @@ export async function POST(req: Request) {
         console.log(`[ChatAPI-DNA] Research complete. Sources: ${relevantChunks.length} | Web: ${webResults.length} | News: ${newsArticles.length}`);
 
         // 3. Build news context if in news mode
+        const isConflictMode = isNewsMode && detectConflictIntent(query, newsArticles);
+
         let newsContext = "";
         if (isNewsMode && newsArticles.length > 0) {
             newsContext = `\n\nCURRENT NEWS HEADLINES (fetched live for context):\n` +
                 newsArticles.map((a, i) => `${i + 1}. [${a.source}] ${a.title} — ${a.description}`).join("\n");
         }
 
+        if (isConflictMode) {
+            newsContext += `\n\n${PROPHECY_SEED}`;
+        }
+
         // Enhance the query with news mode instruction
-        const enhancedQuery = isNewsMode && newsArticles.length > 0
-            ? `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`
-            : query;
+        let enhancedQuery: string;
+
+        if (isConflictMode && newsArticles.length > 0) {
+            enhancedQuery = `${query}
+
+[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: The user wants to understand current world events through a Biblical lens. Based on the news headlines provided:
+
+1. Write 2-3 sentences summarizing what is currently happening in the world (use the specific headlines above — be brief and factual).
+
+2. Then write a SPIRITUAL INSIGHT paragraph explaining what these events mean for believers — speak with prophetic authority, compassion, and hope.
+
+3. At the end of your response, output a structured block EXACTLY like this (do not skip this — it is mandatory):
+
+---BIBLE_CONNECTIONS---
+REF: [Book Chapter:Verse]
+VERSE: [Quote the KJV verse exactly]
+CONNECTION: [1-2 sentences explaining how this verse connects to today's news]
+---
+REF: [Book Chapter:Verse]
+VERSE: [Quote the KJV verse exactly]
+CONNECTION: [1-2 sentences explaining how this verse connects to today's news]
+---
+REF: [Book Chapter:Verse]
+VERSE: [Quote the KJV verse exactly]
+CONNECTION: [1-2 sentences explaining how this verse connects to today's news]
+---BIBLE_CONNECTIONS_END---
+
+Provide exactly 3 Bible connections, using the most relevant prophecy scriptures from Ezekiel, Zechariah, Matthew 24, Daniel, Revelation, or other prophetic books that directly relate to the current news.`;
+        } else if (isNewsMode && newsArticles.length > 0) {
+            enhancedQuery = `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
+        } else {
+            enhancedQuery = query;
+        }
 
         // 3. Grounded Synthesis with Expert Persona (STREAMING)
         const combinedSources = [...groundingSources, ...sourcesText];
@@ -163,8 +237,25 @@ export async function POST(req: Request) {
                 }
             }
 
+            // ── Parse structured BIBLE_CONNECTIONS block ─────────────────────────
+            let bibleConnections: { reference: string; verse: string; connection: string }[] = [];
+            const bcMatch = fullText.match(/---BIBLE_CONNECTIONS---([\.\s\S]*?)---BIBLE_CONNECTIONS_END---/i);
+            if (bcMatch) {
+                const bcBlock = bcMatch[1];
+                const entryRegex = /REF:\s*([^\n]+)\nVERSE:\s*([^\n]+)\nCONNECTION:\s*([^\n-]+)/gi;
+                let em: RegExpExecArray | null;
+                while ((em = entryRegex.exec(bcBlock)) !== null) {
+                    bibleConnections.push({
+                        reference: em[1].trim().replace(/^\[|\]$/g, ""),
+                        verse: em[2].trim().replace(/^\[|\]$/g, ""),
+                        connection: em[3].trim().replace(/^\[|\]$/g, ""),
+                    });
+                }
+            }
+
             // Clean up the AI response text
             let aiContent = fullText;
+            aiContent = aiContent.replace(/---BIBLE_CONNECTIONS---[\s\S]*?---BIBLE_CONNECTIONS_END---/gi, "");
             aiContent = aiContent.replace(/### RESPONSE START ###/gi, "");
             aiContent = aiContent.split(/---SUGGESTIONS?---/i)[0];
             aiContent = aiContent.replace(/<\/?TH[A-Z]{1,8}>/gi, "");
@@ -173,14 +264,20 @@ export async function POST(req: Request) {
 
             // Extract thought
             let thought = "";
-            const thoughtMatch = fullText.match(/<TH[A-Z]{1,8}>([\.\s\S]*?)<\/TH[A-Z]{1,8}>/i);
+            const thoughtMatch = fullText.match(/<TH[A-Z]{1,8}>([.\s\S]*?)<\/TH[A-Z]{1,8}>/i);
             if (thoughtMatch) thought = thoughtMatch[1].trim();
+
+            const suggestions = isConflictMode
+                ? ["Show me more prophecy verses.", "How should I pray for Israel?", "What does Revelation say about this?"]
+                : ["What does the Bible say about these times?", "How should I pray for the world?", "Show me hope for troubled times."];
 
             return NextResponse.json({
                 role: "assistant",
                 content: aiContent || "Here is what's happening in the world today, with a spiritual perspective:",
-                thought: thought || "Fetching live news and seeking spiritual insight...",
+                thought: thought || "Fetching live news and cross-referencing Bible prophecy...",
                 isNewsMode: true,
+                isConflictMode,
+                bibleConnections,
                 newsArticles: newsArticles.map(a => ({
                     title: a.title,
                     description: a.description,
@@ -190,12 +287,8 @@ export async function POST(req: Request) {
                     imageUrl: a.imageUrl,
                     category: a.category,
                 })),
-                suggestions: [
-                    "What does the Bible say about these times?",
-                    "How should I pray for the world?",
-                    "Show me hope for troubled times."
-                ],
-                metadata: { search_mode: "NEWS_AI", provider }
+                suggestions,
+                metadata: { search_mode: isConflictMode ? "PROPHETIC_NEWS" : "NEWS_AI", provider }
             });
         }
 

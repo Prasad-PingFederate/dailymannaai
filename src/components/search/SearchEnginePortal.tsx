@@ -154,7 +154,80 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
     );
 }
 
-// ─── RESULT CARD ─────────────────────────────────────────────────────────────
+// ─── BIBLE CONNECTION PANEL ───────────────────────────────────────────────────
+
+interface BibleConnection {
+    reference: string;
+    verse: string;
+    connection: string;
+}
+
+function BibleConnectionPanel({ connections }: { connections: BibleConnection[] }) {
+    if (!connections || connections.length === 0) return null;
+
+    return (
+        <div className="mt-8 not-italic">
+            {/* Header */}
+            <div className="flex items-center gap-2.5 mb-5">
+                <div className="w-7 h-7 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                    <Book size={14} className="text-amber-600" />
+                </div>
+                <span className="text-[10px] font-black text-amber-700 uppercase tracking-[0.35em]">
+                    Biblical Prophecy Connection
+                </span>
+                <div className="h-px flex-1 bg-amber-200/60" />
+                <span className="text-[9px] text-amber-600/70 font-medium italic">KJV · Prophetic Lens</span>
+            </div>
+
+            {/* Verse cards */}
+            <div className="space-y-3">
+                {connections.map((bc, i) => (
+                    <div
+                        key={i}
+                        className="relative rounded-2xl overflow-hidden border border-amber-200/60
+                               bg-gradient-to-br from-amber-50 via-white to-orange-50
+                               shadow-sm hover:shadow-md transition-all duration-300
+                               animate-in fade-in slide-in-from-bottom-2"
+                        style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
+                    >
+                        {/* Decorative glow */}
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+
+                        <div className="relative p-5">
+                            {/* Reference badge */}
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+                                           bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider
+                                           shadow-sm shadow-amber-500/20">
+                                    <BookOpen size={9} />
+                                    {bc.reference}
+                                </span>
+                                <div className="flex gap-1">
+                                    {[...Array(3)].map((_, s) => (
+                                        <Star key={s} size={8} className="fill-amber-400 text-amber-400" />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Verse */}
+                            <blockquote className="text-slate-800 text-sm font-serif italic leading-relaxed mb-3 pl-3 border-l-2 border-amber-400">
+                                &ldquo;{bc.verse}&rdquo;
+                            </blockquote>
+
+                            {/* Connection explanation */}
+                            <div className="flex items-start gap-2">
+                                <Zap size={11} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-slate-600 text-xs leading-relaxed">{bc.connection}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ─── RESULT CARD ──────────────────────────────────────────────────────────────
 
 function ResultCard({
     result,
@@ -1023,7 +1096,9 @@ export default function SearchEnginePortal() {
                                 thought: data.thought,
                                 isThinking: false,
                                 isNewsMode: data.isNewsMode || false,
+                                isConflictMode: data.isConflictMode || false,
                                 newsArticles: data.newsArticles || [],
+                                bibleConnections: data.bibleConnections || [],
                             };
                         }
                         return newMsgs;
@@ -1360,7 +1435,14 @@ export default function SearchEnginePortal() {
                                                 )}
 
                                                 {msg.role === 'assistant' && (
-                                                    <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">Divine Perspective</div>
+                                                    <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">
+                                                        {msg.isConflictMode ? (
+                                                            <span className="flex items-center gap-2">
+                                                                <Zap size={10} className="text-amber-500" />
+                                                                <span className="text-amber-600">Prophetic Analysis</span>
+                                                            </span>
+                                                        ) : "Divine Perspective"}
+                                                    </div>
                                                 )}
 
                                                 <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-800 font-serif italic'}`}>
@@ -1382,6 +1464,11 @@ export default function SearchEnginePortal() {
                                                             ))}
                                                         </div>
                                                     </div>
+                                                )}
+
+                                                {/* Bible Prophecy Connections — only shown in conflict/prophecy mode */}
+                                                {msg.role === 'assistant' && msg.isConflictMode && msg.bibleConnections && msg.bibleConnections.length > 0 && (
+                                                    <BibleConnectionPanel connections={msg.bibleConnections} />
                                                 )}
                                             </div>
 
