@@ -1271,7 +1271,7 @@ export default function SearchEnginePortal() {
                 if (tStartMatch) {
                     const startIndex = tStartMatch.index! + tStartMatch[0].length;
 
-                    // Priority 1: Closing tag found
+                    // Priority 1: Closing tag found (Proper end)
                     if (tEndMatch) {
                         const endIndex = tEndMatch.index!;
                         currentThought = fullText.substring(startIndex, endIndex);
@@ -1279,7 +1279,7 @@ export default function SearchEnginePortal() {
                         stillThinking = false;
                         thinkingPhase = "Reasoning complete.";
                     }
-                    // Priority 2: Response delimiter found (Escape hatch if closing tag is missing)
+                    // Priority 2: Response delimiter found (Emergency Breakout)
                     else if (rStartMatch) {
                         const endIndex = rStartMatch.index!;
                         currentThought = fullText.substring(startIndex, endIndex);
@@ -1287,33 +1287,30 @@ export default function SearchEnginePortal() {
                         stillThinking = false;
                         thinkingPhase = "Response generated.";
                     }
-                    // Priority 3: Character limit safety (Escape hatch for runaway thoughts)
-                    else if (fullText.length - startIndex > 500) {
-                        currentThought = fullText.substring(startIndex, startIndex + 150) + "...";
-                        currentContent = fullText.substring(startIndex);
+                    // Priority 3: Safety Cap (Prevent infinite thinking)
+                    else if (fullText.length - startIndex > 800) {
+                        currentThought = fullText.substring(startIndex, startIndex + 200) + "...";
+                        currentContent = fullText.substring(startIndex + 200); // Shift far ahead
                         stillThinking = false;
                         thinkingPhase = "Speaking…";
                     }
-                    // Still thinking
+                    // Still thinking: Main content STAYS EMPTY
                     else {
                         currentThought = fullText.substring(startIndex);
                         currentContent = "";
                         stillThinking = true;
-                        if (currentThought.length > 250) thinkingPhase = "Weighing every scripture…";
-                        else if (currentThought.length > 100) thinkingPhase = "Cross-referencing sources…";
-                        else thinkingPhase = "Searching truth archives…";
+                        thinkingPhase = "Preparing revelation…";
                     }
                 } else if (rStartMatch) {
                     currentContent = fullText.substring(rStartMatch.index! + rStartMatch[0].length);
                     stillThinking = false;
                     thinkingPhase = "Response generated.";
                 } else {
-                    // Safety: If no tags are found yet, keep the "thinking" bar active for a bit 
-                    // to allow the model time to emit its structure.
-                    if (fullText.length < 300) {
+                    // No markers found: Keep it in a hidden 'thinking' state for first 400 chars
+                    if (fullText.length < 400) {
                         currentContent = "";
                         stillThinking = true;
-                        thinkingPhase = "Preparing revelation…";
+                        thinkingPhase = "Analyzing…";
                     } else {
                         currentContent = fullText;
                         stillThinking = false;

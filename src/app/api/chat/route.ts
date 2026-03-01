@@ -189,10 +189,9 @@ export async function POST(req: Request) {
         if (isConflictMode && newsArticles.length > 0) {
             enhancedQuery = `${query}
 
-[INSTRUCTION — PROPHETIC SENTINEL MODE]: 
-Provide a structured response in two strictly separated sections.
+[INSTRUCTION — PROPHETIC SENTINEL STUDY]: DO NOT write this as one continuous essay. You MUST provide two strictly separated sections with a physical line (---) between them.
 
-**PART 1: THE PROPHETIC WORLD BRIEFING**
+**PART 1: THE SENTINEL WORLD BRIEFING**
 Summarize the current global conflicts and news headlines provided above in 3-4 factual, sharp sentences. Finish this section COMPLETELY.
 
 ---
