@@ -104,9 +104,9 @@ function ResultCard({
 
     return (
         <div
-            className="group relative bg-white/[0.02] hover:bg-white/[0.045] border border-white/[0.06]
+            className="group relative bg-white hover:bg-slate-50 border border-slate-200
                  hover:border-sky-500/30 rounded-3xl p-7 transition-all duration-300
-                 animate-in fade-in slide-in-from-bottom-3"
+                 animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
             style={{ animationDelay: `${index * 60}ms`, animationFillMode: "both" }}
         >
             {/* Source row */}
@@ -126,12 +126,12 @@ function ResultCard({
             </div>
 
             {/* Title */}
-            <h3 className="text-lg font-bold text-white group-hover:text-sky-300 transition-colors leading-snug mb-3 pr-10">
+            <h3 className="text-lg font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug mb-3 pr-10">
                 {result.title}
             </h3>
 
             {/* Description */}
-            <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 mb-5 font-[350] italic">
+            <p className="text-slate-600 text-sm leading-relaxed line-clamp-3 mb-5 font-[350] italic">
                 {isBible ? `"${result.description}"` : result.description}
             </p>
 
@@ -214,8 +214,8 @@ function PreviewPanel({
 
             {/* Panel — slides in from RIGHT */}
             <div
-                className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-[#0a0f1e] border-l
-                   border-white/10 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
+                className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-white border-l
+                   border-slate-200 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
             >
                 {/* Panel header */}
                 <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between flex-shrink-0">
@@ -249,8 +249,8 @@ function PreviewPanel({
                     <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                     {/* Description / verse text */}
-                    <div className="bg-white/[0.03] rounded-2xl p-6 border border-white/[0.06]">
-                        <p className={`leading-relaxed text-slate-200 ${isBible ? "text-lg font-serif italic" : "text-sm"}`}>
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                        <p className={`leading-relaxed text-slate-800 ${isBible ? "text-lg font-serif italic" : "text-sm"}`}>
                             {isBible ? `"${item.description}"` : item.description}
                         </p>
                     </div>
@@ -323,8 +323,8 @@ function InstantAnswerWidget({ data }: { data: any }) {
 
     return (
         <div
-            className={`relative rounded-[2.5rem] bg-gradient-to-br ${colorMap[data.type] || "from-sky-500/15"} to-transparent
-                  border border-white/10 p-10 overflow-hidden
+            className={`relative rounded-[2.5rem] bg-gradient-to-br from-sky-50 to-white
+                  border border-slate-200 p-10 overflow-hidden shadow-sm
                   animate-in fade-in slide-in-from-bottom-4 duration-500`}
         >
             <div className="absolute top-6 right-8 pointer-events-none select-none">
@@ -338,7 +338,7 @@ function InstantAnswerWidget({ data }: { data: any }) {
                 </span>
             </div>
 
-            <div className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none mb-3">
+            <div className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-3">
                 {data.result || data.description}
             </div>
 
@@ -378,16 +378,16 @@ function SolutionDashboard({
         <div className="space-y-14 animate-in fade-in duration-700">
 
             {/* ── AI INSIGHT ── */}
-            <div className="relative rounded-[3rem] bg-gradient-to-br from-sky-500/[0.12] via-indigo-500/[0.04] to-transparent
-                      border border-sky-400/20 p-12 overflow-hidden backdrop-blur-xl">
+            <div className="relative rounded-[3rem] bg-gradient-to-br from-sky-50 via-white to-transparent
+                      border border-sky-100 p-12 overflow-hidden shadow-sm">
                 <div className="absolute -top-20 -right-20 w-56 h-56 bg-sky-500/10 rounded-full blur-[70px] pointer-events-none" />
                 <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
-                    <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em]">Divine Perspective</div>
-                    <h2 className="text-3xl md:text-4xl font-black text-white leading-tight font-['Cinzel'] italic">
+                    <div className="text-sky-600 text-[10px] font-black uppercase tracking-[0.6em]">Divine Perspective</div>
+                    <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight font-['Cinzel'] italic">
                         "{query}"
                     </h2>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-sky-500 to-transparent mx-auto" />
-                    <p className="text-slate-200 text-lg md:text-xl leading-relaxed font-serif italic">
+                    <p className="text-slate-700 text-lg md:text-xl leading-relaxed font-serif italic">
                         "{solution.insight}"
                     </p>
 
@@ -464,7 +464,7 @@ function SolutionDashboard({
                         })}
                     </div>
                 ) : (
-                    <div className="py-10 text-center text-slate-500 italic border border-white/[0.05] rounded-3xl text-sm">
+                    <div className="py-10 text-center text-slate-400 italic border border-slate-100 rounded-3xl text-sm">
                         Crawlers are scanning global news — search again in a moment.
                     </div>
                 )}
@@ -479,13 +479,13 @@ function SolutionDashboard({
                         {(solution.devotionals || []).map((d: any, i: number) => (
                             <div
                                 key={i}
-                                className="bg-white/[0.02] p-5 rounded-[1.5rem] border border-white/[0.05] hover:border-indigo-500/20 transition-all"
+                                className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 hover:border-indigo-500/20 transition-all shadow-sm"
                             >
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                                    <h4 className="text-white text-sm font-bold">{d.title}</h4>
+                                    <h4 className="text-slate-900 text-sm font-bold">{d.title}</h4>
                                 </div>
-                                <p className="text-slate-400 text-xs leading-relaxed">{d.description}</p>
+                                <p className="text-slate-600 text-xs leading-relaxed">{d.description}</p>
                             </div>
                         ))}
                     </div>
@@ -499,15 +499,15 @@ function SolutionDashboard({
                             <button
                                 key={i}
                                 onClick={() => openLink(`https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + " sermon")}`)}
-                                className="w-full text-left bg-white/[0.02] p-5 rounded-[1.5rem] border border-white/[0.05]
-                           hover:border-pink-500/25 hover:bg-white/[0.04] transition-all flex items-center gap-4 group"
+                                className="w-full text-left bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200
+                           hover:border-pink-500/25 hover:bg-slate-100 transition-all flex items-center gap-4 group shadow-sm"
                             >
                                 <div className="w-11 h-11 rounded-2xl bg-pink-500/10 flex items-center justify-center
                                text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-all flex-shrink-0">
                                     <PlayCircle size={22} />
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className="text-white text-sm font-bold truncate group-hover:text-pink-300 transition-colors">{s.title}</h4>
+                                    <h4 className="text-slate-900 text-sm font-bold truncate group-hover:text-pink-600 transition-colors">{s.title}</h4>
                                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">{s.speaker} · {s.length}</p>
                                 </div>
                                 <ArrowUpRight size={14} className="text-slate-600 group-hover:text-pink-400 ml-auto flex-shrink-0 transition-colors" />
@@ -536,9 +536,9 @@ function NewsCard({
 
     return (
         <div
-            className="group bg-white/[0.025] hover:bg-white/[0.045] rounded-[2rem] border border-white/[0.06]
+            className="group bg-white hover:bg-slate-50 rounded-[2rem] border border-slate-200
                  hover:border-sky-500/25 transition-all duration-300 flex flex-col overflow-hidden
-                 animate-in fade-in slide-in-from-bottom-3"
+                 animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
             style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
         >
             <div className="p-6 flex-1">
@@ -550,8 +550,8 @@ function NewsCard({
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest truncate">{item.source || host}</span>
                     <Newspaper size={10} className="text-sky-500 ml-auto flex-shrink-0" />
                 </div>
-                <h3 className="text-white font-bold text-base leading-snug mb-3 line-clamp-2
-                       group-hover:text-sky-300 transition-colors">
+                <h3 className="text-slate-900 font-bold text-base leading-snug mb-3 line-clamp-2
+                       group-hover:text-sky-600 transition-colors">
                     {item.title}
                 </h3>
                 <p className="text-slate-400 text-xs leading-relaxed line-clamp-3 italic">{item.description}</p>
@@ -592,7 +592,7 @@ function SectionHeader({
             <div className={`flex items-center gap-2 text-sm font-black ${color} uppercase tracking-[0.18em]`}>
                 {icon} {label}
             </div>
-            <div className="h-px flex-1 bg-white/[0.04] ml-2" />
+            <div className="h-px flex-1 bg-slate-100 ml-2" />
         </div>
     );
 }
@@ -612,7 +612,7 @@ function FilterChip({
                   uppercase tracking-widest transition-all duration-200 whitespace-nowrap
                   ${active
                     ? "bg-sky-500 border-sky-400 text-white shadow-lg shadow-sky-500/25"
-                    : "bg-white/[0.04] border-white/[0.08] text-slate-400 hover:bg-white/[0.08] hover:text-white"
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
         >
             {icon} {label}
@@ -627,13 +627,13 @@ function EmptyState({ query }: { query: string }) {
         <div className="py-36 flex flex-col items-center gap-8 animate-in fade-in duration-500">
             <div className="relative">
                 <div className="absolute inset-0 bg-sky-500/10 blur-[50px] rounded-full scale-150" />
-                <div className="w-20 h-20 rounded-3xl bg-white/[0.04] border border-white/[0.08]
-                        flex items-center justify-center relative">
-                    <Search className="text-slate-500 w-9 h-9" />
+                <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-200
+                        flex items-center justify-center relative shadow-sm">
+                    <Search className="text-slate-400 w-9 h-9" />
                 </div>
             </div>
             <div className="text-center space-y-3 max-w-sm">
-                <div className="text-white font-black text-xl font-['Cinzel'] italic">
+                <div className="text-slate-900 font-black text-xl font-['Cinzel'] italic">
                     "Seek, and ye shall find…"
                 </div>
                 <p className="text-slate-500 text-xs font-black uppercase tracking-[0.3em] leading-loose">
@@ -644,8 +644,8 @@ function EmptyState({ query }: { query: string }) {
                 {["grace", "faith", "John 3:16", "prayer", "resurrection"].map(suggestion => (
                     <button
                         key={suggestion}
-                        className="px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.08]
-                       text-slate-400 text-xs font-bold hover:text-white hover:border-sky-500/30 transition-all"
+                        className="px-4 py-2 rounded-full bg-slate-50 border border-slate-200
+                       text-slate-600 text-xs font-bold hover:text-sky-600 hover:border-sky-500/30 transition-all shadow-sm"
                     >
                         {suggestion}
                     </button>
@@ -679,10 +679,10 @@ function LoadingState() {
 
 function Sidebar() {
     return (
-        <aside className="sticky top-10 bg-white/[0.03] border border-white/[0.07] rounded-[2.5rem] p-8 space-y-8 backdrop-blur-3xl">
+        <aside className="sticky top-10 bg-white border border-slate-200 rounded-[2.5rem] p-8 space-y-8 shadow-sm backdrop-blur-3xl">
             {/* Status */}
             <div className="space-y-2">
-                <h3 className="text-white font-black uppercase text-[10px] tracking-widest">Engine Status</h3>
+                <h3 className="text-slate-900 font-black uppercase text-[10px] tracking-widest">Engine Status</h3>
                 <div className="flex items-center gap-2 text-emerald-400">
                     <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
                     <span className="text-[10px] font-black uppercase tracking-wider">All Systems Live</span>
@@ -738,9 +738,9 @@ function Sidebar() {
                 ))}
             </div>
 
-            <div className="bg-sky-500/[0.07] p-5 rounded-2xl border border-sky-500/15 text-xs font-serif italic text-slate-400 leading-relaxed">
+            <div className="bg-sky-50 p-5 rounded-2xl border border-sky-100 text-xs font-serif italic text-slate-600 leading-relaxed">
                 "Thy word is a lamp unto my feet, and a light unto my path."
-                <span className="block mt-1 text-sky-500/60 not-italic font-black text-[9px] uppercase tracking-widest">Psalm 119:105</span>
+                <span className="block mt-1 text-sky-600/60 not-italic font-black text-[9px] uppercase tracking-widest">Psalm 119:105</span>
             </div>
         </aside>
     );
@@ -1036,22 +1036,22 @@ export default function SearchEnginePortal() {
     const hasContent = results.length > 0 || instantAnswer || solution;
 
     return (
-        <div className="min-h-screen bg-[#030712] text-slate-100 relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
+        <div className="min-h-screen bg-white text-slate-900 relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
 
             {/* Preview Panel */}
             {preview && <PreviewPanel item={preview} onClose={closePreview} />}
 
             {/* Ambient blobs */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-sky-600/[0.08] rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-indigo-600/[0.08] rounded-full blur-[120px]" />
-                <div className="absolute top-[40%] left-[45%] w-[20%] h-[20%] bg-violet-500/[0.05] rounded-full blur-[80px]" />
+                <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-sky-600/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-indigo-600/[0.04] rounded-full blur-[120px]" />
+                <div className="absolute top-[40%] left-[45%] w-[20%] h-[20%] bg-violet-500/[0.03] rounded-full blur-[80px]" />
             </div>
 
             {/* ── HEADER (post-search) ── */}
             {hasSearched && (
                 <header className="w-full max-w-7xl px-6 md:px-10 py-5 flex items-center justify-between z-20
-                           border-b border-white/[0.05] sticky top-0 bg-[#030712]/80 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
+                           border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
                     <button
                         onClick={resetSearch}
                         className="font-['Cinzel'] text-xl font-black tracking-tight hover:text-sky-400 transition-colors"
@@ -1074,8 +1074,8 @@ export default function SearchEnginePortal() {
                             <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
                             Powered by 5!4!3!2!1! Model
                         </div>
-                        <h1 className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter text-white drop-shadow-2xl leading-none">
-                            DAILY<span className="text-sky-400">MANNA</span>AI
+                        <h1 className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter text-slate-900 drop-shadow-xl leading-none">
+                            DAILY<span className="text-sky-500">MANNA</span>AI
                         </h1>
                         <p className="text-slate-400 max-w-md mx-auto text-lg font-medium italic leading-relaxed">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
@@ -1087,10 +1087,10 @@ export default function SearchEnginePortal() {
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
                     <form onSubmit={onSubmit}>
                         <div
-                            className="relative bg-white/[0.04] backdrop-blur-2xl border border-white/[0.10] rounded-3xl
+                            className="relative bg-white border border-slate-200 rounded-3xl
                          px-6 py-2 flex items-center gap-3 transition-all duration-300
                          focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30
-                         shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+                         shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
                         >
                             <Search className="text-sky-400 w-5 h-5 flex-shrink-0" />
                             <input
@@ -1100,8 +1100,8 @@ export default function SearchEnginePortal() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Seek and ye shall find…"
-                                className="flex-1 bg-transparent border-none outline-none py-5 text-lg text-white
-                           placeholder:text-slate-600 font-medium"
+                                className="flex-1 bg-transparent border-none outline-none py-5 text-lg text-slate-800
+                           placeholder:text-slate-400 font-medium"
                             />
                             {query && (
                                 <button
@@ -1156,7 +1156,7 @@ export default function SearchEnginePortal() {
                             <div className="max-w-5xl mx-auto space-y-16">
                                 {aiMessages.map((msg, i) => (
                                     <div key={i} className={`flex gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-[#0a0f1e] border border-white/10 text-sky-400 shadow-xl'}`}>
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
                                             {msg.role === 'user' ? (
                                                 <div className="font-['Cinzel'] font-black text-xl">U</div>
                                             ) : (
@@ -1165,7 +1165,7 @@ export default function SearchEnginePortal() {
                                         </div>
 
                                         <div className={`flex flex-col gap-4 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
-                                            <div className={`relative p-10 md:p-14 rounded-[3.5rem] overflow-hidden backdrop-blur-3xl transition-all duration-500 ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-white' : 'bg-gradient-to-br from-white/[0.03] via-[#0a0f1e] to-transparent border border-white/[0.08]'}`}>
+                                            <div className={`relative p-10 md:p-14 rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}>
 
                                                 {/* Ambient background for AI messages */}
                                                 {msg.role === 'assistant' && (
@@ -1182,7 +1182,7 @@ export default function SearchEnginePortal() {
                                                                 </span>
                                                                 <ChevronRight size={16} className="ml-auto text-sky-500/40 group-open:rotate-90 transition-transform" />
                                                             </summary>
-                                                            <div className="mt-6 p-8 rounded-3xl bg-black/40 border border-white/5 text-sm md:text-base font-serif italic text-slate-400 leading-relaxed whitespace-pre-wrap">
+                                                            <div className="mt-6 p-8 rounded-3xl bg-slate-100 border border-slate-200 text-sm md:text-base font-serif italic text-slate-600 leading-relaxed whitespace-pre-wrap">
                                                                 {msg.thought}
                                                                 {msg.isThinking && <span className="inline-block w-2.5 h-5 bg-sky-500/50 ml-1 animate-pulse" />}
                                                             </div>
@@ -1194,7 +1194,7 @@ export default function SearchEnginePortal() {
                                                     <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">Divine Perspective</div>
                                                 )}
 
-                                                <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-100 font-serif italic'}`}>
+                                                <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-800 font-serif italic'}`}>
                                                     {msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
                                                 </div>
                                             </div>
@@ -1206,7 +1206,7 @@ export default function SearchEnginePortal() {
                                                         <button
                                                             key={idx}
                                                             onClick={() => handleAiSendMessage(s)}
-                                                            className="px-8 py-4 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-sky-500/40 hover:bg-sky-500/10 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-sky-400 transition-all active:scale-95"
+                                                            className="px-8 py-4 rounded-full bg-slate-50 border border-slate-200 hover:border-sky-500/40 hover:bg-sky-500/10 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:text-sky-600 transition-all active:scale-95 shadow-sm"
                                                         >
                                                             {s}
                                                         </button>
