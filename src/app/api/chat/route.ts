@@ -189,20 +189,18 @@ export async function POST(req: Request) {
         if (isConflictMode && newsArticles.length > 0) {
             enhancedQuery = `${query}
 
-[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: Provide a structured response in two distinct parts. YOU MUST USE A HORIZONTAL RULE (---) AND TRIPLE NEWLINES BETWEEN THEM.
+[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: DO NOT write this as one continuous essay. You MUST provide two strictly separated sections with a physical line (---) between them.
 
-**I. PROPHETIC WORLD BRIEFING**
-- Summarize 3-4 key global conflicts (e.g. Israel-Iran, Russia-Ukraine) and Christian news headlines provided above. Be brief and objective.
+**PART 1: THE PROPHETIC WORLD BRIEFING**
+Summarize the current global conflicts and news headlines provided above in 3-4 factual, sharp sentences. Finish this section COMPLETELY.
 
-\n\n
 ---
-\n\n
 
-**II. BIBLICAL CONTEXT & THE SECOND COMING**
-- Use EXACTLY ONE BLANK LINE before starting this sentence.
-- Explain how these specific events connect to End Times signs and the Second Coming of Jesus Christ. Speak with prophetic authority and hope.
+**PART 2: BIBLICAL CONTEXT & THE SECOND COMING**
+Start this section on a totally fresh line after the divider.
+Explain how these specific global events relate to Bible Prophecy and the promised Second Coming of Jesus Christ. Speak with authority, clarity, and hope.
 
-**BIBLE CONNECTIONS (MANDATORY BLOCK)**
+**BIBLE CONNECTIONS (MANDATORY)**
 At the end, output this EXACT block:
 
 ---BIBLE_CONNECTIONS---
