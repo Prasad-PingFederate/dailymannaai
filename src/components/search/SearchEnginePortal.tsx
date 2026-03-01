@@ -113,27 +113,9 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
 
     return (
         <div
-            className="group relative bg-white hover:bg-slate-50 rounded-2xl border border-slate-200
-                 hover:border-sky-400/40 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md
-                 animate-in fade-in slide-in-from-bottom-3"
+            className="group relative bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 hover:border-sky-400/40 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md animate-in fade-in slide-in-from-bottom-3"
             style={{ animationDelay: `${index * 70}ms`, animationFillMode: "both" }}
         >
-            <style jsx global>{`
-                @keyframes bell-ring {
-                    0% { transform: rotate(0); }
-                    10% { transform: rotate(25deg); }
-                    20% { transform: rotate(-20deg); }
-                    30% { transform: rotate(15deg); }
-                    40% { transform: rotate(-10deg); }
-                    50% { transform: rotate(5deg); }
-                    60% { transform: rotate(0); }
-                    100% { transform: rotate(0); }
-                }
-                .animate-bell {
-                    animation: bell-ring 1.5s ease-in-out infinite;
-                    transform-origin: top center;
-                }
-            `}</style>
             <div className="p-5">
                 {/* Source row */}
                 <div className="flex items-center gap-2 mb-3">
@@ -160,9 +142,7 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
             <div className="px-5 pb-4">
                 <button
                     onClick={() => { const u = article.link; if (u) window.open(u, "_blank", "noopener,noreferrer"); }}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl
-                       bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-black uppercase tracking-wider
-                       transition-all active:scale-95"
+                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
                 >
                     <ArrowUpRight size={11} /> Read Article
                 </button>
@@ -262,9 +242,7 @@ function ResultCard({
 
     return (
         <div
-            className="group relative bg-white hover:bg-slate-50 border border-slate-200
-                 hover:border-sky-500/30 rounded-3xl p-7 transition-all duration-300
-                 animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
+            className="group relative bg-white hover:bg-slate-50 border border-slate-200 hover:border-sky-500/30 rounded-3xl p-7 transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
             style={{ animationDelay: `${index * 60}ms`, animationFillMode: "both" }}
         >
             {/* Source row */}
@@ -298,9 +276,7 @@ function ResultCard({
                 {/* PRIMARY — Open Link */}
                 <button
                     onClick={() => openLink(finalUrl)}
-                    className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-sky-500 hover:bg-sky-400
-                     text-white text-xs font-black uppercase tracking-wider transition-all
-                     active:scale-95 shadow-lg shadow-sky-500/20"
+                    className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-sky-500/20"
                 >
                     <ArrowUpRight size={13} />
                     {isBible ? "Read on BibleGateway" : "Open Article"}
@@ -372,8 +348,7 @@ function PreviewPanel({
 
             {/* Panel — slides in from RIGHT */}
             <div
-                className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-white border-l
-                   border-slate-200 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
+                className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-white border-l border-slate-200 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
             >
                 {/* Panel header */}
                 <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between flex-shrink-0">
@@ -447,16 +422,14 @@ function PreviewPanel({
                 <div className="p-6 border-t border-white/10 flex gap-3 flex-shrink-0">
                     <button
                         onClick={() => openLink(finalUrl)}
-                        className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl
-                       bg-sky-500 hover:bg-sky-400 text-white font-black text-sm uppercase
-                       tracking-wider transition-all active:scale-95 shadow-lg shadow-sky-500/25"
+                        className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white font-black text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-sky-500/25"
                     >
                         <ArrowUpRight size={16} />
                         {isBible ? "Read on BibleGateway.com" : "Open Full Article"}
                     </button>
                     <CopyButton text={finalUrl} />
                 </div>
-            </div>
+            </div >
         </>
     );
 }
@@ -576,9 +549,7 @@ function SolutionDashboard({
                             return (
                                 <div
                                     key={i}
-                                    className="group bg-white/[0.025] hover:bg-white/[0.045] p-7 rounded-[2rem]
-                             border border-white/[0.06] hover:border-amber-500/25 transition-all duration-300
-                             animate-in fade-in slide-in-from-bottom-2"
+                                    className={`group bg-white/[0.025] hover:bg-white/[0.045] p-7 rounded-[2rem] border border-white/[0.06] hover:border-amber-500/25 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2`}
                                     style={{ animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
                                 >
                                     <div className="flex items-start justify-between gap-4 mb-3">
@@ -694,9 +665,7 @@ function NewsCard({
 
     return (
         <div
-            className="group bg-white hover:bg-slate-50 rounded-[2rem] border border-slate-200
-                 hover:border-sky-500/25 transition-all duration-300 flex flex-col overflow-hidden
-                 animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
+            className="group bg-white hover:bg-slate-50 rounded-[2rem] border border-slate-200 hover:border-sky-500/25 transition-all duration-300 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
             style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
         >
             <div className="p-6 flex-1">
@@ -1363,6 +1332,23 @@ export default function SearchEnginePortal() {
 
     return (
         <div className="min-h-screen bg-white text-slate-900 relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes bell-ring {
+                    0% { transform: rotate(0); }
+                    10% { transform: rotate(25deg); }
+                    20% { transform: rotate(-20deg); }
+                    30% { transform: rotate(15deg); }
+                    40% { transform: rotate(-10deg); }
+                    50% { transform: rotate(5deg); }
+                    60% { transform: rotate(0); }
+                    100% { transform: rotate(0); }
+                }
+                .animate-bell {
+                    animation: bell-ring 1.5s ease-in-out infinite;
+                    transform-origin: top center;
+                }
+            `}} />
 
             {/* Preview Panel */}
             {preview && <PreviewPanel item={preview} onClose={closePreview} />}
@@ -1389,14 +1375,12 @@ export default function SearchEnginePortal() {
             )}
 
             {/* ── MAIN ── */}
-            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4
-                        transition-all duration-500 ${hasSearched ? "pt-8" : "pt-36 md:pt-48"}`}>
+            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-500 ${hasSearched ? "pt-8" : "pt-36 md:pt-48"}`}>
 
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-7 mb-16 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100
-                            border border-slate-200 text-[10px] font-black tracking-[0.4em] text-slate-500 uppercase">
+                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-black tracking-[0.4em] text-slate-500 uppercase`}>
                             <div className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
                             AI Powered Revelation
                         </div>
@@ -1413,10 +1397,7 @@ export default function SearchEnginePortal() {
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
                     <form onSubmit={onSubmit}>
                         <div
-                            className="relative bg-white border border-slate-200 rounded-3xl
-                         px-6 py-2 flex items-center gap-3 transition-all duration-300
-                         focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30
-                         shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
+                            className={`relative bg-white border border-slate-200 rounded-3xl px-6 py-2 flex items-center gap-3 transition-all duration-300 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.08)]`}
                         >
                             <Search className="text-slate-900 w-5 h-5 flex-shrink-0" />
                             <input
@@ -1426,8 +1407,7 @@ export default function SearchEnginePortal() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Seek and ye shall find…"
-                                className="flex-1 bg-transparent border-none outline-none py-5 text-lg text-slate-800
-                           placeholder:text-slate-400 font-medium"
+                                className={`flex-1 bg-transparent border-none outline-none py-5 text-lg text-slate-800 placeholder:text-slate-400 font-medium`}
                             />
                             {query && (
                                 <button
@@ -1440,9 +1420,7 @@ export default function SearchEnginePortal() {
                             )}
                             <button
                                 type="submit"
-                                className="bg-black hover:bg-slate-800 active:bg-slate-900 text-white font-black px-7 py-3
-                           rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95
-                           shadow-lg shadow-black/25"
+                                className="bg-black hover:bg-slate-800 active:bg-slate-900 text-white font-black px-7 py-3 rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95 shadow-lg shadow-black/25"
                             >
                                 Search
                             </button>
