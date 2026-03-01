@@ -236,6 +236,19 @@ export async function searchRSSFeeds(query: string, options: {
     return scored.slice(0, limit).map(r => r.a);
 }
 
+/** Fetch latest Christian news with no query filter */
+export async function getLatestChristianNews(limit = 10): Promise<RSSArticle[]> {
+    const newsFeeds = RSS_FEEDS.filter(f => ["news", "missions"].includes(f.cat));
+    const settled = await Promise.allSettled(newsFeeds.map(f => parseFeed(f, false)));
+    const all: RSSArticle[] = [];
+    settled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
+
+    return all
+        .filter(a => a.link && a.title)
+        .sort((a, b) => (+new Date(b.pubDate ?? 0)) - (+new Date(a.pubDate ?? 0)))
+        .slice(0, limit);
+}
+
 // ── UTILITIES ─────────────────────────────────────────────────
 function getTag(xml: string, tag: string): string {
     const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
