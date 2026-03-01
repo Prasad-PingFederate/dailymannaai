@@ -181,8 +181,8 @@ function parseXML(xml: string, sourceName: string, category: string): RSSArticle
         const pubDate = getTag(block, "pubDate") || getTag(block, "dc:date") || getTag(block, "updated") || null;
         const imageUrl = extractImage(block, rawDesc);
 
-        const title = cleanHtml(stripCDATA(rawTitle)).slice(0, 200);
-        const desc = cleanHtml(stripCDATA(rawDesc)).slice(0, 500);
+        const title = cleanHtml(stripCDATA(rawTitle)).slice(0, 150);
+        const desc = smartTruncate(cleanHtml(stripCDATA(rawDesc)), 280);
         const link = sanitizeUrl(stripCDATA(rawLink));
 
         if (title && link) {
@@ -262,18 +262,50 @@ function getAttrTag(xml: string, tag: string, attr: string, val: string): string
     return xml.match(re)?.[1]?.trim() ?? "";
 }
 
+function smartTruncate(text: string, max: number): string {
+    if (text.length <= max) return text;
+    const cut = text.lastIndexOf(" ", max);
+    return (cut > max * 0.6 ? text.slice(0, cut) : text.slice(0, max)) + "…";
+}
+
 function stripCDATA(s: string): string {
     return s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").trim();
 }
 
-function cleanHtml(html: string): string {
-    return html
+/** Decode common HTML entities to plain text */
+function decodeEntities(s: string): string {
+    return s
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&apos;/g, "'")
+        .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+        .replace(/&[a-z]{2,8};/gi, " "); // catch anything else (e.g. &mdash;)
+}
+
+/** Strip all HTML tags — includes script, style, and bare angle-bracket fragments */
+function stripTags(s: string): string {
+    return s
         .replace(/<script[\s\S]*?<\/script>/gi, "")
         .replace(/<style[\s\S]*?<\/style>/gi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-        .replace(/\s{2,}/g, " ").trim();
+        .replace(/<[^>]+>/g, " ")           // strip normal tags
+        .replace(/[<>]/g, " ");          // strip stray angle brackets
+}
+
+/**
+ * Two-pass clean: decode → strip → decode → strip
+ * Handles both plain HTML and double-encoded HTML (&lt;p&gt; → <p> → stripped).
+ */
+function cleanHtml(html: string): string {
+    // Pass 1: decode entities, then strip tags (handles &lt;p&gt; case)
+    let result = stripTags(decodeEntities(html));
+    // Pass 2: decode any newly revealed entities, strip again
+    result = stripTags(decodeEntities(result));
+    // Final cleanup: collapse whitespace
+    return result.replace(/\s{2,}/g, " ").trim();
 }
 
 function sanitizeUrl(url: string): string {
