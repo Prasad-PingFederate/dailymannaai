@@ -15,84 +15,75 @@ export interface RSSArticle {
     type: "article";
 }
 
-// ── 80+ LIVE RSS FEEDS: World + India + Twitter + Christian (no auth) ────────
+// ── 100+ LIVE RSS FEEDS: World + India + Google News + Christian ──────────────
 const RSS_FEEDS = [
     // ════════════════════════════════════════════════════════
-    // ▸ MAJOR WORLD NEWS — 25 Top Global Sources
+    // ▸ GOOGLE NEWS RSS — Updates within MINUTES (no auth needed)
+    // ════════════════════════════════════════════════════════
+    { url: "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en", name: "Google News Top", cat: "breaking" },
+    { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFZxYVdjU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", name: "Google News World", cat: "breaking" },
+    { url: "https://news.google.com/rss/topics/CAAqIggKIhxDQkFTRHdvSkwyMHZNR1ptZHpWbUVnSmxiaWdBUAE?hl=en-IN&gl=IN&ceid=IN:en", name: "Google News India", cat: "breaking" },
+    { url: "https://news.google.com/rss/search?q=Israel+Iran+war+conflict&hl=en-US&gl=US&ceid=US:en", name: "Google News Israel", cat: "breaking" },
+    { url: "https://news.google.com/rss/search?q=Middle+East+conflict+war&hl=en-US&gl=US&ceid=US:en", name: "Google News Middle East", cat: "breaking" },
+    { url: "https://news.google.com/rss/search?q=breaking+news+world&hl=en-US&gl=US&ceid=US:en", name: "Google News Breaking", cat: "breaking" },
+    { url: "https://news.google.com/rss/search?q=war+military+attack&hl=en-US&gl=US&ceid=US:en", name: "Google News War", cat: "breaking" },
+    // ════════════════════════════════════════════════════════
+    // ▸ MAJOR WORLD NEWS — Top Global Sources
     // ════════════════════════════════════════════════════════
     { url: "https://feeds.bbci.co.uk/news/rss.xml", name: "BBC News", cat: "world" },
     { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC World", cat: "world" },
+    { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", name: "BBC Middle East", cat: "world" },
     { url: "https://feeds.reuters.com/reuters/topNews", name: "Reuters Top News", cat: "world" },
     { url: "https://feeds.reuters.com/reuters/worldNews", name: "Reuters World", cat: "world" },
     { url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", name: "NY Times", cat: "world" },
     { url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", name: "NY Times World", cat: "world" },
     { url: "https://www.theguardian.com/world/rss", name: "The Guardian World", cat: "world" },
-    { url: "https://www.theguardian.com/uk/rss", name: "The Guardian UK", cat: "world" },
     { url: "http://rss.cnn.com/rss/cnn_topstories.rss", name: "CNN Top Stories", cat: "world" },
     { url: "http://rss.cnn.com/rss/cnn_world.rss", name: "CNN World", cat: "world" },
     { url: "https://moxie.foxnews.com/google-publisher/world.xml", name: "Fox News World", cat: "world" },
     { url: "https://moxie.foxnews.com/google-publisher/latest.xml", name: "Fox News Latest", cat: "world" },
     { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera", cat: "world" },
+    { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera ME", cat: "world" },
     { url: "https://feeds.washingtonpost.com/rss/world", name: "Washington Post World", cat: "world" },
     { url: "https://www.npr.org/rss/rss.php?id=1001", name: "NPR News", cat: "world" },
-    { url: "https://www.npr.org/rss/rss.php?id=1004", name: "NPR World", cat: "world" },
     { url: "https://feeds.skynews.com/feeds/rss/world.xml", name: "Sky News World", cat: "world" },
-    { url: "https://feeds.skynews.com/feeds/rss/home.xml", name: "Sky News Home", cat: "world" },
-    { url: "https://www.euronews.com/rss?level=theme&name=news", name: "Euronews", cat: "world" },
-    { url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms", name: "Times of India", cat: "world" },
     { url: "https://www.dw.com/rss/rss.xml", name: "DW News", cat: "world" },
-    { url: "https://feeds.a.dj.com/rss/RSSWorldNews.xml", name: "Wall Street Journal World", cat: "world" },
     { url: "https://abcnews.go.com/abcnews/topstories", name: "ABC News", cat: "world" },
     { url: "https://abcnews.go.com/abcnews/internationalheadlines", name: "ABC News International", cat: "world" },
     { url: "https://www.cbsnews.com/latest/rss/world", name: "CBS News World", cat: "world" },
+    // AP Wire — very fast and frequently updated
+    { url: "https://apnews.com/rss", name: "AP News", cat: "world" },
+    { url: "https://apnews.com/apf-topnews", name: "AP Top News", cat: "world" },
+    { url: "https://apnews.com/apf-intlnews", name: "AP World", cat: "world" },
     // ════════════════════════════════════════════════════════
-    // ▸ MAJOR INDIAN NEWS — 15 Top Sources
+    // ▸ INDIA NEWS — Priority Sources
     // ════════════════════════════════════════════════════════
+    { url: "https://www.indiatoday.in/rss/home", name: "India Today", cat: "india" },
+    { url: "https://www.indiatoday.in/rss/1206578", name: "India Today World", cat: "india" },
     { url: "https://www.thehindu.com/feeder/default.rss", name: "The Hindu", cat: "india" },
-    { url: "https://www.thehindu.com/news/national/feeder/default.rss", name: "The Hindu National", cat: "india" },
+    { url: "https://www.thehindu.com/news/international/feeder/default.rss", name: "The Hindu International", cat: "india" },
     { url: "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml", name: "Hindustan Times", cat: "india" },
     { url: "https://www.hindustantimes.com/feeds/rss/world-news/rssfeed.xml", name: "Hindustan Times World", cat: "india" },
     { url: "https://feeds.feedburner.com/ndtvnews-top-stories", name: "NDTV Top Stories", cat: "india" },
-    { url: "https://feeds.feedburner.com/ndtvnews-india-news", name: "NDTV India", cat: "india" },
-    { url: "https://www.indiatoday.in/rss/home", name: "India Today", cat: "india" },
+    { url: "https://feeds.feedburner.com/ndtvnews-world-news", name: "NDTV World", cat: "india" },
+    { url: "https://www.indiatoday.in/rss/1206514", name: "India Today Israel", cat: "india" },
+    { url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms", name: "Times of India", cat: "india" },
+    { url: "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms", name: "TOI World", cat: "india" },
     { url: "https://indianexpress.com/feed/", name: "The Indian Express", cat: "india" },
     { url: "https://economictimes.indiatimes.com/rssfeedstopstories.cms", name: "Economic Times", cat: "india" },
-    { url: "https://www.livemint.com/rss/news", name: "LiveMint", cat: "india" },
-    { url: "https://theprint.in/feed/", name: "The Print", cat: "india" },
     { url: "https://scroll.in/feed", name: "Scroll.in", cat: "india" },
-    { url: "https://thewire.in/feed", name: "The Wire", cat: "india" },
-    { url: "https://www.news18.com/rss/india.xml", name: "News18 India", cat: "india" },
-    { url: "https://www.business-standard.com/rss/home_page_top_stories.rss", name: "Business Standard", cat: "india" },
-    // ════════════════════════════════════════════════════════
-    // ▸ TWITTER/X — Authentic Sources via RSS Bridge (rsshub.app)
-    //   No API key needed. Silently skipped if unavailable.
-    // ════════════════════════════════════════════════════════
-    { url: "https://rsshub.app/twitter/user/BBCBreaking", name: "BBC Breaking (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/Reuters", name: "Reuters (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/AP", name: "AP News (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/CNN", name: "CNN (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/AlJazeera", name: "Al Jazeera (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/WhiteHouse", name: "White House (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/UN", name: "United Nations (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/WHO", name: "WHO (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/NDTVNews", name: "NDTV (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/the_hindu", name: "The Hindu (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/TGC", name: "Gospel Coalition (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/DesiringGod", name: "Desiring God (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/CBNNews", name: "CBN News (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/thetimes", name: "The Times (Twitter)", cat: "social" },
-    { url: "https://rsshub.app/twitter/user/timesofindia", name: "Times of India (Twitter)", cat: "social" },
+    { url: "https://www.news18.com/rss/world.xml", name: "News18 World", cat: "india" },
     // ════════════════════════════════════════════════════════
     // ▸ CHRISTIAN NEWS
     // ════════════════════════════════════════════════════════
     { url: "https://www.christianitytoday.com/rss/ct.xml", name: "Christianity Today", cat: "news" },
     { url: "https://www.christianpost.com/rss/", name: "Christian Post", cat: "news" },
     { url: "https://www.cbn.com/cbnnews/rss/feed/?type=full", name: "CBN News", cat: "news" },
+    { url: "https://www.cbn.com/cbnnews/israel/rss/feed/?type=full", name: "CBN Israel", cat: "news" },
     { url: "https://crosswalk.com/rss/", name: "Crosswalk", cat: "news" },
     { url: "https://www.christianheadlines.com/rss/", name: "Christian Headlines", cat: "news" },
     { url: "https://relevantmagazine.com/feed/", name: "Relevant Magazine", cat: "news" },
     { url: "https://www.mnnonline.org/feed/", name: "Mission Network News", cat: "missions" },
-    { url: "https://www.cbn.com/cbnnews/israel/rss/feed/?type=full", name: "CBN Israel", cat: "news" },
     { url: "https://www.christianpost.com/rss/section/world/", name: "Christian Post World", cat: "news" },
     { url: "https://www.opendoorsusa.org/feed/", name: "Open Doors", cat: "missions" },
     { url: "https://wng.org/rss", name: "World Mag", cat: "news" },
@@ -118,8 +109,14 @@ const RSS_FEEDS = [
     { url: "https://www.focusonthefamily.com/rss/", name: "Focus on the Family", cat: "family" },
 ];
 
+// ── HIGH-PRIORITY BREAKING NEWS FEEDS (always fetched for news mode) ──────────
+// These are fetched first with no caching for maximum recency
+const BREAKING_FEEDS = RSS_FEEDS.filter(f => f.cat === "breaking");
+
+
 // ── KEYWORD IMPORTANCE WEIGHTS ───────────────────────────────
 // Scores article relevance against a search query
+// Recency is heavily weighted — articles from the last hour score highest
 function scoreArticle(article: RSSArticle, terms: string[]): number {
     const titleLower = article.title.toLowerCase();
     const descLower = article.description.toLowerCase();
@@ -130,22 +127,28 @@ function scoreArticle(article: RSSArticle, terms: string[]): number {
         if (descLower.includes(t)) score += 2;        // desc match
         if (article.source.toLowerCase().includes(t)) score += 1;
     }
-    // Boost recent articles
+    // ── HEAVY RECENCY BOOST ── Articles from last hours get priority
     if (article.pubDate) {
         const age = Date.now() - new Date(article.pubDate).getTime();
+        const minsOld = age / 60_000;
         const hoursOld = age / 3_600_000;
-        if (hoursOld < 6) score += 4;
-        else if (hoursOld < 24) score += 2;
-        else if (hoursOld < 72) score += 1;
+        if (minsOld < 30) score += 12;  // <30 mins — breaking!!
+        else if (hoursOld < 2) score += 8;   // <2 hours  — very fresh
+        else if (hoursOld < 6) score += 5;   // <6 hours  — same day
+        else if (hoursOld < 24) score += 2;   // <24 hours — today
+        else if (hoursOld < 48) score += 0;   // <48 hours — recent
+        else score -= 2;   // older than 2 days — deprioritize
     }
+    // Google News / breaking feeds get a small source boost
+    if (article.category === "breaking") score += 3;
     return score;
 }
 
 // ── PARSE ONE RSS FEED ───────────────────────────────────────
-async function parseFeed(feed: typeof RSS_FEEDS[0]): Promise<RSSArticle[]> {
+async function parseFeed(feed: typeof RSS_FEEDS[0], noCache = false): Promise<RSSArticle[]> {
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
+        const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout (was 8s)
 
         const res = await fetch(feed.url, {
             signal: controller.signal,
@@ -153,7 +156,8 @@ async function parseFeed(feed: typeof RSS_FEEDS[0]): Promise<RSSArticle[]> {
                 "User-Agent": "DailyMannaAI/1.0 (+https://dailymannaai.com/bot)",
                 "Accept": "application/rss+xml, application/xml, text/xml, */*",
             },
-            next: { revalidate: 300 }, // cache 5 minutes
+            // Breaking feeds: no cache. Others: 60s cache (was 300s)
+            next: noCache ? { revalidate: 0 } : { revalidate: 60 },
         });
 
         clearTimeout(timeout);
@@ -200,21 +204,28 @@ export async function searchRSSFeeds(query: string, options: {
     category?: string;
     limit?: number;
 } = {}): Promise<RSSArticle[]> {
-    const { limit = 15 } = options;
+    const { limit = 20 } = options; // Increased from 15 → 20 for better pool
 
-    // Pick feeds — always include news + world + india + social feeds
-    const feeds = options.category && options.category !== "news"
-        ? RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "news" || f.cat === "world" || f.cat === "india")
-        : RSS_FEEDS;
+    // Always fetch breaking feeds first (no cache) + relevant category feeds
+    const breakingFeeds = BREAKING_FEEDS;
+    const otherFeeds = options.category && options.category !== "news"
+        ? RSS_FEEDS.filter(f => f.cat !== "breaking" && (f.cat === options.category || f.cat === "world" || f.cat === "india"))
+        : RSS_FEEDS.filter(f => f.cat !== "breaking"); // avoid duplicates
 
-    // Fetch all feeds in parallel
-    const settled = await Promise.allSettled(feeds.map(parseFeed));
+    // Fetch breaking feeds (no cache) and others (60s cache) in parallel
+    const [breakingSettled, othersSettled] = await Promise.all([
+        Promise.allSettled(breakingFeeds.map(f => parseFeed(f, true))),  // noCache=true
+        Promise.allSettled(otherFeeds.map(f => parseFeed(f, false))),
+    ]);
+
     const all: RSSArticle[] = [];
-    settled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
+    // Breaking feeds first in the pool
+    breakingSettled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
+    othersSettled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
 
     if (all.length === 0) return [];
 
-    // Score + sort by relevance
+    // Score + sort by relevance + recency
     const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
 
     const scored = all
@@ -222,7 +233,7 @@ export async function searchRSSFeeds(query: string, options: {
         .filter(r => r.s > 0)
         .sort((a, b) => b.s - a.s);
 
-    // If NO keyword matches at all, fall back to latest articles
+    // If NO keyword matches, fall back to the most recent articles across all feeds
     if (scored.length === 0) {
         return all
             .filter(a => a.link && a.title)
@@ -240,7 +251,7 @@ export async function searchRSSFeeds(query: string, options: {
 /** Fetch latest Christian news with no query filter */
 export async function getLatestChristianNews(limit = 10): Promise<RSSArticle[]> {
     const newsFeeds = RSS_FEEDS.filter(f => ["news", "missions"].includes(f.cat));
-    const settled = await Promise.allSettled(newsFeeds.map(parseFeed));
+    const settled = await Promise.allSettled(newsFeeds.map(f => parseFeed(f, false)));
     const all: RSSArticle[] = [];
     settled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
 
