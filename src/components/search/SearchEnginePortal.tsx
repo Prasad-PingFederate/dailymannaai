@@ -748,7 +748,7 @@ function Sidebar() {
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
-type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons";
+type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai";
 
 export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
@@ -760,10 +760,22 @@ export default function SearchEnginePortal() {
     const [hasSearched, setHasSearched] = useState(false);
     const [preview, setPreview] = useState<PreviewPanel | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    // AI Mode States
+    const [aiMessages, setAiMessages] = useState<any[]>([]);
+    const [isAiChatting, setIsAiChatting] = useState(false);
+    const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+    const abortAiControllerRef = useRef<AbortController | null>(null);
 
     const handleSearch = useCallback(async (searchQuery: string, searchFilter: FilterType) => {
         const q = searchQuery.trim();
         if (!q) return;
+
+        if (searchFilter === "ai") {
+            handleAiSendMessage(q);
+            return;
+        }
 
         setIsSearching(true);
         try {
@@ -782,7 +794,201 @@ export default function SearchEnginePortal() {
         } finally {
             setIsSearching(false);
         }
-    }, []);
+    }, [aiMessages]);
+
+    const handleAiSendMessage = async (textToSend: string): Promise<string> => {
+        if (!textToSend.trim()) return "";
+
+        let finalResponse = "";
+        const userMessage = { role: "user", content: textToSend };
+        const currentMessages = [...aiMessages, userMessage];
+
+        setAiMessages(currentMessages);
+        setAiSuggestions([]);
+        setQuery("");
+        setIsSearching(true);
+        setIsAiChatting(true);
+        setHasSearched(true);
+
+        // Scroll to bottom
+        setTimeout(() => {
+            chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
+        }, 100);
+
+        // Abort previous if any
+        if (abortAiControllerRef.current) abortAiControllerRef.current.abort();
+        const controller = new AbortController();
+        abortAiControllerRef.current = controller;
+
+        // Add a "Ghost" assistant message immediately
+        setAiMessages(prev => [...prev, {
+            role: "assistant",
+            content: "",
+            thought: "",
+            isThinking: true,
+            thinkingPhase: "Consulting the Scriptures...",
+            researchSteps: [
+                "Opening the Divine archives...",
+                "Cross-referencing KJV context...",
+                "Distilling spiritual wisdom...",
+                "Preparing your revelation..."
+            ]
+        }]);
+
+        try {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: textToSend,
+                    history: aiMessages // Note: currentMessages already has userMessage, but /api/chat might expect history EXCLUDING current user query, or INCLUDING. NotebookCore sends history=currentHistory where currentHistory includes userMessage.
+                }),
+                signal: controller.signal
+            });
+
+            if (!res.ok) throw new Error("Synthesis failure");
+
+            const contentType = res.headers.get("content-type");
+            if (contentType?.includes("application/json")) {
+                const data = await res.json();
+                if (data.role === "assistant") {
+                    setAiMessages(prev => {
+                        const newMsgs = [...prev];
+                        const lastIdx = newMsgs.length - 1;
+                        if (newMsgs[lastIdx].role === "assistant") {
+                            newMsgs[lastIdx] = {
+                                ...newMsgs[lastIdx],
+                                content: data.content,
+                                thought: data.thought,
+                                isThinking: false
+                            };
+                        }
+                        return newMsgs;
+                    });
+                    if (data.suggestions) setAiSuggestions(data.suggestions);
+                    finalResponse = data.content;
+                }
+                setIsAiChatting(false);
+                setIsSearching(false);
+                return finalResponse;
+            }
+
+            // Streaming mode
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error("No stream reader");
+
+            let fullText = "";
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                fullText += chunk;
+
+                let currentThought = "";
+                let currentContent = fullText;
+                let stillThinking = true;
+                let thinkingPhase = "Analyzing...";
+
+                const thoughtStartRegex = /<(THOUGHT|THUGHT|THOHT)>/i;
+                const thoughtEndRegex = /<\/(THOUGHT|THUGHT|THOHT)>/i;
+                const responseStartRegex = /### RESPONSE START ###/i;
+
+                const tStartMatch = fullText.match(thoughtStartRegex);
+                const tEndMatch = fullText.match(thoughtEndRegex);
+                const rStartMatch = fullText.match(responseStartRegex);
+
+                if (tStartMatch) {
+                    const startIndex = tStartMatch.index! + tStartMatch[0].length;
+                    if (tEndMatch) {
+                        const endIndex = tEndMatch.index!;
+                        currentThought = fullText.substring(startIndex, endIndex);
+                        currentContent = fullText.substring(endIndex + tEndMatch[0].length);
+                        stillThinking = false;
+                        thinkingPhase = "Reasoning complete.";
+                    } else {
+                        currentThought = fullText.substring(startIndex);
+                        currentContent = "";
+                        stillThinking = true;
+                        if (currentThought.length > 400) thinkingPhase = "Finalizing synthesis...";
+                        else if (currentThought.length > 150) thinkingPhase = "Cross-referencing Scriptures...";
+                        else thinkingPhase = "Searching truth archives...";
+                    }
+                } else if (rStartMatch) {
+                    currentContent = fullText.substring(rStartMatch.index! + rStartMatch[0].length);
+                    stillThinking = false;
+                    thinkingPhase = "Response generated.";
+                } else {
+                    if (fullText.length < 100 && fullText.includes("<")) {
+                        currentContent = "";
+                        stillThinking = true;
+                        thinkingPhase = "Initializing search...";
+                    } else {
+                        currentContent = fullText;
+                        stillThinking = false;
+                        thinkingPhase = "Speaking...";
+                    }
+                }
+
+                currentContent = currentContent.replace(/### RESPONSE START ###/i, "").trim();
+                currentContent = currentContent.split(/---S[UG]*ESTIONS---/i)[0].trim();
+                currentContent = currentContent.replace(/<\/?(THOUGHT|THUGHT|THOHT)>/gi, "").trim();
+
+                setAiMessages(prev => {
+                    const newMsgs = [...prev];
+                    const lastIdx = newMsgs.length - 1;
+                    if (newMsgs[lastIdx].role === "assistant") {
+                        newMsgs[lastIdx] = {
+                            ...newMsgs[lastIdx],
+                            content: currentContent,
+                            thought: currentThought,
+                            isThinking: stillThinking,
+                            thinkingPhase: thinkingPhase
+                        };
+                    }
+                    return newMsgs;
+                });
+            }
+
+            setAiMessages(prev => {
+                const newMsgs = [...prev];
+                const lastIdx = newMsgs.length - 1;
+                if (newMsgs[lastIdx].role === "assistant") {
+                    newMsgs[lastIdx].isThinking = false;
+                }
+                return newMsgs;
+            });
+
+            // Extract suggestions
+            const suggestionMatch = fullText.match(/---SUGGESTIONS---([\s\S]*?)(?:\[METADATA|$)/i);
+            if (suggestionMatch) {
+                const s = suggestionMatch[1].split("\n").map(line => line.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(l => l.length > 5).slice(0, 3);
+                setAiSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
+            }
+
+        } catch (error: any) {
+            console.error("AI Mode Error:", error);
+            setAiMessages(prev => {
+                const newMsgs = [...prev];
+                const lastIdx = newMsgs.length - 1;
+                if (newMsgs[lastIdx].role === "assistant") {
+                    newMsgs[lastIdx] = {
+                        ...newMsgs[lastIdx],
+                        content: "I'm sorry, I encountered an issue. Please try again.",
+                        isThinking: false
+                    };
+                }
+                return newMsgs;
+            });
+        } finally {
+            setIsAiChatting(false);
+            setIsSearching(false);
+            abortAiControllerRef.current = null;
+        }
+        return finalResponse;
+    };
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -813,11 +1019,14 @@ export default function SearchEnginePortal() {
         setResults([]);
         setSolution(null);
         setInstantAnswer(null);
+        setAiMessages([]);
+        setAiSuggestions([]);
         setTimeout(() => inputRef.current?.focus(), 300);
     };
 
     const FILTERS = [
         { id: "global", label: "All", icon: <Sparkles size={13} /> },
+        { id: "ai", label: "AI Mode", icon: <Zap size={13} className="text-sky-400" /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
         { id: "devotionals", label: "Devotionals", icon: <Quote size={13} /> },
@@ -940,9 +1149,84 @@ export default function SearchEnginePortal() {
 
                 {/* ── RESULTS AREA ── */}
                 {hasSearched && (
-                    <div className="w-full max-w-7xl px-4 md:px-8 mt-14 pb-32">
-                        {isSearching ? (
+                    <div className="w-full max-w-7xl px-4 md:px-8 mt-14 pb-32" ref={chatContainerRef}>
+                        {isSearching && filter !== "ai" ? (
                             <LoadingState />
+                        ) : filter === "ai" ? (
+                            <div className="max-w-5xl mx-auto space-y-16">
+                                {aiMessages.map((msg, i) => (
+                                    <div key={i} className={`flex gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-[#0a0f1e] border border-white/10 text-sky-400 shadow-xl'}`}>
+                                            {msg.role === 'user' ? (
+                                                <div className="font-['Cinzel'] font-black text-xl">U</div>
+                                            ) : (
+                                                <Sparkles size={24} className="animate-pulse" />
+                                            )}
+                                        </div>
+
+                                        <div className={`flex flex-col gap-4 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
+                                            <div className={`relative p-10 md:p-14 rounded-[3.5rem] overflow-hidden backdrop-blur-3xl transition-all duration-500 ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-white' : 'bg-gradient-to-br from-white/[0.03] via-[#0a0f1e] to-transparent border border-white/[0.08]'}`}>
+
+                                                {/* Ambient background for AI messages */}
+                                                {msg.role === 'assistant' && (
+                                                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
+                                                )}
+
+                                                {msg.role === 'assistant' && (msg.thought || msg.isThinking) && (
+                                                    <div className="mb-10">
+                                                        <details className="group" open={msg.isThinking}>
+                                                            <summary className="flex items-center gap-4 px-6 py-4 rounded-3xl bg-sky-500/[0.07] border border-sky-400/20 cursor-pointer hover:bg-sky-500/15 transition-all list-none">
+                                                                <div className={`w-2.5 h-2.5 rounded-full ${msg.isThinking ? 'bg-sky-400 animate-pulse' : 'bg-sky-400/50'}`} />
+                                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-sky-400">
+                                                                    {msg.isThinking ? (msg.thinkingPhase || "Seeking Divine Wisdom...") : "View Spiritual Insight"}
+                                                                </span>
+                                                                <ChevronRight size={16} className="ml-auto text-sky-500/40 group-open:rotate-90 transition-transform" />
+                                                            </summary>
+                                                            <div className="mt-6 p-8 rounded-3xl bg-black/40 border border-white/5 text-sm md:text-base font-serif italic text-slate-400 leading-relaxed whitespace-pre-wrap">
+                                                                {msg.thought}
+                                                                {msg.isThinking && <span className="inline-block w-2.5 h-5 bg-sky-500/50 ml-1 animate-pulse" />}
+                                                            </div>
+                                                        </details>
+                                                    </div>
+                                                )}
+
+                                                {msg.role === 'assistant' && (
+                                                    <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">Divine Perspective</div>
+                                                )}
+
+                                                <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-100 font-serif italic'}`}>
+                                                    {msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
+                                                </div>
+                                            </div>
+
+                                            {/* Suggestions for last message */}
+                                            {i === aiMessages.length - 1 && aiSuggestions.length > 0 && !isAiChatting && (
+                                                <div className="flex flex-wrap gap-3 mt-8">
+                                                    {aiSuggestions.map((s, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => handleAiSendMessage(s)}
+                                                            className="px-8 py-4 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-sky-500/40 hover:bg-sky-500/10 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-sky-400 transition-all active:scale-95"
+                                                        >
+                                                            {s}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {isAiChatting && (
+                                    <div className="flex flex-col items-center gap-4 py-16">
+                                        <div className="flex gap-2.5">
+                                            {[0, 1, 2].map(d => (
+                                                <div key={d} className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
+                                            ))}
+                                        </div>
+                                        <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
+                                    </div>
+                                )}
+                            </div>
                         ) : hasContent ? (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
