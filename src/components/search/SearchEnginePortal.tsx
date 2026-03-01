@@ -763,6 +763,7 @@ export default function SearchEnginePortal() {
     const [preview, setPreview] = useState<PreviewPanel | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const studioRef = useRef<HTMLDivElement>(null);
 
     // AI Mode States
     const [aiMessages, setAiMessages] = useState<any[]>([]);
@@ -1002,6 +1003,15 @@ export default function SearchEnginePortal() {
         if (query.trim() && hasSearched) handleSearch(query, f);
     };
 
+    // Auto-scroll to Image Studio when selected
+    useEffect(() => {
+        if (filter === "studio") {
+            setTimeout(() => {
+                studioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 150);
+        }
+    }, [filter]);
+
     const openPreview = useCallback((r: SearchResult) => {
         const cleanUrl = sanitizeUrl(r.link) ?? bibleGatewayLink(r.title);
         setPreview({
@@ -1028,7 +1038,7 @@ export default function SearchEnginePortal() {
 
     const FILTERS = [
         { id: "global", label: "All", icon: <Sparkles size={13} /> },
-        { id: "ai", label: "AI Mode", icon: <Zap size={13} className="text-sky-400" /> },
+        { id: "ai", label: "AI Mode", icon: <Zap size={13} className="text-black" /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
         { id: "devotionals", label: "Devotionals", icon: <Quote size={13} /> },
@@ -1046,9 +1056,9 @@ export default function SearchEnginePortal() {
 
             {/* Ambient blobs */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-sky-600/[0.04] rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-indigo-600/[0.04] rounded-full blur-[120px]" />
-                <div className="absolute top-[40%] left-[45%] w-[20%] h-[20%] bg-violet-500/[0.03] rounded-full blur-[80px]" />
+                <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-slate-200/20 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-slate-100/20 rounded-full blur-[120px]" />
+                <div className="absolute top-[40%] left-[45%] w-[20%] h-[20%] bg-slate-50/10 rounded-full blur-[80px]" />
             </div>
 
             {/* ── HEADER (post-search) ── */}
@@ -1057,9 +1067,9 @@ export default function SearchEnginePortal() {
                            border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
                     <button
                         onClick={resetSearch}
-                        className="font-['Cinzel'] text-xl font-black tracking-tight hover:text-sky-400 transition-colors"
+                        className="font-['Cinzel'] text-xl font-black tracking-tight hover:text-black transition-colors"
                     >
-                        DAILY<span className="text-sky-400">MANNA</span>AI
+                        DAILY<span className="text-black">MANNA</span>AI
                     </button>
                     {/* Notebook link moved to filter tabs */}
                 </header>
@@ -1072,13 +1082,13 @@ export default function SearchEnginePortal() {
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-7 mb-16 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-500/10
-                            border border-sky-500/20 text-[10px] font-black tracking-[0.4em] text-sky-400 uppercase">
-                            <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100
+                            border border-slate-200 text-[10px] font-black tracking-[0.4em] text-slate-500 uppercase">
+                            <div className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
                             Powered by 5!4!3!2!1! Model
                         </div>
                         <h1 className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter text-slate-900 drop-shadow-xl leading-none">
-                            DAILY<span className="text-sky-500">MANNA</span>AI
+                            DAILY<span className="text-black">MANNA</span>AI
                         </h1>
                         <p className="text-slate-400 max-w-md mx-auto text-lg font-medium italic leading-relaxed">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
@@ -1095,7 +1105,7 @@ export default function SearchEnginePortal() {
                          focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30
                          shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
                         >
-                            <Search className="text-sky-400 w-5 h-5 flex-shrink-0" />
+                            <Search className="text-slate-900 w-5 h-5 flex-shrink-0" />
                             <input
                                 ref={inputRef}
                                 autoFocus
@@ -1117,9 +1127,9 @@ export default function SearchEnginePortal() {
                             )}
                             <button
                                 type="submit"
-                                className="bg-sky-500 hover:bg-sky-400 active:bg-sky-600 text-white font-black px-7 py-3
+                                className="bg-black hover:bg-slate-800 active:bg-slate-900 text-white font-black px-7 py-3
                            rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95
-                           shadow-lg shadow-sky-500/25"
+                           shadow-lg shadow-black/25"
                             >
                                 Search
                             </button>
@@ -1139,9 +1149,9 @@ export default function SearchEnginePortal() {
                                     {f.id === "news" && (
                                         <Link
                                             href="/notebook"
-                                            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-white text-[10px] font-black uppercase tracking-widest transition-all duration-200 whitespace-nowrap"
+                                            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-black text-[10px] font-black uppercase tracking-widest transition-all duration-200 whitespace-nowrap shadow-sm"
                                         >
-                                            <MessageCircle size={13} className="text-sky-400" /> Notebook
+                                            <MessageCircle size={13} className="text-black" /> Notebook
                                         </Link>
                                     )}
                                 </React.Fragment>
@@ -1231,7 +1241,7 @@ export default function SearchEnginePortal() {
                                 )}
                             </div>
                         ) : filter === "studio" ? (
-                            <div className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px]">
+                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
                                 <BibleQuoteGenerator />
                             </div>
                         ) : hasContent ? (

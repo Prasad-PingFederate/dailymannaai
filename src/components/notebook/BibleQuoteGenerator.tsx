@@ -402,7 +402,7 @@ async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, t
 function SectionTitle({ icon, title }: { icon: string, title: string }) {
     return (
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ color: "#0284c7", fontSize: 16 }}>{icon}</span>
+            <span style={{ color: "#000000", fontSize: 16 }}>{icon}</span>
             <span
                 style={{
                     fontSize: 11,
@@ -640,11 +640,11 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                         ...catBtn as any,
                                         background:
                                             s.category === cat.id
-                                                ? "#f0f9ff"
+                                                ? "#000000"
                                                 : "#ffffff",
-                                        border: `1px solid ${s.category === cat.id ? "#0ea5e9" : "#e2e8f0"}`,
-                                        color: s.category === cat.id ? "#0369a1" : "#64748b",
-                                        boxShadow: s.category === cat.id ? "0 4px 12px rgba(14,165,233,0.15)" : "none",
+                                        border: `1px solid ${s.category === cat.id ? "#000000" : "#e2e8f0"}`,
+                                        color: s.category === cat.id ? "#ffffff" : "#64748b",
+                                        boxShadow: s.category === cat.id ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
                                     }}
                                 >
                                     <span style={{ fontSize: 18, marginBottom: 4 }}>{cat.icon}</span>
@@ -974,17 +974,18 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                 onChange={(e) => setState((st) => ({ ...st, quote: e.target.value }))}
                                 rows={4}
                                 style={{
-                                    background: "rgba(255,255,255,0.04)",
-                                    border: "1px solid rgba(201,168,76,0.2)",
-                                    borderRadius: 8,
-                                    padding: "12px 14px",
-                                    color: "#f5e6c8",
-                                    fontSize: 14,
-                                    fontFamily: "Georgia, serif",
+                                    background: "#ffffff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 12,
+                                    padding: "16px",
+                                    color: "#000000",
+                                    fontSize: "15px",
+                                    fontFamily: "inherit",
                                     fontStyle: "italic",
                                     resize: "vertical",
                                     lineHeight: 1.6,
                                     outline: "none",
+                                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)"
                                 }}
                             />
                             <input
@@ -993,13 +994,13 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                 onChange={(e) => setState((st) => ({ ...st, reference: e.target.value }))}
                                 placeholder="Reference (e.g. John 3:16)"
                                 style={{
-                                    background: "rgba(255,255,255,0.04)",
-                                    border: "1px solid rgba(201,168,76,0.2)",
-                                    borderRadius: 8,
-                                    padding: "10px 14px",
-                                    color: "#c9a84c",
+                                    background: "#ffffff",
+                                    border: "1px solid #e2e8f0",
+                                    borderRadius: 12,
+                                    padding: "12px 16px",
+                                    color: "#000000",
                                     fontSize: 14,
-                                    fontFamily: "Georgia, serif",
+                                    fontFamily: "inherit",
                                     fontWeight: "bold",
                                     outline: "none",
                                 }}
@@ -1007,17 +1008,17 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                             {s.reflection && (
                                 <div
                                     style={{
-                                        background: "rgba(201,168,76,0.05)",
-                                        border: "1px solid rgba(201,168,76,0.15)",
-                                        borderRadius: 8,
-                                        padding: "10px 14px",
+                                        background: "#f8fafc",
+                                        border: "1px solid #e2e8f0",
+                                        borderRadius: 12,
+                                        padding: "14px 18px",
                                         fontSize: 13,
-                                        color: "#a89050",
+                                        color: "#475569",
                                         fontStyle: "italic",
                                         lineHeight: 1.5,
                                     }}
                                 >
-                                    <span style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "#7a6a40" }}>
+                                    <span style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: "#94a3b8", fontWeight: "900" }}>
                                         Reflection ·{" "}
                                     </span>
                                     {s.reflection}
@@ -1121,20 +1122,21 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                             onClick={handleDownload}
                             style={{
                                 flex: 1,
-                                background: "linear-gradient(135deg, #c9a84c, #f0c060)",
+                                background: "#000000",
                                 border: "none",
-                                borderRadius: 10,
-                                padding: "14px",
-                                color: "#1a0a2e",
+                                borderRadius: 12,
+                                padding: "16px",
+                                color: "#ffffff",
                                 fontSize: 14,
                                 fontWeight: "bold",
-                                fontFamily: "Georgia, serif",
+                                fontFamily: "inherit",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 gap: 8,
-                                boxShadow: "0 4px 20px rgba(201,168,76,0.3)",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                transition: "all 0.2s"
                             }}
                         >
                             ⬇ Download PNG
@@ -1143,13 +1145,14 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                             onClick={handleCopyImage}
                             style={{
                                 flex: 1,
-                                background: "rgba(201,168,76,0.1)",
-                                border: "1px solid rgba(201,168,76,0.3)",
-                                borderRadius: 10,
-                                padding: "14px",
-                                color: ui.copied ? "#86efac" : "#c9a84c",
+                                background: "#ffffff",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: 12,
+                                padding: "16px",
+                                color: ui.copied ? "#10b981" : "#000000",
                                 fontSize: 14,
-                                fontFamily: "Georgia, serif",
+                                fontWeight: "bold",
+                                fontFamily: "inherit",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
