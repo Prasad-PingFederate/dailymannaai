@@ -223,81 +223,12 @@ Provide exactly 3 Bible connections, using the most relevant prophecy scriptures
 
         const { stream, provider } = await generateGroundedStream(enhancedQuery, combinedSources, webContext + newsContext, history, standaloneQuery, "");
 
-        // If news mode, return JSON with news articles embedded (no stream)
-        if (isNewsMode && newsArticles.length > 0) {
-            // Collect the full streamed response
-            const decoder = new TextDecoder();
-            let fullText = "";
-            const reader = (stream as any).getReader?.();
-            if (reader) {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    fullText += decoder.decode(value, { stream: true });
-                }
-            }
-
-            // ── Parse structured BIBLE_CONNECTIONS block ─────────────────────────
-            let bibleConnections: { reference: string; verse: string; connection: string }[] = [];
-            const bcMatch = fullText.match(/---BIBLE_CONNECTIONS---([\.\s\S]*?)---BIBLE_CONNECTIONS_END---/i);
-            if (bcMatch) {
-                const bcBlock = bcMatch[1];
-                const entryRegex = /REF:\s*([^\n]+)\nVERSE:\s*([^\n]+)\nCONNECTION:\s*([^\n-]+)/gi;
-                let em: RegExpExecArray | null;
-                while ((em = entryRegex.exec(bcBlock)) !== null) {
-                    bibleConnections.push({
-                        reference: em[1].trim().replace(/^\[|\]$/g, ""),
-                        verse: em[2].trim().replace(/^\[|\]$/g, ""),
-                        connection: em[3].trim().replace(/^\[|\]$/g, ""),
-                    });
-                }
-            }
-
-            // Clean up the AI response text
-            let aiContent = fullText;
-            aiContent = aiContent.replace(/---BIBLE_CONNECTIONS---[\s\S]*?---BIBLE_CONNECTIONS_END---/gi, "");
-            aiContent = aiContent.replace(/### RESPONSE START ###/gi, "");
-            aiContent = aiContent.split(/---SUGGESTIONS?---/i)[0];
-            aiContent = aiContent.replace(/<\/?TH[A-Z]{1,8}>/gi, "");
-            aiContent = aiContent.replace(/\[METADATA:[^\]]*\]/gi, "");
-            aiContent = aiContent.trim();
-
-            // Extract thought
-            let thought = "";
-            const thoughtMatch = fullText.match(/<TH[A-Z]{1,8}>([.\s\S]*?)<\/TH[A-Z]{1,8}>/i);
-            if (thoughtMatch) thought = thoughtMatch[1].trim();
-
-            const suggestions = isConflictMode
-                ? ["Show me more prophecy verses.", "How should I pray for Israel?", "What does Revelation say about this?"]
-                : ["What does the Bible say about these times?", "How should I pray for the world?", "Show me hope for troubled times."];
-
-            return NextResponse.json({
-                role: "assistant",
-                content: aiContent || "Here is what's happening in the world today, with a spiritual perspective:",
-                thought: thought || "Fetching live news and cross-referencing Bible prophecy...",
-                isNewsMode: true,
-                isConflictMode,
-                bibleConnections,
-                newsArticles: newsArticles.map(a => ({
-                    title: a.title,
-                    description: a.description,
-                    link: a.link,
-                    source: a.source,
-                    pubDate: a.pubDate,
-                    imageUrl: a.imageUrl,
-                    category: a.category,
-                })),
-                suggestions,
-                metadata: { search_mode: isConflictMode ? "PROPHETIC_NEWS" : "NEWS_AI", provider }
-            });
-        }
-
         // Prepare metadata and research steps for the frontend
         const researchSteps = [
             `Distilled intent: "${finalStandalone}"`,
             `Found ${finalChunks.length} relevant context fragments`,
             finalWebResults.length > 0 ? `Integrated ${finalWebResults.length} external truth-points` : "Verified with internal canonical archives",
-            "Sovereign Reasoning Mode Active"
+            isNewsMode ? "Prophetic News Sentinel Active" : "Sovereign Reasoning Mode Active"
         ];
 
         const citations = finalChunks.map((c: any) => ({
@@ -307,6 +238,15 @@ Provide exactly 3 Bible connections, using the most relevant prophecy scriptures
         }));
 
         const webLinks = finalWebResults.map((r: any) => ({ title: r.title, url: r.url }));
+        const newsData = isNewsMode ? newsArticles.map(a => ({
+            title: a.title,
+            description: a.description,
+            link: a.link,
+            source: a.source,
+            pubDate: a.pubDate,
+            imageUrl: a.imageUrl,
+            category: a.category,
+        })) : [];
 
         console.log(`[ChatAPI-DNA] Synthesis initiating using ${combinedSources.length} total grounding fragments.`);
 
@@ -315,6 +255,9 @@ Provide exactly 3 Bible connections, using the most relevant prophecy scriptures
                 "Content-Type": "text/plain; charset=utf-8",
                 "Cache-Control": "no-cache",
                 "X-AI-Provider": provider,
+                "X-Is-News-Mode": isNewsMode ? "true" : "false",
+                "X-Is-Conflict-Mode": isConflictMode ? "true" : "false",
+                "X-News-Articles": Buffer.from(JSON.stringify(newsData)).toString('base64'),
                 "X-Citations": Buffer.from(JSON.stringify(citations)).toString('base64'),
                 "X-Web-Links": Buffer.from(JSON.stringify(webLinks)).toString('base64'),
                 "X-Research-Steps": Buffer.from(JSON.stringify(researchSteps)).toString('base64')

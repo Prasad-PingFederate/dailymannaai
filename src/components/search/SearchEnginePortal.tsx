@@ -1157,6 +1157,33 @@ export default function SearchEnginePortal() {
             const reader = res.body?.getReader();
             if (!reader) throw new Error("No stream reader");
 
+            // Extract metadata from headers
+            const isNewsModeHeader = res.headers.get("X-Is-News-Mode") === "true";
+            const isConflictModeHeader = res.headers.get("X-Is-Conflict-Mode") === "true";
+            const newsArticlesRaw = res.headers.get("X-News-Articles");
+            let newsArticles = [];
+            if (newsArticlesRaw) {
+                try {
+                    newsArticles = JSON.parse(atob(newsArticlesRaw));
+                } catch (e) { console.warn("News articles parse failure:", e); }
+            }
+
+            if (isNewsModeHeader) {
+                setAiMessages(prev => {
+                    const newMsgs = [...prev];
+                    const lastIdx = newMsgs.length - 1;
+                    if (newMsgs[lastIdx].role === "assistant") {
+                        newMsgs[lastIdx] = {
+                            ...newMsgs[lastIdx],
+                            isNewsMode: true,
+                            isConflictMode: isConflictModeHeader,
+                            newsArticles: newsArticles
+                        };
+                    }
+                    return newMsgs;
+                });
+            }
+
             let fullText = "";
             const decoder = new TextDecoder();
 
@@ -1242,6 +1269,25 @@ export default function SearchEnginePortal() {
                 const lastIdx = newMsgs.length - 1;
                 if (newMsgs[lastIdx].role === "assistant") {
                     newMsgs[lastIdx].isThinking = false;
+
+                    // ── POST-STREAM BIBLE CONNECTIONS PARSER ──
+                    if (isNewsModeHeader) {
+                        const bcMatch = fullText.match(/---BIBLE_CONNECTIONS---([\.\s\S]*?)---BIBLE_CONNECTIONS_END---/i);
+                        if (bcMatch) {
+                            const bcBlock = bcMatch[1];
+                            const entryRegex = /REF:\s*([^\n]+)\nVERSE:\s*([^\n]+)\nCONNECTION:\s*([^\n-]+)/gi;
+                            let em: RegExpExecArray | null;
+                            const bibleConnections = [];
+                            while ((em = entryRegex.exec(bcBlock)) !== null) {
+                                bibleConnections.push({
+                                    reference: em[1].trim().replace(/^\[|\]$/g, ""),
+                                    verse: em[2].trim().replace(/^\[|\]$/g, ""),
+                                    connection: em[3].trim().replace(/^\[|\]$/g, ""),
+                                });
+                            }
+                            newMsgs[lastIdx].bibleConnections = bibleConnections;
+                        }
+                    }
                 }
                 return newMsgs;
             });

@@ -113,6 +113,13 @@ const RSS_FEEDS = [
 // These are fetched first with no caching for maximum recency
 const BREAKING_FEEDS = RSS_FEEDS.filter(f => f.cat === "breaking");
 
+// ── CORE FEEDS: High-quality representative set to speed up default searches ──
+// Fetching 100+ feeds in parallel causes massive latency/timeouts.
+const CORE_FEEDS = [
+    ...BREAKING_FEEDS,
+    ...RSS_FEEDS.filter(f => ["BBC News", "Reuters Top News", "AP Top News", "Times of India", "Christianity Today", "CBN News", "Christian Post"].includes(f.name))
+].slice(0, 20); // Hard limit to 20 for extreme performance
+
 
 // ── KEYWORD IMPORTANCE WEIGHTS ───────────────────────────────
 // Scores article relevance against a search query
@@ -208,20 +215,23 @@ export async function searchRSSFeeds(query: string, options: {
 
     // Always fetch breaking feeds first (no cache) + relevant category feeds
     const breakingFeeds = BREAKING_FEEDS;
-    const otherFeeds = options.category && options.category !== "news"
-        ? RSS_FEEDS.filter(f => f.cat !== "breaking" && (f.cat === options.category || f.cat === "world" || f.cat === "india"))
-        : RSS_FEEDS.filter(f => f.cat !== "breaking"); // avoid duplicates
 
-    // Fetch breaking feeds (no cache) and others (60s cache) in parallel
-    const [breakingSettled, othersSettled] = await Promise.all([
-        Promise.allSettled(breakingFeeds.map(f => parseFeed(f, true))),  // noCache=true
-        Promise.allSettled(otherFeeds.map(f => parseFeed(f, false))),
-    ]);
+    // Optimization: Don't fetch everything. Fetch a smart subset.
+    let targetFeeds = [];
+    if (options.category && options.category !== "news") {
+        targetFeeds = RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "world" || f.cat === "india");
+    } else {
+        targetFeeds = CORE_FEEDS;
+    }
+
+    // Limit absolute number of total feeds to fetch to avoid socket exhaustion
+    const finalFeedList = targetFeeds.slice(0, 25);
+
+    // Fetch combined list in parallel
+    const settled = await Promise.allSettled(finalFeedList.map(f => parseFeed(f, f.cat === "breaking")));
 
     const all: RSSArticle[] = [];
-    // Breaking feeds first in the pool
-    breakingSettled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
-    othersSettled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
+    settled.forEach(r => { if (r.status === "fulfilled") all.push(...r.value); });
 
     if (all.length === 0) return [];
 
