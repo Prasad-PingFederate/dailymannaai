@@ -15,7 +15,7 @@ export interface RSSArticle {
     type: "article";
 }
 
-// ── 50+ LIVE RSS FEEDS: Christian + 25 Major World News (no auth) ────────
+// ── 80+ LIVE RSS FEEDS: World + India + Twitter + Christian (no auth) ────────
 const RSS_FEEDS = [
     // ════════════════════════════════════════════════════════
     // ▸ MAJOR WORLD NEWS — 25 Top Global Sources
@@ -45,6 +45,43 @@ const RSS_FEEDS = [
     { url: "https://abcnews.go.com/abcnews/topstories", name: "ABC News", cat: "world" },
     { url: "https://abcnews.go.com/abcnews/internationalheadlines", name: "ABC News International", cat: "world" },
     { url: "https://www.cbsnews.com/latest/rss/world", name: "CBS News World", cat: "world" },
+    // ════════════════════════════════════════════════════════
+    // ▸ MAJOR INDIAN NEWS — 15 Top Sources
+    // ════════════════════════════════════════════════════════
+    { url: "https://www.thehindu.com/feeder/default.rss", name: "The Hindu", cat: "india" },
+    { url: "https://www.thehindu.com/news/national/feeder/default.rss", name: "The Hindu National", cat: "india" },
+    { url: "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml", name: "Hindustan Times", cat: "india" },
+    { url: "https://www.hindustantimes.com/feeds/rss/world-news/rssfeed.xml", name: "Hindustan Times World", cat: "india" },
+    { url: "https://feeds.feedburner.com/ndtvnews-top-stories", name: "NDTV Top Stories", cat: "india" },
+    { url: "https://feeds.feedburner.com/ndtvnews-india-news", name: "NDTV India", cat: "india" },
+    { url: "https://www.indiatoday.in/rss/home", name: "India Today", cat: "india" },
+    { url: "https://indianexpress.com/feed/", name: "The Indian Express", cat: "india" },
+    { url: "https://economictimes.indiatimes.com/rssfeedstopstories.cms", name: "Economic Times", cat: "india" },
+    { url: "https://www.livemint.com/rss/news", name: "LiveMint", cat: "india" },
+    { url: "https://theprint.in/feed/", name: "The Print", cat: "india" },
+    { url: "https://scroll.in/feed", name: "Scroll.in", cat: "india" },
+    { url: "https://thewire.in/feed", name: "The Wire", cat: "india" },
+    { url: "https://www.news18.com/rss/india.xml", name: "News18 India", cat: "india" },
+    { url: "https://www.business-standard.com/rss/home_page_top_stories.rss", name: "Business Standard", cat: "india" },
+    // ════════════════════════════════════════════════════════
+    // ▸ TWITTER/X — Authentic Sources via RSS Bridge (rsshub.app)
+    //   No API key needed. Silently skipped if unavailable.
+    // ════════════════════════════════════════════════════════
+    { url: "https://rsshub.app/twitter/user/BBCBreaking", name: "BBC Breaking (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/Reuters", name: "Reuters (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/AP", name: "AP News (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/CNN", name: "CNN (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/AlJazeera", name: "Al Jazeera (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/WhiteHouse", name: "White House (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/UN", name: "United Nations (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/WHO", name: "WHO (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/NDTVNews", name: "NDTV (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/the_hindu", name: "The Hindu (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/TGC", name: "Gospel Coalition (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/DesiringGod", name: "Desiring God (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/CBNNews", name: "CBN News (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/thetimes", name: "The Times (Twitter)", cat: "social" },
+    { url: "https://rsshub.app/twitter/user/timesofindia", name: "Times of India (Twitter)", cat: "social" },
     // ════════════════════════════════════════════════════════
     // ▸ CHRISTIAN NEWS
     // ════════════════════════════════════════════════════════
@@ -165,9 +202,9 @@ export async function searchRSSFeeds(query: string, options: {
 } = {}): Promise<RSSArticle[]> {
     const { limit = 15 } = options;
 
-    // Pick feeds — always include news + world feeds for broader coverage
+    // Pick feeds — always include news + world + india + social feeds
     const feeds = options.category && options.category !== "news"
-        ? RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "news" || f.cat === "world")
+        ? RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "news" || f.cat === "world" || f.cat === "india")
         : RSS_FEEDS;
 
     // Fetch all feeds in parallel

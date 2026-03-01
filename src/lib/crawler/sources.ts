@@ -5,7 +5,7 @@
 export interface RSSFeedSource {
     name: string;
     url: string;
-    category: 'news' | 'theology' | 'devotional' | 'sermon' | 'missions' | 'family' | 'apologetics' | 'qa' | 'culture' | 'world';
+    category: 'news' | 'theology' | 'devotional' | 'sermon' | 'missions' | 'family' | 'apologetics' | 'qa' | 'culture' | 'world' | 'india' | 'social';
     priority: number;
     authorityScore: number;
 }
@@ -39,6 +39,45 @@ export const RSS_FEEDS: RSSFeedSource[] = [
     { name: 'ABC News', url: 'https://abcnews.go.com/abcnews/topstories', category: 'world', priority: 1, authorityScore: 9 },
     { name: 'ABC News International', url: 'https://abcnews.go.com/abcnews/internationalheadlines', category: 'world', priority: 2, authorityScore: 8 },
     { name: 'CBS News World', url: 'https://www.cbsnews.com/latest/rss/world', category: 'world', priority: 2, authorityScore: 8 },
+
+    // ══════════════════════════════════════════════════════
+    // --- 15 MAJOR INDIAN NEWS SOURCES ---
+    // ══════════════════════════════════════════════════════
+    { name: 'The Hindu', url: 'https://www.thehindu.com/feeder/default.rss', category: 'india', priority: 1, authorityScore: 10 },
+    { name: 'The Hindu National', url: 'https://www.thehindu.com/news/national/feeder/default.rss', category: 'india', priority: 1, authorityScore: 10 },
+    { name: 'Hindustan Times', url: 'https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml', category: 'india', priority: 1, authorityScore: 9 },
+    { name: 'Hindustan Times World', url: 'https://www.hindustantimes.com/feeds/rss/world-news/rssfeed.xml', category: 'india', priority: 2, authorityScore: 9 },
+    { name: 'NDTV Top Stories', url: 'https://feeds.feedburner.com/ndtvnews-top-stories', category: 'india', priority: 1, authorityScore: 9 },
+    { name: 'NDTV India', url: 'https://feeds.feedburner.com/ndtvnews-india-news', category: 'india', priority: 1, authorityScore: 9 },
+    { name: 'India Today', url: 'https://www.indiatoday.in/rss/home', category: 'india', priority: 1, authorityScore: 9 },
+    { name: 'The Indian Express', url: 'https://indianexpress.com/feed/', category: 'india', priority: 1, authorityScore: 9 },
+    { name: 'Economic Times', url: 'https://economictimes.indiatimes.com/rssfeedstopstories.cms', category: 'india', priority: 1, authorityScore: 8 },
+    { name: 'LiveMint', url: 'https://www.livemint.com/rss/news', category: 'india', priority: 2, authorityScore: 8 },
+    { name: 'The Print', url: 'https://theprint.in/feed/', category: 'india', priority: 2, authorityScore: 8 },
+    { name: 'Scroll.in', url: 'https://scroll.in/feed', category: 'india', priority: 2, authorityScore: 8 },
+    { name: 'The Wire', url: 'https://thewire.in/feed', category: 'india', priority: 2, authorityScore: 7 },
+    { name: 'News18 India', url: 'https://www.news18.com/rss/india.xml', category: 'india', priority: 2, authorityScore: 8 },
+    { name: 'Business Standard', url: 'https://www.business-standard.com/rss/home_page_top_stories.rss', category: 'india', priority: 2, authorityScore: 8 },
+
+    // ══════════════════════════════════════════════════════
+    // --- AUTHENTIC TWITTER/X FEEDS (via rsshub.app bridge, no API key) ---
+    //     Silently ignored if rsshub instance is rate-limited or down.
+    // ══════════════════════════════════════════════════════
+    { name: 'BBC Breaking (Twitter)', url: 'https://rsshub.app/twitter/user/BBCBreaking', category: 'social', priority: 2, authorityScore: 10 },
+    { name: 'Reuters (Twitter)', url: 'https://rsshub.app/twitter/user/Reuters', category: 'social', priority: 2, authorityScore: 10 },
+    { name: 'AP News (Twitter)', url: 'https://rsshub.app/twitter/user/AP', category: 'social', priority: 2, authorityScore: 10 },
+    { name: 'CNN (Twitter)', url: 'https://rsshub.app/twitter/user/CNN', category: 'social', priority: 2, authorityScore: 9 },
+    { name: 'Al Jazeera (Twitter)', url: 'https://rsshub.app/twitter/user/AlJazeera', category: 'social', priority: 2, authorityScore: 9 },
+    { name: 'White House (Twitter)', url: 'https://rsshub.app/twitter/user/WhiteHouse', category: 'social', priority: 2, authorityScore: 9 },
+    { name: 'United Nations (Twitter)', url: 'https://rsshub.app/twitter/user/UN', category: 'social', priority: 2, authorityScore: 9 },
+    { name: 'WHO (Twitter)', url: 'https://rsshub.app/twitter/user/WHO', category: 'social', priority: 2, authorityScore: 9 },
+    { name: 'NDTV (Twitter)', url: 'https://rsshub.app/twitter/user/NDTVNews', category: 'social', priority: 2, authorityScore: 8 },
+    { name: 'The Hindu (Twitter)', url: 'https://rsshub.app/twitter/user/the_hindu', category: 'social', priority: 2, authorityScore: 8 },
+    { name: 'Gospel Coalition (Twitter)', url: 'https://rsshub.app/twitter/user/TGC', category: 'social', priority: 2, authorityScore: 8 },
+    { name: 'Desiring God (Twitter)', url: 'https://rsshub.app/twitter/user/DesiringGod', category: 'social', priority: 2, authorityScore: 8 },
+    { name: 'CBN News (Twitter)', url: 'https://rsshub.app/twitter/user/CBNNews', category: 'social', priority: 2, authorityScore: 8 },
+    { name: 'The Times (Twitter)', url: 'https://rsshub.app/twitter/user/thetimes', category: 'social', priority: 2, authorityScore: 8 },
+    { name: 'Times of India (Twitter)', url: 'https://rsshub.app/twitter/user/timesofindia', category: 'social', priority: 2, authorityScore: 8 },
 
     // ══════════════════════════════════════════════════════
     // --- MAJOR CHRISTIAN NEWS ---
