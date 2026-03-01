@@ -28,33 +28,35 @@ const RSS_FEEDS = [
     { url: "https://news.google.com/rss/search?q=breaking+news+world&hl=en-US&gl=US&ceid=US:en", name: "Google News Breaking", cat: "breaking" },
     { url: "https://news.google.com/rss/search?q=war+military+attack&hl=en-US&gl=US&ceid=US:en", name: "Google News War", cat: "breaking" },
     // ════════════════════════════════════════════════════════
+    // ▸ USA NEWS — Top Pulse
+    // ════════════════════════════════════════════════════════
+    { url: "https://rss.cnn.com/rss/cnn_topstories.rss", name: "CNN USA", cat: "world" },
+    { url: "https://moxie.foxnews.com/google-publisher/latest.xml", name: "Fox News USA", cat: "world" },
+    { url: "https://feeds.washingtonpost.com/rss/national", name: "Washington Post", cat: "world" },
+    { url: "https://www.npr.org/rss/rss.php?id=1001", name: "NPR USA", cat: "world" },
+    { url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", name: "NY Times", cat: "world" },
+    { url: "https://www.usatoday.com/rss/news", name: "USA Today", cat: "world" },
+
+    // ════════════════════════════════════════════════════════
+    // ▸ UK & BRITAIN NEWS — Top Pulse
+    // ════════════════════════════════════════════════════════
+    { url: "https://feeds.bbci.co.uk/news/rss.xml", name: "BBC News UK", cat: "world" },
+    { url: "https://www.theguardian.com/uk/rss", name: "The Guardian UK", cat: "world" },
+    { url: "https://feeds.skynews.com/feeds/rss/uk.xml", name: "Sky News UK", cat: "world" },
+    { url: "https://www.independent.co.uk/news/uk/rss", name: "The Independent UK", cat: "world" },
+    { url: "https://www.standard.co.uk/news/uk/rss", name: "Evening Standard UK", cat: "world" },
+
+    // ════════════════════════════════════════════════════════
+    // ▸ FRANCE NEWS (English Versions)
+    // ════════════════════════════════════════════════════════
+    { url: "https://www.france24.com/en/rss", name: "France 24 World", cat: "world" },
+    { url: "https://www.france24.com/en/france/rss", name: "France 24 News", cat: "world" },
+    { url: "https://www.lemonde.fr/en/rss/full_feed.xml", name: "Le Monde (EN)", cat: "world" },
+    { url: "https://www.rfi.fr/en/rss", name: "RFI (EN)", cat: "world" },
+
+    // ════════════════════════════════════════════════════════
     // ▸ MAJOR WORLD NEWS — Top Global Sources
     // ════════════════════════════════════════════════════════
-    { url: "https://feeds.bbci.co.uk/news/rss.xml", name: "BBC News", cat: "world" },
-    { url: "https://feeds.bbci.co.uk/news/world/rss.xml", name: "BBC World", cat: "world" },
-    { url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml", name: "BBC Middle East", cat: "world" },
-    { url: "https://feeds.reuters.com/reuters/topNews", name: "Reuters Top News", cat: "world" },
-    { url: "https://feeds.reuters.com/reuters/worldNews", name: "Reuters World", cat: "world" },
-    { url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", name: "NY Times", cat: "world" },
-    { url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", name: "NY Times World", cat: "world" },
-    { url: "https://www.theguardian.com/world/rss", name: "The Guardian World", cat: "world" },
-    { url: "http://rss.cnn.com/rss/cnn_topstories.rss", name: "CNN Top Stories", cat: "world" },
-    { url: "http://rss.cnn.com/rss/cnn_world.rss", name: "CNN World", cat: "world" },
-    { url: "https://moxie.foxnews.com/google-publisher/world.xml", name: "Fox News World", cat: "world" },
-    { url: "https://moxie.foxnews.com/google-publisher/latest.xml", name: "Fox News Latest", cat: "world" },
-    { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera", cat: "world" },
-    { url: "https://www.aljazeera.com/xml/rss/all.xml", name: "Al Jazeera ME", cat: "world" },
-    { url: "https://feeds.washingtonpost.com/rss/world", name: "Washington Post World", cat: "world" },
-    { url: "https://www.npr.org/rss/rss.php?id=1001", name: "NPR News", cat: "world" },
-    { url: "https://feeds.skynews.com/feeds/rss/world.xml", name: "Sky News World", cat: "world" },
-    { url: "https://www.dw.com/rss/rss.xml", name: "DW News", cat: "world" },
-    { url: "https://abcnews.go.com/abcnews/topstories", name: "ABC News", cat: "world" },
-    { url: "https://abcnews.go.com/abcnews/internationalheadlines", name: "ABC News International", cat: "world" },
-    { url: "https://www.cbsnews.com/latest/rss/world", name: "CBS News World", cat: "world" },
-    // AP Wire — very fast and frequently updated
-    { url: "https://apnews.com/rss", name: "AP News", cat: "world" },
-    { url: "https://apnews.com/apf-topnews", name: "AP Top News", cat: "world" },
-    { url: "https://apnews.com/apf-intlnews", name: "AP World", cat: "world" },
     // ════════════════════════════════════════════════════════
     // ▸ INDIA NEWS — Priority Sources
     // ════════════════════════════════════════════════════════
@@ -120,12 +122,14 @@ const CORE_FEEDS = [
     RSS_FEEDS.find(f => f.name === "Google News World")!,
     RSS_FEEDS.find(f => f.name === "Google News India")!,
     // Top World Direct Sources
-    ...RSS_FEEDS.filter(f => ["BBC World", "Reuters World", "AP World", "Al Jazeera", "Sky News World"].includes(f.name)),
+    ...RSS_FEEDS.filter(f => ["BBC World", "Reuters World", "AP World", "Al Jazeera", "France 24 World"].includes(f.name)),
+    // Top UK/USA Sources
+    ...RSS_FEEDS.filter(f => ["CNN USA", "Fox News USA", "BBC News UK", "The Guardian UK"].includes(f.name)),
     // Top Christian Direct Sources
     ...RSS_FEEDS.filter(f => ["Christianity Today", "Christian Post", "CBN News", "CBN Israel", "World Mag"].includes(f.name)),
     // Top India Direct Sources
     ...RSS_FEEDS.filter(f => ["India Today", "The Hindu", "Hindustan Times", "NDTV Top Stories", "Times of India"].includes(f.name))
-].filter(Boolean).slice(0, 25);
+].filter(Boolean).slice(0, 30);
 
 
 // ── KEYWORD IMPORTANCE WEIGHTS ───────────────────────────────
