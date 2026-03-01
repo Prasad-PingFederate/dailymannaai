@@ -41,6 +41,43 @@ function dedup(results: SearchResult[]): SearchResult[] {
     });
 }
 
+/**
+ * Ensures results from the same source are not clumped together.
+ * It spreads them out by penalizing consecutive matches from the same host.
+ */
+function diversifyResults(results: SearchResult[]): SearchResult[] {
+    if (results.length < 3) return results;
+    const final: SearchResult[] = [];
+    const pool = [...results];
+    const sourceCounts: Record<string, number> = {};
+
+    while (pool.length > 0) {
+        let bestIdx = -1;
+        let minConsecutive = Infinity;
+
+        // Try to pick the next best result that doesn't match the last 2 sources
+        for (let i = 0; i < Math.min(pool.length, 10); i++) {
+            const source = pool[i].source;
+            const lastOne = final[final.length - 1]?.source;
+            const lastTwo = final[final.length - 2]?.source;
+
+            let penalty = 0;
+            if (source === lastOne) penalty += 5;
+            if (source === lastTwo) penalty += 2;
+
+            if (penalty < minConsecutive) {
+                minConsecutive = penalty;
+                bestIdx = i;
+                if (penalty === 0) break; // Perfect match
+            }
+        }
+
+        if (bestIdx === -1) bestIdx = 0;
+        final.push(pool.splice(bestIdx, 1)[0]);
+    }
+    return final;
+}
+
 const CHRISTIAN_DOMAINS = [
     "christianitytoday.com", "christianpost.com", "cbn.com", "crosswalk.com",
     "thegospelcoalition.org", "desiringgod.org", "relevantmagazine.com",
@@ -269,6 +306,10 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim();
     const type = searchParams.get("type") || "global";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = 12;
+    const offset = (page - 1) * limit;
+
     if (!q) return NextResponse.json({ error: "Query required" }, { status: 400 });
 
     try {
@@ -278,7 +319,7 @@ export async function GET(req: Request) {
 
         // RSS Feed Search (Primary for real-time Christian news)
         const rssCategory = type === "global" ? "news" : type;
-        const rssRaw = await searchRSSFeeds(q, { category: rssCategory, limit: 15 });
+        const rssRaw = await searchRSSFeeds(q, { category: rssCategory, limit: 100 });
         const rssResults: SearchResult[] = rssRaw.map(a => ({
             title: a.title, description: a.description, link: a.link,
             source: a.source, type: a.category || "news", imageUrl: a.imageUrl, pubDate: a.pubDate
@@ -300,12 +341,23 @@ export async function GET(req: Request) {
 
         // NEWS / DEVOTIONALS / SERMONS
         let results: SearchResult[] = dedup([...rssResults]);
-        if (results.length < 5) results = dedup([...results, ...await searchNewsAPI(q, 10)]);
-        if (results.length < 5) results = dedup([...results, ...await searchInternalNews(q)]);
+        if (results.length < 15) results = dedup([...results, ...await searchNewsAPI(q, 15)]);
+        if (results.length < 15) results = dedup([...results, ...await searchInternalNews(q)]);
 
         if (results.length === 0) results = buildFallbackLinks(q);
 
-        return NextResponse.json({ results: results.slice(0, 18), instantAnswer: instantAnswer || bibleInstant });
+        const diversified = diversifyResults(results);
+        const total = diversified.length;
+
+        return NextResponse.json({
+            results: diversified.slice(offset, offset + limit),
+            instantAnswer: instantAnswer || bibleInstant,
+            pagination: {
+                current: page,
+                total: Math.ceil(total / limit),
+                hasMore: offset + limit < total
+            }
+        });
 
     } catch (error: any) {
         console.error("[SearchAPI Error]", error.message);

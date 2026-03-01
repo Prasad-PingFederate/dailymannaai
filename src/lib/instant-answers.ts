@@ -45,35 +45,56 @@ const TZ: Record<string, string> = {
 
 // ── KNOWLEDGE CACHE (Dynamic Factual Quick-Hits) ─────────────
 const KNOWLEDGE_MAP: Record<string, { answer: string; sub: string; link?: string }> = {
-    "usa president": { answer: "Donald J. Trump", sub: "47th President of the United States (Inaugurated Jan 20, 2025)", link: "https://www.whitehouse.gov/administration/president-trump/" },
-    "president of usa": { answer: "Donald J. Trump", sub: "47th President of the United States", link: "https://www.whitehouse.gov/administration/president-trump/" },
-    "us president": { answer: "Donald J. Trump", sub: "47th President of the United States", link: "https://www.whitehouse.gov/administration/president-trump/" },
-    "prime minister of india": { answer: "Narendra Modi", sub: "14th Prime Minister of India since 2014", link: "https://www.pmindia.gov.in/" },
-    "india prime minister": { answer: "Narendra Modi", sub: "Serving since May 2014", link: "https://www.pmindia.gov.in/" },
-    "pm of india": { answer: "Narendra Modi", sub: "Serving since May 2014", link: "https://www.pmindia.gov.in/" },
-    "president of india": { answer: "Droupadi Murmu", sub: "15th President of India since July 2022", link: "https://presidentofindia.nic.in/" },
-    "uk prime minister": { answer: "Keir Starmer", sub: "Prime Minister of the United Kingdom since July 2024", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
-    "prime minister of uk": { answer: "Keir Starmer", sub: "Serving since July 2024", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
-    "france president": { answer: "Emmanuel Macron", sub: "President of France since 2017", link: "https://www.elysee.fr/en/" },
-    "president of france": { answer: "Emmanuel Macron", sub: "Serving since May 2017 · Renaissance Party", link: "https://www.elysee.fr/en/" },
+    // USA
+    "usa president": { answer: "Donald J. Trump", sub: "47th President of the United States · Republican Party (GOP) · Inaugurated Jan 20, 2025", link: "https://www.whitehouse.gov/administration/president-trump/" },
+    "president of usa": { answer: "Donald J. Trump", sub: "47th President of the United States · Republican Party", link: "https://www.whitehouse.gov/administration/president-trump/" },
+    "us president": { answer: "Donald J. Trump", sub: "47th President of the United States · GOP", link: "https://www.whitehouse.gov/administration/president-trump/" },
+    "vice president of usa": { answer: "J.D. Vance", sub: "Vice President of the United States · Republican Party", link: "https://www.whitehouse.gov/vance/" },
+
+    // INDIA
+    "prime minister of india": { answer: "Narendra Modi", sub: "14th Prime Minister of India since 2014 · Bharatiya Janata Party (BJP)", link: "https://www.pmindia.gov.in/" },
+    "india prime minister": { answer: "Narendra Modi", sub: "Serving since May 2014 · BJP Leader", link: "https://www.pmindia.gov.in/" },
+    "pm of india": { answer: "Narendra Modi", sub: "Serving since May 2014 · BJP", link: "https://www.pmindia.gov.in/" },
+    "president of india": { answer: "Droupadi Murmu", sub: "15th President of India since July 2022 · BJP", link: "https://presidentofindia.nic.in/" },
+
+    // UK
+    "uk prime minister": { answer: "Keir Starmer", sub: "Prime Minister of the United Kingdom since July 2024 · Labour Party", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
+    "prime minister of uk": { answer: "Keir Starmer", sub: "Serving since July 2024 · Labour Party", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
+    "british pm": { answer: "Keir Starmer", sub: "Labour Party Leader · 10 Downing Street", link: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street" },
+
+    // FRANCE
+    "france president": { answer: "Emmanuel Macron", sub: "President of France since 2017 · Renaissance Party", link: "https://www.elysee.fr/en/" },
+    "president of france": { answer: "Emmanuel Macron", sub: "Serving since May 2017 · Renaissance Party (En Marche!)", link: "https://www.elysee.fr/en/" },
+    "france prime minister": { answer: "Michel Barnier", sub: "Prime Minister of France since Sept 2024 · The Republicans (LR)", link: "https://www.gouvernement.fr/en" },
+
+    // ISRAEL
     "israel prime minister": { answer: "Benjamin Netanyahu", sub: "Prime Minister of Israel · Likud Party", link: "https://www.gov.il/en/departments/prime_ministers_office" },
-    "prime minister of israel": { answer: "Benjamin Netanyahu", sub: "Serving since Dec 2022", link: "https://www.gov.il/en/departments/prime_ministers_office" },
-    "canada prime minister": { answer: "Justin Trudeau", sub: "Prime Minister of Canada · Liberal Party", link: "https://pm.gc.ca/" },
-    "prime minister of canada": { answer: "Justin Trudeau", sub: "Serving since 2015", link: "https://pm.gc.ca/" },
-    "australia prime minister": { answer: "Anthony Albanese", sub: "Prime Minister of Australia · Labor Party", link: "https://www.pm.gov.au/" },
-    "prime minister of australia": { answer: "Anthony Albanese", sub: "Serving since 2022", link: "https://www.pm.gov.au/" },
-    "germany chancellor": { answer: "Olaf Scholz", sub: "Chancellor of Germany · SPD", link: "https://www.bundeskanzler.de/bk-en" },
-    "chancellor of germany": { answer: "Olaf Scholz", sub: "Serving since 2021", link: "https://www.bundeskanzler.de/bk-en" },
-    "japan prime minister": { answer: "Shigeru Ishiba", sub: "Prime Minister of Japan · Liberal Democratic Party", link: "https://www.kantei.go.jp/foreign/index-e.html" },
-    "prime minister of japan": { answer: "Shigeru Ishiba", sub: "Serving since Oct 2024", link: "https://www.kantei.go.jp/foreign/index-e.html" },
-    "brazil president": { answer: "Luiz Inácio Lula da Silva", sub: "President of Brazil · Workers' Party", link: "https://www.gov.br/planalto/pt-br" },
-    "president of brazil": { answer: "Luiz Inácio Lula da Silva", sub: "Serving since 2023", link: "https://www.gov.br/planalto/pt-br" },
-    "russia president": { answer: "Vladimir Putin", sub: "President of Russia · Independent/United Russia", link: "http://en.kremlin.ru/" },
-    "president of russia": { answer: "Vladimir Putin", sub: "Serving since 2012", link: "http://en.kremlin.ru/" },
-    "china president": { answer: "Xi Jinping", sub: "President of China · Communist Party", link: "http://english.www.gov.cn/" },
-    "president of china": { answer: "Xi Jinping", sub: "Serving since 2013", link: "http://english.www.gov.cn/" },
-    "pakistan prime minister": { answer: "Shehbaz Sharif", sub: "Prime Minister of Pakistan · PML-N", link: "https://pmo.gov.pk/" },
-    "prime minister of pakistan": { answer: "Shehbaz Sharif", sub: "Serving since 2024", link: "https://pmo.gov.pk/" },
+    "prime minister of israel": { answer: "Benjamin Netanyahu", sub: "Serving since Dec 2022 · Likud Party", link: "https://www.gov.il/en/departments/prime_ministers_office" },
+    "president of israel": { answer: "Isaac Herzog", sub: "President of Israel since July 2021", link: "https://www.president.gov.il/" },
+
+    // CANADA
+    "canada prime minister": { answer: "Justin Trudeau", sub: "Prime Minister of Canada · Liberal Party of Canada", link: "https://pm.gc.ca/" },
+    "prime minister of canada": { answer: "Justin Trudeau", sub: "Serving since 2015 · Liberal Party", link: "https://pm.gc.ca/" },
+
+    // AUSTRALIA
+    "australia prime minister": { answer: "Anthony Albanese", sub: "Prime Minister of Australia · Australian Labor Party (ALP)", link: "https://www.pm.gov.au/" },
+    "prime minister of australia": { answer: "Anthony Albanese", sub: "Serving since May 2022 · ALP", link: "https://www.pm.gov.au/" },
+
+    // GERMANY
+    "germany chancellor": { answer: "Olaf Scholz", sub: "Chancellor of Germany · Social Democratic Party of Germany (SPD)", link: "https://www.bundeskanzler.de/bk-en" },
+    "chancellor of germany": { answer: "Olaf Scholz", sub: "Serving since 2021 · SPD", link: "https://www.bundeskanzler.de/bk-en" },
+
+    // JAPAN
+    "japan prime minister": { answer: "Shigeru Ishiba", sub: "Prime Minister of Japan · Liberal Democratic Party (LDP)", link: "https://www.kantei.go.jp/foreign/index-e.html" },
+    "prime minister of japan": { answer: "Shigeru Ishiba", sub: "Serving since Oct 2024 · LDP", link: "https://www.kantei.go.jp/foreign/index-e.html" },
+
+    // WORLD FACTS
+    "tallest building": { answer: "Burj Khalifa", sub: "Located in Dubai, UAE · 828 meters (2,717 feet) tall", link: "https://www.burjkhalifa.ae/" },
+    "largest country": { answer: "Russia", sub: "Total area of approximately 17.1 million square kilometers", link: "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area" },
+    "most populous country": { answer: "India", sub: "Population approx. 1.43 billion (2024 estimate)", link: "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population" },
+    "capital of india": { answer: "New Delhi", sub: "Capital of the Republic of India", link: "https://en.wikipedia.org/wiki/New_Delhi" },
+    "capital of usa": { answer: "Washington, D.C.", sub: "District of Columbia · United States Capital", link: "https://en.wikipedia.org/wiki/Washington,_D.C." },
+    "capital of israel": { answer: "Jerusalem", sub: "Capital city of Israel", link: "https://en.wikipedia.org/wiki/Jerusalem" },
 };
 
 function findTZ(location: string): string {

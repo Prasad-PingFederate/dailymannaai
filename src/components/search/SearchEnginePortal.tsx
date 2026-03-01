@@ -494,6 +494,60 @@ function InstantAnswerWidget({ data }: { data: any }) {
     );
 }
 
+// ─── PAGINATION WIDGET ────────────────────────────────────────────────────────
+function PaginationWidget({ current, total, hasMore, onPageChange }: { current: number, total: number, hasMore: boolean, onPageChange: (p: number) => void }) {
+    if (total <= 1) return null;
+    const pages = Array.from({ length: Math.min(total, 10) }, (_, i) => i + 1);
+
+    return (
+        <div className="flex flex-col items-center justify-center space-y-6 py-16 border-t border-slate-100 mt-12">
+            <div className="flex items-baseline space-x-1.5 mb-2 select-none">
+                <span className="text-3xl font-black text-sky-600">M</span>
+                <span className="text-2xl font-bold text-red-500">a</span>
+                <span className="text-2xl font-bold text-amber-500">n</span>
+                <span className="text-2xl font-bold text-sky-600">n</span>
+                <span className="text-2xl font-bold text-green-500">a</span>
+                <span className="text-2xl font-bold text-sky-600">a</span>
+                <span className="text-2xl font-bold text-red-500">a</span>
+                <span className="text-lg font-black text-slate-300 ml-2 tracking-widest uppercase">Search</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+                {current > 1 && (
+                    <button
+                        onClick={() => onPageChange(current - 1)}
+                        className="px-5 py-2.5 text-xs font-black text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-all uppercase tracking-widest"
+                    >
+                        Previous
+                    </button>
+                )}
+
+                {pages.map(p => (
+                    <button
+                        key={p}
+                        onClick={() => onPageChange(p)}
+                        className={`w-11 h-11 flex items-center justify-center rounded-xl text-sm font-black transition-all
+                            ${current === p
+                                ? "bg-slate-900 text-white shadow-2xl scale-110"
+                                : "text-slate-400 hover:bg-slate-100 hover:text-slate-900"}`}
+                    >
+                        {p}
+                    </button>
+                ))}
+
+                {hasMore && (
+                    <button
+                        onClick={() => onPageChange(current + 1)}
+                        className="px-5 py-2.5 text-xs font-black text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-all uppercase tracking-widest"
+                    >
+                        Next
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ─── SOLUTION DASHBOARD ───────────────────────────────────────────────────────
 
 function SolutionDashboard({
@@ -972,6 +1026,7 @@ export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
     const [filter, setFilter] = useState<FilterType>("global");
     const [results, setResults] = useState<SearchResult[]>([]);
+    const [pagination, setPagination] = useState<{ current: number, total: number, hasMore: boolean } | null>(null);
     const [solution, setSolution] = useState<any>(null);
     const [instantAnswer, setInstantAnswer] = useState<any>(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -1040,7 +1095,7 @@ export default function SearchEnginePortal() {
         return () => clearInterval(poll);
     }, [alertsEnabled]);
 
-    const handleSearch = useCallback(async (searchQuery: string, searchFilter: FilterType) => {
+    const handleSearch = useCallback(async (searchQuery: string, searchFilter: FilterType, pageNumber: number = 1) => {
         const q = searchQuery.trim();
         if (!q) return;
 
@@ -1050,17 +1105,22 @@ export default function SearchEnginePortal() {
         }
 
         setIsSearching(true);
+        // Scroll to top on page change
+        if (pageNumber > 1) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
         try {
-            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=${searchFilter}`);
+            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=${searchFilter}&page=${pageNumber}`);
             const data = await res.json();
             if (res.ok) {
-                // Ensure results is always an array to prevent .length or .map crashes
                 setResults(Array.isArray(data?.results) ? data.results : []);
                 setInstantAnswer(data?.instantAnswer || null);
                 setSolution(data?.solution || null);
+                setPagination(data?.pagination || null);
                 setHasSearched(true);
             } else {
-                console.error("Search failed with status:", res.status);
+                console.error("Search failed:", res.status);
                 setResults([]);
             }
         } catch (err) {
@@ -1069,7 +1129,7 @@ export default function SearchEnginePortal() {
         } finally {
             setIsSearching(false);
         }
-    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching]);
+    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching, setPagination]);
 
     const handleAiSendMessage = async (textToSend: string): Promise<string> => {
         if (!textToSend.trim()) return "";
@@ -1645,6 +1705,15 @@ export default function SearchEnginePortal() {
                                             {results.map((r, i) => (
                                                 <ResultCard key={i} result={r} onPreview={openPreview} index={i} />
                                             ))}
+
+                                            {pagination && (
+                                                <PaginationWidget
+                                                    current={pagination.current}
+                                                    total={pagination.total}
+                                                    hasMore={pagination.hasMore}
+                                                    onPageChange={(p) => handleSearch(query, filter, p)}
+                                                />
+                                            )}
                                         </div>
                                     )}
                                 </div>
