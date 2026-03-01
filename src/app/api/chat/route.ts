@@ -189,29 +189,35 @@ export async function POST(req: Request) {
         if (isConflictMode && newsArticles.length > 0) {
             enhancedQuery = `${query}
 
-[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: The user wants to understand current world events through a Biblical lens. Based on the news headlines provided:
+[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: Provide a structured response in two clear parts:
 
-1. Write 2-3 sentences summarizing what is currently happening in the world (use the specific headlines above — be brief and factual).
+**PART 1: PROPHETIC WORLD BRIEFING**
+- Based on the news headlines provided above, write a 3-4 sentence summary of what is currently happening in the world, specifically highlighting global conflicts (e.g., Israel-Iran, Russia-Ukraine) and any news related to the persecution or triumphs of Christians. 
+- Use the specific headlines provided — be brief, factual, and sharp.
 
-2. Then write a SPIRITUAL INSIGHT paragraph explaining what these events mean for believers — speak with prophetic authority, compassion, and hope.
+**PART 2: BIBLICAL CONTEXT & THE SECOND COMING**
+- Explain how these specific world events align with Biblical prophecy.
+- Directly connect the current events to signs of the End Times and the promised Second Coming of Jesus Christ. 
+- Speak with prophetic authority, compassion, and the blessed hope of the Gospel. Explain what this means for the world and for believers today.
 
-3. At the end of your response, output a structured block EXACTLY like this (do not skip this — it is mandatory):
+**BIBLE CONNECTIONS (MANDATORY BLOCK)**
+At the end of your response, output a structured block EXACTLY like this:
 
 ---BIBLE_CONNECTIONS---
 REF: [Book Chapter:Verse]
 VERSE: [Quote the KJV verse exactly]
-CONNECTION: [1-2 sentences explaining how this verse connects to today's news]
+CONNECTION: [1-2 sentences explaining how this verse connects specifically to today's news and the second coming]
 ---
 REF: [Book Chapter:Verse]
 VERSE: [Quote the KJV verse exactly]
-CONNECTION: [1-2 sentences explaining how this verse connects to today's news]
+CONNECTION: [1-2 sentences explaining how this verse connects specifically to today's news and the second coming]
 ---
 REF: [Book Chapter:Verse]
 VERSE: [Quote the KJV verse exactly]
-CONNECTION: [1-2 sentences explaining how this verse connects to today's news]
+CONNECTION: [1-2 sentences explaining how this verse connects specifically to today's news and the second coming]
 ---BIBLE_CONNECTIONS_END---
 
-Provide exactly 3 Bible connections, using the most relevant prophecy scriptures from Ezekiel, Zechariah, Matthew 24, Daniel, Revelation, or other prophetic books that directly relate to the current news.`;
+Provide exactly 3 Bible connections, using the most relevant prophecy scriptures from Ezekiel, Zechariah, Matthew 24, Daniel, or Revelation.`;
         } else if (isNewsMode && newsArticles.length > 0) {
             enhancedQuery = `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
         } else {
