@@ -189,19 +189,18 @@ export async function POST(req: Request) {
         if (isConflictMode && newsArticles.length > 0) {
             enhancedQuery = `${query}
 
-[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: Provide a structured response in two clear parts:
+[INSTRUCTION — PROPHETIC NEWS ANALYSIS MODE]: Provide a structured response in two clear parts with a blank line between them:
 
-**PART 1: PROPHETIC WORLD BRIEFING**
-- Based on the news headlines provided above, write a 3-4 sentence summary of what is currently happening in the world, specifically highlighting global conflicts (e.g., Israel-Iran, Russia-Ukraine) and any news related to the persecution or triumphs of Christians. 
-- Use the specific headlines provided — be brief, factual, and sharp.
+**I. PROPHETIC WORLD BRIEFING**
+- Summarize 3-4 key global conflicts (e.g. Israel-Iran, Russia-Ukraine) and Christian news based on the headlines above. Be sharp and factual.
 
-**PART 2: BIBLICAL CONTEXT & THE SECOND COMING**
-- Explain how these specific world events align with Biblical prophecy.
-- Directly connect the current events to signs of the End Times and the promised Second Coming of Jesus Christ. 
-- Speak with prophetic authority, compassion, and the blessed hope of the Gospel. Explain what this means for the world and for believers today.
+(Double Line Break Here)
 
-**BIBLE CONNECTIONS (MANDATORY BLOCK)**
-At the end of your response, output a structured block EXACTLY like this:
+**II. BIBLICAL CONTEXT & THE SECOND COMING**
+- Link these events to End Times signs and the Second Coming of Jesus Christ. Speak with authority and hope.
+
+**BIBLE CONNECTIONS (MANDATORY)**
+At the end, output this EXACT block:
 
 ---BIBLE_CONNECTIONS---
 REF: [Book Chapter:Verse]
