@@ -138,21 +138,30 @@ function scoreArticle(article: RSSArticle, queryKeywords: string[]): number {
     });
 
     // 2. AUTHORITY SCORE (Ranking by Popularity)
-    const fed = RSS_FEEDS.find(f => f.name === article.source);
-    const authority = (fed as any)?.authority || 50;
+    // Find the original feed authority. Note: article.source might be the real name (e.g. "BBC")
+    // but the feed list has "BBC News UK". We do a fuzzy match.
+    const fed = RSS_FEEDS.find(f =>
+        f.name === article.source ||
+        f.name.includes(article.source) ||
+        article.source.includes(f.name)
+    );
+    const authority = (fed as any)?.authority || 70; // 70 is decent base for reputable links
     score += (authority / 5); // 0-20 boost
 
     // 3. RECENCY (Freshness)
     if (article.pubDate) {
         const age = Date.now() - new Date(article.pubDate).getTime();
-        const minsOld = age / 60_000;
-        const hoursOld = age / 3_600_000;
-        if (minsOld < 30) score += 12;
-        else if (hoursOld < 2) score += 8;
-        else if (hoursOld < 12) score += 4;
-        else if (hoursOld < 24) score += 1;
-        else score -= 3;
+        const hrs = age / 3600000;
+        if (hrs < 1) score += 15;
+        else if (hrs < 6) score += 8;
+        else if (hrs < 24) score += 4;
     }
+
+    // 4. DIVERSITY PENALTY (Small penalty for aggregator links if we have direct ones)
+    if (article.link.includes("news.google.com")) {
+        score -= 2;
+    }
+
     return score;
 }
 
@@ -182,7 +191,7 @@ async function parseFeed(feed: typeof RSS_FEEDS[0], noCache = false): Promise<RS
 }
 
 // ── XML PARSER ───────────────────────────────────────────────
-function parseXML(xml: string, sourceName: string, category: string): RSSArticle[] {
+function parseXML(xml: string, defaultSource: string, category: string): RSSArticle[] {
     const articles: RSSArticle[] = [];
     const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
     let match: RegExpExecArray | null;
@@ -195,8 +204,17 @@ function parseXML(xml: string, sourceName: string, category: string): RSSArticle
         const pubDate = getTag(block, "pubDate") || getTag(block, "dc:date") || getTag(block, "updated") || null;
         const imageUrl = extractImage(block, rawDesc);
 
+        // Extract real source from <source> tag (standard in Google News RSS)
+        const detectedSource = getTag(block, "source");
+        const sourceName = detectedSource || defaultSource;
+
         const title = cleanHtml(stripCDATA(rawTitle)).slice(0, 150);
-        const desc = smartTruncate(cleanHtml(stripCDATA(rawDesc)), 280);
+        let desc = cleanHtml(stripCDATA(rawDesc));
+
+        // If desc is just a messy fragment of the title or too short, keep it clean
+        if (desc.length < 10) desc = title;
+        desc = smartTruncate(desc, 280);
+
         const link = sanitizeUrl(stripCDATA(rawLink));
 
         if (title && link) {
@@ -260,7 +278,21 @@ function stripCDATA(s: string): string {
 }
 
 function cleanHtml(html: string): string {
-    return html.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim();
+    if (!html) return "";
+    let text = html;
+    // Handle double-encoded entities (common in Google News RSS)
+    text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+    text = text.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+
+    // Remove scripts and styles
+    text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+    text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+
+    // Strip all HTML tags
+    text = text.replace(/<[^>]+>/g, " ");
+
+    // Final cleanup of extra whitespace
+    return text.replace(/\s{2,}/g, " ").trim();
 }
 
 function smartTruncate(text: string, max: number): string {
