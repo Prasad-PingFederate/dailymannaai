@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
+import DevotionalsTab from "./DevotionalsTab";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -1259,9 +1260,9 @@ export default function SearchEnginePortal() {
                 let stillThinking = true;
                 let thinkingPhase = "Analyzing...";
 
-                // Broad fuzzy regex — catches THOUGHT, THOUG, THUGHT, THGHT, OUG variants, etc.
-                const thoughtStartRegex = /<TH[A-Z]{1,8}>/i;
-                const thoughtEndRegex = /<\/TH[A-Z]{1,8}>/i;
+                // Broad fuzzy regex — catches THOUGHT, THUGHT, THOHT, THGHT, OUG variants, etc.
+                const thoughtStartRegex = /<(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/i;
+                const thoughtEndRegex = /<\/(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/i;
                 const responseStartRegex = /### RESPONSE START ###/i;
 
                 const tStartMatch = fullText.match(thoughtStartRegex);
@@ -1318,14 +1319,13 @@ export default function SearchEnginePortal() {
                     }
                 }
 
-                // ── Nuclear content cleanup: strip ALL thought tags, metadata, suggestions ──
-                // This strips complete tags: <THOUGHT>, </THOHT>, etc.
+                // ── Nuclear content cleanup: strip ALL variations of thought tags, metadata, suggestions ──
                 currentContent = currentContent.replace(/### RESPONSE START ###/gi, "");
                 currentContent = currentContent.split(/---SUGGESTIONS?---/i)[0];
 
-                // Aggressive strip: handles partials like <THOUG, </THOHT even without the closing > 
-                // We use a broad range but keep the < prefix to avoid stripping real words.
-                currentContent = currentContent.replace(/<[\\/]?TH[A-Z]{0,10}(?:>|(?=\s|###|$))/gi, "");
+                // Aggressive strip: handles partials like <THOUG, </OUGHT, even without the closing > 
+                // We use a broad range but keep the < or [ prefix to avoid stripping real words.
+                currentContent = currentContent.replace(/<[\\/ ]*(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH|O)[A-Z]{0,10}(?:>|(?=\s|###|$| ))/gi, "");
 
                 currentContent = currentContent.replace(/\[METADATA:[^\]]*\]/gi, ""); // [METADATA:X=Y]
                 currentContent = currentContent.replace(/\[METADATA:[^\n]*/gi, "");   // partial metadata lines
@@ -1708,6 +1708,10 @@ export default function SearchEnginePortal() {
                                         <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
                                     </div>
                                 )}
+                            </div>
+                        ) : filter === "devotionals" ? (
+                            <div className="w-full">
+                                <DevotionalsTab />
                             </div>
                         ) : filter === "studio" ? (
                             <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">

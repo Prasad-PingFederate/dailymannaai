@@ -787,9 +787,9 @@ It's now part of my collective wisdom!`
                 let stillThinking = true;
                 let thinkingPhase = "Analyzing...";
 
-                // Check for delimiters (case-insensitive + misspellings)
-                const thoughtStartRegex = /<(THOUGHT|THUGHT|THOHT)>/i;
-                const thoughtEndRegex = /<\/(THOUGHT|THUGHT|THOHT)>/i;
+                // Check for delimiters (case-insensitive + broad misspellings)
+                const thoughtStartRegex = /<(THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH|O)[A-Z]*>/i;
+                const thoughtEndRegex = /<\/(THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH|O)[A-Z]*>/i;
                 const responseStartRegex = /### RESPONSE START ###/i;
 
                 const tStartMatch = fullText.match(thoughtStartRegex);
@@ -836,8 +836,8 @@ It's now part of my collective wisdom!`
                 currentContent = currentContent.replace(/\*?\[METADATA:[^\]]*\]\*?/gi, "").trim();
                 currentContent = currentContent.replace(/\[METADATA:/gi, "").trim(); // Catch partials
 
-                // Nuclear option for leftover tags: remove anything like <...> involving THOUGHT/THUGHT/THOHT
-                currentContent = currentContent.replace(/<\/?(THOUGHT|THUGHT|THOHT)>/gi, "").trim();
+                // Nuclear option for leftover tags: remove anything like <...> involving variations of THOUGHT
+                currentContent = currentContent.replace(/<[\\/ ]*(THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH|O)[A-Z]{0,10}(?:>|(?=\s|###|$| ))/gi, "").trim();
 
                 // Remove research pipeline debug lines
                 currentContent = currentContent.replace(/^Distilled intent:.*$/gm, "").trim();

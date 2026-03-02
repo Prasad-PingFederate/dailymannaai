@@ -190,11 +190,19 @@ export async function generateGroundedResponse(query: string, sources: string[],
         // 🧬 CHAIN-OF-THOUGHT EXTRACTION: Pull out the reasoning block (Case-Insensitive + Fallbacks)
         let thought = "";
 
-        // Strategy 1: XML-style tags (Standard)
-        const thoughtMatch = finalResponse.match(/<THOUGHT>([\s\S]*?)<\/THOUGHT>/i);
+        // Strategy 1: XML-style tags (Standard + Broad Fallbacks)
+        const thoughtMatch = finalResponse.match(/<([\\/ ]?(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH))[\s\S]*?>([\s\S]*?)<\/\1>|<\/?(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH)[\s\S]*?>/i);
         if (thoughtMatch) {
-            thought = thoughtMatch[1].trim();
-            finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
+            // If it matched a full block <TAG>content</TAG>
+            if (thoughtMatch[2]) {
+                thought = thoughtMatch[2].trim();
+                finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
+            } else {
+                // If it matched a single tag <TAG> or </TAG> - we try to find the other end if possible, 
+                // but usually this is used as a fallback to just strip the tag itself.
+                thought = ""; // Fallback
+                finalResponse = finalResponse.replace(thoughtMatch[0], "").trim();
+            }
         } else {
             // Strategy 2: Markdown headers (Fallback)
             const mdMatch = finalResponse.match(/(\*\*Thinking\*\*|\*\*Reasoning\*\*|### Thinking):?([\s\S]*?)(?=### RESPONSE START ###|\*\*Answer\*\*|$)/i);
