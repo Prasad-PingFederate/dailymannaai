@@ -1411,7 +1411,14 @@ export default function SearchEnginePortal() {
 
     const onFilterChange = (f: FilterType) => {
         setFilter(f);
-        if (query.trim() && hasSearched) handleSearch(query, f);
+        if (f === "devotionals" || f === "studio" || f === "ai") {
+            setHasSearched(true);
+        } else if (query.trim()) {
+            setHasSearched(true);
+            handleSearch(query, f);
+        } else {
+            setHasSearched(false);
+        }
     };
 
     // Auto-scroll to Image Studio when selected
@@ -1610,7 +1617,7 @@ export default function SearchEnginePortal() {
                 </div>
 
                 {/* ── RESULTS AREA ── */}
-                {(hasSearched || filter === "studio") && (
+                {(hasSearched || filter === "studio" || filter === "devotionals") && (
                     <div className="w-full max-w-7xl px-4 md:px-8 mt-14 pb-32" ref={chatContainerRef}>
                         {isSearching && filter !== "ai" ? (
                             <LoadingState />
