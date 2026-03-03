@@ -1,0 +1,16 @@
+{
+    "name": "DailyMannaAI",
+    "short_name": "DailyManna",
+    "description": "Holy Spirit-Guided Search Engine.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0ea5e9",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}
