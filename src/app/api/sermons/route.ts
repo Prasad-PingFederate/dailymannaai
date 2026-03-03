@@ -1,39 +1,49 @@
+// src/app/api/sermons/route.ts
 import { NextResponse } from "next/server";
 import { getAstraDatabase } from "@/lib/astra-db";
 
 /**
  * GET /api/sermons
- * Fetches all sermons or filtered by speaker from Astra DB.
+ * Fetches sermons from Astra DB.
  */
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const speaker = searchParams.get("speaker");
-        const limit = parseInt(searchParams.get("limit") || "50");
+        // ⚠️ AstraDB Data API max page size is 20 without vector search.
+        // Requesting 500 will cause a 500 error. Cap at 20.
+        const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 20);
 
-        const db = await getAstraDatabase().catch(() => null);
+        const db = await getAstraDatabase().catch((err) => {
+            console.error("[Sermons API] DB connection error:", err.message);
+            return null;
+        });
+
         if (!db) {
-            return NextResponse.json({ error: "DB_CONNECTION_FAILED" }, { status: 500 });
+            return NextResponse.json(
+                { error: "DB_CONNECTION_FAILED", hint: "Check ASTRA_DB_TOKEN and ASTRA_DB_API_ENDPOINT in Vercel env vars" },
+                { status: 500 }
+            );
         }
 
-        const collection = db.collection('sermons');
+        // Using the 80GB dataset collection
+        const collection = db.collection("sermons_archive");
 
-        let query = {};
+        // Build query
+        const query: Record<string, any> = {};
         if (speaker && speaker !== "ALL") {
-            query = { speaker: { $regex: speaker, $options: 'i' } };
+            query.speaker = { $regex: speaker, $options: "i" };
         }
 
-        // Attempting to find sermons in Astra DB
-        const sermons = await collection.find(query, {
-            limit: Math.min(limit, 500),
-            sort: { date: -1 }
-        }).toArray();
+        // ✅ AstraDB find - capped at 20 per page
+        const sermons = await collection.find(query, { limit }).toArray();
 
-        // If collection is empty, Astra might return an empty array.
-        // We'll return it as 'sermons' key to match the component's expectations.
-        return NextResponse.json({ sermons });
+        return NextResponse.json({ sermons, count: sermons.length });
     } catch (error: any) {
-        console.error("[Sermons API Error]", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("[Sermons API Error]", error.message);
+        return NextResponse.json(
+            { error: error.message, stack: process.env.NODE_ENV === "development" ? error.stack : undefined },
+            { status: 500 }
+        );
     }
 }

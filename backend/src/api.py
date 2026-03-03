@@ -135,7 +135,7 @@ async def debug_diagnostics():
 async def get_sermons(
     speaker: Optional[str] = Query(None),
     search:  Optional[str] = Query(None),
-    limit:   int           = Query(100, le=500),
+    limit:   int           = Query(20, le=20),
     skip:    int           = Query(0),
 ):
     try:
