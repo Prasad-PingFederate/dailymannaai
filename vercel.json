@@ -17,10 +17,6 @@
         },
         "app/api/sermons/route.ts": {
             "maxDuration": 30
-        },
-        "api/index.py": {
-            "runtime": "python3.12",
-            "maxDuration": 30
         }
     },
     "regions": [
