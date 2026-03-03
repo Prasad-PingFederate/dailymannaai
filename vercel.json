@@ -15,17 +15,11 @@
         "app/api/audio-overview/route.ts": {
             "maxDuration": 30
         },
-        "api/index.py": {
+        "app/api/sermons/route.ts": {
             "maxDuration": 30
         }
     },
     "regions": [
         "iad1"
-    ],
-    "rewrites": [
-        {
-            "source": "/backend-api/:path*",
-            "destination": "/api/index.py"
-        }
     ]
 }
