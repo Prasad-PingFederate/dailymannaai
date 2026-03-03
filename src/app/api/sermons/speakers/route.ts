@@ -1,29 +1,39 @@
+// src/app/api/sermons/speakers/route.ts
 import { NextResponse } from "next/server";
 import { getAstraDatabase } from "@/lib/astra-db";
 
 /**
  * GET /api/sermons/speakers
- * Fetches unique speakers from Astra DB sermons collection.
+ * Returns a unique sorted list of speaker names from Astra DB.
  */
-export async function GET(req: Request) {
+export async function GET() {
     try {
         const db = await getAstraDatabase().catch(() => null);
         if (!db) {
-            return NextResponse.json({ error: "DB_CONNECTION_FAILED" }, { status: 500 });
+            return NextResponse.json({ speakers: [] });
         }
 
-        const collection = db.collection('sermons');
+        const collection = db.collection("sermons_archive");
 
-        // Astra DB Data API doesn't have `distinct` like MongoDB.
-        // We can use `find` with high limit or if the DB has a lot of data, we should have a separate speakers collection.
-        // For now, we'll try to find speakers from a sample or return a base list.
-        const sermons = await collection.find({}, { limit: 1000, projection: { speaker: 1 } }).toArray();
-        const speakers = [...new Set(sermons.map(s => s.speaker).filter(Boolean))].sort();
+        // Fetch only name fields for performance
+        const docs = await collection
+            .find({}, { limit: 500 })
+            .project({ preacher: 1, speaker: 1, _id: 0 })
+            .toArray();
 
-        // If the collection is empty, return a default list for now or empty.
+        const counts: Record<string, number> = {};
+        for (const doc of docs) {
+            const name = (doc.preacher || doc.speaker || "").trim();
+            if (name) counts[name] = (counts[name] || 0) + 1;
+        }
+
+        const speakers = Object.keys(counts).sort(
+            (a, b) => counts[b] - counts[a]
+        );
+
         return NextResponse.json({ speakers });
     } catch (error: any) {
-        console.error("[Sermons Speakers API Error]", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("[Speakers API Error]", error.message);
+        return NextResponse.json({ speakers: [] });
     }
 }

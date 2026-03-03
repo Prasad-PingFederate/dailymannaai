@@ -1,8 +1,5 @@
 {
     "functions": {
-        "api/index.py": {
-            "maxDuration": 30
-        },
         "src/app/api/chat/route.ts": {
             "maxDuration": 30
         },
@@ -24,11 +21,5 @@
     },
     "regions": [
         "iad1"
-    ],
-    "rewrites": [
-        {
-            "source": "/backend-api/:path*",
-            "destination": "/api/index.py"
-        }
     ]
 }

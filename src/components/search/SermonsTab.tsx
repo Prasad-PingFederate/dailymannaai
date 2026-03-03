@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 // ─── FIX 5: Match your Vercel rewrite ─────────────────────────
 // API_BASE is set to /backend-api to match vercel.json rewrites
-const API_BASE = "/backend-api";   // → FastAPI via /api/index.py Python runtime
+const API_BASE = "/api";   // → Next.js /api/sermons/* routes (Vercel native)
 // ──────────────────────────────────────────────────────────────
 
 async function apiFetch(path: string) {

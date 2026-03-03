@@ -2,16 +2,30 @@
 import { NextResponse } from "next/server";
 import { getAstraDatabase } from "@/lib/astra-db";
 
+function mapSermon(doc: Record<string, any>) {
+    return {
+        _id: String(doc._id ?? ""),
+        speaker: doc.preacher ?? doc.speaker ?? "Unknown Speaker",
+        sermon_title: doc.title ?? doc.sermon_title ?? "Untitled Message",
+        content: doc.content ?? "",
+        audio_url: doc.audio_url ?? doc.audioUrl ?? "",
+        scripture_reference: doc.scripture_reference ?? doc.scripture ?? doc.reference ?? "",
+        duration: doc.duration ?? "",
+        date: doc.date ?? "",
+        series: doc.series ?? doc.category ?? "",
+    };
+}
+
 /**
  * GET /api/sermons
- * Fetches sermons from Astra DB.
+ * Fetches sermons from Astra DB with speaker filter and search support.
  */
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const speaker = searchParams.get("speaker");
-        // ⚠️ AstraDB Data API max page size is 20 without vector search.
-        // Requesting 500 will cause a 500 error. Cap at 20.
+        const search = searchParams.get("search");
+        // AstraDB Data API caps at 20 docs without vector search
         const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 20);
 
         const db = await getAstraDatabase().catch((err) => {
@@ -21,29 +35,48 @@ export async function GET(req: Request) {
 
         if (!db) {
             return NextResponse.json(
-                { error: "DB_CONNECTION_FAILED", hint: "Check ASTRA_DB_TOKEN and ASTRA_DB_API_ENDPOINT in Vercel env vars" },
+                { error: "DB_CONNECTION_FAILED", detail: "Check Astra env vars in Vercel dashboard" },
                 { status: 500 }
             );
         }
 
-        // Using the 80GB dataset collection
         const collection = db.collection("sermons_archive");
 
-        // Build query
+        // Build filter query
         const query: Record<string, any> = {};
         if (speaker && speaker !== "ALL") {
-            query.speaker = { $regex: speaker, $options: "i" };
+            query["$or"] = [
+                { preacher: { $regex: speaker, $options: "i" } },
+                { speaker: { $regex: speaker, $options: "i" } },
+            ];
+        }
+        if (search) {
+            const searchClause = {
+                "$or": [
+                    { title: { $regex: search, $options: "i" } },
+                    { preacher: { $regex: search, $options: "i" } },
+                    { speaker: { $regex: search, $options: "i" } },
+                    { scripture_reference: { $regex: search, $options: "i" } },
+                ]
+            };
+            query["$and"] = [query, searchClause];
         }
 
-        // ✅ AstraDB find - capped at 20 per page
-        const sermons = await collection.find(query, { limit }).toArray();
+        const raw = await collection.find(query, { limit }).toArray();
+        const sermons = raw.map(mapSermon);
 
         return NextResponse.json({ sermons, count: sermons.length });
+
     } catch (error: any) {
         console.error("[Sermons API Error]", error.message);
         return NextResponse.json(
-            { error: error.message, stack: process.env.NODE_ENV === "development" ? error.stack : undefined },
+            { error: error.message },
             { status: 500 }
         );
     }
 }
+
+/**
+ * GET /api/sermons/speakers — returns unique speaker list
+ * NOTE: This is handled by a separate route file at /api/sermons/speakers/route.ts
+ */
