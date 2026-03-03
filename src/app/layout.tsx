@@ -13,8 +13,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DailyMannaAI — Christian Search Engine",
-  description: "Seek and you shall find — Christian search powered by faith.",
+  title: "DailyMannaAI — Holy Spirit-Guided Search",
+  description: "A consecrated digital space where AI meets the Bible. Discover scriptures, prophetic insights, and faithful answers to life's deepest questions through our specialized Christian search engine.",
+  keywords: ["Christian search engine", "Bible AI", "Daily Manna", "Prophetic AI", "Scripture search", "Faith-based AI"],
+  authors: [{ name: "DailyMannaAI Team" }],
+  openGraph: {
+    title: "DailyMannaAI — The Search Engine for the Faithful",
+    description: "Seek and find guidance with DailyMannaAI. Merging modern AI with timeless scripture.",
+    url: "https://dailymanna.ai", // Replace with actual URL if known
+    siteName: "DailyMannaAI",
+    images: [
+      {
+        url: "/og-image.png", // USER: You should add an OG image at public/og-image.png
+        width: 1200,
+        height: 630,
+        alt: "DailyMannaAI — Holy Spirit-Guided Search",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DailyMannaAI — Christian Search Engine",
+    description: "Search the Word, find the Way. AI-powered Christian insights.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-touch-icon.png",
+  },
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
 };
 
