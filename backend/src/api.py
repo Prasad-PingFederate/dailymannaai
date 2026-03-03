@@ -193,6 +193,48 @@ async def get_sermon(sermon_id: str):
         raise HTTPException(status_code=404, detail="Sermon not found")
     return JSONResponse(map_sermon(doc))
 
+@app.get("/sermons/debug")
+async def debug_sermons():
+    import traceback
+    try:
+        # Step 1: Test env vars
+        token    = os.getenv("ASTRA_DB_TOKEN")
+        # Try both common names
+        endpoint = os.getenv("ASTRA_DB_ENDPOINT") or os.getenv("ASTRA_DB_API_ENDPOINT")
+        
+        if not token:    return {"error": "ASTRA_DB_TOKEN is missing from .env"}
+        if not endpoint: return {"error": "ASTRA_DB_ENDPOINT/API_ENDPOINT is missing from .env"}
+
+        # Step 2: Test DB connection
+        client = DataAPIClient(token)
+        # Using the standard keyspace or default
+        db = client.get_database(endpoint, keyspace=os.getenv("ASTRA_DB_KEYSPACE", "default_keyspace"))
+
+        # Step 3: Test collection access
+        col = db.get_collection("sermons_archive")
+
+        # Step 4: Test one document fetch
+        doc = col.find_one({})
+        if not doc:
+            # Try list collections to see what's actually there
+            colls = db.list_collection_names()
+            return {
+                "error": "Collection 'sermons_archive' is empty or name is wrong",
+                "available_collections": colls
+            }
+
+        # Step 5: Show exact field names in your DB
+        return {
+            "status": "OK",
+            "database_endpoint": endpoint[:20] + "...",
+            "fields_in_your_db": list(doc.keys()),
+            "sample_doc_content_keys": list(doc.get("content", {}).keys()) if isinstance(doc.get("content"), dict) else "content is not a dict",
+            "sample_doc": {k: v for k, v in doc.items() if k != "_id"} # Exclude ID for simplicity
+        }
+
+    except Exception as e:
+        return {"error": str(e), "trace": traceback.format_exc()}
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "db": "AstraDB connected" if astra_db else "AstraDB missing"}
