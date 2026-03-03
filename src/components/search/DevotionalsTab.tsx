@@ -246,10 +246,30 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
                                         onClick={() => setExpanded(true)}
                                         className="group flex flex-col items-center gap-4 transition-all"
                                     >
-                                        <div className="w-16 h-16 rounded-full border-2 border-slate-100 flex items-center justify-center text-slate-300 group-hover:border-sky-500 group-hover:text-sky-500 group-hover:bg-sky-50 transition-all">
-                                            <ArrowUpRight className="rotate-90 group-hover:translate-y-1 transition-transform" size={24} />
+                                        <div
+                                            className="w-20 h-20 rounded-full border-2 flex items-center justify-center transition-all duration-500 shadow-2xl relative"
+                                            style={{
+                                                borderColor: `${accent}40`,
+                                                backgroundColor: `${accent}05`,
+                                                color: accent,
+                                                boxShadow: `0 0 30px ${accent}20`
+                                            }}
+                                        >
+                                            {/* Pulsing ring */}
+                                            <div
+                                                className="absolute inset-0 rounded-full animate-ping opacity-20"
+                                                style={{ backgroundColor: accent, animationDuration: '3s' }}
+                                            />
+
+                                            <ArrowUpRight
+                                                className="rotate-90 group-hover:translate-y-1.5 transition-transform duration-500"
+                                                size={28}
+                                            />
                                         </div>
-                                        <span className="font-black text-[10px] tracking-[0.4em] uppercase text-slate-400 group-hover:text-sky-600">
+                                        <span
+                                            className="font-black text-[11px] tracking-[0.5em] uppercase transition-all group-hover:tracking-[0.6em]"
+                                            style={{ color: accent }}
+                                        >
                                             Deepen the Revelation
                                         </span>
                                     </button>

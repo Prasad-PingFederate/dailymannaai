@@ -12,6 +12,7 @@ import Link from "next/link";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
 import DevotionalsTab from "./DevotionalsTab";
+import SermonsTab from "./SermonsTab";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -1411,7 +1412,7 @@ export default function SearchEnginePortal() {
 
     const onFilterChange = (f: FilterType) => {
         setFilter(f);
-        if (f === "devotionals" || f === "studio" || f === "ai") {
+        if (f === "devotionals" || f === "studio" || f === "ai" || f === "sermons") {
             setHasSearched(true);
         } else if (query.trim()) {
             setHasSearched(true);
@@ -1719,6 +1720,10 @@ export default function SearchEnginePortal() {
                         ) : filter === "devotionals" ? (
                             <div className="w-full">
                                 <DevotionalsTab />
+                            </div>
+                        ) : filter === "sermons" ? (
+                            <div className="w-full">
+                                <SermonsTab />
                             </div>
                         ) : filter === "studio" ? (
                             <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
