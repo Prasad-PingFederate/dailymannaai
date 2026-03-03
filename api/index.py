@@ -1,11 +1,36 @@
 import sys
 import os
 
-# Ensure project root is on Python path so `backend` package is discoverable
+# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.src.api import app
-from mangum import Mangum
+try:
+    from backend.src.api import app
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+except Exception as e:
+    # Diagnostic fallback — shows WHY the import failed
+    from fastapi import FastAPI
+    from mangum import Mangum
 
-# Mangum wraps FastAPI as a serverless ASGI handler for Vercel / AWS Lambda
-handler = Mangum(app, lifespan="off")
+    _err = str(e)
+    _path = sys.path
+    _cwd = os.getcwd()
+    try:
+        _files = os.listdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    except:
+        _files = []
+
+    app = FastAPI()
+
+    @app.get("/{path:path}")
+    async def catch_all(path: str):
+        return {
+            "error": "IMPORT_FAILED",
+            "detail": _err,
+            "python_path": _path,
+            "cwd": _cwd,
+            "root_files": _files
+        }
+
+    handler = Mangum(app, lifespan="off")
