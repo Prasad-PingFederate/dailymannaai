@@ -359,7 +359,7 @@ export default function SermonsTab() {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [listLoading, setListLoading] = useState(false);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(1);
     const PER_PAGE = 20;
 
@@ -370,7 +370,8 @@ export default function SermonsTab() {
                 const raw: any[] = Array.isArray(d) ? d : (d?.speakers || d?.data || []);
                 setSpeakers(raw.map((s: any) => typeof s === "string" ? s : s.speaker).filter(Boolean));
             })
-            .catch(() => {
+            .catch(err => {
+                console.error("Speakers load error:", err);
                 // Fallback: extract from sermon list
                 apiFetch("/sermons?limit=500")
                     .then(d => {
@@ -383,14 +384,14 @@ export default function SermonsTab() {
 
     // Load sermons when speaker filter changes
     useEffect(() => {
-        setListLoading(true); setError(false); setPage(1);
+        setListLoading(true); setError(null); setPage(1);
         const path = spkFilter === "ALL"
             ? "/sermons?limit=500"
             : `/sermons?speaker=${encodeURIComponent(spkFilter)}&limit=500`;
 
         apiFetch(path)
             .then(d => setAllSermons(toArr(d)))
-            .catch(() => setError(true))
+            .catch(err => setError(err.message || "FETCH_FAILED"))
             .finally(() => { setLoading(false); setListLoading(false); });
     }, [spkFilter]);
 
@@ -528,6 +529,19 @@ export default function SermonsTab() {
                     <p style={{ color: "#888", fontSize: "15px", fontFamily: "serif", fontStyle: "italic" }}>
                         ⚠️ The sacred archives are momentarily hushed. Please try again.
                     </p>
+                    <div style={{
+                        marginTop: "15px",
+                        padding: "10px",
+                        background: "#fff5f5",
+                        border: "1px solid #feb2b2",
+                        borderRadius: "8px",
+                        display: "inline-block",
+                        fontSize: "12px",
+                        fontFamily: "monospace",
+                        color: "#c53030"
+                    }}>
+                        DEBUG_CODE: {error}
+                    </div>
                 </div>
             )}
 
