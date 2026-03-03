@@ -380,7 +380,7 @@ export default function SermonsTab() {
             .catch(err => {
                 console.error("Speakers load error:", err);
                 // Fallback: extract from sermon list
-                apiFetch("/sermons?limit=500")
+                apiFetch("/sermons?limit=20")
                     .then(d => {
                         const arr = toArr(d);
                         const unique = [...new Set(arr.map((s: any) => s.speaker).filter(Boolean))].sort() as string[];
@@ -393,8 +393,8 @@ export default function SermonsTab() {
     useEffect(() => {
         setListLoading(true); setError(null); setPage(1);
         const path = spkFilter === "ALL"
-            ? "/sermons?limit=500"
-            : `/sermons?speaker=${encodeURIComponent(spkFilter)}&limit=500`;
+            ? "/sermons?limit=20"
+            : `/sermons?speaker=${encodeURIComponent(spkFilter)}&limit=20`;
 
         apiFetch(path)
             .then(d => setAllSermons(toArr(d)))
