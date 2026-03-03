@@ -2,36 +2,30 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
-// ─── ⚙️  SET YOUR BACKEND URL HERE ────────────────────────────
-// Now using FastAPI for high-performance Astra DB access via Vercel Serverless
+// ─── FIX 5: Match your Vercel rewrite ─────────────────────────
+// API_BASE is set to /backend-api to match vercel.json rewrites
 const API_BASE = "/backend-api";
 // ──────────────────────────────────────────────────────────────
 
 async function apiFetch(path: string) {
     const res = await fetch(`${API_BASE}${path}`);
-    if (!res.ok) throw new Error(`${res.status}`);
+    if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
     return res.json();
 }
 
-const toArr = (d: any) => {
-    const raw = Array.isArray(d) ? d : (d?.data || d?.sermons || d?.results || []);
-    // Map existing Astra fields if coming through directly
-    return raw.map((s: any) => ({
-        ...s,
-        speaker: s.speaker || s.preacher || "Unknown Preacher",
-        sermon_title: s.sermon_title || s.title || "Untitled Message",
-        audio_url: s.audio_url || s.audioUrl || ""
-    }));
-};
+const toArr = (d: any) =>
+    Array.isArray(d) ? d : (d?.data || d?.sermons || d?.results || []);
 
 const SPEAKER_PALETTE = [
     "#1a1a2e", "#16213e", "#0f3460", "#533483", "#2b2d42",
     "#8d1a1a", "#1a4731", "#1a3347", "#4a1942", "#2d4a1a",
 ];
-const speakerHue = (name: string) => SPEAKER_PALETTE[(name?.charCodeAt(0) || 0) % SPEAKER_PALETTE.length];
-const initials = (n: string) => (n || "??").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+const speakerHue = (name: string) =>
+    SPEAKER_PALETTE[(name?.charCodeAt(0) || 0) % SPEAKER_PALETTE.length];
+const initials = (n: string) =>
+    (n || "??").split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
 
-// ── Icons
+// ── Icons ──────────────────────────────────────────────────────
 const SearchIcon = () => (
     <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
@@ -46,12 +40,8 @@ const PlayIcon = () => (
     <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
 );
 const PauseIcon = () => (
-    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-);
-const MicIcon = () => (
-    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" />
+    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
     </svg>
 );
 const BookIcon = () => (
@@ -64,24 +54,17 @@ const ClockIcon = () => (
         <circle cx="12" cy="12" r="10" /><polyline points="12,6 12,12 16,14" />
     </svg>
 );
-
-interface Sermon {
-    _id?: string;
-    id?: string;
-    speaker: string;
-    series?: string;
-    sermon_title: string;
-    scripture_reference?: string;
-    duration?: string;
-    date?: string;
-    audio_url?: string;
-    content?: string;
-}
+const MicIcon = () => (
+    <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" />
+    </svg>
+);
 
 // ════════════════════════════════════════════════
 //  AUDIO PLAYER
 // ════════════════════════════════════════════════
-function AudioPlayer({ url, title }: { url: string, title?: string }) {
+function AudioPlayer({ url, title }: { url: string; title: string }) {
     const ref = useRef<HTMLAudioElement>(null);
     const barRef = useRef<HTMLDivElement>(null);
     const [playing, setPlaying] = useState(false);
@@ -108,7 +91,8 @@ function AudioPlayer({ url, title }: { url: string, title?: string }) {
     const seek = (e: React.MouseEvent) => {
         if (!barRef.current || !ref.current) return;
         const r = barRef.current.getBoundingClientRect();
-        ref.current.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * ref.current.duration;
+        ref.current.currentTime =
+            Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * ref.current.duration;
     };
 
     return (
@@ -125,11 +109,8 @@ function AudioPlayer({ url, title }: { url: string, title?: string }) {
                 width: "42px", height: "42px", borderRadius: "50%",
                 background: "#0d0d12", border: "none", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: "white", flexShrink: 0, transition: "transform 0.15s"
-            }}
-                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"}
-                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-            >
+                color: "white", flexShrink: 0
+            }}>
                 {playing ? <PauseIcon /> : <PlayIcon />}
             </button>
 
@@ -157,13 +138,24 @@ function AudioPlayer({ url, title }: { url: string, title?: string }) {
 }
 
 // ════════════════════════════════════════════════
-//  SERMON DETAIL VIEW
+//  SERMON DETAIL
 // ════════════════════════════════════════════════
-function SermonDetail({ sermon, onBack }: { sermon: Sermon, onBack: () => void }) {
-    const color = speakerHue(sermon.speaker);
+function SermonDetail({ sermon, onBack }: { sermon: any; onBack: () => void }) {
+    const [full, setFull] = useState<any>(sermon);
+
+    // FIX 4: Fetch full content from /sermons/{id} if content missing
+    useEffect(() => {
+        if (!sermon.content && (sermon._id || sermon.id)) {
+            apiFetch(`/sermons/${sermon._id || sermon.id}`)
+                .then(d => setFull({ ...sermon, ...d }))
+                .catch(() => { });
+        }
+    }, [sermon]);
+
+    const color = speakerHue(full.speaker || "");
 
     return (
-        <div style={{ animation: "fadeIn 0.4s ease both" }}>
+        <div style={{ animation: "fadeIn 0.4s ease" }}>
             <button onClick={onBack} style={{
                 display: "inline-flex", alignItems: "center", gap: "7px",
                 background: "none", border: "1px solid #ddd", borderRadius: "8px",
@@ -171,8 +163,8 @@ function SermonDetail({ sermon, onBack }: { sermon: Sermon, onBack: () => void }
                 fontFamily: "sans-serif", fontSize: "13px", marginBottom: "24px",
                 transition: "all 0.2s"
             }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0d0d12"; e.currentTarget.style.color = "#0d0d12"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#0d0d12"; (e.currentTarget as HTMLElement).style.color = "#0d0d12"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#ddd"; (e.currentTarget as HTMLElement).style.color = "#555"; }}
             >
                 <BackIcon /> Back to Sermons
             </button>
@@ -190,44 +182,43 @@ function SermonDetail({ sermon, onBack }: { sermon: Sermon, onBack: () => void }
                         justifyContent: "center", fontSize: "18px", fontWeight: "700",
                         color: "white", fontFamily: "sans-serif", flexShrink: 0
                     }}>
-                        {initials(sermon.speaker)}
+                        {initials(full.speaker || "")}
                     </div>
                     <div style={{ flex: 1, minWidth: "250px" }}>
-                        {sermon.series && (
+                        {full.series && (
                             <div style={{
                                 display: "inline-block", background: "#f3f2ee", borderRadius: "6px",
                                 padding: "2px 10px", fontSize: "11px", color: "#888",
                                 fontFamily: "sans-serif", letterSpacing: "1px",
-                                textTransform: "uppercase", marginBottom: "10px"
+                                textTransform: "uppercase" as const, marginBottom: "10px"
                             }}>
-                                {sermon.series}
+                                {full.series}
                             </div>
                         )}
                         <h2 style={{
-                            fontSize: "clamp(22px, 3vw, 32px)",
-                            fontFamily: "Cinzel, serif",
-                            fontWeight: "700", color: "#0d0d12",
-                            margin: "0 0 8px 0", lineHeight: "1.2"
+                            fontFamily: "serif",
+                            fontSize: "clamp(22px, 3vw, 32px)", fontWeight: "700",
+                            color: "#0d0d12", margin: "0 0 8px 0", lineHeight: "1.2"
                         }}>
-                            {sermon.sermon_title}
+                            {full.sermon_title}
                         </h2>
                         <div style={{ color: "#555", fontFamily: "sans-serif", fontSize: "14px", marginBottom: "14px" }}>
-                            {sermon.speaker}
+                            {full.speaker}
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                            {sermon.scripture_reference && (
+                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "8px" }}>
+                            {full.scripture_reference && (
                                 <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#eef2ff", color: "#4f46e5", borderRadius: "20px", padding: "4px 12px", fontSize: "12px", fontFamily: "sans-serif" }}>
-                                    <BookIcon /> {sermon.scripture_reference}
+                                    <BookIcon /> {full.scripture_reference}
                                 </span>
                             )}
-                            {sermon.duration && (
+                            {full.duration && (
                                 <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#f0fdf4", color: "#16a34a", borderRadius: "20px", padding: "4px 12px", fontSize: "12px", fontFamily: "sans-serif" }}>
-                                    <ClockIcon /> {sermon.duration}
+                                    <ClockIcon /> {full.duration}
                                 </span>
                             )}
-                            {sermon.date && (
+                            {full.date && (
                                 <span style={{ background: "#f8f7f4", color: "#777", borderRadius: "20px", padding: "4px 12px", fontSize: "12px", fontFamily: "sans-serif" }}>
-                                    {sermon.date}
+                                    {full.date}
                                 </span>
                             )}
                         </div>
@@ -235,9 +226,9 @@ function SermonDetail({ sermon, onBack }: { sermon: Sermon, onBack: () => void }
                 </div>
             </div>
 
-            {sermon.audio_url && <AudioPlayer url={sermon.audio_url} title={sermon.sermon_title} />}
+            {full.audio_url && <AudioPlayer url={full.audio_url} title={full.sermon_title} />}
 
-            {sermon.content && (
+            {full.content && (
                 <div style={{
                     background: "white", border: "1px solid #eaeaea",
                     borderRadius: "18px", padding: "36px",
@@ -246,23 +237,23 @@ function SermonDetail({ sermon, onBack }: { sermon: Sermon, onBack: () => void }
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#bbb", fontSize: "11px", fontFamily: "sans-serif", letterSpacing: "2px", marginBottom: "24px" }}>
                         <MicIcon /> SERMON MESSAGE
                     </div>
-                    {sermon.scripture_reference && (
+                    {full.scripture_reference && (
                         <div style={{
                             borderLeft: "4px solid #4f46e5", background: "#eef2ff",
                             borderRadius: "0 12px 12px 0", padding: "20px 24px",
                             marginBottom: "28px", color: "#4338ca",
-                            fontFamily: "serif", fontStyle: "italic",
-                            fontSize: "18px", lineHeight: "1.6"
+                            fontFamily: "serif",
+                            fontSize: "18px", fontStyle: "italic", lineHeight: "1.6"
                         }}>
-                            📖 {sermon.scripture_reference}
+                            📖 {full.scripture_reference}
                         </div>
                     )}
                     <div style={{
                         color: "#2c2c2c", fontSize: "18px", lineHeight: "2.1",
                         fontFamily: "serif",
-                        whiteSpace: "pre-wrap"
+                        whiteSpace: "pre-wrap" as const
                     }}>
-                        {sermon.content}
+                        {full.content}
                     </div>
                 </div>
             )}
@@ -271,9 +262,13 @@ function SermonDetail({ sermon, onBack }: { sermon: Sermon, onBack: () => void }
 }
 
 // ════════════════════════════════════════════════
-//  SERMON LIST CARD
+//  SERMON CARD
 // ════════════════════════════════════════════════
-function SermonCard({ sermon, index, onClick, activeSpk }: { sermon: Sermon, index: number, onClick: () => void, activeSpk: string }) {
+function SermonCard({
+    sermon, index, showSpeaker, onClick
+}: {
+    sermon: any; index: number; showSpeaker: boolean; onClick: () => void
+}) {
     const [hov, setHov] = useState(false);
 
     return (
@@ -290,6 +285,7 @@ function SermonCard({ sermon, index, onClick, activeSpk }: { sermon: Sermon, ind
                 animation: `fadeIn 0.5s ease both ${Math.min(index * 0.04, 0.6)}s`
             }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                {/* Number badge */}
                 <div style={{
                     minWidth: "34px", height: "34px", borderRadius: "9px",
                     background: "#f3f2ee", display: "flex", alignItems: "center",
@@ -301,15 +297,21 @@ function SermonCard({ sermon, index, onClick, activeSpk }: { sermon: Sermon, ind
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <h3 style={{
-                        fontFamily: "serif", fontSize: "17px", fontWeight: "700",
-                        color: "#1a1a1a", margin: "0 0 7px 0",
-                        lineHeight: "1.4", transition: "color 0.2s"
+                        fontFamily: "serif",
+                        fontSize: "17px", fontWeight: "700",
+                        color: "#1a1a1a", margin: "0 0 7px 0", lineHeight: "1.4"
                     }}>
-                        {sermon.sermon_title || "Untitled"}
+                        {sermon.sermon_title || sermon.title || "Untitled"}
                     </h3>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-                        {sermon.speaker && activeSpk === "ALL" && (
-                            <span style={{ color: "#555", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "600" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "8px", alignItems: "center" }}>
+                        {/* Only show speaker name when showing ALL sermons */}
+                        {showSpeaker && sermon.speaker && (
+                            <span style={{
+                                display: "inline-flex", alignItems: "center", gap: "5px",
+                                color: "white", fontSize: "11px", fontFamily: "sans-serif",
+                                background: speakerHue(sermon.speaker),
+                                borderRadius: "20px", padding: "2px 10px", fontWeight: "600"
+                            }}>
                                 {sermon.speaker}
                             </span>
                         )}
@@ -329,10 +331,17 @@ function SermonCard({ sermon, index, onClick, activeSpk }: { sermon: Sermon, ind
                         {sermon.audio_url && (
                             <span style={{ color: "#ea580c", fontSize: "11px", fontFamily: "sans-serif" }}>🎵 Audio</span>
                         )}
+                        {sermon.series && (
+                            <span style={{ color: "#aaa", fontSize: "11px", fontFamily: "sans-serif" }}>📂 {sermon.series}</span>
+                        )}
                     </div>
                 </div>
 
-                <div style={{ color: hov ? "#0d0d12" : "#ddd", fontSize: "22px", transition: "all 0.2s", transform: hov ? "translateX(3px)" : "none", flexShrink: 0 }}>›</div>
+                <div style={{
+                    color: hov ? "#0d0d12" : "#ddd",
+                    fontSize: "22px", transition: "all 0.2s",
+                    transform: hov ? "translateX(3px)" : "none", flexShrink: 0
+                }}>›</div>
             </div>
         </div>
     );
@@ -342,9 +351,9 @@ function SermonCard({ sermon, index, onClick, activeSpk }: { sermon: Sermon, ind
 //  MAIN EXPORT
 // ════════════════════════════════════════════════
 export default function SermonsTab() {
-    const [view, setView] = useState("list");
-    const [selectedSermon, setSelectedSermon] = useState<Sermon | null>(null);
-    const [allSermons, setAllSermons] = useState<Sermon[]>([]);
+    const [view, setView] = useState<"list" | "detail">("list");
+    const [selectedSermon, setSelectedSermon] = useState<any>(null);
+    const [allSermons, setAllSermons] = useState<any[]>([]);
     const [speakers, setSpeakers] = useState<string[]>([]);
     const [spkFilter, setSpkFilter] = useState("ALL");
     const [search, setSearch] = useState("");
@@ -358,15 +367,16 @@ export default function SermonsTab() {
     useEffect(() => {
         apiFetch("/sermons/speakers")
             .then(d => {
-                const raw = Array.isArray(d) ? d : (d?.speakers || d?.data || []);
+                const raw: any[] = Array.isArray(d) ? d : (d?.speakers || d?.data || []);
                 setSpeakers(raw.map((s: any) => typeof s === "string" ? s : s.speaker).filter(Boolean));
             })
             .catch(() => {
+                // Fallback: extract from sermon list
                 apiFetch("/sermons?limit=500")
                     .then(d => {
                         const arr = toArr(d);
-                        const unique = [...new Set(arr.map((s: any) => s.speaker).filter(Boolean))] as string[];
-                        setSpeakers(unique.sort());
+                        const unique = [...new Set(arr.map((s: any) => s.speaker).filter(Boolean))].sort() as string[];
+                        setSpeakers(unique);
                     }).catch(() => { });
             });
     }, []);
@@ -379,7 +389,7 @@ export default function SermonsTab() {
             : `/sermons?speaker=${encodeURIComponent(spkFilter)}&limit=500`;
 
         apiFetch(path)
-            .then(d => { setAllSermons(toArr(d)); })
+            .then(d => setAllSermons(toArr(d)))
             .catch(() => setError(true))
             .finally(() => { setLoading(false); setListLoading(false); });
     }, [spkFilter]);
@@ -389,6 +399,7 @@ export default function SermonsTab() {
         const q = search.toLowerCase();
         return (
             s.sermon_title?.toLowerCase().includes(q) ||
+            s.title?.toLowerCase().includes(q) ||
             s.scripture_reference?.toLowerCase().includes(q) ||
             s.series?.toLowerCase().includes(q) ||
             s.speaker?.toLowerCase().includes(q)
@@ -396,17 +407,18 @@ export default function SermonsTab() {
     });
     const paged = filtered.slice(0, page * PER_PAGE);
 
-    // ── Detail view
     if (view === "detail" && selectedSermon) {
         return (
             <div className="w-full max-w-5xl mx-auto py-12 px-6">
                 <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}`}</style>
-                <SermonDetail sermon={selectedSermon} onBack={() => { setView("list"); setSelectedSermon(null); }} />
+                <SermonDetail
+                    sermon={selectedSermon}
+                    onBack={() => { setView("list"); setSelectedSermon(null); }}
+                />
             </div>
         );
     }
 
-    // ── List view
     return (
         <div className="w-full max-w-5xl mx-auto py-12 px-6">
             <style>{`
@@ -426,8 +438,7 @@ export default function SermonsTab() {
             <div style={{ marginBottom: "20px" }}>
                 <h2 style={{
                     fontFamily: "Cinzel, serif",
-                    fontSize: "32px", fontWeight: "700", color: "#0d0d12",
-                    margin: "0 0 4px 0"
+                    fontSize: "32px", fontWeight: "700", color: "#0d0d12", margin: "0 0 4px 0"
                 }}>
                     Sermon Library
                 </h2>
@@ -449,22 +460,21 @@ export default function SermonsTab() {
                         width: "100%", background: "white", border: "1px solid #e0dbd0",
                         borderRadius: "50px", padding: "12px 20px 12px 42px",
                         fontFamily: "sans-serif", fontSize: "15px", color: "#333",
-                        outline: "none", boxSizing: "border-box",
+                        outline: "none", boxSizing: "border-box" as const,
                         boxShadow: "0 2px 10px rgba(0,0,0,0.04)"
                     }}
                 />
             </div>
 
-            {/* ── SPEAKER FILTER TAGS */}
-            <div style={{
-                display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px"
-            }}>
+            {/* Speaker filter tags */}
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "10px", marginBottom: "32px" }}>
                 <button
                     onClick={() => { setSpkFilter("ALL"); setPage(1); }}
                     style={{
                         padding: "8px 22px", borderRadius: "50px", fontSize: "14px",
                         fontFamily: "sans-serif", fontWeight: spkFilter === "ALL" ? "600" : "500",
-                        cursor: "pointer", border: `1.5px solid ${spkFilter === "ALL" ? "#0d0d12" : "#ddd"}`,
+                        cursor: "pointer",
+                        border: `1.5px solid ${spkFilter === "ALL" ? "#0d0d12" : "#ddd"}`,
                         background: spkFilter === "ALL" ? "#0d0d12" : "white",
                         color: spkFilter === "ALL" ? "white" : "#555",
                         transition: "all 0.2s"
@@ -477,8 +487,7 @@ export default function SermonsTab() {
                     const active = spkFilter === spk;
                     const col = speakerHue(spk);
                     return (
-                        <button
-                            key={spk}
+                        <button key={spk}
                             onClick={() => { setSpkFilter(spk); setPage(1); }}
                             style={{
                                 display: "inline-flex", alignItems: "center", gap: "8px",
@@ -488,13 +497,13 @@ export default function SermonsTab() {
                                 background: active ? col : "white",
                                 color: active ? "white" : "#444",
                                 fontWeight: active ? "600" : "500",
-                                boxShadow: active ? `0 4px 15px ${col}40` : "0 1px 4px rgba(0,0,0,0.03)",
+                                boxShadow: active ? `0 4px 15px ${col}40` : "none",
                                 transition: "all 0.2s"
                             }}
                         >
                             <span style={{
                                 width: "24px", height: "24px", borderRadius: "50%",
-                                background: active ? "rgba(255,255,255,0.25)" : col,
+                                background: active ? "rgba(255,255,255,0.3)" : col,
                                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                                 fontSize: "10px", fontWeight: "700", color: "white", flexShrink: 0
                             }}>
@@ -506,7 +515,7 @@ export default function SermonsTab() {
                 })}
             </div>
 
-            {/* ── States */}
+            {/* States */}
             {(loading || listLoading) && (
                 <div style={{ textAlign: "center", padding: "80px 20px" }}>
                     <div style={{ fontSize: "32px", marginBottom: "16px", animation: "spin 4s linear infinite", display: "inline-block" }}>✝</div>
@@ -528,17 +537,17 @@ export default function SermonsTab() {
                 </div>
             )}
 
-            {/* ── Sermon cards */}
+            {/* Sermon list */}
             {!loading && !listLoading && !error && filtered.length > 0 && (
                 <>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                        {paged.map((sermon, i) => (
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: "10px" }}>
+                        {paged.map((sermon: any, i: number) => (
                             <SermonCard
                                 key={sermon._id || sermon.id || i}
                                 sermon={sermon}
                                 index={i}
+                                showSpeaker={spkFilter === "ALL"}   // ← shows speaker badge only on ALL view
                                 onClick={() => { setSelectedSermon(sermon); setView("detail"); }}
-                                activeSpk={spkFilter}
                             />
                         ))}
                     </div>
@@ -548,11 +557,11 @@ export default function SermonsTab() {
                             <button onClick={() => setPage(p => p + 1)} style={{
                                 background: "white", border: "2px solid #ddd",
                                 borderRadius: "50px", padding: "12px 40px",
-                                fontFamily: "sans-serif", fontSize: "14px", color: "#555",
-                                fontWeight: "700", cursor: "pointer", transition: "all 0.3s"
+                                fontFamily: "sans-serif", fontSize: "14px",
+                                color: "#555", fontWeight: "700", cursor: "pointer", transition: "all 0.3s"
                             }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0d0d12"; e.currentTarget.style.color = "#0d0d12"; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = "#ddd"; e.currentTarget.style.color = "#555"; }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#0d0d12"; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#ddd"; }}
                             >
                                 LOAD MORE ARCHIVES · {filtered.length - paged.length} REMAINING
                             </button>
@@ -566,4 +575,4 @@ export default function SermonsTab() {
             )}
         </div>
     );
-} 
+}

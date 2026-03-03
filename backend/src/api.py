@@ -3,7 +3,7 @@ import json
 import logging
 import asyncio
 from typing import List, Optional
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from celery.result import AsyncResult
@@ -39,24 +39,49 @@ logger = logging.getLogger(__name__)
 
 # ─── ASTRA DB INITIALIZATION ─────────────────────────────────
 
+ASTRA_TOKEN = os.getenv("ASTRA_DB_TOKEN")
+# Support both possible variable names for the endpoint
+ASTRA_ENDPOINT = os.getenv("ASTRA_DB_API_ENDPOINT") or os.getenv("ASTRA_DB_ENDPOINT")
+ASTRA_KEYSPACE = os.getenv("ASTRA_DB_KEYSPACE", "default_keyspace")
+
 def get_astra_db():
-    token = os.getenv("ASTRA_DB_TOKEN")
-    endpoint = os.getenv("ASTRA_DB_API_ENDPOINT")
-    
-    if not token or not endpoint:
+    if not ASTRA_TOKEN or not ASTRA_ENDPOINT:
         logger.warning("⚠️ [AstraDB] Missing ASTRA_DB_TOKEN or ASTRA_DB_API_ENDPOINT.")
         return None
     
     try:
-        client = DataAPIClient(token)
-        # Using the correct namespace and endpoint mapping for 80GB archive
-        db = client.get_database(endpoint)
+        client = DataAPIClient(ASTRA_TOKEN)
+        # Using the mapping provided in the user's fix
+        db = client.get_database_by_api_endpoint(ASTRA_ENDPOINT, keyspace=ASTRA_KEYSPACE)
         return db
     except Exception as e:
         logger.error(f"❌ [AstraDB] Connection failed: {e}")
         return None
 
 astra_db = get_astra_db()
+
+def get_col():
+    if not astra_db:
+        return None
+    return astra_db.get_collection("sermons_archive")
+
+def map_sermon(s: dict) -> dict:
+    """
+    FIX 3: Map ALL fields from DB shape → Frontend shape
+    Your DB uses:  preacher, title, audioUrl
+    Frontend uses: speaker,  sermon_title, audio_url
+    """
+    return {
+        "_id":                str(s.get("_id", "")),
+        "speaker":            s.get("preacher") or s.get("speaker") or "Unknown Preacher",
+        "sermon_title":       s.get("title")    or s.get("sermon_title") or "Untitled Message",
+        "content":            s.get("content", ""),
+        "audio_url":          s.get("audio_url") or s.get("audioUrl", ""),
+        "scripture_reference":s.get("scripture_reference", s.get("scripture", s.get("reference", ""))),
+        "duration":           s.get("duration", ""),
+        "date":               s.get("date", ""),
+        "series":             s.get("series") or s.get("category", ""),
+    }
 
 # ─── EXISTING CRAWLER ROUTES ─────────────────────────────────
 
@@ -86,70 +111,87 @@ async def get_result(task_id: str):
 
 # ─── 📜 MAPPED SERMONS ROUTES (ASTRA DB - 80GB ARCHIVE) ───────────────────────────
 
+@app.get("/sermons/speakers")
+async def get_speakers():
+    """Returns unique speaker list with sermon counts for filter tags"""
+    col = get_col()
+    if not col:
+        return JSONResponse({"speakers": []})
+    
+    try:
+        # Fetch only name fields — fast and lightweight
+        cursor = col.find({}, projection={"preacher": True, "speaker": True, "_id": False}, limit=2000)
+        docs = list(cursor)
+
+        counts = {}
+        for doc in docs:
+            name = (doc.get("preacher") or doc.get("speaker", "")).strip()
+            if name:
+                counts[name] = counts.get(name, 0) + 1
+
+        speakers = [
+            {"speaker": name, "count": count}
+            for name, count in sorted(counts.items(), key=lambda x: -x[1])
+        ]
+        return JSONResponse({"speakers": [s["speaker"] for s in speakers]})
+    except Exception as e:
+        logger.error(f"Speakers Fetch Error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 @app.get("/sermons")
-async def get_sermons(speaker: Optional[str] = None, limit: int = 50):
-    """
-    Fetch anointed messages from the 'sermons_archive' collection.
-    Mapped for DailyMannaAI design language.
-    """
-    if not astra_db:
-        # Fallback to dummy data for local testing if DB not configured
+async def get_sermons(
+    speaker: Optional[str] = Query(None),
+    search:  Optional[str] = Query(None),
+    limit:   int           = Query(100, le=500),
+    skip:    int           = Query(0),
+):
+    col = get_col()
+    if not col:
         return JSONResponse({"sermons": []})
     
     try:
-        # CORRECT COLLECTION NAME: sermons_archive
-        collection = astra_db.get_collection("sermons_archive")
-        
-        # Build query - DATABASE USES 'preacher' FIELD
         filter_dict = {}
+
+        # Speaker filter
         if speaker and speaker != "ALL":
-            filter_dict = {"preacher": speaker}
-        
-        # Fetching documents
-        cursor = collection.find(filter_dict, limit=limit)
-        raw_sermons = list(cursor)
-        
-        # MAPPING FOR FRONTEND:
-        # DB Fields: title, preacher, content, audioUrl, date
-        # Frontend expects: sermon_title, speaker, content, audio_url, date
-        formatted = []
-        for s in raw_sermons:
-            formatted.append({
-                "_id": str(s.get("_id", "")),
-                "sermon_title": s.get("title", "Untitled Message"),
-                "speaker": s.get("preacher", "Unknown Preacher"),
-                "content": s.get("content", ""),
-                "audio_url": s.get("audioUrl", ""),
-                "date": s.get("date", ""),
-                "scripture_reference": s.get("scripture", s.get("reference", "")),
-                "duration": s.get("duration", "")
-            })
-                
-        return JSONResponse({"sermons": formatted})
+            filter_dict["$or"] = [
+                {"preacher": {"$regex": f"^{speaker}$", "$options": "i"}},
+                {"speaker":  {"$regex": f"^{speaker}$", "$options": "i"}},
+            ]
+
+        # Search support
+        if search:
+            search_filter = {"$or": [
+                {"title":               {"$regex": search, "$options": "i"}},
+                {"sermon_title":        {"$regex": search, "$options": "i"}},
+                {"content":             {"$regex": search, "$options": "i"}},
+                {"scripture_reference": {"$regex": search, "$options": "i"}},
+                {"series":              {"$regex": search, "$options": "i"}},
+                {"preacher":            {"$regex": search, "$options": "i"}},
+                {"speaker":             {"$regex": search, "$options": "i"}},
+            ]}
+            if filter_dict:
+                filter_dict = {"$and": [filter_dict, search_filter]}
+            else:
+                filter_dict = search_filter
+
+        cursor = col.find(filter_dict, limit=limit, skip=skip)
+        return JSONResponse({"sermons": [map_sermon(s) for s in cursor]})
     except Exception as e:
         logger.error(f"Sermon Fetch Error: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
-@app.get("/sermons/speakers")
-async def get_speakers():
-    """
-    Retrieve unique anointed preachers from the 'sermons_archive' collection.
-    """
-    if not astra_db:
-        return JSONResponse({"speakers": []})
-        
-    try:
-        collection = astra_db.get_collection("sermons_archive")
-        
-        # Sampling speakers (Astra DB limit)
-        cursor = collection.find({}, limit=1000, projection={"preacher": True})
-        # Map DB 'preacher' to frontend speakers list
-        speakers = sorted(list(set(s.get("preacher") for s in cursor if s.get("preacher"))))
-        
-        return JSONResponse({"speakers": speakers})
-    except Exception as e:
-        logger.error(f"Speakers Fetch Error: {e}")
-        return JSONResponse({"error": str(e)}, status_code=500)
+@app.get("/sermons/{sermon_id}")
+async def get_sermon(sermon_id: str):
+    """Returns single sermon with full content"""
+    col = get_col()
+    if not col:
+        raise HTTPException(status_code=500, detail="Database not connected")
+    
+    doc = col.find_one({"_id": sermon_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Sermon not found")
+    return JSONResponse(map_sermon(doc))
 
 @app.get("/health")
 async def health_check():
