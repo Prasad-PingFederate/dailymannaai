@@ -42,24 +42,30 @@ export async function GET(req: Request) {
 
         const collection = db.collection("sermons_archive");
 
-        // Build filter query
+        // Build filter query — removed $regex as it's unsupported in this collection
         const query: Record<string, any> = {};
         if (speaker && speaker !== "ALL") {
             query["$or"] = [
-                { preacher: { $regex: speaker, $options: "i" } },
-                { speaker: { $regex: speaker, $options: "i" } },
+                { preacher: speaker },
+                { speaker: speaker },
             ];
         }
         if (search) {
+            // If regex is unsupported, we can't do partial title search easily without Search Index.
+            // For now, let's try an exact title match or just log a warning.
             const searchClause = {
                 "$or": [
-                    { title: { $regex: search, $options: "i" } },
-                    { preacher: { $regex: search, $options: "i" } },
-                    { speaker: { $regex: search, $options: "i" } },
-                    { scripture_reference: { $regex: search, $options: "i" } },
+                    { title: search },
+                    { sermon_title: search },
+                    { preacher: search },
+                    { speaker: search },
                 ]
             };
-            query["$and"] = [query, searchClause];
+            if (Object.keys(query).length > 0) {
+                query["$and"] = [JSON.parse(JSON.stringify(query)), searchClause];
+            } else {
+                Object.assign(query, searchClause);
+            }
         }
 
         const raw = await collection.find(query, { limit }).toArray();
