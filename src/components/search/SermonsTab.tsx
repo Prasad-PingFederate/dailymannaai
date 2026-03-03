@@ -9,7 +9,14 @@ const API_BASE = "/backend-api";
 
 async function apiFetch(path: string) {
     const res = await fetch(`${API_BASE}${path}`);
-    if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
+    if (!res.ok) {
+        let errStr = `API ${res.status}: ${path}`;
+        try {
+            const body = await res.json();
+            if (body.error) errStr += ` - ${body.error}`;
+        } catch { }
+        throw new Error(errStr);
+    }
     return res.json();
 }
 

@@ -51,8 +51,8 @@ def get_astra_db():
     
     try:
         client = DataAPIClient(ASTRA_TOKEN)
-        # Using the mapping provided in the user's fix
-        db = client.get_database_by_api_endpoint(ASTRA_ENDPOINT, keyspace=ASTRA_KEYSPACE)
+        # Using the standard get_database method which is more robust
+        db = client.get_database(ASTRA_ENDPOINT, keyspace=ASTRA_KEYSPACE)
         return db
     except Exception as e:
         logger.error(f"❌ [AstraDB] Connection failed: {e}")
