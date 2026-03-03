@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // ─── ⚙️  SET YOUR BACKEND URL HERE ────────────────────────────
-// Using local API proxy for Astra DB sermons
-const API_BASE = "/api";
+// Now using FastAPI for high-performance Astra DB access via Vercel Serverless
+const API_BASE = "/backend-api";
 // ──────────────────────────────────────────────────────────────
 
 async function apiFetch(path: string) {
@@ -13,7 +13,16 @@ async function apiFetch(path: string) {
     return res.json();
 }
 
-const toArr = (d: any) => Array.isArray(d) ? d : (d?.data || d?.sermons || d?.results || []);
+const toArr = (d: any) => {
+    const raw = Array.isArray(d) ? d : (d?.data || d?.sermons || d?.results || []);
+    // Map existing Astra fields if coming through directly
+    return raw.map((s: any) => ({
+        ...s,
+        speaker: s.speaker || s.preacher || "Unknown Preacher",
+        sermon_title: s.sermon_title || s.title || "Untitled Message",
+        audio_url: s.audio_url || s.audioUrl || ""
+    }));
+};
 
 const SPEAKER_PALETTE = [
     "#1a1a2e", "#16213e", "#0f3460", "#533483", "#2b2d42",
