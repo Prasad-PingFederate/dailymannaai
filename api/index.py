@@ -1,4 +1,8 @@
-from backend.src.api import app as handler
+import sys
+import os
 
-# This acts as the entry point for Vercel Serverless Functions
+# Add the project root to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from backend.src.api import app as handler
 app = handler

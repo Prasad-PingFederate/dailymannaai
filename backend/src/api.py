@@ -19,9 +19,10 @@ app.add_middleware(
 )
 
 # ── Step 1: Check env vars exist
-ASTRA_TOKEN    = os.getenv("ASTRA_DB_TOKEN", "")
-ASTRA_ENDPOINT = os.getenv("ASTRA_DB_ENDPOINT", "") or os.getenv("ASTRA_DB_API_ENDPOINT", "")
-ASTRA_KEYSPACE = os.getenv("ASTRA_DB_KEYSPACE", "default_keyspace")
+# Supporting multiple naming conventions for Astra DB credentials
+ASTRA_TOKEN    = os.getenv("ASTRA_DB_APPLICATION_TOKEN") or os.getenv("ASTRA_DB_TOKEN", "")
+ASTRA_ENDPOINT = os.getenv("ASTRA_DB_API_ENDPOINT") or os.getenv("ASTRA_DB_ENDPOINT", "")
+ASTRA_KEYSPACE = os.getenv("ASTRA_DB_NAMESPACE") or os.getenv("ASTRA_DB_KEYSPACE", "default_keyspace")
 
 # ══════════════════════════════════════════════════
 #  DEBUG ROUTE — visit this in browser first
