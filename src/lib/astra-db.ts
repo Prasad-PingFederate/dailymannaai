@@ -12,20 +12,35 @@ export async function getAstraDatabase(): Promise<Db> {
         return cachedAstraDb;
     }
 
-    const token = process.env.ASTRA_DB_TOKEN;
-    const endpoint = process.env.ASTRA_DB_API_ENDPOINT;
+    // Support both naming conventions
+    const token =
+        process.env.ASTRA_DB_TOKEN ||
+        process.env.ASTRA_DB_APPLICATION_TOKEN;
+
+    const endpoint =
+        process.env.ASTRA_DB_API_ENDPOINT ||
+        process.env.ASTRA_DB_ENDPOINT;
+
+    const keyspace =
+        process.env.ASTRA_DB_NAMESPACE ||
+        process.env.ASTRA_DB_KEYSPACE ||
+        "default_keyspace";
 
     if (!token || !endpoint) {
-        console.warn("⚠️ [AstraDB] Missing ASTRA_DB_TOKEN or ASTRA_DB_API_ENDPOINT. Skipping Astra initialization.");
+        console.error("❌ [AstraDB] Env vars found:", {
+            ASTRA_DB_TOKEN: !!process.env.ASTRA_DB_TOKEN,
+            ASTRA_DB_APPLICATION_TOKEN: !!process.env.ASTRA_DB_APPLICATION_TOKEN,
+            ASTRA_DB_API_ENDPOINT: !!process.env.ASTRA_DB_API_ENDPOINT,
+        });
         throw new Error("ASTRA_DB_CREDENTIALS_MISSING");
     }
 
     try {
         const client = new DataAPIClient(token);
-        const db = client.db(endpoint);
-
+        // Use 'keyspace' as 'namespace' is deprecated in newer SDK versions
+        const db = client.db(endpoint, { keyspace } as any);
         cachedAstraDb = db;
-        console.log("✅ [AstraDB] Successfully connected to Global Christian Index (Astra DB).");
+        console.log("✅ [AstraDB] Connected successfully. Keyspace:", keyspace);
         return db;
     } catch (error: any) {
         console.error(`❌ [AstraDB] Connection failed: ${error.message}`);
