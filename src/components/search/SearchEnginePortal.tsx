@@ -12,6 +12,7 @@ import Link from "next/link";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import RichAIMessage from "./RichAIMessage";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
 
@@ -1730,8 +1731,17 @@ export default function SearchEnginePortal() {
                                                         </div>
                                                     )}
 
-                                                    <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-800 font-serif italic'}`}>
-                                                        {msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
+                                                    <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : ''}`}>
+                                                        {msg.role === 'user' ? (
+                                                            // User message — plain text
+                                                            msg.content || ""
+                                                        ) : (
+                                                            // AI message — rich formatted component
+                                                            <RichAIMessage
+                                                                content={msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
+                                                                isThinking={msg.isThinking}
+                                                            />
+                                                        )}
                                                     </div>
 
                                                     {/* Live News Cards — only shown when AI returns news results */}
