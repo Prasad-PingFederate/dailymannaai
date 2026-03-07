@@ -1743,70 +1743,73 @@ export default function SearchEnginePortal() {
                                                             </button>
                                                         ))}
                                                     </div>
-                                                ))
-                                )}
-                                                {isAiChatting && (
-                                                    <div className="flex flex-col items-center gap-4 py-16">
-                                                        <div className="flex gap-2.5">
-                                                            {[0, 1, 2].map(d => (
-                                                                <div key={d} className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
-                                                            ))}
-                                                        </div>
-                                                        <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
-                                                    </div>
                                                 )}
                                             </div>
-                                            ) : filter === "devotionals" ? (
-                                            <div className="w-full">
-                                                <DevotionalsTab />
-                                            </div>
-                                            ) : filter === "sermons" ? (
-                                            <div className="w-full">
-                                                <SermonsTab />
-                                            </div>
-                                            ) : filter === "studio" ? (
-                                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
-                                                <BibleQuoteGenerator />
-                                            </div>
-                                            ) : hasContent ? (
-                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                                        </div>
+                                    ))
+                                )}
+                                {isAiChatting && (
+                                    <div className="flex flex-col items-center gap-4 py-16">
+                                        <div className="flex gap-2.5">
+                                            {[0, 1, 2].map(d => (
+                                                <div key={d} className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
+                                            ))}
+                                        </div>
+                                        <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : filter === "devotionals" ? (
+                            <div className="w-full">
+                                <DevotionalsTab />
+                            </div>
+                        ) : filter === "sermons" ? (
+                            <div className="w-full">
+                                <SermonsTab />
+                            </div>
+                        ) : filter === "studio" ? (
+                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
+                                <BibleQuoteGenerator />
+                            </div>
+                        ) : hasContent ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                                                {/* Main column */}
-                                                <div className="lg:col-span-8 space-y-10">
-                                                    {instantAnswer && <InstantAnswerWidget data={instantAnswer} />}
-                                                    {solution && <SolutionDashboard solution={solution} query={query} onPreview={openPreview} />}
-                                                    {!solution && results && results.length > 0 && (
-                                                        <div className="space-y-4">
-                                                            <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-1">
-                                                                {results.length} results
-                                                            </div>
-                                                            {results.map((r, i) => (
-                                                                <ResultCard key={i} result={r} onPreview={openPreview} index={i} />
-                                                            ))}
-
-                                                            {pagination && (
-                                                                <PaginationWidget
-                                                                    current={pagination.current}
-                                                                    total={pagination.total}
-                                                                    hasMore={pagination.hasMore}
-                                                                    onPageChange={(p) => handleSearch(query, filter, p)}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Sidebar */}
-                                                <div className="lg:col-span-4">
-                                                    <Sidebar />
-                                                </div>
+                                {/* Main column */}
+                                <div className="lg:col-span-8 space-y-10">
+                                    {instantAnswer && <InstantAnswerWidget data={instantAnswer} />}
+                                    {solution && <SolutionDashboard solution={solution} query={query} onPreview={openPreview} />}
+                                    {!solution && results && results.length > 0 && (
+                                        <div className="space-y-4">
+                                            <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-1">
+                                                {results.length} results
                                             </div>
-                                            ) : (
-                                            <EmptyState query={query} />
-                        )}
+                                            {results.map((r, i) => (
+                                                <ResultCard key={i} result={r} onPreview={openPreview} index={i} />
+                                            ))}
+
+                                            {pagination && (
+                                                <PaginationWidget
+                                                    current={pagination.current}
+                                                    total={pagination.total}
+                                                    hasMore={pagination.hasMore}
+                                                    onPageChange={(p) => handleSearch(query, filter, p)}
+                                                />
+                                            )}
                                         </div>
                                     )}
-                            </main>
+                                </div>
+
+                                {/* Sidebar */}
+                                <div className="lg:col-span-4">
+                                    <Sidebar />
+                                </div>
+                            </div>
+                        ) : (
+                            <EmptyState query={query} />
+                        )}
+                    </div>
+                )}
+            </main>
         </div>
-                );
+    );
 }
