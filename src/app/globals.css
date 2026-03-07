@@ -256,6 +256,7 @@ body {
 
   --toggle-bg: #e8e8e8;
   --toggle-knob: #ffffff;
+  --logo-primary: #1a1a1a;
 }
 
 /* ─── Dark Mode ──────────────────────────────────────────── */
@@ -295,6 +296,7 @@ body {
 
   --toggle-bg: #2a2d36;
   --toggle-knob: #f0f0ef;
+  --logo-primary: #f0f0ef;
 }
 
 /* ─── Smooth transition on theme switch ──────────────────── */

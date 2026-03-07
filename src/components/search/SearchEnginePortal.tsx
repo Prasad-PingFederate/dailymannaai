@@ -1516,9 +1516,17 @@ export default function SearchEnginePortal() {
                            border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
                     <button
                         onClick={resetSearch}
-                        className="font-['Cinzel'] text-xl font-black tracking-tight hover:text-black transition-colors"
+                        className="font-['Cinzel'] text-xl font-black tracking-tight transition-all duration-300 hover:opacity-80"
+                        style={{ letterSpacing: "-0.02em" }}
                     >
-                        DAILY<span className="text-black">MANNA</span>AI
+                        <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>DAILY</span>
+                        <span style={{
+                            background: "linear-gradient(135deg, #B8860B 0%, #D4A017 40%, #F5C842 60%, #B8860B 100%)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                        }}>MANNA</span>
+                        <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>AI</span>
                     </button>
                     {/* Notebook link moved to filter tabs */}
                 </header>
@@ -1534,8 +1542,20 @@ export default function SearchEnginePortal() {
                             <div className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
                             AI Powered Revelation
                         </div>
-                        <h1 className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter text-slate-900 drop-shadow-xl leading-none">
-                            DAILY<span className="text-black">MANNA</span>AI
+                        <h1
+                            className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter leading-none"
+                            style={{ letterSpacing: "-0.03em", lineHeight: 0.95 }}
+                        >
+                            <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>DAILY</span>
+                            <span style={{
+                                background: "linear-gradient(135deg, #B8860B 0%, #D4A017 35%, #F5C842 55%, #D4A017 75%, #B8860B 100%)",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                backgroundClip: "text",
+                                textShadow: "none",
+                                filter: "drop-shadow(0 0 20px rgba(212,160,23,0.4))",
+                            }}>MANNA</span>
+                            <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>AI</span>
                         </h1>
                         <p className="text-slate-400 max-w-md mx-auto text-lg font-medium italic leading-relaxed">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
@@ -1626,8 +1646,6 @@ export default function SearchEnginePortal() {
                                     )}
                                 </button>
 
-                                {/* ── Theme Toggle ── */}
-                                <ThemeToggle variant="icon" />
                             </div>
                         </div>
                     </form>
