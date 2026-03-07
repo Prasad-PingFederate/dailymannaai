@@ -333,3 +333,80 @@ body {
   background: #B8860B22;
   color: #1a1a1a;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE — Override hardcoded Tailwind classes
+   so the main search engine portal switches to dark mode
+═══════════════════════════════════════════════════════════ */
+
+/* Main page background + text */
+[data-theme="dark"] .min-h-screen.bg-white,
+[data-theme="dark"] .min-h-screen {
+  background-color: #0d0f14 !important;
+  color: #f0f0ef !important;
+}
+
+/* Cards, panels, inputs */
+[data-theme="dark"] .bg-white {
+  background-color: #1a1d24 !important;
+}
+
+[data-theme="dark"] .bg-slate-100,
+[data-theme="dark"] .bg-slate-50 {
+  background-color: #1e2128 !important;
+}
+
+[data-theme="dark"] .bg-slate-200 {
+  background-color: #2a2d36 !important;
+}
+
+/* Text */
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800 {
+  color: #f0f0ef !important;
+}
+
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-700 {
+  color: #b0b0ae !important;
+}
+
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-slate-400 {
+  color: #777777 !important;
+}
+
+/* Borders */
+[data-theme="dark"] .border-slate-200,
+[data-theme="dark"] .border-slate-100 {
+  border-color: #2a2d36 !important;
+}
+
+/* Search box */
+[data-theme="dark"] input[type="text"] {
+  background-color: transparent !important;
+  color: #f0f0ef !important;
+}
+
+[data-theme="dark"] input[type="text"]::placeholder {
+  color: #555555 !important;
+}
+
+/* Sticky header backdrop */
+[data-theme="dark"] .backdrop-blur-2xl {
+  background-color: rgba(17, 19, 24, 0.85) !important;
+}
+
+/* Ambient blobs — hide in dark (already dark BG) */
+[data-theme="dark"] .bg-slate-200\/20,
+[data-theme="dark"] .bg-slate-100\/20,
+[data-theme="dark"] .bg-slate-50\/10 {
+  opacity: 0.05 !important;
+}
+
+/* ── Theme toggle pill style overrides (dark bg) ── */
+[data-theme="dark"] [aria-label*="Switch to"] {
+  background: #1e2128 !important;
+  border-color: #2a2d36 !important;
+  color: #b0b0ae !important;
+}

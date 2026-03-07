@@ -11,6 +11,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StructuredData from "@/components/StructuredData";
 import { ThemeProvider } from "@/context/ThemeContext";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -201,6 +202,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
+          {/* ── Fixed Dark/Light Mode Toggle — top-right corner ── */}
+          <div style={{
+            position: "fixed",
+            top: "14px",
+            right: "18px",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}>
+            <ThemeToggle variant="pill" />
+          </div>
           <StructuredData />
           {children}
         </ThemeProvider>
