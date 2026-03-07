@@ -2,7 +2,7 @@
 // Beautiful AI response renderer — pure UI layer, no functional changes
 "use client";
 
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useMemo, useEffect, useState, useRef, useCallback } from "react";
 
 const CATEGORY_COLORS: Record<string, string> = {
     prayer: "#2E7D52",
@@ -141,6 +141,38 @@ function shareWA(text: string) {
 interface Props {
     content: string;
     isThinking?: boolean;
+}
+
+function CopyButton({ content }: { content: string }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = useCallback(() => {
+        navigator.clipboard.writeText(content).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    }, [content]);
+
+    return (
+        <button
+            onClick={handleCopy}
+            style={{
+                background: copied ? "#22c55e18" : "var(--bg-input, #f2f2f0)",
+                border: copied ? "1px solid #22c55e55" : "1px solid var(--border-primary, #e0e0e0)",
+                color: copied ? "#16a34a" : "var(--text-secondary, #555)",
+                borderRadius: 10, padding: "8px 18px",
+                fontSize: 13, cursor: "pointer", fontFamily: "sans-serif",
+                transition: "all 0.25s ease",
+                display: "flex", alignItems: "center", gap: 6,
+                fontWeight: copied ? 600 : 400,
+            }}
+        >
+            <span style={{ fontSize: 14, transition: "transform 0.2s", transform: copied ? "scale(1.2)" : "scale(1)" }}>
+                {copied ? "\u2713" : "\uD83D\uDCCB"}
+            </span>
+            {copied ? "Copied!" : "Copy"}
+        </button>
+    );
 }
 
 export default function RichAIMessage({ content, isThinking }: Props) {
@@ -314,16 +346,7 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                     >
                         &#128242; Share on WhatsApp
                     </button>
-                    <button
-                        onClick={() => navigator.clipboard.writeText(content)}
-                        style={{
-                            background: "var(--bg-input, #f2f2f0)", border: "1px solid var(--border-primary, #e0e0e0)",
-                            color: "var(--text-secondary, #555)", borderRadius: 10,
-                            padding: "8px 18px", fontSize: 13, cursor: "pointer", fontFamily: "sans-serif",
-                        }}
-                    >
-                        &#128203; Copy
-                    </button>
+                    <CopyButton content={content} />
                 </div>
 
                 <div style={{ padding: "0 32px 16px", fontSize: 11, color: "var(--text-faint, #bbb)", fontFamily: "sans-serif" }}>
