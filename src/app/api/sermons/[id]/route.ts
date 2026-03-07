@@ -29,18 +29,19 @@ export async function GET(
             return NextResponse.json({ error: "Sermon not found" }, { status: 404 });
         }
 
+        const author = doc.preacher ?? doc.speaker ?? "Unknown Speaker";
+
         const sermon = {
             id: String(doc._id ?? ""),
-            _id: String(doc._id ?? ""),
-            speaker: doc.preacher ?? doc.speaker ?? "Unknown Speaker",
-            sermon_title: doc.title ?? doc.sermon_title ?? "Untitled Message",
-            content: doc.content ?? doc.full_text ?? "",
-            audio_url: doc.audio_url ?? doc.audioUrl ?? "",
-            scripture_reference: doc.scripture_reference ?? doc.scripture ?? doc.reference ?? "",
-            duration: doc.duration ?? "",
-            date: doc.date ?? "",
-            series: doc.series ?? doc.category ?? "",
+            title: doc.title ?? doc.sermon_title ?? "Untitled Message",
+            author: author,
+            scripture: doc.scripture_reference ?? doc.scripture ?? doc.reference ?? null,
+            audioUrl: doc.audio_url ?? doc.audioUrl ?? null,
+            fullText: doc.content ?? doc.full_text ?? "Full text not available.",
+            keyPoints: doc.key_points ?? doc.keyPoints ?? [],
             category: doc.series ?? doc.category ?? "General",
+            duration: doc.duration ?? null,
+            publishedAt: doc.date ?? doc.publishedAt ?? null,
         };
 
         return NextResponse.json(sermon);

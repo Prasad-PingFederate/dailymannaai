@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
 import { getAstraDatabase } from "@/lib/astra-db";
 
+function getInitials(name: string): string {
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
+}
+
 function mapSermonSummary(doc: Record<string, any>) {
+  const author = doc.preacher ?? doc.speaker ?? "Unknown Speaker";
+  const fullText = doc.content ?? doc.full_text ?? "";
+  const audioUrl = doc.audio_url ?? doc.audioUrl ?? "";
+
   return {
     id: String(doc._id ?? ""),
-    _id: String(doc._id ?? ""),
-    speaker: doc.preacher ?? doc.speaker ?? "Unknown Speaker",
-    sermon_title: doc.title ?? doc.sermon_title ?? "Untitled Message",
-    audio_url: doc.audio_url ?? doc.audioUrl ?? "",
-    scripture_reference: doc.scripture_reference ?? doc.scripture ?? doc.reference ?? "",
-    duration: doc.duration ?? "",
-    date: doc.date ?? "",
-    series: doc.series ?? doc.category ?? "",
+    title: doc.title ?? doc.sermon_title ?? "Untitled Message",
+    author,
+    initials: getInitials(author),
     category: doc.series ?? doc.category ?? "General",
-    // Note: 'content' is intentionally omitted for lazy loading
+    duration: doc.duration ?? null,
+    hasAudio: !!audioUrl,
+    preview: doc.preview ?? fullText.substring(0, 120) ?? "Sermon details...",
   };
 }
 
