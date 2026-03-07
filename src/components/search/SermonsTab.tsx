@@ -260,7 +260,8 @@ export default function SermonsTab() {
       const res = await fetch(`/api/sermons/${sermon.id}`); // → api-sermons-[id]-route.ts
       if (!res.ok) throw new Error("Could not load this sermon");
       const data = await res.json();
-      setDetail(data.sermon);
+      // Backend returns the sermon object directly (not wrapped in { sermon: ... })
+      setDetail(data.sermon ?? data);
     } catch (e: any) {
       setDetailError(e.message || "Could not load sermon. Please try again.");
     } finally {
