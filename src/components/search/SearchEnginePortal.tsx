@@ -1021,7 +1021,7 @@ function ThoughtPanel({
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
-type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio";
+type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio" | "notebook";
 
 
 export default function SearchEnginePortal() {
@@ -1418,6 +1418,10 @@ export default function SearchEnginePortal() {
     };
 
     const onFilterChange = (f: FilterType) => {
+        if (f === "notebook") {
+            window.location.href = "/notebook";
+            return;
+        }
         setFilter(f);
         if (f === "devotionals" || f === "studio" || f === "ai" || f === "sermons") {
             setHasSearched(true);
@@ -1467,6 +1471,7 @@ export default function SearchEnginePortal() {
         { id: "ai", label: "AI Mode", icon: <Zap size={13} className="text-black" /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
+        { id: "notebook", label: "Notebook", icon: <BookOpen size={13} /> },
         { id: "devotionals", label: "Devotionals", icon: <Quote size={13} /> },
         { id: "sermons", label: "Sermons", icon: <MessageCircle size={13} /> },
         { id: "studio", label: "Image Studio", icon: <ImageIcon size={13} /> },
