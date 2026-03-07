@@ -819,7 +819,7 @@ function EmptyState({ query }: { query: string }) {
             </div>
             <div className="text-center space-y-3 max-w-sm">
                 <div className="text-slate-900 font-black text-xl font-['Cinzel'] italic">
-                    "Seek, and ye shall findâ€¦"
+                    "Seek and ye shall find..."
                 </div>
                 <p className="text-slate-500 text-xs font-black uppercase tracking-[0.3em] leading-loose">
                     No results for "{query}"<br />Try a broader query or switch the filter above.
@@ -1577,7 +1577,7 @@ export default function SearchEnginePortal() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Seek and ye shall findâ€¦"
+                                placeholder="Seek and ye shall find..."
                                 className={`flex-1 bg-transparent border-none outline-none py-5 text-lg text-slate-800 placeholder:text-slate-400 font-medium`}
                             />
                             {query && (
