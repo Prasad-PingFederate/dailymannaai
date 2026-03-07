@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://dailymannaai.vercel.app/sitemap.xml

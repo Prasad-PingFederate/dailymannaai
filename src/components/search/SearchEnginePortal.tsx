@@ -1041,7 +1041,14 @@ export default function SearchEnginePortal() {
     // AI Mode States
     const [aiMessages, setAiMessages] = useState<any[]>([]);
     const [isAiChatting, setIsAiChatting] = useState(false);
-    const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+    const [aiSuggestions, setAiSuggestions] = useState<string[]>([
+        "Who is Jesus Christ according to the Bible?",
+        "What does the Bible say about anxiety and worry?",
+        "How should a Christian pray according to Jesus?",
+        "What is the meaning of John 3:16?",
+        "Who is the Holy Spirit and what is His role?",
+        "What are the greatest commandments?"
+    ]);
     const abortAiControllerRef = useRef<AbortController | null>(null);
 
     // ▸ Prophetic Alerts State
@@ -1624,150 +1631,182 @@ export default function SearchEnginePortal() {
                             <LoadingState />
                         ) : filter === "ai" ? (
                             <div className="max-w-5xl mx-auto space-y-16">
-                                {aiMessages.map((msg, i) => (
-                                    <div key={i} className={`flex gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
-                                            {msg.role === 'user' ? (
-                                                <div className="font-['Cinzel'] font-black text-xl">U</div>
-                                            ) : (
-                                                <Sparkles size={24} className="animate-pulse" />
-                                            )}
+                                {aiMessages.length === 0 ? (
+                                    <div className="py-10 flex flex-col items-center text-center space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-sky-500/15 blur-[60px] rounded-full scale-150 animate-pulse" />
+                                            <div className="w-24 h-24 rounded-[2.5rem] bg-white border border-slate-200 flex items-center justify-center relative shadow-xl">
+                                                <Sparkles className="text-sky-500 w-10 h-10" />
+                                            </div>
                                         </div>
-
-                                        <div className={`flex flex-col gap-4 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
-                                            <div className={`relative p-10 md:p-14 rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}>
-
-                                                {/* Ambient background for AI messages */}
-                                                {msg.role === 'assistant' && (
-                                                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
-                                                )}
-
-                                                {msg.role === 'assistant' && (msg.thought || msg.isThinking) && (
-                                                    <ThoughtPanel
-                                                        thought={msg.thought || ""}
-                                                        isThinking={msg.isThinking}
-                                                        phase={msg.thinkingPhase}
-                                                        startTime={msg.thinkStartTime}
-                                                    />
-                                                )}
-
-                                                {msg.role === 'assistant' && (
-                                                    <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">
-                                                        {msg.isConflictMode ? (
-                                                            <span className="flex items-center gap-2">
-                                                                <Zap size={10} className="text-amber-500" />
-                                                                <span className="text-amber-600">Prophetic Analysis</span>
-                                                            </span>
-                                                        ) : "Divine Perspective"}
+                                        <div className="space-y-4 max-w-lg">
+                                            <h2 className="text-4xl font-black text-slate-900 tracking-tight font-['Cinzel'] italic">
+                                                Ask Anything About the Word
+                                            </h2>
+                                            <p className="text-slate-500 text-sm leading-relaxed font-serif italic">
+                                                AI Mode provides deep, Scripture-grounded answers to your questions about faith, theology, and the Christian life.
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl px-4">
+                                            {aiSuggestions.map((s, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => { setQuery(s); handleAiSendMessage(s); }}
+                                                    className="p-6 text-left rounded-3xl bg-white border border-slate-200 hover:border-sky-400 hover:bg-sky-50 transition-all group shadow-sm hover:shadow-md active:scale-95"
+                                                >
+                                                    <div className="bg-sky-500/10 w-9 h-9 rounded-xl flex items-center justify-center mb-4 group-hover:bg-sky-500 group-hover:text-white transition-all">
+                                                        <MessageCircle size={14} className="text-sky-600 group-hover:text-white" />
                                                     </div>
+                                                    <span className="text-sm font-bold text-slate-700 group-hover:text-sky-700 block line-clamp-2">
+                                                        {s}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    aiMessages.map((msg, i) => (
+                                        <div key={i} className={`flex gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
+                                                {msg.role === 'user' ? (
+                                                    <div className="font-['Cinzel'] font-black text-xl">U</div>
+                                                ) : (
+                                                    <Sparkles size={24} className="animate-pulse" />
                                                 )}
+                                            </div>
 
-                                                <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-800 font-serif italic'}`}>
-                                                    {msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
+                                            <div className={`flex flex-col gap-4 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
+                                                <div className={`relative p-10 md:p-14 rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}>
+
+                                                    {/* Ambient background for AI messages */}
+                                                    {msg.role === 'assistant' && (
+                                                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
+                                                    )}
+
+                                                    {msg.role === 'assistant' && (msg.thought || msg.isThinking) && (
+                                                        <ThoughtPanel
+                                                            thought={msg.thought || ""}
+                                                            isThinking={msg.isThinking}
+                                                            phase={msg.thinkingPhase}
+                                                            startTime={msg.thinkStartTime}
+                                                        />
+                                                    )}
+
+                                                    {msg.role === 'assistant' && (
+                                                        <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">
+                                                            {msg.isConflictMode ? (
+                                                                <span className="flex items-center gap-2">
+                                                                    <Zap size={10} className="text-amber-500" />
+                                                                    <span className="text-amber-600">Prophetic Analysis</span>
+                                                                </span>
+                                                            ) : "Divine Perspective"}
+                                                        </div>
+                                                    )}
+
+                                                    <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : 'text-xl md:text-2xl text-slate-800 font-serif italic'}`}>
+                                                        {msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
+                                                    </div>
+
+                                                    {/* Live News Cards — only shown when AI returns news results */}
+                                                    {msg.role === 'assistant' && msg.isNewsMode && msg.newsArticles && msg.newsArticles.length > 0 && (
+                                                        <div className="mt-8 not-italic">
+                                                            <div className="flex items-center gap-2 mb-4">
+                                                                <Newspaper size={13} className="text-sky-500" />
+                                                                <span className="text-[10px] font-black text-sky-600 uppercase tracking-[0.3em]">Live News</span>
+                                                                <div className="h-px flex-1 bg-slate-100" />
+                                                                <span className="text-[9px] text-slate-400 font-medium">Fetched just now</span>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                                                                {msg.newsArticles.map((article: AiNewsArticle, ni: number) => (
+                                                                    <AiNewsCard key={ni} article={article} index={ni} />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Bible Prophecy Connections — only shown in conflict/prophecy mode */}
+                                                    {msg.role === 'assistant' && msg.isConflictMode && msg.bibleConnections && msg.bibleConnections.length > 0 && (
+                                                        <BibleConnectionPanel connections={msg.bibleConnections} />
+                                                    )}
                                                 </div>
 
-                                                {/* Live News Cards — only shown when AI returns news results */}
-                                                {msg.role === 'assistant' && msg.isNewsMode && msg.newsArticles && msg.newsArticles.length > 0 && (
-                                                    <div className="mt-8 not-italic">
-                                                        <div className="flex items-center gap-2 mb-4">
-                                                            <Newspaper size={13} className="text-sky-500" />
-                                                            <span className="text-[10px] font-black text-sky-600 uppercase tracking-[0.3em]">Live News</span>
-                                                            <div className="h-px flex-1 bg-slate-100" />
-                                                            <span className="text-[9px] text-slate-400 font-medium">Fetched just now</span>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                                                            {msg.newsArticles.map((article: AiNewsArticle, ni: number) => (
-                                                                <AiNewsCard key={ni} article={article} index={ni} />
+                                                {/* Suggestions for last message */}
+                                                {i === aiMessages.length - 1 && aiSuggestions.length > 0 && !isAiChatting && (
+                                                    <div className="flex flex-wrap gap-3 mt-8">
+                                                        {aiSuggestions.map((s, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => handleAiSendMessage(s)}
+                                                                className="px-8 py-4 rounded-full bg-slate-50 border border-slate-200 hover:border-sky-500/40 hover:bg-sky-500/10 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:text-sky-600 transition-all active:scale-95 shadow-sm"
+                                                            >
+                                                                {s}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ))
+                                )}
+                                                {isAiChatting && (
+                                                    <div className="flex flex-col items-center gap-4 py-16">
+                                                        <div className="flex gap-2.5">
+                                                            {[0, 1, 2].map(d => (
+                                                                <div key={d} className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
                                                             ))}
                                                         </div>
+                                                        <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
                                                     </div>
                                                 )}
-
-                                                {/* Bible Prophecy Connections — only shown in conflict/prophecy mode */}
-                                                {msg.role === 'assistant' && msg.isConflictMode && msg.bibleConnections && msg.bibleConnections.length > 0 && (
-                                                    <BibleConnectionPanel connections={msg.bibleConnections} />
-                                                )}
                                             </div>
+                                            ) : filter === "devotionals" ? (
+                                            <div className="w-full">
+                                                <DevotionalsTab />
+                                            </div>
+                                            ) : filter === "sermons" ? (
+                                            <div className="w-full">
+                                                <SermonsTab />
+                                            </div>
+                                            ) : filter === "studio" ? (
+                                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
+                                                <BibleQuoteGenerator />
+                                            </div>
+                                            ) : hasContent ? (
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                                            {/* Suggestions for last message */}
-                                            {i === aiMessages.length - 1 && aiSuggestions.length > 0 && !isAiChatting && (
-                                                <div className="flex flex-wrap gap-3 mt-8">
-                                                    {aiSuggestions.map((s, idx) => (
-                                                        <button
-                                                            key={idx}
-                                                            onClick={() => handleAiSendMessage(s)}
-                                                            className="px-8 py-4 rounded-full bg-slate-50 border border-slate-200 hover:border-sky-500/40 hover:bg-sky-500/10 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:text-sky-600 transition-all active:scale-95 shadow-sm"
-                                                        >
-                                                            {s}
-                                                        </button>
-                                                    ))}
+                                                {/* Main column */}
+                                                <div className="lg:col-span-8 space-y-10">
+                                                    {instantAnswer && <InstantAnswerWidget data={instantAnswer} />}
+                                                    {solution && <SolutionDashboard solution={solution} query={query} onPreview={openPreview} />}
+                                                    {!solution && results && results.length > 0 && (
+                                                        <div className="space-y-4">
+                                                            <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-1">
+                                                                {results.length} results
+                                                            </div>
+                                                            {results.map((r, i) => (
+                                                                <ResultCard key={i} result={r} onPreview={openPreview} index={i} />
+                                                            ))}
+
+                                                            {pagination && (
+                                                                <PaginationWidget
+                                                                    current={pagination.current}
+                                                                    total={pagination.total}
+                                                                    hasMore={pagination.hasMore}
+                                                                    onPageChange={(p) => handleSearch(query, filter, p)}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                {isAiChatting && (
-                                    <div className="flex flex-col items-center gap-4 py-16">
-                                        <div className="flex gap-2.5">
-                                            {[0, 1, 2].map(d => (
-                                                <div key={d} className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
-                                            ))}
-                                        </div>
-                                        <div className="text-sky-400/50 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Generating Revelation</div>
-                                    </div>
-                                )}
-                            </div>
-                        ) : filter === "devotionals" ? (
-                            <div className="w-full">
-                                <DevotionalsTab />
-                            </div>
-                        ) : filter === "sermons" ? (
-                            <div className="w-full">
-                                <SermonsTab />
-                            </div>
-                        ) : filter === "studio" ? (
-                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
-                                <BibleQuoteGenerator />
-                            </div>
-                        ) : hasContent ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-                                {/* Main column */}
-                                <div className="lg:col-span-8 space-y-10">
-                                    {instantAnswer && <InstantAnswerWidget data={instantAnswer} />}
-                                    {solution && <SolutionDashboard solution={solution} query={query} onPreview={openPreview} />}
-                                    {!solution && results && results.length > 0 && (
-                                        <div className="space-y-4">
-                                            <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-1">
-                                                {results.length} results
+                                                {/* Sidebar */}
+                                                <div className="lg:col-span-4">
+                                                    <Sidebar />
+                                                </div>
                                             </div>
-                                            {results.map((r, i) => (
-                                                <ResultCard key={i} result={r} onPreview={openPreview} index={i} />
-                                            ))}
-
-                                            {pagination && (
-                                                <PaginationWidget
-                                                    current={pagination.current}
-                                                    total={pagination.total}
-                                                    hasMore={pagination.hasMore}
-                                                    onPageChange={(p) => handleSearch(query, filter, p)}
-                                                />
-                                            )}
+                                            ) : (
+                                            <EmptyState query={query} />
+                        )}
                                         </div>
                                     )}
-                                </div>
-
-                                {/* Sidebar */}
-                                <div className="lg:col-span-4">
-                                    <Sidebar />
-                                </div>
-                            </div>
-                        ) : (
-                            <EmptyState query={query} />
-                        )}
-                    </div>
-                )}
-            </main>
+                            </main>
         </div>
-    );
+                );
 }

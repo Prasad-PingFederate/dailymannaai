@@ -3,11 +3,19 @@
  * Supports multiple providers with v1 API support and deep fallback chains
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { HfInference } from "@huggingface/inference";
 import { prisma } from "../db";
 import { TrainingLogger } from "./training-logger";
+
+// 🛡️ PERMISSIVE SAFETY CONFIG FOR RELIGIOUS DIALOGUE
+const RELIGIOUS_SAFETY_SETTINGS = [
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
 
 export interface AIProvider {
     name: string;
@@ -125,7 +133,10 @@ class GeminiProvider implements AIProvider {
             try {
                 console.log(`[AI] Gemini testing: ${modelName}...`);
                 // Use generic approach to allow beta models
-                const model = this.client.getGenerativeModel({ model: modelName });
+                const model = this.client.getGenerativeModel({
+                    model: modelName,
+                    safetySettings: RELIGIOUS_SAFETY_SETTINGS
+                });
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
                 return response.text();
@@ -139,7 +150,10 @@ class GeminiProvider implements AIProvider {
     }
 
     async generateStream(prompt: string): Promise<ReadableStream> {
-        const model = this.client.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = this.client.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            safetySettings: RELIGIOUS_SAFETY_SETTINGS
+        });
         const result = await model.generateContentStream(prompt);
 
         return new ReadableStream({
@@ -176,7 +190,10 @@ class GeminiProvider implements AIProvider {
         for (const modelName of transcriptionModels) {
             try {
                 console.log(`[AI] Transcription attempt with: ${modelName}`);
-                const model = this.client.getGenerativeModel({ model: modelName });
+                const model = this.client.getGenerativeModel({
+                    model: modelName,
+                    safetySettings: RELIGIOUS_SAFETY_SETTINGS
+                });
 
                 const prompt = `
                 Mission: Act as a high-precision transcription engine.
