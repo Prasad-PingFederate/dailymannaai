@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -16,7 +16,7 @@ import RichAIMessage from "./RichAIMessage";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
 
-// ─── TYPES ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ TYPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SearchResult {
     title: string;
@@ -38,7 +38,7 @@ interface PreviewPanel {
     type?: string;
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Ensure a URL is valid and absolute. Returns null if unusable. */
 function sanitizeUrl(url: string | null | undefined): string | null {
@@ -78,7 +78,7 @@ function openLink(url: string | null | undefined) {
     window.open(clean, "_blank", "noopener,noreferrer");
 }
 
-// ─── COPY BUTTON ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ COPY BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function CopyButton({ text }: { text: string }) {
     const [copied, setCopied] = useState(false);
@@ -93,7 +93,7 @@ function CopyButton({ text }: { text: string }) {
     );
 }
 
-// ─── AI NEWS CARD ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ AI NEWS CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface AiNewsArticle {
     title: string;
@@ -155,7 +155,7 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
     );
 }
 
-// ─── BIBLE CONNECTION PANEL ───────────────────────────────────────────────────
+// â”€â”€â”€ BIBLE CONNECTION PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface BibleConnection {
     reference: string;
@@ -177,7 +177,7 @@ function BibleConnectionPanel({ connections }: { connections: BibleConnection[] 
                     Biblical Prophecy Connection
                 </span>
                 <div className="h-px flex-1 bg-amber-200/60" />
-                <span className="text-[9px] text-amber-600/70 font-medium italic">KJV · Prophetic Lens</span>
+                <span className="text-[9px] text-amber-600/70 font-medium italic">KJV Â· Prophetic Lens</span>
             </div>
 
             {/* Verse cards */}
@@ -228,7 +228,7 @@ function BibleConnectionPanel({ connections }: { connections: BibleConnection[] 
     );
 }
 
-// ─── RESULT CARD ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ RESULT CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ResultCard({
     result,
@@ -260,7 +260,7 @@ function ResultCard({
                     />
                 )}
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    {isBible ? "Holy Bible · KJV" : (result.source || host || "Trusted Source")}
+                    {isBible ? "Holy Bible Â· KJV" : (result.source || host || "Trusted Source")}
                 </span>
                 {isBible && <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase tracking-wider">Scripture</span>}
             </div>
@@ -277,7 +277,7 @@ function ResultCard({
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-                {/* PRIMARY — Open Link */}
+                {/* PRIMARY â€” Open Link */}
                 <button
                     onClick={() => openLink(finalUrl)}
                     className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-sky-500/20"
@@ -286,7 +286,7 @@ function ResultCard({
                     {isBible ? "Read on BibleGateway" : "Open Article"}
                 </button>
 
-                {/* SECONDARY — Quick Preview */}
+                {/* SECONDARY â€” Quick Preview */}
                 <button
                     onClick={() => onPreview({ ...result, link: finalUrl })}
                     className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10
@@ -311,7 +311,7 @@ function ResultCard({
                             className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20
                          text-amber-400 text-[9px] font-bold hover:bg-amber-500/20 transition-all"
                         >
-                            {ref} ↗
+                            {ref} â†—
                         </button>
                     ))}
                 </div>
@@ -320,7 +320,7 @@ function ResultCard({
     );
 }
 
-// ─── SIDE PREVIEW PANEL ──────────────────────────────────────────────────────
+// â”€â”€â”€ SIDE PREVIEW PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Replaces the broken iframe with a beautiful, fully functional preview.
 
 function PreviewPanel({
@@ -350,7 +350,7 @@ function PreviewPanel({
                 onClick={onClose}
             />
 
-            {/* Panel — slides in from RIGHT */}
+            {/* Panel â€” slides in from RIGHT */}
             <div
                 className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-white border-l border-slate-200 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
             >
@@ -361,7 +361,7 @@ function PreviewPanel({
                             <img src={faviconUrl(finalUrl)} alt="" className="w-5 h-5 rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                         )}
                         <span className="text-xs font-black text-slate-400 uppercase tracking-widest truncate max-w-[240px]">
-                            {isBible ? "Holy Bible · King James Version" : host}
+                            {isBible ? "Holy Bible Â· King James Version" : host}
                         </span>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all">
@@ -414,7 +414,7 @@ function PreviewPanel({
                                 <div>
                                     <div className="text-amber-400 text-xs font-black uppercase tracking-wide mb-1">Why no inline preview?</div>
                                     <p className="text-slate-400 text-xs leading-relaxed">
-                                        Most Christian news sites block embedded viewing for security. Click the button below to read the full article directly on the source — it opens instantly in a new tab.
+                                        Most Christian news sites block embedded viewing for security. Click the button below to read the full article directly on the source â€” it opens instantly in a new tab.
                                     </p>
                                 </div>
                             </div>
@@ -438,7 +438,7 @@ function PreviewPanel({
     );
 }
 
-// ─── INSTANT ANSWER WIDGET ────────────────────────────────────────────────────
+// â”€â”€â”€ INSTANT ANSWER WIDGET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function InstantAnswerWidget({ data }: { data: any }) {
     const iconMap: Record<string, React.ReactNode> = {
@@ -481,7 +481,7 @@ function InstantAnswerWidget({ data }: { data: any }) {
                 <div className="text-slate-400 text-base font-medium mt-2">{data.subtitle}</div>
             )}
 
-            {/* Bible ref — open on BibleGateway */}
+            {/* Bible ref â€” open on BibleGateway */}
             {data.type === "bible" && data.title && (
                 <button
                     onClick={() => openLink(bibleGatewayLink(data.title))}
@@ -498,7 +498,7 @@ function InstantAnswerWidget({ data }: { data: any }) {
     );
 }
 
-// ─── PAGINATION WIDGET ────────────────────────────────────────────────────────
+// â”€â”€â”€ PAGINATION WIDGET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function PaginationWidget({ current, total, hasMore, onPageChange }: { current: number, total: number, hasMore: boolean, onPageChange: (p: number) => void }) {
     if (total <= 1) return null;
     const pages = Array.from({ length: Math.min(total, 10) }, (_, i) => i + 1);
@@ -552,7 +552,7 @@ function PaginationWidget({ current, total, hasMore, onPageChange }: { current: 
     );
 }
 
-// ─── SOLUTION DASHBOARD ───────────────────────────────────────────────────────
+// â”€â”€â”€ SOLUTION DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function SolutionDashboard({
     solution,
@@ -566,7 +566,7 @@ function SolutionDashboard({
     return (
         <div className="space-y-14 animate-in fade-in duration-700">
 
-            {/* ── AI INSIGHT ── */}
+            {/* â”€â”€ AI INSIGHT â”€â”€ */}
             <div className="relative rounded-[3rem] bg-gradient-to-br from-sky-50 via-white to-transparent
                       border border-sky-100 p-12 overflow-hidden shadow-sm">
                 <div className="absolute -top-20 -right-20 w-56 h-56 bg-sky-500/10 rounded-full blur-[70px] pointer-events-none" />
@@ -597,7 +597,7 @@ function SolutionDashboard({
                 </div>
             </div>
 
-            {/* ── 5 BIBLE VERSES ── */}
+            {/* â”€â”€ 5 BIBLE VERSES â”€â”€ */}
             {solution.bible?.length > 0 && (
                 <section className="space-y-6">
                     <SectionHeader icon={<Book size={16} />} label="5 Scriptural Foundations" color="text-amber-500" />
@@ -625,10 +625,10 @@ function SolutionDashboard({
                                         "{b.description}"
                                     </p>
                                     <button
-                                        onClick={() => onPreview({ ...b, link: bgLink, type: "bible", source: "Holy Bible · KJV" })}
+                                        onClick={() => onPreview({ ...b, link: bgLink, type: "bible", source: "Holy Bible Â· KJV" })}
                                         className="mt-4 text-[10px] font-black text-amber-500/50 hover:text-amber-400 uppercase tracking-widest transition-colors"
                                     >
-                                        Preview verse context →
+                                        Preview verse context â†’
                                     </button>
                                 </div>
                             );
@@ -637,7 +637,7 @@ function SolutionDashboard({
                 </section>
             )}
 
-            {/* ── 4 NEWS ── */}
+            {/* â”€â”€ 4 NEWS â”€â”€ */}
             <section className="space-y-6">
                 <SectionHeader icon={<Newspaper size={16} />} label="4 World Perspectives" color="text-sky-400" />
                 {solution.news?.length > 0 ? (
@@ -652,12 +652,12 @@ function SolutionDashboard({
                     </div>
                 ) : (
                     <div className="py-10 text-center text-slate-400 italic border border-slate-100 rounded-3xl text-sm">
-                        Crawlers are scanning global news — search again in a moment.
+                        Crawlers are scanning global news â€” search again in a moment.
                     </div>
                 )}
             </section>
 
-            {/* ── DEVOTIONALS + SERMONS ── */}
+            {/* â”€â”€ DEVOTIONALS + SERMONS â”€â”€ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {/* Devotionals */}
                 <section className="space-y-6">
@@ -695,7 +695,7 @@ function SolutionDashboard({
                                 </div>
                                 <div className="min-w-0">
                                     <h4 className="text-slate-900 text-sm font-bold truncate group-hover:text-pink-600 transition-colors">{s.title}</h4>
-                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">{s.speaker} · {s.length}</p>
+                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">{s.speaker} Â· {s.length}</p>
                                 </div>
                                 <ArrowUpRight size={14} className="text-slate-600 group-hover:text-pink-400 ml-auto flex-shrink-0 transition-colors" />
                             </button>
@@ -707,7 +707,7 @@ function SolutionDashboard({
     );
 }
 
-// ─── NEWS CARD ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ NEWS CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function NewsCard({
     item,
@@ -763,7 +763,7 @@ function NewsCard({
     );
 }
 
-// ─── SECTION HEADER ───────────────────────────────────────────────────────────
+// â”€â”€â”€ SECTION HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function SectionHeader({
     icon, label, color,
@@ -782,7 +782,7 @@ function SectionHeader({
     );
 }
 
-// ─── FILTER CHIP ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ FILTER CHIP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function FilterChip({
     id, label, icon, active, onClick,
@@ -805,7 +805,7 @@ function FilterChip({
     );
 }
 
-// ─── EMPTY STATE ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ EMPTY STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function EmptyState({ query }: { query: string }) {
     return (
@@ -819,7 +819,7 @@ function EmptyState({ query }: { query: string }) {
             </div>
             <div className="text-center space-y-3 max-w-sm">
                 <div className="text-slate-900 font-black text-xl font-['Cinzel'] italic">
-                    "Seek, and ye shall find…"
+                    "Seek, and ye shall findâ€¦"
                 </div>
                 <p className="text-slate-500 text-xs font-black uppercase tracking-[0.3em] leading-loose">
                     No results for "{query}"<br />Try a broader query or switch the filter above.
@@ -840,7 +840,7 @@ function EmptyState({ query }: { query: string }) {
     );
 }
 
-// ─── LOADING ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ LOADING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function LoadingState() {
     return (
@@ -852,7 +852,7 @@ function LoadingState() {
             </div>
             <div className="text-center space-y-2">
                 <div className="text-sky-400 text-[10px] font-black tracking-[0.5em] uppercase animate-pulse">
-                    Searching the Scriptures…
+                    Searching the Scripturesâ€¦
                 </div>
                 <div className="text-slate-500 text-sm italic font-serif">"Knock, and it shall be opened unto you"</div>
             </div>
@@ -860,7 +860,7 @@ function LoadingState() {
     );
 }
 
-// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Sidebar() {
     return (
@@ -931,7 +931,7 @@ function Sidebar() {
     );
 }
 
-// ─── DEEPSEEK-STYLE THOUGHT PANEL ─────────────────────────────────────────────
+// â”€â”€â”€ DEEPSEEK-STYLE THOUGHT PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ThoughtPanel({
     thought, isThinking, phase, startTime,
@@ -957,7 +957,7 @@ function ThoughtPanel({
 
     return (
         <div className="mb-8">
-            {/* ── Header bar ── */}
+            {/* â”€â”€ Header bar â”€â”€ */}
             <button
                 onClick={() => setOpen(o => !o)}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl
@@ -976,7 +976,7 @@ function ThoughtPanel({
                             ))}
                         </div>
                         <span className="text-[12px] font-semibold text-slate-600">
-                            {phase || "Thinking…"}
+                            {phase || "Thinkingâ€¦"}
                         </span>
                     </div>
                 ) : (
@@ -1003,14 +1003,14 @@ function ThoughtPanel({
                 </div>
             </button>
 
-            {/* ── Collapsible body ── */}
+            {/* â”€â”€ Collapsible body â”€â”€ */}
             {open && (
                 <div className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50
                                 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="max-h-48 overflow-y-auto px-5 py-4
                                     text-[12.5px] leading-relaxed text-slate-500
                                     font-mono whitespace-pre-wrap break-words">
-                        {thought || (isThinking ? "Gathering insights…" : "")}
+                        {thought || (isThinking ? "Gathering insightsâ€¦" : "")}
                         {isThinking && (
                             <span className="inline-block w-1.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse align-middle" />
                         )}
@@ -1021,7 +1021,7 @@ function ThoughtPanel({
     );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// â”€â”€â”€ MAIN COMPONENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio" | "notebook";
 
@@ -1053,11 +1053,11 @@ export default function SearchEnginePortal() {
     ]);
     const abortAiControllerRef = useRef<AbortController | null>(null);
 
-    // ▸ Prophetic Alerts State
+    // â–¸ Prophetic Alerts State
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [isSentinelScanning, setIsSentinelScanning] = useState(false);
 
-    // ── PROPHETIC SENTINEL LOOP ──────────────────────────────────────────────────
+    // â”€â”€ PROPHETIC SENTINEL LOOP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const togglePropheticAlerts = async () => {
         if (!("Notification" in window)) {
@@ -1270,7 +1270,7 @@ export default function SearchEnginePortal() {
                 let stillThinking = true;
                 let thinkingPhase = "Analyzing...";
 
-                // Broad fuzzy regex — catches THOUGHT, THUGHT, THOHT, THGHT, OUG variants, etc.
+                // Broad fuzzy regex â€” catches THOUGHT, THUGHT, THOHT, THGHT, OUG variants, etc.
                 const thoughtStartRegex = /<(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/i;
                 const thoughtEndRegex = /<\/(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/i;
                 const responseStartRegex = /### RESPONSE START ###/i;
@@ -1303,14 +1303,14 @@ export default function SearchEnginePortal() {
                         currentThought = fullText.substring(startIndex, startIndex + 200) + "...";
                         currentContent = fullText.substring(startIndex + 200); // Shift far ahead
                         stillThinking = false;
-                        thinkingPhase = "Speaking…";
+                        thinkingPhase = "Speakingâ€¦";
                     }
                     // Still thinking: Main content STAYS EMPTY
                     else {
                         currentThought = fullText.substring(startIndex);
                         currentContent = "";
                         stillThinking = true;
-                        thinkingPhase = "Preparing revelation…";
+                        thinkingPhase = "Preparing revelationâ€¦";
                     }
                 } else if (rStartMatch) {
                     currentContent = fullText.substring(rStartMatch.index! + rStartMatch[0].length);
@@ -1321,15 +1321,15 @@ export default function SearchEnginePortal() {
                     if (fullText.length < 400) {
                         currentContent = "";
                         stillThinking = true;
-                        thinkingPhase = "Analyzing…";
+                        thinkingPhase = "Analyzingâ€¦";
                     } else {
                         currentContent = fullText;
                         stillThinking = false;
-                        thinkingPhase = "Speaking…";
+                        thinkingPhase = "Speakingâ€¦";
                     }
                 }
 
-                // ── Nuclear content cleanup: strip ALL variations of thought tags, metadata, suggestions ──
+                // â”€â”€ Nuclear content cleanup: strip ALL variations of thought tags, metadata, suggestions â”€â”€
                 currentContent = currentContent.replace(/### RESPONSE START ###/gi, "");
                 currentContent = currentContent.split(/---SUGGESTIONS?---/i)[0];
 
@@ -1363,7 +1363,7 @@ export default function SearchEnginePortal() {
                 if (newMsgs[lastIdx].role === "assistant") {
                     newMsgs[lastIdx].isThinking = false;
 
-                    // ── POST-STREAM BIBLE CONNECTIONS PARSER ──
+                    // â”€â”€ POST-STREAM BIBLE CONNECTIONS PARSER â”€â”€
                     if (isNewsModeHeader) {
                         const bcMatch = fullText.match(/---BIBLE_CONNECTIONS---([\.\s\S]*?)---BIBLE_CONNECTIONS_END---/i);
                         if (bcMatch) {
@@ -1511,7 +1511,7 @@ export default function SearchEnginePortal() {
                 <div className="absolute top-[40%] left-[45%] w-[20%] h-[20%] bg-slate-50/10 rounded-full blur-[80px]" />
             </div>
 
-            {/* ── HEADER (post-search) ── */}
+            {/* â”€â”€ HEADER (post-search) â”€â”€ */}
             {hasSearched && (
                 <header className="w-full max-w-7xl px-6 md:px-10 py-5 flex items-center justify-between z-20
                            border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
@@ -1533,7 +1533,7 @@ export default function SearchEnginePortal() {
                 </header>
             )}
 
-            {/* ── MAIN ── */}
+            {/* â”€â”€ MAIN â”€â”€ */}
             <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-500 ${hasSearched ? "pt-8" : "pt-36 md:pt-48"}`}>
 
                 {/* Hero (pre-search) */}
@@ -1564,7 +1564,7 @@ export default function SearchEnginePortal() {
                     </div>
                 )}
 
-                {/* ── SEARCH BOX ── */}
+                {/* â”€â”€ SEARCH BOX â”€â”€ */}
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
                     <form onSubmit={onSubmit}>
                         <div
@@ -1577,7 +1577,7 @@ export default function SearchEnginePortal() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Seek and ye shall find…"
+                                placeholder="Seek and ye shall findâ€¦"
                                 className={`flex-1 bg-transparent border-none outline-none py-5 text-lg text-slate-800 placeholder:text-slate-400 font-medium`}
                             />
                             {query && (
@@ -1652,7 +1652,7 @@ export default function SearchEnginePortal() {
                     </form>
                 </div>
 
-                {/* ── RESULTS AREA ── */}
+                {/* â”€â”€ RESULTS AREA â”€â”€ */}
                 {(hasSearched || filter === "studio" || filter === "devotionals") && (
                     <div className="w-full max-w-7xl px-4 md:px-8 mt-14 pb-32" ref={chatContainerRef}>
                         {isSearching && filter !== "ai" ? (
@@ -1733,10 +1733,10 @@ export default function SearchEnginePortal() {
 
                                                     <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : ''}`}>
                                                         {msg.role === 'user' ? (
-                                                            // User message — plain text
+                                                            // User message â€” plain text
                                                             msg.content || ""
                                                         ) : (
-                                                            // AI message — rich formatted component
+                                                            // AI message â€” rich formatted component
                                                             <RichAIMessage
                                                                 content={msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
                                                                 isThinking={msg.isThinking}
@@ -1744,7 +1744,7 @@ export default function SearchEnginePortal() {
                                                         )}
                                                     </div>
 
-                                                    {/* Live News Cards — only shown when AI returns news results */}
+                                                    {/* Live News Cards â€” only shown when AI returns news results */}
                                                     {msg.role === 'assistant' && msg.isNewsMode && msg.newsArticles && msg.newsArticles.length > 0 && (
                                                         <div className="mt-8 not-italic">
                                                             <div className="flex items-center gap-2 mb-4">
@@ -1761,7 +1761,7 @@ export default function SearchEnginePortal() {
                                                         </div>
                                                     )}
 
-                                                    {/* Bible Prophecy Connections — only shown in conflict/prophecy mode */}
+                                                    {/* Bible Prophecy Connections â€” only shown in conflict/prophecy mode */}
                                                     {msg.role === 'assistant' && msg.isConflictMode && msg.bibleConnections && msg.bibleConnections.length > 0 && (
                                                         <BibleConnectionPanel connections={msg.bibleConnections} />
                                                     )}
@@ -1847,6 +1847,15 @@ export default function SearchEnginePortal() {
                     </div>
                 )}
             </main>
+
+            {/* Site Footer */}
+            <footer style={{ width: "100%", borderTop: "1px solid var(--border-secondary, #ebebeb)", background: "var(--nav-bg, #fff)", padding: "22px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, }}>
+                <span style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-muted, #888)" }}>&copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer &#10022;</span>
+                <nav style={{ display: "flex", gap: 20 }}>
+                    {[{ label: "About Us", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy Policy", href: "/privacy-policy" }].map((link) => (<a key={link.href} href={link.href} style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-secondary, #666)", textDecoration: "none" }}>{link.label}</a>))}
+                </nav>
+            </footer>
         </div>
     );
 }
+
