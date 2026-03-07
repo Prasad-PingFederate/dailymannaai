@@ -1,88 +1,66 @@
 // src/app/api/sermons/route.ts
+// Fetches all sermon summaries from AstraDB
+// Called ONCE on page load — returns lightweight list (no full text)
+
 import { NextResponse } from "next/server";
-import { getAstraDatabase } from "@/lib/astra-db";
 
-function mapSermon(doc: Record<string, any>) {
-    return {
-        _id: String(doc._id ?? ""),
-        speaker: doc.preacher ?? doc.speaker ?? "Unknown Speaker",
-        sermon_title: doc.title ?? doc.sermon_title ?? "Untitled Message",
-        content: doc.content ?? "",
-        audio_url: doc.audio_url ?? doc.audioUrl ?? "",
-        scripture_reference: doc.scripture_reference ?? doc.scripture ?? doc.reference ?? "",
-        duration: doc.duration ?? "",
-        date: doc.date ?? "",
-        series: doc.series ?? doc.category ?? "",
-    };
-}
+const ASTRA_DB_ID     = process.env.ASTRA_DB_ID!;        // e.g. "abc123-..."
+const ASTRA_DB_REGION = process.env.ASTRA_DB_REGION!;    // e.g. "us-east1"
+const ASTRA_KEYSPACE  = process.env.ASTRA_KEYSPACE!;     // e.g. "dailymanna"
+const ASTRA_TABLE     = process.env.ASTRA_TABLE_SERMONS || "sermons";
+const ASTRA_TOKEN     = process.env.ASTRA_DB_TOKEN!;     // AstraCS:...
 
-/**
- * GET /api/sermons
- * Fetches sermons from Astra DB with speaker filter and search support.
- */
-export async function GET(req: Request) {
-    try {
-        const { searchParams } = new URL(req.url);
-        const speaker = searchParams.get("speaker");
-        const search = searchParams.get("search");
-        // AstraDB Data API caps at 20 docs without vector search
-        const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 20);
+const BASE_URL = `https://${ASTRA_DB_ID}-${ASTRA_DB_REGION}.apps.astra.datastax.com`;
 
-        const db = await getAstraDatabase().catch((err) => {
-            console.error("[Sermons API] DB connection error:", err.message);
-            return null;
-        });
+export async function GET() {
+  try {
+    // ── Fetch all sermon rows from AstraDB REST API ──────────────────────────
+    // We only select summary columns — NOT full_text (saves bandwidth)
+    const url = `${BASE_URL}/api/rest/v2/keyspaces/${ASTRA_KEYSPACE}/${ASTRA_TABLE}/rows`;
 
-        if (!db) {
-            return NextResponse.json(
-                { error: "DB_CONNECTION_FAILED", detail: "Check Astra env vars in Vercel dashboard" },
-                { status: 500 }
-            );
-        }
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-Cassandra-Token": ASTRA_TOKEN,
+        "Content-Type": "application/json",
+      },
+      // Next.js cache: revalidate every 5 minutes
+      next: { revalidate: 300 },
+    });
 
-        const collection = db.collection("sermons_archive");
-
-        // Build filter query — removed $regex as it's unsupported in this collection
-        const query: Record<string, any> = {};
-        if (speaker && speaker !== "ALL") {
-            query["$or"] = [
-                { preacher: speaker },
-                { speaker: speaker },
-            ];
-        }
-        if (search) {
-            // If regex is unsupported, we can't do partial title search easily without Search Index.
-            // For now, let's try an exact title match or just log a warning.
-            const searchClause = {
-                "$or": [
-                    { title: search },
-                    { sermon_title: search },
-                    { preacher: search },
-                    { speaker: search },
-                ]
-            };
-            if (Object.keys(query).length > 0) {
-                query["$and"] = [JSON.parse(JSON.stringify(query)), searchClause];
-            } else {
-                Object.assign(query, searchClause);
-            }
-        }
-
-        const raw = await collection.find(query, { limit }).toArray();
-        const sermons = raw.map(mapSermon);
-
-        return NextResponse.json({ sermons, count: sermons.length });
-
-    } catch (error: any) {
-        console.error("[Sermons API Error]", error.message);
-        return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
-        );
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("AstraDB error (list):", err);
+      return NextResponse.json({ error: "Failed to fetch sermons" }, { status: 500 });
     }
+
+    const data = await res.json();
+
+    // ── Shape the response — only send what the card UI needs ────────────────
+    // AstraDB returns { data: [ { id, title, author, ... }, ... ] }
+    const sermons = (data.data || []).map((row: any) => ({
+      id:       row.id,
+      title:    row.title,
+      author:   row.author,
+      initials: row.initials || getInitials(row.author),
+      category: row.category || "General",
+      duration: row.duration || null,
+      hasAudio: !!row.audio_url,
+      preview:  row.preview || row.full_text?.substring(0, 120) + "...",
+    }));
+
+    return NextResponse.json({ sermons });
+  } catch (error) {
+    console.error("Sermons list error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
-/**
- * GET /api/sermons/speakers — returns unique speaker list
- * NOTE: This is handled by a separate route file at /api/sermons/speakers/route.ts
- */
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
+}
