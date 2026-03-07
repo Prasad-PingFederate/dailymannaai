@@ -13,7 +13,7 @@
 //  Add <StructuredData /> inside <body> of layout.tsx
 // ─────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://dailymanna.ai";
+const BASE_URL = "https://www.dailymannaai.com";
 
 // ─── 1. Organization Schema ──────────────────────────────────
 //  Tells Google WHO you are. Feeds the Knowledge Panel.
@@ -127,7 +127,7 @@ const webAppSchema = {
   aggregateRating: {
     "@type": "AggregateRating",
     ratingValue: "4.9",
-    bestRating:  "5",
+    bestRating: "5",
     worstRating: "1",
     ratingCount: "847",  // Update with real numbers
   },

@@ -22,35 +22,35 @@
 
 import type { Metadata } from "next";
 
-const BASE_URL  = "https://dailymanna.ai";
+const BASE_URL = "https://www.dailymannaai.com";
 const SITE_NAME = "DailyMannaAI";
-const OG_IMAGE  = `${BASE_URL}/og-image.png`;
+const OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 interface PageSEO {
-  title:         string;         // Page title (before " | DailyMannaAI")
-  description:   string;         // 120–155 chars
-  path:          string;         // e.g. "/bible/psalms"
-  keywords?:     string[];       // Additional page-specific keywords
-  ogImage?:      string;         // Custom OG image URL for this page
-  ogType?:       "website" | "article";
-  noIndex?:      boolean;        // true for private/admin pages
-  publishedAt?:  string;         // ISO date — for articles
-  modifiedAt?:   string;         // ISO date — for articles
+  title: string;         // Page title (before " | DailyMannaAI")
+  description: string;         // 120–155 chars
+  path: string;         // e.g. "/bible/psalms"
+  keywords?: string[];       // Additional page-specific keywords
+  ogImage?: string;         // Custom OG image URL for this page
+  ogType?: "website" | "article";
+  noIndex?: boolean;        // true for private/admin pages
+  publishedAt?: string;         // ISO date — for articles
+  modifiedAt?: string;         // ISO date — for articles
 }
 
 export function generatePageMetadata({
   title,
   description,
   path,
-  keywords     = [],
-  ogImage      = OG_IMAGE,
-  ogType       = "website",
-  noIndex      = false,
+  keywords = [],
+  ogImage = OG_IMAGE,
+  ogType = "website",
+  noIndex = false,
   publishedAt,
   modifiedAt,
 }: PageSEO): Metadata {
-  const url         = `${BASE_URL}${path}`;
-  const fullTitle   = `${title} | ${SITE_NAME}`;
+  const url = `${BASE_URL}${path}`;
+  const fullTitle = `${title} | ${SITE_NAME}`;
 
   const baseKeywords = [
     "Christian AI", "Bible search", "DailyMannaAI", "scripture AI",
@@ -70,27 +70,27 @@ export function generatePageMetadata({
       : { index: true, follow: true },
 
     openGraph: {
-      title:       fullTitle,
+      title: fullTitle,
       description,
       url,
-      siteName:    SITE_NAME,
-      type:        ogType,
-      locale:      "en_US",
+      siteName: SITE_NAME,
+      type: ogType,
+      locale: "en_US",
       images: [{
-        url:    ogImage,
-        width:  1200,
+        url: ogImage,
+        width: 1200,
         height: 630,
-        alt:    title,
+        alt: title,
       }],
       ...(publishedAt && { publishedTime: publishedAt }),
-      ...(modifiedAt  && { modifiedTime:  modifiedAt  }),
+      ...(modifiedAt && { modifiedTime: modifiedAt }),
     },
 
     twitter: {
-      card:        "summary_large_image",
-      title:       fullTitle,
+      card: "summary_large_image",
+      title: fullTitle,
       description,
-      site:        "@DailyMannaAI",
+      site: "@DailyMannaAI",
       images: [ogImage],
     },
   };

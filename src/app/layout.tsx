@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const BASE_URL = "https://dailymanna.ai"; // Replace with actual URL if known
+const BASE_URL = "https://www.dailymannaai.com"; // Replace with actual URL if known
 
 // ─── Reusable brand constants ───────────────────────────────
 const SITE_NAME = "DailyMannaAI";
