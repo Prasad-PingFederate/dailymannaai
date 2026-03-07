@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
 
@@ -1624,6 +1625,9 @@ export default function SearchEnginePortal() {
                                         <Zap size={11} className="ml-1 text-amber-500 animate-pulse" />
                                     )}
                                 </button>
+
+                                {/* ── Theme Toggle ── */}
+                                <ThemeToggle variant="icon" />
                             </div>
                         </div>
                     </form>

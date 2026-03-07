@@ -212,3 +212,124 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--accent-secondary);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   THEME VARIABLES — Light / Dark Mode
+   (DailyMannaAI Theme System)
+═══════════════════════════════════════════════════════════ */
+
+/* ─── Light Mode (default) ──────────────────────────────── */
+:root,
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9f9f7;
+  --bg-card: #ffffff;
+  --bg-hover: #f5f5f3;
+  --bg-input: #f2f2f0;
+
+  --border-primary: #e8e8e8;
+  --border-secondary: #ebebeb;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --text-faint: #aaaaaa;
+
+  --accent-gold: #B8860B;
+  --accent-blue: #1a6fa8;
+
+  --nav-bg: #ffffff;
+  --nav-border: #e8e8e8;
+  --nav-tab-active-bg: #f0f0f0;
+  --nav-tab-active-color: #1a1a1a;
+  --nav-tab-color: #666666;
+
+  --search-bg: #f2f2f0;
+  --search-border: #e0e0e0;
+  --search-text: #1a1a1a;
+  --search-placeholder: #999999;
+  --search-btn-bg: #1a1a1a;
+  --search-btn-text: #ffffff;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-nav: 0 1px 0 rgba(0, 0, 0, 0.08);
+
+  --toggle-bg: #e8e8e8;
+  --toggle-knob: #ffffff;
+}
+
+/* ─── Dark Mode ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary: #0d0f14;
+  --bg-secondary: #111318;
+  --bg-card: #1a1d24;
+  --bg-hover: #22262f;
+  --bg-input: #1e2128;
+
+  --border-primary: #2a2d36;
+  --border-secondary: #23262f;
+
+  --text-primary: #f0f0ef;
+  --text-secondary: #b0b0ae;
+  --text-muted: #777777;
+  --text-faint: #555555;
+
+  --accent-gold: #D4A017;
+  --accent-blue: #4a9fd4;
+
+  --nav-bg: #111318;
+  --nav-border: #2a2d36;
+  --nav-tab-active-bg: #1e2128;
+  --nav-tab-active-color: #f0f0ef;
+  --nav-tab-color: #777777;
+
+  --search-bg: #1e2128;
+  --search-border: #2a2d36;
+  --search-text: #f0f0ef;
+  --search-placeholder: #555555;
+  --search-btn-bg: #f0f0ef;
+  --search-btn-text: #0d0f14;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-nav: 0 1px 0 rgba(0, 0, 0, 0.4);
+
+  --toggle-bg: #2a2d36;
+  --toggle-knob: #f0f0ef;
+}
+
+/* ─── Smooth transition on theme switch ──────────────────── */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.2s ease,
+    box-shadow 0.25s ease;
+}
+
+/* ─── Dark mode scrollbar ────────────────────────────────── */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #2a2d36;
+  border-radius: 3px;
+}
+
+/* ─── Selection colors ───────────────────────────────────── */
+[data-theme="dark"] ::selection {
+  background: #D4A01733;
+  color: #f0f0ef;
+}
+
+[data-theme="light"] ::selection {
+  background: #B8860B22;
+  color: #1a1a1a;
+}
