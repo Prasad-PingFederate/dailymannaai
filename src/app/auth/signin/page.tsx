@@ -259,6 +259,14 @@ function AuthForm() {
                                 </div>
                             )}
                             {fieldErrors.password && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>⚠ {fieldErrors.password}</p>}
+
+                            {!isSignup && (
+                                <div style={{ textAlign: "right", marginTop: "8px" }}>
+                                    <a href="/auth/forgot-password" style={{ fontSize: "12px", color: "var(--text-muted,#888)", fontFamily: "sans-serif", textDecoration: "underline" }}>
+                                        Forgot password?
+                                    </a>
+                                </div>
+                            )}
                         </div>
 
                         <button type="submit" disabled={loading} style={{

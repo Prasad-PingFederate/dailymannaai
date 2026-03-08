@@ -11,6 +11,8 @@ export interface DBUser {
     plan: string;
     created_at: string;
     last_login: string;
+    otp_code?: string;
+    otp_expires?: string;
 }
 
 // Helper to ensure collection exists
@@ -83,4 +85,43 @@ export async function updateLastLogin(id: string): Promise<void> {
         const collection = await getCollection("users");
         await collection.updateOne({ id }, { $set: { last_login: new Date().toISOString() } });
     } catch { }
+}
+
+export async function saveOTP(email: string, otpCode: string, expiresISO: string): Promise<void> {
+    try {
+        const collection = await getCollection("users");
+        await collection.updateOne(
+            { email: email.toLowerCase() },
+            { $set: { otp_code: otpCode, otp_expires: expiresISO } }
+        );
+    } catch (err) {
+        console.error("saveOTP Error:", err);
+    }
+}
+
+export async function clearOTP(email: string): Promise<void> {
+    try {
+        const collection = await getCollection("users");
+        await collection.updateOne(
+            { email: email.toLowerCase() },
+            { $unset: { otp_code: "", otp_expires: "" } }
+        );
+    } catch (err) {
+        console.error("clearOTP Error:", err);
+    }
+}
+
+export async function updatePassword(email: string, newPasswordHash: string): Promise<void> {
+    try {
+        const collection = await getCollection("users");
+        await collection.updateOne(
+            { email: email.toLowerCase() },
+            {
+                $set: { password_hash: newPasswordHash },
+                $unset: { otp_code: "", otp_expires: "" } // clear OTP when resetting
+            }
+        );
+    } catch (err) {
+        console.error("updatePassword Error:", err);
+    }
 }
