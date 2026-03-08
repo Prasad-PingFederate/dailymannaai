@@ -13,6 +13,8 @@ import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import RichAIMessage from "./RichAIMessage";
+import UserMenu from "@/components/UserMenu";
+import { useAuth } from "@/hooks/useAuth";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
 
@@ -1028,6 +1030,7 @@ type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai"
 
 export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
+    const { isLoggedIn } = useAuth();
     const [filter, setFilter] = useState<FilterType>("global");
     const [results, setResults] = useState<SearchResult[]>([]);
     const [pagination, setPagination] = useState<{ current: number, total: number, hasMore: boolean } | null>(null);
@@ -1424,6 +1427,11 @@ export default function SearchEnginePortal() {
             window.location.href = "/notebook";
             return;
         }
+        // Image Studio requires sign-in
+        if (f === "studio" && !isLoggedIn) {
+            window.location.href = "/auth/signin?callbackUrl=/";
+            return;
+        }
         setFilter(f);
         if (f === "devotionals" || f === "studio" || f === "ai" || f === "sermons") {
             setHasSearched(true);
@@ -1530,6 +1538,7 @@ export default function SearchEnginePortal() {
                         <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>AI</span>
                     </button>
                     {/* Notebook link moved to filter tabs */}
+                    <UserMenu />
                 </header>
             )}
 

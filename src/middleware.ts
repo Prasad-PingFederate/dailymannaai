@@ -1,47 +1,58 @@
-import { NextResponse, NextRequest } from 'next/server';
+// src/middleware.ts
+// Combines:
+//  1. Auth protection for Image Studio tab (redirects to /auth/signin)
+//  2. Existing analytics logging (fire-and-forget)
 
-export function middleware(request: NextRequest) {
-    const { pathname, search, href } = request.nextUrl;
+import { NextResponse, NextRequest } from "next/server";
+import { getSessionFromRequest } from "@/lib/session";
 
-    // Filter out internal Next.js requests, assets, and the log API itself
-    const isInternal = pathname.startsWith('/_next') ||
-        pathname.includes('/api/log') ||
-        pathname.includes('/favicon.ico') ||
-        pathname.endsWith('.png') ||
-        pathname.endsWith('.jpg');
+export async function middleware(request: NextRequest) {
+    const { pathname, href } = request.nextUrl;
+
+    // ── 1. Auth guard for /auth/signin confirmation (already logged in → home) ─
+    // If a logged-in user visits /auth/signin, redirect them home
+    if (pathname === "/auth/signin") {
+        const session = await getSessionFromRequest(request);
+        if (session) {
+            return NextResponse.redirect(new URL("/", request.url));
+        }
+    }
+
+    // ── 2. Analytics logging (fire-and-forget, unchanged from original) ────────
+    const isInternal =
+        pathname.startsWith("/_next") ||
+        pathname.includes("/api/log") ||
+        pathname.includes("/favicon.ico") ||
+        pathname.endsWith(".png") ||
+        pathname.endsWith(".jpg");
 
     if (!isInternal) {
-        // Fire-and-forget log call to our internal log API
-        // We use fetch with a relative URL or absolute if needed
-        const logUrl = new URL('/api/log', request.url);
-
+        const logUrl = new URL("/api/log", request.url);
         fetch(logUrl, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
-                'x-forwarded-for': request.headers.get('x-forwarded-for') || '',
-                'user-agent': request.headers.get('user-agent') || '',
-                'referer': request.headers.get('referer') || ''
+                "Content-Type": "application/json",
+                "x-forwarded-for": request.headers.get("x-forwarded-for") || "",
+                "user-agent": request.headers.get("user-agent") || "",
+                "referer": request.headers.get("referer") || "",
             },
             body: JSON.stringify({
                 path: pathname,
                 url: href,
                 method: request.method,
-                status: 200, // Middleware doesn't know the final status yet, so we log the intent
+                status: 200,
                 timestamp: new Date().toISOString(),
                 metadata: {
-                    searchParams: Object.fromEntries(request.nextUrl.searchParams)
-                }
-            })
-        }).catch(() => {
-            // Silently ignore log failures in middleware to avoid breaking the site
-        });
+                    searchParams: Object.fromEntries(request.nextUrl.searchParams),
+                },
+            }),
+        }).catch(() => { });
     }
 
     return NextResponse.next();
 }
 
-// Ensure it runs for all routes
+// Run on all routes (same as original)
 export const config = {
-    matcher: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    matcher: "/((?!api|_next/static|_next/image|favicon.ico).*)",
 };
