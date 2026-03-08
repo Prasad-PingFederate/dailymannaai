@@ -90,10 +90,16 @@ export async function updateLastLogin(id: string): Promise<void> {
 export async function saveOTP(email: string, otpCode: string, expiresISO: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        await collection.updateOne(
-            { email: email.toLowerCase() },
-            { $set: { otp_code: otpCode, otp_expires: expiresISO } }
-        );
+        const user = await getUserByEmail(email);
+        if (user && user.id) {
+            // Because users is a strict CQL mapped table, custom columns like otp_code 
+            // will be ignored by Data API. We'll securely stash it in the unused avatar_url field.
+            const otpPayload = JSON.stringify({ otp: otpCode, exp: expiresISO });
+            await collection.updateOne(
+                { id: user.id },
+                { $set: { avatar_url: otpPayload } }
+            );
+        }
     } catch (err) {
         console.error("saveOTP Error:", err);
     }
@@ -102,10 +108,13 @@ export async function saveOTP(email: string, otpCode: string, expiresISO: string
 export async function clearOTP(email: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        await collection.updateOne(
-            { email: email.toLowerCase() },
-            { $unset: { otp_code: "", otp_expires: "" } }
-        );
+        const user = await getUserByEmail(email);
+        if (user && user.id) {
+            await collection.updateOne(
+                { id: user.id },
+                { $set: { avatar_url: "" } } // Clear it out
+            );
+        }
     } catch (err) {
         console.error("clearOTP Error:", err);
     }
@@ -114,13 +123,13 @@ export async function clearOTP(email: string): Promise<void> {
 export async function updatePassword(email: string, newPasswordHash: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        await collection.updateOne(
-            { email: email.toLowerCase() },
-            {
-                $set: { password_hash: newPasswordHash },
-                $unset: { otp_code: "", otp_expires: "" } // clear OTP when resetting
-            }
-        );
+        const user = await getUserByEmail(email);
+        if (user && user.id) {
+            await collection.updateOne(
+                { id: user.id },
+                { $set: { password_hash: newPasswordHash, avatar_url: "" } }
+            );
+        }
     } catch (err) {
         console.error("updatePassword Error:", err);
     }

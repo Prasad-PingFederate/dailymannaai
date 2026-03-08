@@ -12,18 +12,29 @@ export async function POST(req: Request) {
 
         const user = await getUserByEmail(email);
 
-        if (!user || !user.otp_code || !user.otp_expires) {
+        if (!user || !user.avatar_url) {
+            return NextResponse.json({ error: "Invalid or expired verification code." }, { status: 400 });
+        }
+
+        let otpData;
+        try {
+            otpData = JSON.parse(user.avatar_url);
+        } catch {
+            return NextResponse.json({ error: "Invalid or expired verification code." }, { status: 400 });
+        }
+
+        if (!otpData.otp || !otpData.exp) {
             return NextResponse.json({ error: "Invalid or expired verification code." }, { status: 400 });
         }
 
         // Check if OTP matches
-        if (user.otp_code !== otp) {
+        if (otpData.otp !== otp) {
             return NextResponse.json({ error: "Incorrect verification code." }, { status: 400 });
         }
 
         // Check if OTP is expired
         const now = new Date();
-        const expiresAt = new Date(user.otp_expires);
+        const expiresAt = new Date(otpData.exp);
         if (now > expiresAt) {
             await clearOTP(email); // Clean up expired OTP
             return NextResponse.json({ error: "Verification code has expired. Please request a new one." }, { status: 400 });
