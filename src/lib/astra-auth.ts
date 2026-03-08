@@ -1,14 +1,8 @@
-// src/lib/astra-auth.ts
+import { getAstraDb, getCollection } from "./astra";
 import { randomUUID } from "crypto";
 
-const BASE = `https://${process.env.ASTRA_DB_ID}-${process.env.ASTRA_DB_REGION}.apps.astra.datastax.com/api/rest/v2/keyspaces/${process.env.ASTRA_KEYSPACE}`;
-const TABLE = "users";
-const headers = {
-    "X-Cassandra-Token": process.env.ASTRA_DB_TOKEN!,
-    "Content-Type": "application/json",
-};
-
 export interface DBUser {
+    _id?: string;
     id: string;
     email: string;
     name: string;
@@ -19,24 +13,39 @@ export interface DBUser {
     last_login: string;
 }
 
+// Helper to ensure collection exists
+async function ensureUsersCollection() {
+    const db = getAstraDb();
+    try {
+        const collections = await db.listCollections();
+        const exists = collections.find((c: any) => c.name === "users" || c === "users");
+        if (!exists) {
+            console.log("Creating 'users' collection in AstraDB Data API...");
+            await db.createCollection("users");
+        }
+    } catch (err) {
+        console.warn("Could not check/create users collection. Maybe it already exists?", err);
+    }
+}
+
 export async function getUserByEmail(email: string): Promise<DBUser | null> {
     try {
-        const res = await fetch(
-            `${BASE}/${TABLE}?where={"email":{"$eq":"${email.toLowerCase()}"}}`,
-            { headers }
-        );
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data.data?.[0] ?? null;
-    } catch { return null; }
+        await ensureUsersCollection();
+        const collection = await getCollection("users");
+        const user = await collection.findOne({ email: email.toLowerCase() });
+        return user as DBUser | null;
+    } catch (err) {
+        console.error("getUserByEmail Error:", err);
+        return null;
+    }
 }
 
 export async function getUserById(id: string): Promise<DBUser | null> {
     try {
-        const res = await fetch(`${BASE}/${TABLE}/${id}`, { headers });
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data.data?.[0] ?? null;
+        await ensureUsersCollection();
+        const collection = await getCollection("users");
+        const user = await collection.findOne({ id });
+        return user as DBUser | null;
     } catch { return null; }
 }
 
@@ -44,6 +53,7 @@ export async function createUser(data: {
     name: string; email: string; password_hash: string;
 }): Promise<{ success: boolean; error?: string; user?: DBUser }> {
     try {
+        await ensureUsersCollection();
         const existing = await getUserByEmail(data.email);
         if (existing) return { success: false, error: "Email already registered. Please sign in." };
 
@@ -58,21 +68,19 @@ export async function createUser(data: {
             last_login: new Date().toISOString(),
         };
 
-        const res = await fetch(`${BASE}/${TABLE}`, {
-            method: "POST", headers, body: JSON.stringify(user),
-        });
+        const collection = await getCollection("users");
+        await collection.insertOne(user);
 
-        return res.ok
-            ? { success: true, user }
-            : { success: false, error: "Failed to create account." };
-    } catch { return { success: false, error: "Server error." }; }
+        return { success: true, user };
+    } catch (err) {
+        console.error("createUser Error:", err);
+        return { success: false, error: "Server error." };
+    }
 }
 
 export async function updateLastLogin(id: string): Promise<void> {
     try {
-        await fetch(`${BASE}/${TABLE}/${id}`, {
-            method: "PATCH", headers,
-            body: JSON.stringify({ last_login: new Date().toISOString() }),
-        });
+        const collection = await getCollection("users");
+        await collection.updateOne({ id }, { $set: { last_login: new Date().toISOString() } });
     } catch { }
 }
