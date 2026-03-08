@@ -83,23 +83,17 @@ export async function createUser(data: {
 export async function updateLastLogin(id: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        const user = await collection.findOne({ id });
-        if (user && user._id) {
-            await collection.updateOne({ _id: user._id }, { $set: { last_login: new Date().toISOString() } });
-        }
+        await collection.updateOne({ id }, { $set: { last_login: new Date().toISOString() } });
     } catch { }
 }
 
 export async function saveOTP(email: string, otpCode: string, expiresISO: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        const user = await collection.findOne({ email: email.toLowerCase() });
-        if (user && user._id) {
-            await collection.updateOne(
-                { _id: user._id },
-                { $set: { otp_code: otpCode, otp_expires: expiresISO } }
-            );
-        }
+        await collection.updateOne(
+            { email: email.toLowerCase() },
+            { $set: { otp_code: otpCode, otp_expires: expiresISO } }
+        );
     } catch (err) {
         console.error("saveOTP Error:", err);
     }
@@ -108,13 +102,10 @@ export async function saveOTP(email: string, otpCode: string, expiresISO: string
 export async function clearOTP(email: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        const user = await collection.findOne({ email: email.toLowerCase() });
-        if (user && user._id) {
-            await collection.updateOne(
-                { _id: user._id },
-                { $unset: { otp_code: "", otp_expires: "" } }
-            );
-        }
+        await collection.updateOne(
+            { email: email.toLowerCase() },
+            { $unset: { otp_code: "", otp_expires: "" } }
+        );
     } catch (err) {
         console.error("clearOTP Error:", err);
     }
@@ -123,16 +114,13 @@ export async function clearOTP(email: string): Promise<void> {
 export async function updatePassword(email: string, newPasswordHash: string): Promise<void> {
     try {
         const collection = await getCollection("users");
-        const user = await collection.findOne({ email: email.toLowerCase() });
-        if (user && user._id) {
-            await collection.updateOne(
-                { _id: user._id },
-                {
-                    $set: { password_hash: newPasswordHash },
-                    $unset: { otp_code: "", otp_expires: "" } // clear OTP when resetting
-                }
-            );
-        }
+        await collection.updateOne(
+            { email: email.toLowerCase() },
+            {
+                $set: { password_hash: newPasswordHash },
+                $unset: { otp_code: "", otp_expires: "" } // clear OTP when resetting
+            }
+        );
     } catch (err) {
         console.error("updatePassword Error:", err);
     }
