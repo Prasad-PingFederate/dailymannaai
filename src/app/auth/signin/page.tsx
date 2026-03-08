@@ -126,7 +126,7 @@ function AuthForm() {
                         fontSize: "10px", letterSpacing: "0.18em",
                         color: "#D4A017", textTransform: "uppercase",
                         fontFamily: "sans-serif", marginBottom: "18px",
-                    }}>&#10022; Image Studio Access</div>
+                    }}>✦ Image Studio Access</div>
 
                     <h2 style={{
                         fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 700,
@@ -140,18 +140,18 @@ function AuthForm() {
                     </p>
 
                     {[
-                        ["&#128444;&#65039;", "AI image generation from Bible verses"],
-                        ["&#128242;", "Instant WhatsApp & social sharing"],
-                        ["&#10024;", "Multiple artistic styles"],
-                        ["&#128274;", "Your creations saved securely"],
-                        ["&#128155;", "Free plan available — no credit card"],
+                        ["🖼️", "AI image generation from Bible verses"],
+                        ["📲", "Instant WhatsApp & social sharing"],
+                        ["✨", "Multiple artistic styles"],
+                        ["🔒", "Your creations saved securely"],
+                        ["💛", "Free plan available — no credit card"],
                     ].map(([icon, text], i) => (
                         <div key={i} style={{
                             display: "flex", alignItems: "center", gap: "10px",
                             fontSize: "13px", color: "rgba(255,255,255,0.45)",
                             marginBottom: "9px", fontStyle: "italic",
                         }}>
-                            <span style={{ fontSize: "15px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: icon }} />
+                            <span style={{ fontSize: "15px", flexShrink: 0 }}>{icon}</span>
                             {text}
                         </div>
                     ))}
@@ -167,7 +167,7 @@ function AuthForm() {
                 </div>
 
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.18)", fontFamily: "sans-serif" }}>
-                    &copy; 2026 DailyMannaAI &middot; Built with Prayer &#10022;
+                    © 2026 DailyMannaAI · Built with Prayer ✦
                 </div>
             </div>
 
@@ -200,7 +200,7 @@ function AuthForm() {
 
                     <div style={{ marginBottom: "24px" }}>
                         <h1 style={{ fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, fontStyle: "italic", margin: "0 0 6px", color: "var(--text-primary, #1a1a1a)" }}>
-                            {isSignup ? "Join DailyMannaAI &#128591;" : "Welcome back &#10022;"}
+                            {isSignup ? "Join DailyMannaAI 🙏" : "Welcome back ✦"}
                         </h1>
                         <p style={{ fontSize: "13px", color: "var(--text-muted, #888)", margin: 0, fontStyle: "italic" }}>
                             {isSignup ? "Free account  No credit card needed" : "Sign in to access Image Studio"}
@@ -209,7 +209,7 @@ function AuthForm() {
 
                     {serverError && (
                         <div style={{ background: "#fff5f5", border: "1px solid #ffc0c0", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", color: "#c00", marginBottom: "16px", fontFamily: "sans-serif" }}>
-                            &#9888;&#65039; {serverError}
+                            ⚠️ {serverError}
                         </div>
                     )}
 
@@ -227,7 +227,7 @@ function AuthForm() {
                                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" style={inputStyle(!!fieldErrors.name)}
                                     onFocus={(e) => e.target.style.borderColor = "#D4A017"}
                                     onBlur={(e) => e.target.style.borderColor = fieldErrors.name ? "#e53e3e" : "var(--border-primary,#e8e8e8)"} />
-                                {fieldErrors.name && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>&#9888; {fieldErrors.name}</p>}
+                                {fieldErrors.name && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>⚠ {fieldErrors.name}</p>}
                             </div>
                         )}
 
@@ -236,7 +236,7 @@ function AuthForm() {
                             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" style={inputStyle(!!fieldErrors.email)}
                                 onFocus={(e) => e.target.style.borderColor = "#D4A017"}
                                 onBlur={(e) => e.target.style.borderColor = fieldErrors.email ? "#e53e3e" : "var(--border-primary,#e8e8e8)"} />
-                            {fieldErrors.email && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>&#9888; {fieldErrors.email}</p>}
+                            {fieldErrors.email && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>⚠ {fieldErrors.email}</p>}
                         </div>
 
                         <div>
@@ -258,7 +258,7 @@ function AuthForm() {
                                     <div style={{ fontSize: "11px", color: strength.color, marginTop: "4px", fontFamily: "sans-serif", textAlign: "right" }}>{strength.label}</div>
                                 </div>
                             )}
-                            {fieldErrors.password && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>&#9888; {fieldErrors.password}</p>}
+                            {fieldErrors.password && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>⚠ {fieldErrors.password}</p>}
                         </div>
 
                         <button type="submit" disabled={loading} style={{
@@ -269,7 +269,7 @@ function AuthForm() {
                             fontFamily: "sans-serif", transition: "all 0.2s",
                             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginTop: "4px",
                         }}>
-                            {loading ? "Please wait..." : (isSignup ? "Create Free Account &#10022;" : "Sign In &#10022;")}
+                            {loading ? "Please wait..." : (isSignup ? "Create Free Account ✦" : "Sign In ✦")}
                         </button>
                     </form>
 
@@ -283,7 +283,7 @@ function AuthForm() {
                         {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
                         <button onClick={() => switchMode(isSignup ? "signin" : "signup")}
                             style={{ background: "none", border: "none", color: "#B8860B", fontWeight: 700, cursor: "pointer", fontSize: "14px", fontFamily: "sans-serif" }}>
-                            {isSignup ? "Sign In" : "Sign up free &#10022;"}
+                            {isSignup ? "Sign In" : "Sign up free ✦"}
                         </button>
                     </p>
 
