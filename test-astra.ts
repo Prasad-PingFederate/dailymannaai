@@ -1,0 +1,1 @@
+import { getAstraDb } from "./src/lib/astra"; async function test() { const db = getAstraDb(); const coll = await db.collection("users"); const user = await coll.findOne({ email: "prasad.dammai94@gmail.com" }); console.log(user); } test();
