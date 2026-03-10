@@ -1058,9 +1058,11 @@ export default function SearchEnginePortal() {
     // â–¸ Prophetic Alerts State
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [isSentinelScanning, setIsSentinelScanning] = useState(false);
+    const [inAppAlert, setInAppAlert] = useState<{ title: string; body: string; link: string; source: string } | null>(null);
 
+    // Load saved preference on mount seamlessly
     useEffect(() => {
-        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        if (typeof window !== "undefined") {
             const saved = localStorage.getItem("prophetic-alerts-enabled");
             if (saved === "true") {
                 setAlertsEnabled(true);
@@ -1073,41 +1075,23 @@ export default function SearchEnginePortal() {
     const togglePropheticAlerts = async (e?: React.MouseEvent) => {
         if (e && e.preventDefault) e.preventDefault();
         try {
-            if (typeof window === "undefined" || !("Notification" in window)) {
-                alert("This browser does not support desktop notifications.");
-                return;
-            }
+            const newState = !alertsEnabled;
+            setAlertsEnabled(newState);
+            localStorage.setItem("prophetic-alerts-enabled", newState.toString());
 
-            if (Notification.permission === "granted") {
-                const newState = !alertsEnabled;
-                setAlertsEnabled(newState);
-                localStorage.setItem("prophetic-alerts-enabled", newState.toString());
-            } else if (Notification.permission === "denied") {
-                alert("Notification permissions are blocked. Please click the icon in your browser's URL bar, allow Notifications for this site, and try again.");
-            } else {
-                // Safely request permission using both Promise and Callback patterns
-                const permission = await new Promise<NotificationPermission>((resolve) => {
+            // If we are turning it ON, try to ask for native OS permissions quietly
+            if (newState && typeof window !== "undefined" && "Notification" in window) {
+                if (Notification.permission === "default") {
                     try {
-                        const permPromise = Notification.requestPermission((res) => resolve(res));
-                        if (permPromise && permPromise.then) {
-                            permPromise.then(resolve).catch(() => resolve("denied"));
-                        }
-                    } catch (e) {
-                        resolve("denied");
+                        const permPromise = Notification.requestPermission();
+                        if (permPromise && permPromise.then) permPromise.then(() => { }).catch(() => { });
+                    } catch (err) {
+                        // Ignore legacy callback errors
                     }
-                });
-
-                if (permission === "granted") {
-                    setAlertsEnabled(true);
-                    localStorage.setItem("prophetic-alerts-enabled", "true");
-                    alert("Prophetic Alerts are now successfully ENABLED! You will receive desktop notifications when major Israel/End-Times news breaks.");
-                } else {
-                    alert("Permission to send Prophetic Alerts was denied.");
                 }
             }
         } catch (error) {
             console.error("Failed to toggle prophetic alerts:", error);
-            alert("An error occurred while enabling alerts. Please check console.");
         }
     };
 
@@ -1122,13 +1106,24 @@ export default function SearchEnginePortal() {
                 const data = await res.json();
 
                 if (data.active && data.alert) {
-                    new Notification(data.alert.title, {
-                        body: `${data.alert.source}: ${data.alert.body.substring(0, 100)}...`,
-                        icon: "https://www.google.com/s2/favicons?domain=dailymannaai.com&sz=128",
-                        tag: data.alert.link, // avoid dups
-                    }).onclick = () => {
-                        window.open(data.alert.link, "_blank");
-                    };
+                    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+                        // Desktop OS Notification
+                        new Notification(data.alert.title, {
+                            body: `${data.alert.source}: ${data.alert.body.substring(0, 100)}...`,
+                            icon: "https://www.google.com/s2/favicons?domain=dailymannaai.com&sz=128",
+                            tag: data.alert.link, // avoid dups
+                        }).onclick = () => {
+                            window.open(data.alert.link, "_blank");
+                        };
+                    } else {
+                        // Fallback: Custom In-App Toast Notification
+                        setInAppAlert({
+                            title: data.alert.title,
+                            body: data.alert.body,
+                            link: data.alert.link,
+                            source: data.alert.source
+                        });
+                    }
                 }
             } catch (err) {
                 console.error("Sentinel Poll Error:", err);
@@ -1544,6 +1539,33 @@ export default function SearchEnginePortal() {
 
             {/* Preview Panel */}
             {preview && <PreviewPanel item={preview} onClose={closePreview} />}
+
+            {/* In-App Prophetic Alert Toast (Fallback for blocked OS notifications) */}
+            {inAppAlert && (
+                <div className="fixed top-24 right-4 z-[9999] max-w-sm w-full bg-slate-900 border border-amber-500/30 shadow-2xl rounded-2xl p-5 animate-in slide-in-from-right fade-in duration-500">
+                    <button onClick={() => setInAppAlert(null)} className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors">
+                        <X size={16} />
+                    </button>
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                            <Bell className="text-amber-500 w-5 h-5 animate-pulse" />
+                        </div>
+                        <div>
+                            <h4 className="text-amber-500 font-bold text-sm mb-1">{inAppAlert.title}</h4>
+                            <p className="text-slate-300 text-xs leading-relaxed mb-3">
+                                <span className="font-bold text-sky-400 uppercase mr-1">{inAppAlert.source}:</span>
+                                {inAppAlert.body}
+                            </p>
+                            <button
+                                onClick={() => window.open(inAppAlert.link, '_blank')}
+                                className="text-[10px] font-black uppercase tracking-widest text-sky-400 hover:text-sky-300 transition-colors"
+                            >
+                                Read More ➔
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Ambient blobs */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
