@@ -1070,7 +1070,8 @@ export default function SearchEnginePortal() {
 
     // â”€â”€ PROPHETIC SENTINEL LOOP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    const togglePropheticAlerts = async () => {
+    const togglePropheticAlerts = async (e?: React.MouseEvent) => {
+        if (e && e.preventDefault) e.preventDefault();
         try {
             if (typeof window === "undefined" || !("Notification" in window)) {
                 alert("This browser does not support desktop notifications.");
@@ -1084,10 +1085,22 @@ export default function SearchEnginePortal() {
             } else if (Notification.permission === "denied") {
                 alert("Notification permissions are blocked. Please click the icon in your browser's URL bar, allow Notifications for this site, and try again.");
             } else {
-                const permission = await Notification.requestPermission();
+                // Safely request permission using both Promise and Callback patterns
+                const permission = await new Promise<NotificationPermission>((resolve) => {
+                    try {
+                        const permPromise = Notification.requestPermission((res) => resolve(res));
+                        if (permPromise && permPromise.then) {
+                            permPromise.then(resolve).catch(() => resolve("denied"));
+                        }
+                    } catch (e) {
+                        resolve("denied");
+                    }
+                });
+
                 if (permission === "granted") {
                     setAlertsEnabled(true);
                     localStorage.setItem("prophetic-alerts-enabled", "true");
+                    alert("Prophetic Alerts are now successfully ENABLED! You will receive desktop notifications when major Israel/End-Times news breaks.");
                 } else {
                     alert("Permission to send Prophetic Alerts was denied.");
                 }
