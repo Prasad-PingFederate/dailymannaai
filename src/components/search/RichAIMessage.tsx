@@ -196,6 +196,12 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 @keyframes fadeUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
                 .rich-ai-card { animation: fadeUp 0.4s ease both; }
                 .rich-sec-block { animation: fadeUp 0.4s ease both; }
+                .rich-pad-x { padding-left: 32px; padding-right: 32px; }
+                .rich-margin-x { margin-left: 32px; margin-right: 32px; }
+                @media (max-width: 640px) {
+                    .rich-pad-x { padding-left: 16px !important; padding-right: 16px !important; }
+                    .rich-margin-x { margin-left: 16px !important; margin-right: 16px !important; }
+                }
             `}</style>
 
             <div className="rich-ai-card" style={{
@@ -207,8 +213,8 @@ export default function RichAIMessage({ content, isThinking }: Props) {
             }}>
 
                 {/* Header */}
-                <div style={{
-                    padding: "28px 32px 20px",
+                <div className="rich-pad-x" style={{
+                    paddingTop: 28, paddingBottom: 20,
                     borderLeft: "4px solid " + color,
                     borderBottom: "1px solid var(--border-secondary, #ebebeb)",
                     background: "var(--bg-secondary, #f9f9f7)",
@@ -236,8 +242,8 @@ export default function RichAIMessage({ content, isThinking }: Props) {
 
                 {/* Featured verse */}
                 {firstVerse && firstVerse.text && (
-                    <div style={{
-                        margin: "24px 32px 0",
+                    <div className="rich-margin-x" style={{
+                        marginTop: 24, marginBottom: 0,
                         borderLeft: "4px solid " + color,
                         background: color + "0a",
                         borderRadius: "0 12px 12px 0",
@@ -260,7 +266,7 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 )}
 
                 {/* Main sections */}
-                <div style={{ padding: "24px 32px 8px", display: "flex", flexDirection: "column", gap: 18 }}>
+                <div className="rich-pad-x" style={{ paddingTop: 24, paddingBottom: 8, display: "flex", flexDirection: "column", gap: 18 }}>
                     {otherSections.map((sec, i) => {
                         if (sec.type === "divider") {
                             return <div key={i} style={{ textAlign: "center", opacity: 0.35, fontSize: 14, color }}>&#10022;</div>;
@@ -325,8 +331,8 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 </div>
 
                 {/* Closing */}
-                <div style={{
-                    margin: "20px 32px", padding: "16px 22px", borderRadius: 12,
+                <div className="rich-margin-x" style={{
+                    marginTop: 20, marginBottom: 20, padding: "16px 22px", borderRadius: 12,
                     border: "1px solid " + color + "30", background: color + "0d",
                     fontSize: 14, fontStyle: "italic",
                     color: "var(--text-secondary, #444)", lineHeight: 1.7, textAlign: "center",
@@ -335,7 +341,7 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: "flex", gap: 10, padding: "0 32px 24px", flexWrap: "wrap" }}>
+                <div className="rich-pad-x" style={{ display: "flex", gap: 10, paddingTop: 0, paddingBottom: 24, flexWrap: "wrap" }}>
                     <button
                         onClick={() => shareWA(content)}
                         style={{
@@ -349,7 +355,7 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                     <CopyButton content={content} />
                 </div>
 
-                <div style={{ padding: "0 32px 16px", fontSize: 11, color: "var(--text-faint, #bbb)", fontFamily: "sans-serif" }}>
+                <div className="rich-pad-x" style={{ paddingTop: 0, paddingBottom: 16, fontSize: 11, color: "var(--text-faint, #bbb)", fontFamily: "sans-serif" }}>
                     {new Date().toLocaleString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </div>
             </div>

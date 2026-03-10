@@ -77,7 +77,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
         <div className="bg-[#FEFCF8] rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 hover:shadow-sky-500/10 mb-12 border border-slate-200 animate-in fade-in slide-in-from-bottom-5">
             {/* Header Band */}
             <div
-                className="px-10 py-6 flex items-center justify-between"
+                className="px-6 md:px-10 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
                 style={{
                     background: isM
                         ? "linear-gradient(135deg, #C8973A 0%, #8B6914 100%)"
@@ -110,7 +110,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
                 </div>
             </div>
 
-            <div className="p-10 md:p-16">
+            <div className="p-6 md:p-16">
                 {loading && (
                     <div className="flex flex-col items-center justify-center py-24 space-y-6">
                         <div className="relative">
@@ -159,7 +159,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
 
                         {/* Scripture Box */}
                         <div
-                            className="rounded-[3rem] p-12 md:p-16 mb-16 border-l-8 transition-transform hover:scale-[1.01]"
+                            className="rounded-[2rem] md:rounded-[3rem] p-8 md:p-16 mb-16 border-l-8 transition-transform hover:scale-[1.01]"
                             style={{
                                 backgroundColor: accentLight,
                                 borderColor: accent,
@@ -198,7 +198,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
                         {/* Prayer & Key Truth Loop */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
                             {/* Opening Prayer */}
-                            <div className="p-10 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                            <div className="p-8 md:p-10 bg-white rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <Bell size={40} />
                                 </div>
@@ -212,7 +212,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
                             </div>
 
                             {/* Key Truth */}
-                            <div className="p-10 bg-slate-900 text-white rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                            <div className="p-8 md:p-10 bg-slate-900 text-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                                 <div className="absolute -bottom-6 -right-6 text-white/5 opacity-40 group-hover:scale-125 transition-transform duration-1000">
                                     <Zap size={100} />
                                 </div>
@@ -227,7 +227,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
                         </div>
 
                         {/* Main Exposition */}
-                        <div className="space-y-16 mb-20 bg-white p-10 md:p-16 rounded-[4rem] border border-slate-100 shadow-sm">
+                        <div className="space-y-16 mb-20 bg-white p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-slate-100 shadow-sm">
                             {devotion.body.slice(0, 2).map((section, i) => (
                                 <div key={i} className="group relative">
                                     <div className="absolute -left-10 md:-left-12 top-0 py-1 text-sky-500/20 font-black text-2xl tracking-tighter">0{i + 1}</div>
@@ -312,7 +312,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
 
                             {/* Right Side: Closing Prayer & Sermon Ref */}
                             <div className="md:col-span-5 space-y-8">
-                                <div className="bg-slate-50 border border-slate-200 rounded-[2.5rem] p-10 relative overflow-hidden group">
+                                <div className="bg-slate-50 border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden group">
                                     <div className="absolute -top-4 -left-4 text-slate-100 group-hover:scale-110 transition-transform duration-500">
                                         <Quote size={80} />
                                     </div>
@@ -328,7 +328,7 @@ function DevotionalCard({ devotion, slot, loading, error, onRetry }: { devotion:
                                 </div>
 
                                 {devotion.sermon_reference && (
-                                    <div className="px-10 py-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[2.5rem] shadow-xl relative group">
+                                    <div className="px-8 md:px-10 py-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[2rem] md:rounded-[2.5rem] shadow-xl relative group">
                                         <div className="text-sky-400 font-black text-[9px] tracking-[0.4em] uppercase mb-4">Sermonic Depth</div>
                                         <h4 className="text-xl font-['Cinzel'] italic mb-1 text-white group-hover:text-sky-300 transition-colors">
                                             {devotion.sermon_reference.teacher}

@@ -613,15 +613,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
             </div>
 
             <div
-                style={{
-                    maxWidth: 1280,
-                    margin: "0 auto",
-                    padding: "32px 24px",
-                    display: "grid",
-                    gridTemplateColumns: "1fr minmax(320px, 480px)",
-                    gap: 32,
-                    alignItems: "start",
-                }}
+                className="w-full max-w-7xl mx-auto p-4 md:p-8 flex flex-col-reverse lg:grid lg:grid-cols-[1fr_minmax(320px,_480px)] gap-8 items-start"
             >
                 {/* ─────────────── LEFT: CONTROLS ─────────────── */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

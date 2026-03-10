@@ -1553,7 +1553,7 @@ export default function SearchEnginePortal() {
                             AI Powered Revelation
                         </div>
                         <h1
-                            className="font-['Cinzel'] text-7xl md:text-9xl font-black tracking-tighter leading-none"
+                            className="font-['Cinzel'] text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-none"
                             style={{ letterSpacing: "-0.03em", lineHeight: 0.95 }}
                         >
                             <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>DAILY</span>
@@ -1577,9 +1577,9 @@ export default function SearchEnginePortal() {
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
                     <form onSubmit={onSubmit}>
                         <div
-                            className={`relative bg-white border border-slate-200 rounded-3xl px-6 py-2 flex items-center gap-3 transition-all duration-300 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.08)]`}
+                            className={`relative bg-white border border-slate-200 rounded-3xl px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-300 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.08)]`}
                         >
-                            <Search className="text-slate-900 w-5 h-5 flex-shrink-0" />
+                            <Search className="text-slate-900 w-5 h-5 flex-shrink-0 hidden sm:block" />
                             <input
                                 ref={inputRef}
                                 autoFocus
@@ -1609,8 +1609,8 @@ export default function SearchEnginePortal() {
                         {/* Filter chips */}
                         <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
                             {/* Search type filters */}
-                            <div className="flex items-center gap-3 mt-4">
-                                <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
+                            <div className="flex flex-col md:flex-row items-center gap-3 mt-4 w-full md:w-auto">
+                                <div className="flex flex-wrap justify-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
                                     {FILTERS.map((f) => (
                                         <button
                                             key={f.id}
@@ -1703,17 +1703,17 @@ export default function SearchEnginePortal() {
                                     </div>
                                 ) : (
                                     aiMessages.map((msg, i) => (
-                                        <div key={i} className={`flex gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
+                                        <div key={i} className={`flex gap-3 sm:gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
+                                            <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
                                                 {msg.role === 'user' ? (
-                                                    <div className="font-['Cinzel'] font-black text-xl">U</div>
+                                                    <div className="font-['Cinzel'] font-black text-lg sm:text-xl">U</div>
                                                 ) : (
-                                                    <Sparkles size={24} className="animate-pulse" />
+                                                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
                                                 )}
                                             </div>
 
-                                            <div className={`flex flex-col gap-4 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
-                                                <div className={`relative p-10 md:p-14 rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}>
+                                            <div className={`flex flex-col gap-4 min-w-0 max-w-full ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
+                                                <div className={`relative p-5 sm:p-10 md:p-14 rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'} w-full`}>
 
                                                     {/* Ambient background for AI messages */}
                                                     {msg.role === 'assistant' && (
