@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { searchRSSFeeds, RSSArticle } from "@/lib/rss-fetcher";
+import { getProviderManager } from "@/lib/ai/gemini";
 
 // Keywords that trigger a "Prophetic Alert"
 const SENTINEL_KEYWORDS = [
@@ -39,12 +40,37 @@ export async function GET() {
 
         lastSeenArticleUrl = latestMatch.link;
 
-        // 4. Return the alert payload
+        // 4. Generate AI Prophetic Insight
+        let propheticInsight = latestMatch.description || latestMatch.title;
+        try {
+            const prompt = `
+You are a Prophetic Sentinel watching global news. 
+A major news event just broke:
+TITLE: ${latestMatch.title}
+SUMMARY: ${latestMatch.description}
+
+TASK:
+In exactly 2 short sentences, explain how this event connects to biblical prophecy (e.g., End Times, Israel, Wars and Rumors of Wars) and specifically include ONE relevant King James Bible verse reference. Speak with urgent, prophetic authority but offer hope in Jesus Christ.
+
+Return ONLY the 2-sentence insight. Do NOT include any markdown, headers, or extra formatting.
+            `;
+
+            const aiProvider = getProviderManager();
+            const { response } = await aiProvider.generateResponse(prompt);
+
+            if (response && response.length > 20) {
+                propheticInsight = response.replace(/\*\*/g, '').replace(/###/g, '').trim();
+            }
+        } catch (e) {
+            console.error("AI Insight failed, falling back to description", e);
+        }
+
+        // 5. Return the alert payload
         return NextResponse.json({
             active: true,
             alert: {
                 title: "🔥 Prophetic Alert: Breaking Event",
-                body: latestMatch.title,
+                body: propheticInsight,
                 link: latestMatch.link,
                 source: latestMatch.source,
                 timestamp: new Date().toISOString()

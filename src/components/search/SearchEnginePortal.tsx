@@ -1109,7 +1109,7 @@ export default function SearchEnginePortal() {
                     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
                         // Desktop OS Notification
                         new Notification(data.alert.title, {
-                            body: `${data.alert.source}: ${data.alert.body.substring(0, 100)}...`,
+                            body: `${data.alert.source}: ${data.alert.body}`,
                             icon: "https://www.google.com/s2/favicons?domain=dailymannaai.com&sz=128",
                             tag: data.alert.link, // avoid dups
                         }).onclick = () => {
