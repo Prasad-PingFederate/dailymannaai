@@ -1071,21 +1071,30 @@ export default function SearchEnginePortal() {
     // â”€â”€ PROPHETIC SENTINEL LOOP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const togglePropheticAlerts = async () => {
-        if (!("Notification" in window)) {
-            alert("This browser does not support desktop notifications.");
-            return;
-        }
-
-        if (Notification.permission === "granted") {
-            const newState = !alertsEnabled;
-            setAlertsEnabled(newState);
-            localStorage.setItem("prophetic-alerts-enabled", newState.toString());
-        } else {
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-                setAlertsEnabled(true);
-                localStorage.setItem("prophetic-alerts-enabled", "true");
+        try {
+            if (typeof window === "undefined" || !("Notification" in window)) {
+                alert("This browser does not support desktop notifications.");
+                return;
             }
+
+            if (Notification.permission === "granted") {
+                const newState = !alertsEnabled;
+                setAlertsEnabled(newState);
+                localStorage.setItem("prophetic-alerts-enabled", newState.toString());
+            } else if (Notification.permission === "denied") {
+                alert("Notification permissions are blocked. Please click the icon in your browser's URL bar, allow Notifications for this site, and try again.");
+            } else {
+                const permission = await Notification.requestPermission();
+                if (permission === "granted") {
+                    setAlertsEnabled(true);
+                    localStorage.setItem("prophetic-alerts-enabled", "true");
+                } else {
+                    alert("Permission to send Prophetic Alerts was denied.");
+                }
+            }
+        } catch (error) {
+            console.error("Failed to toggle prophetic alerts:", error);
+            alert("An error occurred while enabling alerts. Please check console.");
         }
     };
 
