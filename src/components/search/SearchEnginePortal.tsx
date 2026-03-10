@@ -1059,6 +1059,15 @@ export default function SearchEnginePortal() {
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [isSentinelScanning, setIsSentinelScanning] = useState(false);
 
+    useEffect(() => {
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            const saved = localStorage.getItem("prophetic-alerts-enabled");
+            if (saved === "true") {
+                setAlertsEnabled(true);
+            }
+        }
+    }, []);
+
     // â”€â”€ PROPHETIC SENTINEL LOOP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const togglePropheticAlerts = async () => {
@@ -1068,11 +1077,14 @@ export default function SearchEnginePortal() {
         }
 
         if (Notification.permission === "granted") {
-            setAlertsEnabled(!alertsEnabled);
+            const newState = !alertsEnabled;
+            setAlertsEnabled(newState);
+            localStorage.setItem("prophetic-alerts-enabled", newState.toString());
         } else {
             const permission = await Notification.requestPermission();
             if (permission === "granted") {
                 setAlertsEnabled(true);
+                localStorage.setItem("prophetic-alerts-enabled", "true");
             }
         }
     };
@@ -1613,6 +1625,7 @@ export default function SearchEnginePortal() {
                                     {FILTERS.map((f) => (
                                         <button
                                             key={f.id}
+                                            type="button"
                                             onClick={() => onFilterChange(f.id as FilterType)}
                                             className={`
                                                 flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
@@ -1629,6 +1642,7 @@ export default function SearchEnginePortal() {
 
                                 {/* Prophetic Sentinel Toggle */}
                                 <button
+                                    type="button"
                                     onClick={togglePropheticAlerts}
                                     className={`
                                         group flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all duration-500
