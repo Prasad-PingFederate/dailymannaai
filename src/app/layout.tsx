@@ -12,6 +12,7 @@ import "./globals.css";
 import StructuredData from "@/components/StructuredData";
 import { ThemeProvider } from "@/context/ThemeContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import UserMenu from "@/components/UserMenu";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -202,7 +203,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          {/* ── Fixed Dark/Light Mode Toggle — top-right corner ── */}
+          {/* ── Fixed Dark/Light Mode Toggle & User Menu — top-right corner ── */}
           <div style={{
             position: "fixed",
             top: "14px",
@@ -210,8 +211,9 @@ export default function RootLayout({
             zIndex: 9999,
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "12px",
           }}>
+            <UserMenu />
             <ThemeToggle variant="pill" />
           </div>
           <StructuredData />

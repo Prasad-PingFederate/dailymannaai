@@ -13,7 +13,6 @@ import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
 import { Image as ImageIcon } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import RichAIMessage from "./RichAIMessage";
-import UserMenu from "@/components/UserMenu";
 import { useAuth } from "@/hooks/useAuth";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
@@ -1538,7 +1537,7 @@ export default function SearchEnginePortal() {
                         <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>AI</span>
                     </button>
                     {/* Notebook link moved to filter tabs */}
-                    <UserMenu />
+                    <div className="w-[100px] hidden md:block" /> {/* Spacer to balance header */}
                 </header>
             )}
 
