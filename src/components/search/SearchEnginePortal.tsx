@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -16,6 +16,8 @@ import RichAIMessage from "./RichAIMessage";
 import { useAuth } from "@/hooks/useAuth";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
+import VoiceInput from "@/components/notebook/VoiceInput";
+import { Mic2 } from "lucide-react";
 
 // â”€â”€â”€ TYPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1653,6 +1655,13 @@ export default function SearchEnginePortal() {
                                     <X size={16} />
                                 </button>
                             )}
+                            <VoiceInput
+                                onTranscript={(text) => {
+                                    setQuery(text);
+                                    handleSearch(text, filter);
+                                }}
+                                className="mr-1"
+                            />
                             <button
                                 type="submit"
                                 className="bg-black hover:bg-slate-800 active:bg-slate-900 text-white font-black px-7 py-3 rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95 shadow-lg shadow-black/25"
