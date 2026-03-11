@@ -306,10 +306,9 @@ export default function VoiceInput({
                     className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col items-center
                                animate-in slide-in-from-bottom duration-300 ease-out"
                 >
-                    {/* Backdrop */}
-                    <div className="absolute inset-x-0 bottom-0 h-[44vh] bg-gradient-to-t
-                                    from-background via-background/96 to-transparent
-                                    backdrop-blur-2xl -z-10" />
+                    {/* Backdrop - World-class glassmorphism */}
+                    <div className="absolute inset-x-0 bottom-0 h-[48vh] bg-slate-900/90 md:bg-black/85
+                                    backdrop-blur-3xl -z-10 shadow-[0_-20px_80px_rgba(0,0,0,0.5)] border-t border-white/5" />
 
                     <div className="w-full max-w-3xl mx-auto flex flex-col items-center
                                     px-6 pb-10 gap-5">
@@ -328,10 +327,10 @@ export default function VoiceInput({
                                         overflow-y-auto px-2 scrollbar-hide
                                         flex items-center justify-center">
                             {interimText ? (
-                                <p className="text-2xl md:text-3xl font-serif italic
-                                              text-foreground leading-snug tracking-[0.01em]">
-                                    <span>{finalText}</span>
-                                    <span className="opacity-45">
+                                <p className="text-2xl md:text-4xl font-serif italic
+                                              text-white leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                                    <span className="text-white brightness-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]">{finalText}</span>
+                                    <span className="text-white/40">
                                         {interimText.slice(finalText.length)}
                                     </span>
                                     <span className="inline-block w-[2px] h-7 md:h-9 bg-accent
@@ -340,7 +339,7 @@ export default function VoiceInput({
                                                      shadow-[0_0_12px_rgba(200,151,58,0.5)]" />
                                 </p>
                             ) : (
-                                <p className="text-xl md:text-2xl font-serif italic text-foreground/25 select-none">
+                                <p className="text-xl md:text-2xl font-serif italic text-white/20 select-none animate-pulse">
                                     Start speaking…
                                 </p>
                             )}
