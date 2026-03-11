@@ -337,26 +337,28 @@ export default function VoiceInput({
                             </span>
                         </div>
 
-                        {/* Live transcript */}
-                        <div className="w-full text-center min-h-[3.5rem] max-h-[16vh]
-                                        overflow-y-auto px-2 scrollbar-hide
-                                        flex items-center justify-center">
+                        {/* Live transcript - World-class visibility container */}
+                        <div className="w-full min-h-[110px] max-h-[180px] overflow-y-auto 
+                                        bg-white/[0.04] border border-white/[0.09] rounded-2xl
+                                        p-5 md:p-6 flex items-center justify-center
+                                        scrollbar-thin scrollbar-thumb-amber-500/40 scrollbar-track-transparent">
                             {interimText ? (
-                                <p className="text-2xl md:text-4xl font-serif italic
-                                              text-white leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                                    <span className="text-[#f0ede5]">{finalText}</span>
+                                <p className="font-serif text-xl md:text-2xl leading-relaxed text-center text-[#f0ede5]">
+                                    <span className="drop-shadow-[0_0_12px_rgba(240,237,229,0.3)]">
+                                        {finalText}
+                                    </span>
                                     {interimText && (
-                                        <span className="text-[#c8960a88] italic ml-1">
+                                        <span className="text-[#c8960ab3] italic ml-1">
                                             {interimText.slice(finalText.length)}
                                         </span>
                                     )}
-                                    <span className="inline-block w-[2px] h-7 md:h-9 bg-[#c8960a]
+                                    <span className="inline-block w-[2px] h-6 md:h-7 bg-[#c8960a]
                                                      ml-2 align-middle rounded-full
                                                      animate-[blink_1s_step-end_infinite]
                                                      shadow-[0_0_12px_rgba(200,150,10,0.5)]" />
                                 </p>
                             ) : (
-                                <p className="text-xl md:text-2xl font-serif italic text-white/20 select-none animate-pulse">
+                                <p className="text-base md:text-lg font-serif italic text-white/25 select-none animate-pulse text-center">
                                     Start speaking…
                                 </p>
                             )}

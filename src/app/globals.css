@@ -14,6 +14,11 @@
   --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
   --shadow-deep: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
   --stars-opacity: 0.5;
+
+  /* World-Class Background Mesh */
+  --bg-mesh: radial-gradient(ellipse at 20% 10%, #1a1408 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 90%, #0c1020 0%, transparent 60%),
+             #040608;
 }
 
 @theme inline {
