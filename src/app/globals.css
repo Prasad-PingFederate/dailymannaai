@@ -14,11 +14,6 @@
   --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
   --shadow-deep: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
   --stars-opacity: 0.5;
-
-  /* World-Class Background Mesh */
-  --bg-mesh: radial-gradient(ellipse at 20% 10%, #1a1408 0%, transparent 60%),
-             radial-gradient(ellipse at 80% 90%, #0c1020 0%, transparent 60%),
-             #040608;
 }
 
 @theme inline {
@@ -259,9 +254,13 @@ body {
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
   --shadow-nav: 0 1px 0 rgba(0, 0, 0, 0.08);
 
-  --toggle-bg: #e8e8e8;
   --toggle-knob: #ffffff;
   --logo-primary: #1a1a1a;
+
+  /* Premium Light Mesh */
+  --bg-mesh: radial-gradient(ellipse at 20% 10%, #ede4d0 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 90%, #e8dfc8 0%, transparent 60%),
+             #f5f1ea;
 }
 
 /* ─── Dark Mode ──────────────────────────────────────────── */
@@ -299,9 +298,13 @@ body {
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
   --shadow-nav: 0 1px 0 rgba(0, 0, 0, 0.4);
 
-  --toggle-bg: #2a2d36;
   --toggle-knob: #f0f0ef;
   --logo-primary: #f0f0ef;
+
+  /* Premium Dark Mesh */
+  --bg-mesh: radial-gradient(ellipse at 20% 10%, #1a1408 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 90%, #0c1020 0%, transparent 60%),
+             #0b0904;
 }
 
 /* ─── Smooth transition on theme switch ──────────────────── */

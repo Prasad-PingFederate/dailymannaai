@@ -1521,7 +1521,7 @@ export default function SearchEnginePortal() {
     const hasContent = (results?.length ?? 0) > 0 || instantAnswer || solution;
 
     return (
-        <div className="min-h-screen [background:var(--bg-mesh)] text-slate-100 relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
+        <div className="min-h-screen [background:var(--bg-mesh)] text-[var(--text-primary)] relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes bell-ring {
@@ -1614,7 +1614,7 @@ export default function SearchEnginePortal() {
                             className="font-['Cinzel'] text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-none"
                             style={{ letterSpacing: "-0.03em", lineHeight: 0.95 }}
                         >
-                            <span className="text-white">DAILY</span>
+                            <span className="text-[var(--logo-primary)]">DAILY</span>
                             <span style={{
                                 background: "linear-gradient(135deg, #B8860B 0%, #D4A017 35%, #F5C842 55%, #D4A017 75%, #B8860B 100%)",
                                 WebkitBackgroundClip: "text",
@@ -1623,7 +1623,7 @@ export default function SearchEnginePortal() {
                                 textShadow: "none",
                                 filter: "drop-shadow(0 0 20px rgba(212,160,23,0.4))",
                             }}>MANNA</span>
-                            <span className="text-white">AI</span>
+                            <span className="text-[var(--logo-primary)]">AI</span>
                         </h1>
                         <p className="text-slate-400 max-w-md mx-auto text-lg font-medium italic leading-relaxed">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
@@ -1635,13 +1635,13 @@ export default function SearchEnginePortal() {
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
                     <form onSubmit={onSubmit}>
                         <div
-                            className={`relative bg-black/40 backdrop-blur-xl border rounded-3xl px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-500 ${
+                            className={`relative bg-[var(--bg-card)] border rounded-3xl px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-500 ${
                                 isVoiceActive 
                                 ? "border-sky-500 ring-4 ring-sky-500/20 shadow-[0_0_40px_rgba(14,165,233,0.25)] scale-[1.01]" 
-                                : "border-white/10 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+                                : "border-[var(--border-primary)] focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[var(--shadow-card)]"
                             }`}
                         >
-                            <Search className="text-white/60 w-5 h-5 flex-shrink-0 hidden sm:block" />
+                            <Search className="text-[var(--text-primary)] opacity-60 w-5 h-5 flex-shrink-0 hidden sm:block" />
                             <input
                                 ref={inputRef}
                                 autoFocus
@@ -1652,7 +1652,7 @@ export default function SearchEnginePortal() {
                                 className={`flex-1 bg-transparent border-none outline-none py-5 text-lg font-medium transition-all duration-300 ${
                                     isVoiceActive 
                                     ? "text-sky-400 italic placeholder:text-sky-300/50" 
-                                    : "text-white placeholder:text-white/40"
+                                    : "text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                                 }`}
                             />
                             {query && (
@@ -1677,7 +1677,7 @@ export default function SearchEnginePortal() {
                             />
                             <button
                                 type="submit"
-                                className="bg-black hover:bg-slate-800 active:bg-slate-900 text-white font-black px-7 py-3 rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95 shadow-lg shadow-black/25"
+                                className="bg-[var(--search-btn-bg)] hover:opacity-90 active:bg-[var(--search-btn-bg)] text-[var(--search-btn-text)] font-black px-7 py-3 rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95 shadow-lg shadow-black/10"
                             >
                                 Search
                             </button>
@@ -1687,7 +1687,7 @@ export default function SearchEnginePortal() {
                         <div className="flex flex-col items-center gap-4 mt-8 w-full max-w-4xl mx-auto">
                             
                             {/* ROW 1: Main Filters */}
-                            <div className="flex flex-wrap justify-center bg-white/10 p-1.5 rounded-2xl border border-white/10 shadow-inner backdrop-blur-md">
+                            <div className="flex flex-wrap justify-center bg-[var(--bg-input)] p-1.5 rounded-2xl border border-[var(--border-primary)] shadow-inner backdrop-blur-md">
                                 {FILTERS.slice(0, 6).map((f) => (
                                     <button
                                         key={f.id}
@@ -1696,8 +1696,8 @@ export default function SearchEnginePortal() {
                                         className={`
                                             flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
                                             ${filter === f.id
-                                                ? 'bg-sky-500 text-white shadow-[0_0_20px_rgba(14,165,233,0.3)]'
-                                                : 'text-white/60 hover:text-white hover:bg-white/5'}
+                                                ? 'bg-[var(--bg-primary)] text-sky-600 shadow-sm ring-1 ring-[var(--border-secondary)]'
+                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'}
                                         `}
                                     >
                                         {f.icon}
@@ -1708,7 +1708,7 @@ export default function SearchEnginePortal() {
 
                             {/* ROW 2: Special Filters + Prophetic Sentinel */}
                             <div className="flex flex-wrap items-center justify-center gap-4 w-full">
-                                <div className="flex justify-center bg-white/10 p-1.5 rounded-2xl border border-white/10 shadow-inner backdrop-blur-md">
+                                <div className="flex justify-center bg-[var(--bg-input)] p-1.5 rounded-2xl border border-[var(--border-primary)] shadow-inner backdrop-blur-md">
                                     {FILTERS.slice(6).map((f) => (
                                         <button
                                             key={f.id}
@@ -1717,8 +1717,8 @@ export default function SearchEnginePortal() {
                                             className={`
                                                 flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
                                                 ${filter === f.id
-                                                    ? 'bg-sky-500 text-white shadow-[0_0_20px_rgba(14,165,233,0.3)]'
-                                                    : 'text-white/60 hover:text-white hover:bg-white/5'}
+                                                    ? 'bg-[var(--bg-primary)] text-sky-600 shadow-sm ring-1 ring-[var(--border-secondary)]'
+                                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'}
                                             `}
                                         >
                                             {f.icon}
@@ -1734,8 +1734,8 @@ export default function SearchEnginePortal() {
                                     className={`
                                         group flex items-center gap-3 px-5 py-2.5 rounded-2xl border transition-all duration-500
                                         ${alertsEnabled
-                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
-                                            : 'bg-white/10 border-white/5 text-white/40 hover:bg-white/20 hover:border-amber-400 hover:text-amber-500 hover:shadow-md'}
+                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
+                                            : 'bg-[var(--bg-input)] border-[var(--border-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:border-amber-400 hover:text-amber-600 hover:shadow-md'}
                                     `}
                                 >
                                     <div className="relative">
