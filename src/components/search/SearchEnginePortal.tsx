@@ -1660,6 +1660,9 @@ export default function SearchEnginePortal() {
                                     setQuery(text);
                                     handleSearch(text, filter);
                                 }}
+                                onInterimTranscript={(text) => {
+                                    if (text) setQuery(text);
+                                }}
                                 className="mr-1"
                             />
                             <button
