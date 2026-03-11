@@ -1683,12 +1683,33 @@ export default function SearchEnginePortal() {
                             </button>
                         </div>
 
-                        {/* Filter chips */}
-                        <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
-                            {/* Search type filters */}
-                            <div className="flex flex-col md:flex-row items-center gap-3 mt-4 w-full md:w-auto">
-                                <div className="flex flex-wrap justify-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
-                                    {FILTERS.map((f) => (
+                        {/* Filter chips - Refined 2-Row Design */}
+                        <div className="flex flex-col items-center gap-4 mt-8 w-full max-w-4xl mx-auto">
+                            
+                            {/* ROW 1: Main Filters */}
+                            <div className="flex flex-wrap justify-center bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60 shadow-inner backdrop-blur-sm">
+                                {FILTERS.slice(0, 6).map((f) => (
+                                    <button
+                                        key={f.id}
+                                        type="button"
+                                        onClick={() => onFilterChange(f.id as FilterType)}
+                                        className={`
+                                            flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                                            ${filter === f.id
+                                                ? 'bg-white text-sky-600 shadow-sm ring-1 ring-slate-200'
+                                                : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'}
+                                        `}
+                                    >
+                                        {f.icon}
+                                        {f.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* ROW 2: Special Filters + Prophetic Sentinel */}
+                            <div className="flex flex-wrap items-center justify-center gap-4 w-full">
+                                <div className="flex justify-center bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60 shadow-inner backdrop-blur-sm">
+                                    {FILTERS.slice(6).map((f) => (
                                         <button
                                             key={f.id}
                                             type="button"
@@ -1706,17 +1727,16 @@ export default function SearchEnginePortal() {
                                     ))}
                                 </div>
 
-                                {/* Prophetic Sentinel Toggle */}
+                                {/* Prophetic Sentinel Toggle - Snippet Style */}
                                 <button
                                     type="button"
                                     onClick={togglePropheticAlerts}
                                     className={`
-                                        group flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all duration-500
+                                        group flex items-center gap-3 px-5 py-2.5 rounded-2xl border transition-all duration-500
                                         ${alertsEnabled
-                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 shadow-amber-500/5'
-                                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-white hover:border-amber-400 hover:text-amber-600 hover:shadow-md'}
+                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
+                                            : 'bg-slate-100/80 border-slate-200/60 text-slate-500 hover:bg-white hover:border-amber-400 hover:text-amber-600 hover:shadow-md'}
                                     `}
-                                    title={alertsEnabled ? "Prophetic Sentinel is Watching..." : "Enable Prophetic Alerts"}
                                 >
                                     <div className="relative">
                                         <Bell size={14} className={alertsEnabled ? 'animate-bell text-amber-500' : ''} />
@@ -1725,16 +1745,15 @@ export default function SearchEnginePortal() {
                                         )}
                                     </div>
                                     <div className="flex flex-col items-start leading-none">
-                                        <span className="text-[9px] font-black uppercase tracking-widest mb-0.5">Prophetic Alerts</span>
-                                        <span className={`text-[8px] font-medium tracking-tight ${alertsEnabled ? 'text-amber-500' : 'text-slate-400'}`}>
+                                        <div className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-0.5">Prophetic Alerts</div>
+                                        <div className={`text-[8px] font-bold tracking-tight ${alertsEnabled ? 'text-amber-500' : 'text-slate-400'}`}>
                                             {alertsEnabled ? (isSentinelScanning ? 'Scanning...' : 'SENTINEL ACTIVE') : 'DISABLED'}
-                                        </span>
+                                        </div>
                                     </div>
                                     {alertsEnabled && (
                                         <Zap size={11} className="ml-1 text-amber-500 animate-pulse" />
                                     )}
                                 </button>
-
                             </div>
                         </div>
                     </form>

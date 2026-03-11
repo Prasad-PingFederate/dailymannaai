@@ -34,6 +34,21 @@ export default function VoiceInput({
     const [error, setError] = useState<string | null>(null);
     const [interimText, setInterimText] = useState("");
     const [finalText, setFinalText] = useState("");
+    const [phase, setPhase] = useState(0);
+    const pulseRef = useRef<any>(null);
+
+    // Pulse animation during listening
+    useEffect(() => {
+        if (status === "recording") {
+            pulseRef.current = setInterval(() => {
+                setPhase((p) => (p + 1) % 160);
+            }, 45);
+        } else {
+            clearInterval(pulseRef.current);
+            setPhase(0);
+        }
+        return () => clearInterval(pulseRef.current);
+    }, [status]);
 
     const statusRef = useRef<Status>("idle");
     const finalTextRef = useRef("");           // Web Speech accumulator (fallback)
@@ -329,14 +344,16 @@ export default function VoiceInput({
                             {interimText ? (
                                 <p className="text-2xl md:text-4xl font-serif italic
                                               text-white leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                                    <span className="text-white brightness-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]">{finalText}</span>
-                                    <span className="text-white/40">
-                                        {interimText.slice(finalText.length)}
-                                    </span>
-                                    <span className="inline-block w-[2px] h-7 md:h-9 bg-accent
+                                    <span className="text-[#f0ede5]">{finalText}</span>
+                                    {interimText && (
+                                        <span className="text-[#c8960a88] italic ml-1">
+                                            {interimText.slice(finalText.length)}
+                                        </span>
+                                    )}
+                                    <span className="inline-block w-[2px] h-7 md:h-9 bg-[#c8960a]
                                                      ml-2 align-middle rounded-full
                                                      animate-[blink_1s_step-end_infinite]
-                                                     shadow-[0_0_12px_rgba(200,151,58,0.5)]" />
+                                                     shadow-[0_0_12px_rgba(200,150,10,0.5)]" />
                                 </p>
                             ) : (
                                 <p className="text-xl md:text-2xl font-serif italic text-white/20 select-none animate-pulse">
@@ -345,19 +362,26 @@ export default function VoiceInput({
                             )}
                         </div>
 
-                        {/* Animated waveform text */}
-                        <div className="flex items-end gap-[3px] h-7" aria-hidden="true">
-                            {Array.from({ length: 22 }).map((_, i) => (
-                                <span
-                                    key={i}
-                                    className="w-[3px] rounded-full bg-accent/55"
-                                    style={{
-                                        height: `${35 + Math.sin(i * 0.9) * 22}%`,
-                                        animation: `voiceBar ${0.55 + (i % 5) * 0.14}s ease-in-out infinite alternate`,
-                                        animationDelay: `${i * 0.04}s`,
-                                    }}
-                                />
-                            ))}
+                        {/* Animated waveform text - World-class HSL animation */}
+                        <div className="flex items-center gap-[5px] h-[52px]" aria-hidden="true">
+                            {Array.from({ length: 22 }).map((_, i) => {
+                                const h = isRecording 
+                                    ? 6 + Math.abs(Math.sin((phase / 80) * Math.PI * 2 + i * 0.55)) * 36
+                                    : 4;
+                                return (
+                                    <div
+                                        key={i}
+                                        className="w-1 rounded-full transition-all duration-[70ms]"
+                                        style={{
+                                            height: `${h}px`,
+                                            background: isRecording
+                                                ? `hsl(${38 + i * 4}, 92%, ${52 + Math.sin(i) * 10}%)`
+                                                : "rgba(255,255,255,0.2)",
+                                            boxShadow: isRecording ? `0 0 10px hsl(${38 + i * 4}, 92%, 52%, 0.3)` : "none"
+                                        }}
+                                    />
+                                );
+                            })}
                         </div>
 
                         {/* Controls */}
