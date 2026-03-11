@@ -1043,6 +1043,7 @@ export default function SearchEnginePortal() {
     const inputRef = useRef<HTMLInputElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const studioRef = useRef<HTMLDivElement>(null);
+    const [isVoiceActive, setIsVoiceActive] = useState(false);
 
     // AI Mode States
     const [aiMessages, setAiMessages] = useState<any[]>([]);
@@ -1634,7 +1635,11 @@ export default function SearchEnginePortal() {
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
                     <form onSubmit={onSubmit}>
                         <div
-                            className={`relative bg-white border border-slate-200 rounded-3xl px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-300 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.08)]`}
+                            className={`relative bg-white border rounded-3xl px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-500 ${
+                                isVoiceActive 
+                                ? "border-sky-500 ring-4 ring-sky-500/20 shadow-[0_0_40px_rgba(14,165,233,0.25)] scale-[1.01]" 
+                                : "border-slate-200 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
+                            }`}
                         >
                             <Search className="text-slate-900 w-5 h-5 flex-shrink-0 hidden sm:block" />
                             <input
@@ -1643,8 +1648,12 @@ export default function SearchEnginePortal() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Seek and ye shall find..."
-                                className={`flex-1 bg-transparent border-none outline-none py-5 text-lg text-slate-800 placeholder:text-slate-400 font-medium`}
+                                placeholder={isVoiceActive ? "Listening... speak now" : "Seek and ye shall find..."}
+                                className={`flex-1 bg-transparent border-none outline-none py-5 text-lg font-medium transition-all duration-300 ${
+                                    isVoiceActive 
+                                    ? "text-sky-600 italic placeholder:text-sky-300" 
+                                    : "text-slate-800 placeholder:text-slate-400"
+                                }`}
                             />
                             {query && (
                                 <button
@@ -1663,6 +1672,7 @@ export default function SearchEnginePortal() {
                                 onInterimTranscript={(text) => {
                                     if (text) setQuery(text);
                                 }}
+                                onListeningChange={(active) => setIsVoiceActive(active)}
                                 className="mr-1"
                             />
                             <button
