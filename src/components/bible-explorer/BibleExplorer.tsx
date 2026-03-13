@@ -359,15 +359,22 @@ export default function BibleExplorer() {
                     <div className="flex flex-col h-full w-80">
                         <div className={`transition-all duration-300 ease-in-out ${!leftSidebarOpen ? 'h-0 overflow-hidden opacity-0 p-0' : 'p-4 border-b border-border bg-background/50'}`}>
                             <div className="space-y-1.5">
-                                <label className="text-[8px] font-bold text-text-3 uppercase tracking-[0.2em] pl-1">Translation</label>
                                 <select 
                                     value={translation}
                                     onChange={(e) => setTranslation(e.target.value)}
                                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-bold text-text-2 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 gold-focus shadow-sm"
                                 >
-                                    {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
-                                        <option key={t} value={t}>{t} Version</option>
-                                    ))}
+                                    <optgroup label="English">
+                                        {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(v => (
+                                            <option key={v} value={v}>{v} Version</option>
+                                        ))}
+                                    </optgroup>
+                                    <optgroup label="Chinese">
+                                        <option value="zh">ZH (Union)</option>
+                                    </optgroup>
+                                    <optgroup label="Indonesian">
+                                        <option value="id">ID (TB)</option>
+                                    </optgroup>
                                 </select>
                             </div>
                         </div>
@@ -487,9 +494,17 @@ export default function BibleExplorer() {
                                         onChange={(e) => setTranslation(e.target.value)}
                                         className="bg-card-bg border border-border rounded-full px-3 py-1.5 text-[11px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans"
                                     >
-                                        {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
-                                            <option key={t} value={t}>{t}</option>
-                                        ))}
+                                        <optgroup label="English">
+                                            {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
+                                                <option key={t} value={t}>{t}</option>
+                                            ))}
+                                        </optgroup>
+                                        <optgroup label="Chinese">
+                                            <option value="zh">ZH</option>
+                                        </optgroup>
+                                        <optgroup label="Indonesian">
+                                            <option value="id">ID</option>
+                                        </optgroup>
                                     </select>
 
                                     <button 
