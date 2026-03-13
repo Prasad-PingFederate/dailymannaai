@@ -7,7 +7,8 @@ import {
     ChevronLeft, ChevronRight, Volume2, Copy, Pin, 
     ExternalLink, Check, Heart, MessageSquare, Plus,
     Sun, Moon, User, ChevronDown, List, Settings, 
-    Download, FileAudio, Clock, Flag, Globe, Info
+    Download, FileAudio, Clock, Flag, Globe, Info,
+    Zap, Newspaper
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
