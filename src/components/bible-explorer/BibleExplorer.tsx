@@ -239,120 +239,87 @@ export default function BibleExplorer() {
                 </div>
             </header>
 
-            {/* Mode Tabs Bar - Simplified */}
-            <div className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
-                <div className="flex items-center gap-4">
+            {/* Navigation & Search Bar Consolidated */}
+            <div className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center gap-4 px-6 shrink-0 z-30">
+                <div className="flex items-center gap-3 shrink-0">
                     <a 
                         href="https://www.dailymannaai.com" 
-                        className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-navy text-white text-xs font-bold hover:bg-navy-3 transition-all shadow-md group"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-navy text-white text-[10px] font-bold hover:bg-navy-3 transition-all shadow-md group border border-navy shadow-navy/10"
                     >
-                        <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                        <ChevronLeft size={12} className="group-hover:-translate-x-1 transition-transform" />
                         Home
                     </a>
-                    <div className="h-6 w-px bg-border" />
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gold/30 bg-gold-pale/10 text-gold text-xs font-bold">
-                        <Book size={14} />
-                        Bible Explorer
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gold/30 bg-gold-pale/10 text-gold text-[10px] font-bold shadow-inner">
+                        <Book size={12} className="opacity-70" />
+                        <span>Explorer</span>
                     </div>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-text-3 uppercase tracking-widest">
-                        <Globe size={12} />
-                        <span>Multilingual Version</span>
-                    </div>
-                </div>
-            </div>
+                <div className="h-4 w-px bg-border/40 mx-1" />
 
-            {/* Global Search Bar (Bible Logic) */}
-            <div className="bg-background border-b border-border py-4 px-6 shrink-0 flex justify-center">
-                <div className="search-bar-main max-w-5xl">
-                    {/* Navigation Selectors (Integrated) */}
-                    <div className="hidden lg:flex items-center gap-2 pr-4 border-r border-border/60">
+                {/* Centered Search Module */}
+                <div className="flex-1 flex items-center justify-center max-w-4xl mx-auto">
+                    <div className="flex-1 flex items-center gap-2 bg-card-bg/40 border border-border/60 rounded-full pl-4 pr-1 py-1 group focus-within:border-gold/30 focus-within:ring-4 focus-within:ring-gold/5 transition-all">
+                        {/* Translation Select */}
                         <select 
                             value={translation}
                             onChange={(e) => setTranslation(e.target.value)}
-                            className="bg-transparent text-[11px] font-bold text-gold-2 uppercase tracking-widest outline-none cursor-pointer hover:text-gold transition-colors min-w-[80px]"
+                            className="bg-transparent text-[10px] font-bold text-gold-2 uppercase tracking-widest outline-none cursor-pointer hover:text-gold transition-colors min-w-[60px]"
                         >
                             <optgroup label="Primary">
                                 {['NIV', 'KJV', 'NKJV'].map(v => (
                                     <option key={v} value={v}>{v}</option>
                                 ))}
                             </optgroup>
-                            <optgroup label="World Languages">
-                                <option value="es">Español</option>
-                                <option value="zh">中文 (Union)</option>
-                                <option value="id">Indonesia</option>
-                                <option value="fr">Français</option>
-                                <option value="pt">Português</option>
-                                <option value="de">Deutsch</option>
-                                <option value="ar">العربية</option>
-                                <option value="ru">Русский</option>
-                                <option value="ko">한국어</option>
+                            <optgroup label="World">
+                                <option value="es">ES</option>
+                                <option value="zh">ZH</option>
+                                <option value="fr">FR</option>
+                                <option value="pt">PT</option>
+                                <option value="de">DE</option>
+                                <option value="ar">AR</option>
+                                <option value="ru">RU</option>
+                                <option value="ko">KO</option>
                             </optgroup>
                             <optgroup label="Regional">
-                                <option value="te">తెలుగు (Telugu)</option>
-                                <option value="ta">தமிழ் (Tamil)</option>
-                            </optgroup>
-                        </select>
-                        
-                        <div className="h-4 w-px bg-border/40 mx-1" />
-
-                        <select 
-                            value={currentBook?.name || ""}
-                            onChange={(e) => {
-                                const b = [...BIBLE_BOOKS.OT, ...BIBLE_BOOKS.NT].find(x => x.name === e.target.value);
-                                if (b) handleBookSelect(b);
-                            }}
-                            className="bg-transparent text-[11px] font-bold text-text-1 outline-none cursor-pointer max-w-[120px] truncate"
-                        >
-                            <option value="">Select Book</option>
-                            <optgroup label="Old Testament">
-                                {BIBLE_BOOKS.OT.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-                            </optgroup>
-                            <optgroup label="New Testament">
-                                {BIBLE_BOOKS.NT.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                                <option value="te">TE</option>
+                                <option value="ta">TA</option>
                             </optgroup>
                         </select>
 
-                        {currentBook && (
-                            <>
-                                <div className="h-4 w-px bg-border/40 mx-1" />
-                                <select 
-                                    value={currentChapter || ""}
-                                    onChange={(e) => handleChapterSelect(parseInt(e.target.value))}
-                                    className="bg-transparent text-[11px] font-bold text-text-1 outline-none cursor-pointer w-12"
-                                >
-                                    <option value="">Ch</option>
-                                    {Array.from({ length: currentBook.chapters }, (_, i) => i + 1).map(ch => (
-                                        <option key={ch} value={ch}>{ch}</option>
-                                    ))}
-                                </select>
-                            </>
-                        )}
-                    </div>
+                        <div className="h-4 w-px bg-border/40" />
 
-                    <div className="flex-1 flex items-center gap-3">
-                        <Search className="s-icon shrink-0 ml-2" size={18} />
+                        <Search className="text-text-3 group-focus-within:text-gold transition-colors shrink-0" size={16} />
                         <input 
-                            className="search-input-main" 
-                            placeholder="Search the Scriptures, ask in faith..."
+                            className="bg-transparent border-none outline-none text-xs font-medium text-text-1 placeholder:text-text-3 w-full" 
+                            placeholder="Search Scripture, ask in faith..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
+                        
+                        <div className="flex items-center gap-1 shrink-0">
+                            <VoiceInput 
+                                onTranscript={(text) => { setSearchQuery(text); handleSearch(text); }}
+                                className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-gold transition-colors rounded-full"
+                            />
+                            <button 
+                                onClick={() => handleSearch()}
+                                className="px-5 py-1.5 bg-navy text-white rounded-full text-[11px] font-bold hover:bg-navy-3 transition-all shadow-sm active:scale-95"
+                            >
+                                Search
+                            </button>
+                        </div>
                     </div>
+                </div>
 
-                    <div className="flex items-center gap-2">
-                        <VoiceInput 
-                             onTranscript={(text) => { setSearchQuery(text); handleSearch(text); }}
-                             className="voice-input-mic"
-                        />
-                        <button className="s-btn whitespace-nowrap" onClick={() => handleSearch()}>Search</button>
+                <div className="hidden lg:flex items-center gap-3 shrink-0 ml-auto">
+                    <div className="flex items-center gap-1.5 text-[9px] font-black text-text-3 uppercase tracking-[0.2em] opacity-60 group cursor-default">
+                        <Globe size={11} className="group-hover:text-gold transition-colors" />
+                        <span>Multilingual</span>
                     </div>
                 </div>
             </div>
-
             {/* Layout Main */}
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Column 1: Books & Chapters (Combined Side Navigation) */}
