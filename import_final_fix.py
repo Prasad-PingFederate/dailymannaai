@@ -49,19 +49,13 @@ def import_world_json(db, lang_code, filename):
     
     collection = db.get_collection(coll_name)
     
-    # Force clean import to fix CORRUPTED_COLLECTION_SCHEMA
-    pass
-
-    # Drop and Recreate for speed
-    print(f"🔥 Recreating '{coll_name}' for clean import...")
-    try:
-        db.drop_collection(coll_name)
-        time.sleep(2)
+    # Create if missing
+    if coll_name not in db.list_collection_names():
+        print(f"🛠️  Creating '{coll_name}'...")
         db.create_collection(coll_name)
-        time.sleep(2)
-        collection = db.get_collection(coll_name)
-    except:
-        pass
+        time.sleep(5)
+    
+    collection = db.get_collection(coll_name)
     
     with open(file_path, 'r', encoding='utf-8-sig') as f:
         data = json.load(f)
@@ -102,11 +96,13 @@ def import_regional_json(db, lang_code, source_dir):
     coll_name = f"bible_{lang_code}"
     print(f"\n🏛️  IMPORTING REGIONAL LANGUAGE: {lang_code.upper()} from {source_dir}")
     
+    # Create if missing
     if coll_name not in db.list_collection_names():
+        print(f"🛠️  Creating '{coll_name}'...")
         db.create_collection(coll_name)
+        time.sleep(5)
     
     collection = db.get_collection(coll_name)
-    collection.delete_many({}) # Clean start
     
     total = 0
     
