@@ -18,14 +18,14 @@ export async function analyzeSearchIntent(query: string): Promise<SearchIntent> 
     
     CRITICAL RULES:
     1. GREETING: Use ONLY for "hello", "hi", "hey", "good morning", "how are you", "praise the lord" etc.
-    2. Any query asking about a Bible verse, Jesus, God, faith, salvation, or history is NOT a greeting.
-    3. If the query is "Who is Jesus?", it is TOPICAL_SEARCH, NOT GREETING.
+    2. NEWS_PROPHECY: Use for any query about Israel, End-Times, Second Coming, War, or current world events.
+    3. Any query asking about a Bible verse, Jesus, God, faith, salvation, or history is TOPICAL_SEARCH or HISTORICAL_QUERY.
     
     USER QUERY: "${query}"
     
     RESPONSE FORMAT (JSON ONLY):
     {
-        "type": "VERSE_LOOKUP | TOPICAL_SEARCH | HISTORICAL_QUERY | PERSONAL_GUIDANCE | GREETING",
+        "type": "VERSE_LOOKUP | TOPICAL_SEARCH | HISTORICAL_QUERY | PERSONAL_GUIDANCE | GREETING | NEWS_PROPHECY",
         "primaryKeywords": ["word1", "word2"],
         "suggestedVerses": ["Book Chapter:Verse"],
         "simplifiedQuery": "Cleaned version for DB search"

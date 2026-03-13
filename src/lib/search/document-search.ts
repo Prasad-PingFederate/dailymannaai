@@ -30,39 +30,46 @@ export async function searchDocuments(query: string): Promise<DocSearchResult[]>
         // 2. Search Cloud Storage (Astra DB - 80GB Primary)
         let databaseResults: DocSearchResult[] = [];
         try {
-            const astraCol = await getCollection('sermons_archive');
-            const cloudSermons = await astraCol.find({}).limit(5).toArray();
+            const astraDb = await getDatabase(); // Using primary MongoDB for latest news as well
+            const newsCol = astraDb.collection('christian_news');
+            const sermonsCol = astraDb.collection('sermons');
 
-            databaseResults = cloudSermons.map((s: any) => ({
-                title: s.title,
-                snippet: s.content?.substring(0, 500) + "...",
-                sourceId: `astra-${s._id}`,
-                score: 100,
-                audioUrl: s.audioUrl,
-                preacher: s.preacher
-            }));
-            console.log(`[DocumentSearch] ☁️ Retrieved ${databaseResults.length} items from Astra DB.`);
-        } catch (astraError) {
-            console.error("[DocumentSearch] Astra DB failed, falling back to MongoDB:", astraError);
+            const [news, sermons] = await Promise.all([
+                newsCol.find({
+                    $or: [
+                        { title: { $regex: query, $options: 'i' } },
+                        { content: { $regex: query, $options: 'i' } }
+                    ]
+                }).sort({ grace_rank: -1 }).limit(10).toArray(),
+                sermonsCol.find({
+                    $or: [
+                        { title: { $regex: query, $options: 'i' } },
+                        { content: { $regex: query, $options: 'i' } }
+                    ]
+                }).limit(5).toArray()
+            ]);
 
-            // 3. Fallback to MongoDB (Backup)
-            const db = await getDatabase();
-            const sermons = await db.collection('sermons').find({
-                $or: [
-                    { title: { $regex: query, $options: 'i' } },
-                    { content: { $regex: query, $options: 'i' } },
-                    { preacher: { $regex: query, $options: 'i' } }
-                ]
-            }).limit(5).toArray();
-
-            databaseResults = sermons.map(s => ({
-                title: s.title,
-                snippet: s.content.substring(0, 500) + "...",
-                sourceId: `db-sermon-${s._id}`,
-                score: 100,
-                audioUrl: s.audioUrl,
-                preacher: s.preacher
-            }));
+            databaseResults = [
+                ...news.map((n: any) => ({
+                    title: n.title,
+                    snippet: n.summary || (n.content?.substring(0, 500) + "..."),
+                    sourceId: `news-${n._id}`,
+                    score: (n.grace_rank || 1) * 100,
+                    preacher: n.source_name || "Daily Manna News"
+                })),
+                ...sermons.map((s: any) => ({
+                    title: s.title,
+                    snippet: s.content?.substring(0, 500) + "...",
+                    sourceId: `sermon-${s._id}`,
+                    score: 90,
+                    audioUrl: s.audioUrl,
+                    preacher: s.preacher
+                }))
+            ];
+            
+            console.log(`[DocumentSearch] ☁️ Indexed ${news.length} news items and ${sermons.length} sermons.`);
+        } catch (dbError) {
+            console.error("[DocumentSearch] DB failed:", dbError);
         }
 
         // Merge and sort

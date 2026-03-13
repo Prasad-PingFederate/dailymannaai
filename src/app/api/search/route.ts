@@ -196,19 +196,39 @@ async function searchInternalNews(query: string) {
         const db = await getAstraDatabase().catch(() => null);
         if (db) {
             const collection = db.collection('christian_news');
+            
+            // Try Text Search or fallback to Regex
             const items = await collection.find(
-                { $or: [{ title: { $regex: query, $options: 'i' } }, { content: { $regex: query, $options: 'i' } }] },
-                { sort: { grace_rank: -1 }, limit: 10 }
+                { 
+                    $or: [
+                        { title: { $regex: query, $options: 'i' } }, 
+                        { content: { $regex: query, $options: 'i' } },
+                        { summary: { $regex: query, $options: 'i' } }
+                    ] 
+                },
+                { 
+                    sort: { 
+                        grace_rank: -1, 
+                        published_at: -1 
+                    }, 
+                    limit: 15 
+                }
             ).toArray();
+
             return items.map(a => ({
                 title: a.title,
                 description: a.summary || (a.content ? a.content.substring(0, 300) + '...' : ''),
                 link: a.url,
                 source: a.source_name || "Astra DB",
-                type: "news"
+                type: "news",
+                imageUrl: a.thumbnail || null,
+                pubDate: a.published_at ? new Date(a.published_at).toISOString() : null,
+                favicon: resolveFavicon(a.source_name || "", a.url)
             }));
         }
-    } catch (err) { }
+    } catch (err) {
+        console.error("[InternalNewsSearch Error]", err);
+    }
     return [];
 }
 
