@@ -15,15 +15,26 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Book and Chapter are required" }, { status: 400 });
         }
 
-        const collectionName = `bible_${translation}`;
+        let collectionName = `bible_${translation}`;
+        let queryFilter: any = { book, chapter };
+
+        // Hybrid storage mapping to bypass Astra DB collection/index limits
+        const hybridMap: Record<string, string> = {
+            'ru': 'bible_de',
+            'ko': 'bible_fr',
+            'te': 'bible_es',
+            'ta': 'bible_pt'
+        };
+
+        if (hybridMap[translation]) {
+            collectionName = hybridMap[translation];
+            queryFilter.version = translation.toUpperCase();
+        }
+
         const collection = await getCollection(collectionName);
 
         // Fetch all verses for the chapter
-        // Astra DB Data API syntax
-        const result = await collection.find({
-            book: book,
-            chapter: chapter
-        }, {
+        const result = await collection.find(queryFilter, {
             sort: { verse: 1 }
         }).toArray();
 
