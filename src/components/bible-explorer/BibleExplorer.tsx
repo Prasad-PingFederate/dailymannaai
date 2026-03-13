@@ -297,55 +297,28 @@ export default function BibleExplorer() {
                 >
                     <div className="flex flex-col h-full w-80">
                         <div className={`transition-all duration-300 ease-in-out ${!leftSidebarOpen ? 'h-0 overflow-hidden opacity-0 p-0' : 'p-4 border-b border-border bg-background/50'}`}>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 rounded-lg bg-gold/10 flex items-center justify-center border border-gold/20">
-                                        <Globe size={14} className="text-gold" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-text-1 tracking-tight">BIBLE SETTINGS</span>
-                                        <span className="text-[7px] font-bold text-gold uppercase tracking-[0.2em]">Regional</span>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
-                                    className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all"
+                            <div className="space-y-1.5">
+                                <label className="text-[8px] font-bold text-text-3 uppercase tracking-[0.2em] pl-1">Translation</label>
+                                <select 
+                                    value={translation}
+                                    onChange={(e) => setTranslation(e.target.value)}
+                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-bold text-text-2 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 gold-focus shadow-sm"
                                 >
-                                    <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="space-y-1.5">
-                                    <label className="text-[8px] font-bold text-text-3 uppercase tracking-[0.2em] pl-1">Language</label>
-                                    <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-medium text-text-1 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 appearance-none bg-no-repeat bg-[right_10px_center]">
-                                        <option>English (US/UK)</option>
-                                        <option disabled>Español (En breve)</option>
-                                        <option disabled>Français (À venir)</option>
-                                        <option disabled>हिन्दी (शीघ्र ही)</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[8px] font-bold text-text-3 uppercase tracking-[0.2em] pl-1">Translation</label>
-                                    <select 
-                                        value={translation}
-                                        onChange={(e) => setTranslation(e.target.value)}
-                                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-bold text-text-2 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 gold-focus shadow-sm"
-                                    >
-                                        {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
-                                            <option key={t} value={t}>{t} Version</option>
-                                        ))}
-                                    </select>
-                                </div>
+                                    {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
+                                        <option key={t} value={t}>{t} Version</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        <div className={`p-3.5 border-b border-border flex items-center justify-between shrink-0 bg-muted/5 transition-opacity duration-200 ${!leftSidebarOpen ? 'opacity-0' : 'opacity-100'}`}>
+                        <div className={`p-3.5 border-b border-border flex items-center justify-between shrink-0 bg-muted/5 transition-opacity duration-200 ${!leftSidebarOpen ? 'opacity-0 h-0 p-0 overflow-hidden' : 'opacity-100'}`}>
                             <h4 className="font-title text-[8px] font-bold uppercase tracking-[0.22em] text-gold">Scripture Index</h4>
-                            <div className="flex gap-1">
-                                <div className="w-1 h-1 rounded-full bg-gold/40" />
-                                <div className="w-1 h-1 rounded-full bg-gold/20" />
-                            </div>
+                            <button 
+                                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
+                                className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all"
+                            >
+                                <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
+                            </button>
                         </div>
 
                         {!leftSidebarOpen ? (
