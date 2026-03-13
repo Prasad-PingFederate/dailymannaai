@@ -49,9 +49,19 @@ def import_world_json(db, lang_code, filename):
     
     collection = db.get_collection(coll_name)
     
-    # Check if data exists - we'll drop it to be sure it's clean for failed ones
-    print(f"🔥 Clearing '{coll_name}' for recovery...")
-    collection.delete_many({})
+    # Force clean import to fix CORRUPTED_COLLECTION_SCHEMA
+    pass
+
+    # Drop and Recreate for speed
+    print(f"🔥 Recreating '{coll_name}' for clean import...")
+    try:
+        db.drop_collection(coll_name)
+        time.sleep(2)
+        db.create_collection(coll_name)
+        time.sleep(2)
+        collection = db.get_collection(coll_name)
+    except:
+        pass
     
     with open(file_path, 'r', encoding='utf-8-sig') as f:
         data = json.load(f)
