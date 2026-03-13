@@ -12,7 +12,7 @@ import {
     PanelLeftClose, PanelLeftOpen,
     PanelRightClose, PanelRightOpen,
     Maximize2, Minimize2,
-    Type
+    Type, Home
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -203,96 +203,47 @@ export default function BibleExplorer() {
 
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground font-sans">
-            {/* Header / Topbar */}
-            <header className="h-16 px-6 flex items-center justify-between border-b border-border bg-background z-20">
-                <div className="flex items-center gap-2">
-                    <div className="site-logo text-brand-navy">
+            {/* Primary Unified Header */}
+            <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-md z-40 sticky top-0 shadow-sm">
+                <div className="flex items-center gap-4 shrink-0">
+                    <div className="site-logo text-brand-navy hidden lg:block">
                         DAILY <span className="gold">MANNA</span> AI
                     </div>
-                </div>
-
-                <div className="hidden md:flex flex-col items-center">
-                    <p className="font-serif italic text-xs text-muted-foreground opacity-80 max-w-sm text-center">
-                        "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={toggleTheme}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card-bg hover:border-gold/30 transition-all text-sm font-medium shadow-sm active:scale-95"
-                    >
-                        {isDark ? <Sun size={14} className="text-gold" /> : <Moon size={14} className="text-brand-navy" />}
-                        <span className={`hidden sm:inline ${isDark ? 'text-gold' : 'text-brand-navy'}`}>{isDark ? 'Light' : 'Dark'}</span>
-                    </button>
                     
-                    {user ? (
-                        <div className="flex items-center gap-2 pl-2 border-l border-border">
-                            <div className="w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center font-bold text-xs">
-                                {user.name?.[0] || 'U'}
-                            </div>
-                            <span className="hidden sm:inline text-sm font-semibold">{user.name}</span>
+                    <div className="flex items-center gap-2">
+                        <a 
+                            href="https://www.dailymannaai.com" 
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy text-white text-[10px] font-bold hover:bg-navy-3 transition-all shadow-md group border border-navy shadow-navy/10"
+                        >
+                            <Home size={12} className="group-hover:scale-110 transition-transform" />
+                            <span className="hidden sm:inline">Home</span>
+                        </a>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gold/30 bg-gold-pale/10 text-gold text-[10px] font-bold shadow-inner">
+                            <BookOpen size={12} className="opacity-70" />
+                            <span className="hidden sm:inline">Explorer</span>
                         </div>
-                    ) : (
-                        <button className="px-4 py-1.5 bg-navy text-white rounded-full text-sm font-bold hover:bg-navy-3 transition-all">Sign In</button>
-                    )}
-                </div>
-            </header>
-
-            {/* Navigation & Search Bar Consolidated */}
-            <div className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center gap-4 px-6 shrink-0 z-30">
-                <div className="flex items-center gap-3 shrink-0">
-                    <a 
-                        href="https://www.dailymannaai.com" 
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-navy text-white text-[10px] font-bold hover:bg-navy-3 transition-all shadow-md group border border-navy shadow-navy/10"
-                    >
-                        <ChevronLeft size={12} className="group-hover:-translate-x-1 transition-transform" />
-                        Home
-                    </a>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gold/30 bg-gold-pale/10 text-gold text-[10px] font-bold shadow-inner">
-                        <Book size={12} className="opacity-70" />
-                        <span>Explorer</span>
                     </div>
                 </div>
 
-                <div className="h-4 w-px bg-border/40 mx-1" />
-
-                {/* Centered Search Module */}
-                <div className="flex-1 flex items-center justify-center max-w-4xl mx-auto">
-                    <div className="flex-1 flex items-center gap-2 bg-card-bg/40 border border-border/60 rounded-full pl-4 pr-1 py-1 group focus-within:border-gold/30 focus-within:ring-4 focus-within:ring-gold/5 transition-all">
-                        {/* Translation Select */}
+                {/* Centered Search Module - Now in Primary Header */}
+                <div className="flex-1 flex items-center justify-center max-w-2xl mx-4">
+                    <div className="flex-1 flex items-center gap-2 bg-card-bg border border-border/80 rounded-2xl pl-3 pr-1 py-1 group focus-within:border-gold/40 focus-within:ring-4 focus-within:ring-gold/5 transition-all shadow-sm">
                         <select 
                             value={translation}
                             onChange={(e) => setTranslation(e.target.value)}
-                            className="bg-transparent text-[10px] font-bold text-gold-2 uppercase tracking-widest outline-none cursor-pointer hover:text-gold transition-colors min-w-[60px]"
+                            className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            <optgroup label="Primary">
-                                {['NIV', 'KJV', 'NKJV'].map(v => (
-                                    <option key={v} value={v}>{v}</option>
-                                ))}
-                            </optgroup>
-                            <optgroup label="World">
-                                <option value="es">ES</option>
-                                <option value="zh">ZH</option>
-                                <option value="fr">FR</option>
-                                <option value="pt">PT</option>
-                                <option value="de">DE</option>
-                                <option value="ar">AR</option>
-                                <option value="ru">RU</option>
-                                <option value="ko">KO</option>
-                            </optgroup>
-                            <optgroup label="Regional">
-                                <option value="te">TE</option>
-                                <option value="ta">TA</option>
-                            </optgroup>
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA'].map(v => (
+                                <option key={v} value={v.toLowerCase()}>{v}</option>
+                            ))}
                         </select>
 
-                        <div className="h-4 w-px bg-border/40" />
+                        <div className="h-4 w-px bg-border/60" />
 
-                        <Search className="text-text-3 group-focus-within:text-gold transition-colors shrink-0" size={16} />
+                        <Search className="text-text-3 group-focus-within:text-gold transition-colors shrink-0" size={14} />
                         <input 
                             className="bg-transparent border-none outline-none text-xs font-medium text-text-1 placeholder:text-text-3 w-full" 
-                            placeholder="Search Scripture, ask in faith..."
+                            placeholder="Find Scripture..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -301,11 +252,11 @@ export default function BibleExplorer() {
                         <div className="flex items-center gap-1 shrink-0">
                             <VoiceInput 
                                 onTranscript={(text) => { setSearchQuery(text); handleSearch(text); }}
-                                className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-gold transition-colors rounded-full"
+                                className="w-7 h-7 flex items-center justify-center text-text-3 hover:text-gold transition-colors rounded-full"
                             />
                             <button 
                                 onClick={() => handleSearch()}
-                                className="px-5 py-1.5 bg-navy text-white rounded-full text-[11px] font-bold hover:bg-navy-3 transition-all shadow-sm active:scale-95"
+                                className="px-4 py-1.5 bg-brand-navy-2 text-white rounded-xl text-[10px] font-black hover:bg-gold transition-all shadow-sm active:scale-95 uppercase tracking-wider"
                             >
                                 Search
                             </button>
@@ -313,13 +264,26 @@ export default function BibleExplorer() {
                     </div>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-3 shrink-0 ml-auto">
-                    <div className="flex items-center gap-1.5 text-[9px] font-black text-text-3 uppercase tracking-[0.2em] opacity-60 group cursor-default">
-                        <Globe size={11} className="group-hover:text-gold transition-colors" />
-                        <span>Multilingual</span>
-                    </div>
+                <div className="flex items-center gap-3 shrink-0">
+                    <button 
+                        onClick={toggleTheme}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-border bg-card-bg hover:border-gold/30 transition-all shadow-sm active:scale-95"
+                    >
+                        {isDark ? <Sun size={15} className="text-gold" /> : <Moon size={15} className="text-brand-navy" />}
+                    </button>
+                    
+                    {user ? (
+                        <div className="flex items-center gap-2 pl-2 border-l border-border">
+                            <div className="w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center font-black text-[10px]">
+                                {user.name?.[0] || 'U'}
+                            </div>
+                        </div>
+                    ) : (
+                        <button className="px-4 py-1.5 bg-navy text-white rounded-xl text-[10px] font-black hover:bg-navy-3 transition-all uppercase tracking-wider">Sign In</button>
+                    )}
                 </div>
-            </div>
+            </header>
+
             {/* Layout Main */}
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Column 1: Books & Chapters (Combined Side Navigation) */}
@@ -454,85 +418,70 @@ export default function BibleExplorer() {
 
                     {currentBook && currentChapter ? (
                         <>
-                            {/* Reader Topbar — minimal premium */}
-                            <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border px-6 md:px-8 py-3 flex items-center gap-4 z-20">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-title text-[12px] font-bold text-brand-navy tracking-wider uppercase">{currentBook.name}</span>
-                                    <span className="text-border px-1">·</span>
-                                    <span className="text-[12px] font-medium text-text-3">Chapter {currentChapter}</span>
-                                    <span className="ml-2 px-2.5 py-1 bg-gold-pale/30 border border-gold/20 rounded-full text-[10px] font-bold text-gold uppercase tracking-tighter shrink-0">{verses.length} verses</span>
+                            <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border px-4 md:px-6 py-2 flex items-center justify-between z-20 h-14">
+                                <div className="flex items-center gap-2 md:gap-4">
+                                    <button 
+                                        onClick={prevChapter} 
+                                        disabled={currentChapter === 1} 
+                                        className="h-9 px-3 md:px-4 rounded-xl border border-border bg-card-bg/50 text-[10px] font-bold hover:bg-navy hover:text-white disabled:opacity-20 transition-all flex items-center gap-1.5 shadow-sm"
+                                    >
+                                        <ChevronLeft size={14} /> <span className="hidden md:inline">Prev</span>
+                                    </button>
+
+                                    <div className="flex flex-col md:flex-row md:items-center gap-0 md:gap-2 px-2 md:px-4 border-l border-r border-border/40">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-title text-[11px] md:text-[13px] font-bold text-brand-navy tracking-tight uppercase truncate max-w-[100px] md:max-w-none">{currentBook.name}</span>
+                                            <span className="text-[11px] md:text-[13px] font-medium text-text-3">Ch {currentChapter}</span>
+                                        </div>
+                                        <span className="hidden md:inline text-border/60">·</span>
+                                        <span className="px-2 py-0.5 bg-gold-pale/30 border border-gold/10 rounded-full text-[8px] md:text-[9px] font-bold text-gold uppercase tracking-tighter w-fit">{verses.length} Verses</span>
+                                    </div>
+
+                                    <button 
+                                        onClick={nextChapter} 
+                                        disabled={currentChapter === currentBook.chapters} 
+                                        className="h-9 px-3 md:px-4 rounded-xl border border-border bg-card-bg/50 text-[10px] font-bold hover:bg-navy hover:text-white disabled:opacity-20 transition-all flex items-center gap-1.5 shadow-sm"
+                                    >
+                                        <span className="hidden md:inline">Next</span> <ChevronRight size={14} />
+                                    </button>
                                 </div>
                                 
-                                <div className="hidden sm:flex items-center gap-3 ml-auto">
-                                    <div className="flex items-center bg-card-bg rounded-full border border-border p-0.5">
-                                        <button onClick={() => setFontSize(Math.max(12, fontSize - 1))} className="w-6 h-6 flex items-center justify-center hover:bg-muted/10 rounded-full transition-colors text-xs font-bold text-text-2">−</button>
-                                        <div className="px-2 text-[10px] font-bold text-text-1 min-w-[24px] text-center">{fontSize}</div>
-                                        <button onClick={() => setFontSize(Math.min(32, fontSize + 1))} className="w-6 h-6 flex items-center justify-center hover:bg-muted/10 rounded-full transition-colors text-xs font-bold text-text-2">+</button>
+                                <div className="flex items-center gap-2 md:gap-3">
+                                    <div className="hidden sm:flex items-center bg-card-bg rounded-lg border border-border p-0.5">
+                                        <button onClick={() => setFontSize(Math.max(12, fontSize - 1))} className="w-7 h-7 flex items-center justify-center hover:bg-muted/10 rounded-full transition-colors text-xs font-bold text-text-2">−</button>
+                                        <div className="px-1 text-[9px] font-black text-text-1 min-w-[20px] text-center">{fontSize}</div>
+                                        <button onClick={() => setFontSize(Math.min(32, fontSize + 1))} className="w-7 h-7 flex items-center justify-center hover:bg-muted/10 rounded-full transition-colors text-xs font-bold text-text-2">+</button>
                                     </div>
 
                                     <select 
                                         value={translation}
                                         onChange={(e) => setTranslation(e.target.value)}
-                                        className="bg-card-bg border border-border rounded-full px-3 py-1.5 text-[11px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans"
+                                        className="bg-card-bg border border-border rounded-lg px-2 py-1.5 text-[10px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans hidden md:block"
                                     >
-                                        <optgroup label="Primary">
-                                            {['NIV', 'KJV', 'NKJV'].map(t => (
-                                                <option key={t} value={t}>{t}</option>
-                                            ))}
-                                        </optgroup>
-                                        <optgroup label="Global">
-                                            <option value="es">ES</option>
-                                            <option value="zh">ZH</option>
-                                            <option value="id">ID</option>
-                                            <option value="fr">FR</option>
-                                            <option value="pt">PT</option>
-                                            <option value="de">DE</option>
-                                            <option value="ar">AR</option>
-                                            <option value="ru">RU</option>
-                                            <option value="ko">KO</option>
-                                            <option value="te">TE</option>
-                                            <option value="ta">TA</option>
-                                        </optgroup>
+                                        {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA'].map(t => (
+                                            <option key={t} value={t.toLowerCase()}>{t}</option>
+                                        ))}
                                     </select>
 
-                                    <button 
-                                        onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
-                                        className={`p-2 rounded-full border transition-all ${rightSidebarOpen ? 'bg-gold-pale/30 border-gold/30 text-gold' : 'bg-card-bg border-border text-text-3 hover:border-gold/30'}`}
-                                        title={rightSidebarOpen ? "Collapse Tools" : "Expand Tools"}
-                                    >
-                                        <PanelRightClose size={18} className={rightSidebarOpen ? "" : "hidden"} />
-                                        <PanelRightOpen size={18} className={rightSidebarOpen ? "hidden" : ""} />
-                                    </button>
-                                    
-                                    <button 
-                                        onClick={() => setIsZenMode(!isZenMode)} 
-                                        className={`p-2 rounded-full transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'hover:bg-muted/10 text-text-3'}`}
-                                        title={isZenMode ? "Exit Zen Mode" : "Zen Mode"}
-                                    >
-                                        {isZenMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-                                    </button>
+                                    <div className="flex items-center gap-1 border-l border-border/40 pl-2 md:pl-3">
+                                        <button 
+                                            onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
+                                            className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${rightSidebarOpen ? 'bg-navy text-white border-navy' : 'bg-card-bg border-border text-text-3 hover:border-gold/30'}`}
+                                            title={rightSidebarOpen ? "Collapse Tools" : "Expand Tools"}
+                                        >
+                                            <PanelRightClose size={16} className={rightSidebarOpen ? "" : "hidden"} />
+                                            <PanelRightOpen size={16} className={rightSidebarOpen ? "hidden" : ""} />
+                                        </button>
+                                        
+                                        <button 
+                                            onClick={() => setIsZenMode(!isZenMode)} 
+                                            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'bg-card-bg border border-border text-text-3 hover:border-gold/30'}`}
+                                            title={isZenMode ? "Exit Zen Mode" : "Zen Mode"}
+                                        >
+                                            {isZenMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* Chapter Navigation Bar */}
-                            <div className="ch-nav-bar px-6 md:px-8 py-2.5 flex items-center justify-between bg-card-bg/30 border-b border-border text-text-2">
-                                <button 
-                                    onClick={prevChapter} 
-                                    disabled={currentChapter === 1} 
-                                    className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-background text-[11px] font-bold hover:bg-navy hover:text-white disabled:opacity-30 transition-all"
-                                >
-                                    <ChevronLeft size={14} /> Previous
-                                </button>
-                                <div className="text-[11px] font-bold text-text-3 uppercase tracking-widest hidden sm:block">
-                                    {currentBook.name} · Chapter {currentChapter}
-                                </div>
-                                <button 
-                                    onClick={nextChapter} 
-                                    disabled={currentChapter === currentBook.chapters} 
-                                    className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-background text-[11px] font-bold hover:bg-navy hover:text-white disabled:opacity-30 transition-all"
-                                >
-                                    Next <ChevronRight size={14} />
-                                </button>
                             </div>
 
                             {/* Scripture Content */}
