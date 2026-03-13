@@ -8,7 +8,11 @@ import {
     ExternalLink, Check, Heart, MessageSquare, Plus,
     Sun, Moon, User, ChevronDown, List, Settings, 
     Download, FileAudio, Clock, Flag, Globe, Info,
-    Zap, Newspaper
+    Zap, Newspaper,
+    PanelLeftClose, PanelLeftOpen,
+    PanelRightClose, PanelRightOpen,
+    Maximize2, Minimize2,
+    Type
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -103,6 +107,12 @@ export default function BibleExplorer() {
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    
+    // New UX State for Space
+    const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+    const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+    const [fontSize, setFontSize] = useState(19);
+    const [isZenMode, setIsZenMode] = useState(false);
 
     // Fetch Verses When Book/Chapter Changes
     useEffect(() => {
@@ -266,148 +276,223 @@ export default function BibleExplorer() {
             </div>
 
             {/* Layout Main */}
-            <main className="flex-1 flex overflow-hidden">
-                {/* Column 1: Books (Side Navigation) */}
-                <aside className={`w-64 border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 fixed inset-y-0 left-0 z-30 md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="p-4 border-b border-border space-y-3">
-                        <h4 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Books of the Bible</h4>
-                        <div className="flex p-1 bg-background rounded-lg border border-border">
-                            <button 
-                                onClick={() => setTestament('OT')}
-                                className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${testament === 'OT' ? 'bg-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
-                            >
-                                OLD (39)
-                            </button>
-                            <button 
-                                onClick={() => setTestament('NT')}
-                                className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${testament === 'NT' ? 'bg-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
-                            >
-                                NEW (27)
-                            </button>
+            <main className="flex-1 flex overflow-hidden relative">
+                {/* Column 1: Books & Chapters (Combined Side Navigation) */}
+                <aside 
+                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-500 ease-in-out fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 
+                    ${leftSidebarOpen && !isZenMode ? 'w-80 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 md:opacity-0 pointer-events-none md:w-0'} 
+                    ${isMobileMenuOpen ? 'w-full translate-x-0' : ''}`}
+                >
+                    <div className="flex flex-col h-full w-80">
+                        <div className="p-4 border-b border-border space-y-3 shrink-0">
+                            <div className="flex items-center justify-between">
+                                <h4 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Scripture Index</h4>
+                                <button onClick={() => setLeftSidebarOpen(false)} className="md:hidden p-1 text-muted-foreground hover:text-foreground">
+                                    <PanelLeftClose size={16} />
+                                </button>
+                            </div>
+                            <div className="flex p-1 bg-background rounded-lg border border-border">
+                                <button 
+                                    onClick={() => setTestament('OT')}
+                                    className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${testament === 'OT' ? 'bg-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
+                                >
+                                    OLD (39)
+                                </button>
+                                <button 
+                                    onClick={() => setTestament('NT')}
+                                    className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${testament === 'NT' ? 'bg-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
+                                >
+                                    NEW (27)
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                        {BIBLE_BOOKS[testament].map((book) => (
-                            <button
-                                key={book.name}
-                                onClick={() => handleBookSelect(book)}
-                                className={`w-full flex items-center justify-between px-5 py-3 text-sm border-l-[3px] transition-all border-b border-border/20 ${currentBook?.name === book.name ? 'bg-gold-pale/20 text-gold border-gold font-bold' : 'hover:bg-muted/5 border-transparent text-text-2 hover:text-foreground'}`}
-                            >
-                                <span>{book.name}</span>
-                                <span className={`text-[9px] font-bold uppercase tracking-wider ${currentBook?.name === book.name ? 'text-gold' : 'text-muted-foreground'}`}>{book.abbr}</span>
-                            </button>
-                        ))}
-                    </div>
-                </aside>
 
-                {/* Column 2: Chapters Navigation */}
-                <aside className={`w-48 border-r border-border bg-background flex flex-col shrink-0 ${currentBook ? 'block' : 'hidden md:block'}`}>
-                    <div className="p-4 border-b border-border">
-                        <h4 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold truncate">
-                            {currentBook ? `${currentBook.name} Chapters` : 'Chapters'}
-                        </h4>
-                    </div>
-                    {currentBook ? (
-                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                            <div className="grid grid-cols-4 gap-2">
-                                {Array.from({ length: currentBook.chapters }, (_, i) => i + 1).map((ch) => (
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* Books List */}
+                            <div className="w-1/2 border-r border-border/40 overflow-y-auto custom-scrollbar bg-background/30">
+                                {BIBLE_BOOKS[testament].map((book) => (
                                     <button
-                                        key={ch}
-                                        onClick={() => handleChapterSelect(ch)}
-                                        className={`h-10 rounded-lg border transition-all flex items-center justify-center text-xs font-bold ${currentChapter === ch ? 'bg-navy border-navy text-white shadow-lg' : 'bg-card-bg border-border hover:border-gold/30 hover:bg-gold-pale/10 text-muted-foreground hover:text-gold'}`}
+                                        key={book.name}
+                                        onClick={() => handleBookSelect(book)}
+                                        className={`w-full flex flex-col items-start px-4 py-3 text-sm border-l-2 transition-all ${currentBook?.name === book.name ? 'bg-gold-pale/15 text-gold border-gold font-bold' : 'hover:bg-muted/5 border-transparent text-text-2 hover:text-foreground'}`}
                                     >
-                                        {ch}
+                                        <span className="text-xs">{book.name}</span>
+                                        <span className={`text-[8px] font-bold uppercase tracking-widest opacity-60`}>{book.abbr}</span>
                                     </button>
                                 ))}
                             </div>
+                            {/* Chapters Grid */}
+                            <div className="w-1/2 overflow-y-auto p-3 custom-scrollbar">
+                                {currentBook ? (
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        {Array.from({ length: currentBook.chapters }, (_, i) => i + 1).map((ch) => (
+                                            <button
+                                                key={ch}
+                                                onClick={() => handleChapterSelect(ch)}
+                                                className={`h-9 rounded-md border transition-all flex items-center justify-center text-[11px] font-bold ${currentChapter === ch ? 'bg-navy border-navy text-white shadow-md' : 'bg-card-bg border-border/60 hover:border-gold/30 hover:bg-gold-pale/5 text-muted-foreground hover:text-foreground'}`}
+                                            >
+                                                {ch}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
+                                        <Book size={24} className="mb-2" />
+                                        <p className="text-[8px] font-bold uppercase tracking-widest">Select Book</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center opacity-30">
-                            <BookOpen size={32} className="mb-2" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest">Select Book</p>
-                        </div>
-                    )}
+                    </div>
                 </aside>
 
                 {/* Column 3: Reader Area */}
-                <section className="flex-1 flex flex-col bg-background relative">
-                    {/* Floating Mobile Toggle */}
-                    <button 
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="md:hidden fixed top-20 left-4 z-40 p-3 bg-navy text-white rounded-full shadow-xl"
-                    >
-                        <List size={20} />
-                    </button>
+                <section className="flex-1 flex flex-col bg-background relative transition-all duration-500 overflow-hidden">
+                    {/* Collapsed Sidebars Triggers */}
+                    {!leftSidebarOpen && !isZenMode && (
+                        <button 
+                            onClick={() => setLeftSidebarOpen(true)}
+                            className="hidden md:flex absolute top-1/2 -left-1 -translate-y-1/2 z-30 p-2 bg-background border border-border rounded-r-xl shadow-lg hover:left-0 transition-all text-gold hover:text-gold-2"
+                            title="Expand Index"
+                        >
+                            <PanelLeftOpen size={18} />
+                        </button>
+                    )}
+                    {!rightSidebarOpen && !isZenMode && (
+                        <button 
+                            onClick={() => setRightSidebarOpen(true)}
+                            className="hidden md:flex absolute top-1/2 -right-1 -translate-y-1/2 z-30 p-2 bg-background border border-border rounded-l-xl shadow-lg hover:right-0 transition-all text-gold hover:text-gold-2"
+                            title="Expand Tools"
+                        >
+                            <PanelRightOpen size={18} />
+                        </button>
+                    )}
 
                     {currentBook && currentChapter ? (
                         <>
-                            {/* Reader Controls */}
-                            <div className="sticky top-0 bg-background/90 backdrop-blur-md border-b border-border px-8 py-5 flex items-center justify-between z-10">
-                                <div>
-                                    <div className="font-title text-[10px] font-bold tracking-[0.2em] text-gold uppercase mb-1">{currentBook.name}</div>
-                                    <h2 className="font-serif text-3xl font-medium tracking-tight">Chapter {currentChapter}</h2>
+                            {/* Reader Controls - Slimmer & cleaner */}
+                            <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border px-6 md:px-10 py-4 flex items-center justify-between z-20">
+                                <div className="flex items-center gap-4">
+                                    <button 
+                                        onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
+                                        className="hidden md:flex p-1.5 rounded-lg hover:bg-muted/10 text-muted-foreground transition-colors"
+                                    >
+                                        {leftSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+                                    </button>
+                                    <div className="h-4 w-[1px] bg-border mx-1 hidden md:block"></div>
+                                    <div>
+                                        <div className="font-title text-[9px] font-bold tracking-[0.2em] text-gold uppercase mb-0.5">{currentBook.name}</div>
+                                        <h2 className="font-serif text-2xl font-medium tracking-tight flex items-center gap-2">
+                                            Chapter {currentChapter}
+                                            <span className="text-xs font-sans font-bold text-muted-foreground/40 ml-1">{verses.length} verses</span>
+                                        </h2>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                
+                                <div className="flex items-center gap-3">
+                                    {/* Font Controls */}
+                                    <div className="hidden sm:flex items-center bg-muted/10 rounded-full border border-border p-0.5 mr-2">
+                                        <button onClick={() => setFontSize(Math.max(14, fontSize - 1))} className="p-1 px-2 hover:bg-muted/20 rounded-l-full transition-colors text-xs font-bold text-muted-foreground">A-</button>
+                                        <div className="px-2 text-[10px] font-bold border-x border-border/50 text-gold">{fontSize}</div>
+                                        <button onClick={() => setFontSize(Math.min(32, fontSize + 1))} className="p-1 px-2 hover:bg-muted/20 rounded-r-full transition-colors text-xs font-bold text-muted-foreground">A+</button>
+                                    </div>
+
                                     <select 
                                         value={translation}
                                         onChange={(e) => setTranslation(e.target.value)}
-                                        className="bg-card-bg border border-border rounded-full px-4 py-1.5 text-xs font-bold focus:ring-1 ring-gold/20 outline-none cursor-pointer"
+                                        className="bg-card-bg border border-border rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase focus:ring-1 ring-gold/20 outline-none cursor-pointer hover:border-gold/30 transition-all"
                                     >
                                         <option value="KJV">KJV</option>
                                         <option value="NIV">NIV</option>
                                         <option value="ESV">ESV</option>
                                         <option value="NKJV">NKJV</option>
                                     </select>
-                                    <button onClick={prevChapter} disabled={currentChapter === 1} className="p-2 border border-border rounded-full bg-card-bg hover:bg-muted/10 disabled:opacity-30 disabled:cursor-not-allowed"><ChevronLeft size={16} /></button>
-                                    <button onClick={nextChapter} disabled={currentChapter === currentBook.chapters} className="p-2 border border-border rounded-full bg-card-bg hover:bg-muted/10 disabled:opacity-30 disabled:cursor-not-allowed"><ChevronRight size={16} /></button>
+
+                                    <div className="flex items-center gap-1.5 pl-3 border-l border-border">
+                                        <button onClick={prevChapter} disabled={currentChapter === 1} className="p-2 border border-border rounded-full bg-card-bg hover:bg-navy hover:text-white disabled:opacity-20 transition-all"><ChevronLeft size={16} /></button>
+                                        <button onClick={nextChapter} disabled={currentChapter === currentBook.chapters} className="p-2 border border-border rounded-full bg-card-bg hover:bg-navy hover:text-white disabled:opacity-20 transition-all"><ChevronRight size={16} /></button>
+                                    </div>
+
+                                    <div className="h-4 w-[1px] bg-border mx-1 hidden md:block"></div>
+
+                                    <button 
+                                        onClick={() => setIsZenMode(!isZenMode)} 
+                                        className={`p-2 rounded-full transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'hover:bg-muted/10 text-muted-foreground'}`}
+                                        title={isZenMode ? "Exit Zen Mode" : "Zen Mode (Maximize Reading Area)"}
+                                    >
+                                        {isZenMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                                    </button>
+
+                                    <button 
+                                        onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
+                                        className="hidden md:flex p-1.5 rounded-lg hover:bg-muted/10 text-muted-foreground transition-colors"
+                                    >
+                                        {rightSidebarOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Scripture Content */}
-                            <div className="flex-1 overflow-y-auto px-8 md:px-16 py-12 custom-scrollbar">
-                                <div className="max-w-3xl mx-auto space-y-1">
+                            {/* Scripture Content - Centered for better focus */}
+                            <div className={`flex-1 overflow-y-auto px-6 md:px-12 py-16 custom-scrollbar transition-all duration-700 bg-[radial-gradient(circle_at_50%_0%,rgba(200,146,42,0.03),transparent)]`}>
+                                <div className={`mx-auto transition-all duration-700 ${isZenMode ? 'max-w-4xl' : 'max-w-2xl lg:max-w-3xl'}`}>
                                     {loading ? (
-                                        <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-                                            <div className="w-12 h-12 rounded-full border-2 border-gold/30 border-t-gold animate-spin mb-4" />
-                                            <p className="font-serif italic text-muted-foreground">Drawing from the well of living water...</p>
+                                        <div className="text-center py-40">
+                                            <div className="w-16 h-16 rounded-full border-2 border-gold/10 border-t-gold animate-spin mx-auto mb-6" />
+                                            <p className="font-serif italic text-muted-foreground text-lg">Drawing from the well of living water...</p>
                                         </div>
                                     ) : verses.length > 0 ? (
-                                        verses.map((v) => (
-                                            <div 
-                                                key={v.verse || v.pk} 
-                                                onClick={() => setHighlightedVerse(v.verse)}
-                                                className={`group flex items-start gap-5 p-4 rounded-xl transition-all cursor-pointer border-l-[3px] ${highlightedVerse === v.verse ? 'bg-gold-pale/10 border-gold' : 'hover:bg-muted/5 border-transparent'}`}
-                                            >
-                                                <span className="shrink-0 w-8 text-right font-bold text-[10px] text-gold pt-1.5">{v.verse}</span>
-                                                <p className="font-serif text-[19px] leading-[1.8] text-foreground/90 selection:bg-gold/20">
-                                                    {v.text}
-                                                </p>
-                                            </div>
-                                        ))
+                                        <div className="space-y-0.5">
+                                            {verses.map((v) => (
+                                                <div 
+                                                    key={v.verse || v.pk} 
+                                                    onClick={() => setHighlightedVerse(v.verse)}
+                                                    className={`group flex items-start gap-4 md:gap-8 p-4 md:p-6 rounded-2xl transition-all cursor-pointer border-l-4 ${highlightedVerse === v.verse ? 'bg-gold-pale/15 border-gold shadow-sm ring-1 ring-gold/10' : 'hover:bg-muted/5 border-transparent'}`}
+                                                >
+                                                    <span className={`shrink-0 w-8 md:w-12 text-right font-title text-[10px] md:text-xs font-black transition-colors ${highlightedVerse === v.verse ? 'text-gold' : 'text-gold/30 group-hover:text-gold/60'} pt-2`}>
+                                                        {v.verse}
+                                                    </span>
+                                                    <p 
+                                                        className="font-serif leading-[1.8] text-foreground/90 selection:bg-gold/30 antialiased"
+                                                        style={{ fontSize: `${fontSize}px` }}
+                                                    >
+                                                        {v.text}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     ) : (
-                                        <div className="text-center py-20 text-muted-foreground">
-                                            <Info size={40} className="mx-auto mb-4 opacity-20" />
-                                            <p>Scripture content not found in {translation}.</p>
+                                        <div className="text-center py-32 space-y-4">
+                                            <div className="w-20 h-20 bg-muted/5 rounded-full flex items-center justify-center mx-auto ring-1 ring-border/50">
+                                                <Info size={32} className="text-muted-foreground/30" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h3 className="font-title text-sm tracking-widest text-gold uppercase">Content Not Available</h3>
+                                                <p className="text-muted-foreground text-sm font-serif italic">The requested chapter could not be loaded in {translation}.</p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-6 animate-in fade-in duration-1000">
-                             <div className="p-8 rounded-[3rem] bg-gold-pale/5 ring-1 ring-gold/10">
-                                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gold opacity-60">
-                                    <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="1.5" />
-                                    <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                </svg>
+                        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-10 animate-in fade-in zoom-in-95 duration-1000 ease-out">
+                             <div className="relative group">
+                                <div className="absolute -inset-8 bg-gold/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                                <div className="p-10 rounded-[4rem] bg-gradient-to-b from-card-bg to-background ring-1 ring-gold/10 shadow-2xl relative">
+                                    <BookOpen size={80} className="text-gold/40" strokeWidth={1} />
+                                </div>
                              </div>
-                             <div className="space-y-2">
-                                <h1 className="font-title text-xl tracking-[0.3em] text-gold uppercase">Daily Manna AI</h1>
-                                <p className="font-serif text-2xl italic text-muted-foreground">Select a book and chapter to begin your study.</p>
+                             <div className="space-y-4 max-w-sm">
+                                <h1 className="font-title text-2xl tracking-[0.4em] text-gold uppercase font-light">Bible Explorer</h1>
+                                <p className="font-serif text-lg italic text-muted-foreground leading-relaxed">Select a volume of truth to begin your sacred journey through the Word.</p>
                              </div>
-                             <div className="flex flex-wrap justify-center gap-3 pt-4">
-                                {['GENESIS 1', 'PSALM 23', 'JOHN 3', 'ROMANS 8'].map((s) => (
-                                    <button key={s} className="px-5 py-2 rounded-full border border-border bg-card-bg text-[10px] font-bold tracking-widest hover:border-gold transition-all uppercase">
+                             <div className="flex flex-wrap justify-center gap-2 pt-6">
+                                {['GENESIS 1', 'PSALM 23', 'JOHN 3', 'ROMANS 8', 'REVELATION 21'].map((s) => (
+                                    <button 
+                                        key={s} 
+                                        onClick={() => { setSearchQuery(s); handleSearch(s); }}
+                                        className="px-6 py-2.5 rounded-full border border-border bg-card-bg text-[10px] font-black tracking-[0.15em] hover:border-gold hover:text-gold hover:shadow-lg hover:shadow-gold/5 transition-all uppercase"
+                                    >
                                         {s}
                                     </button>
                                 ))}
@@ -417,18 +502,23 @@ export default function BibleExplorer() {
                 </section>
 
                 {/* Column 4: Study Tools Panel */}
-                <aside className="hidden lg:flex w-72 border-l border-border bg-card-bg flex-col shrink-0">
-                    <div className="flex border-b border-border">
-                        {['commentary', 'crossref', 'notes'].map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveToolTab(tab)}
-                                className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2 ${activeToolTab === tab ? 'border-gold text-navy font-black' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
-                    </div>
+                <aside 
+                    className={`border-l border-border bg-card-bg flex flex-col transition-all duration-500 ease-in-out shrink-0
+                    ${rightSidebarOpen && !isZenMode ? 'w-80' : 'w-0 overflow-hidden border-none'}`}
+                >
+                    <div className="flex flex-col h-full w-80">
+                        <div className="flex border-b border-border shrink-0">
+                            {['commentary', 'crossref', 'notes'].map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveToolTab(tab)}
+                                    className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-navy' : 'border-transparent text-muted-foreground hover:text-text-1'}`}
+                                >
+                                    {tab}
+                                    {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
+                                </button>
+                            ))}
+                        </div>
 
                     <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
                         {activeToolTab === 'commentary' && (
@@ -504,6 +594,7 @@ export default function BibleExplorer() {
                                 </div>
                             </div>
                         )}
+                    </div>
                     </div>
                 </aside>
             </main>
