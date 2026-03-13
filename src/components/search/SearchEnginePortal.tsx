@@ -121,49 +121,49 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
 
     return (
         <div
-            className="group relative bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 hover:border-sky-400/40 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md animate-in fade-in slide-in-from-bottom-3"
+            className="group relative bg-white hover:bg-slate-50 rounded-[2rem] border border-border hover:border-gold/30 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md animate-in fade-in slide-in-from-bottom-3"
             style={{ animationDelay: `${index * 70}ms`, animationFillMode: "both" }}
         >
-            <div className="p-5">
+            <div className="p-6">
                 {/* Source row */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-4">
                     {faviconSrc ? (
-                        <img src={faviconSrc} alt="" className="w-3.5 h-3.5 rounded-sm object-contain"
+                        <img src={faviconSrc} alt="" className="w-4 h-4 rounded-sm object-contain"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     ) : (
-                        <div className="w-3.5 h-3.5 rounded-sm bg-sky-500/10 flex items-center justify-center flex-shrink-0">
-                            <Globe size={8} className="text-sky-500" />
+                        <div className="w-4 h-4 rounded-sm bg-gold-pale flex items-center justify-center flex-shrink-0">
+                            <Globe size={10} className="text-gold" />
                         </div>
                     )}
-                    <span className="text-[9px] font-black text-sky-600 uppercase tracking-widest truncate">{article.source || host}</span>
-                    {timeAgo && <span className="ml-auto text-[9px] text-slate-400 font-medium flex-shrink-0">{timeAgo}</span>}
+                    <span className="text-[10px] font-black text-text-3 uppercase tracking-widest truncate">{article.source || host}</span>
+                    {timeAgo && <span className="ml-auto text-[10px] text-text-3 font-medium flex-shrink-0">{timeAgo}</span>}
                 </div>
 
                 {/* Title */}
-                <h4 className="text-slate-900 font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-sky-700 transition-colors">
+                <h4 className="text-navy font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-gold transition-colors">
                     {article.title}
                 </h4>
 
                 {/* Description */}
                 {article.description && (
-                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">{article.description}</p>
+                    <p className="f-display text-text-2 text-xs leading-relaxed line-clamp-2 opacity-80">{article.description}</p>
                 )}
             </div>
 
             {/* Read button */}
-            <div className="px-5 pb-4">
+            <div className="px-6 pb-5">
                 <button
                     onClick={() => { const u = article.link; if (u) window.open(u, "_blank", "noopener,noreferrer"); }}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-navy hover:bg-navy-2 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-navy/10"
                 >
-                    <ArrowUpRight size={11} /> Read Article
+                    <ArrowUpRight size={12} /> Read Full Revelation
                 </button>
             </div>
         </div>
     );
 }
 
-// â”€â”€â”€ BIBLE CONNECTION PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── BIBLE CONNECTION PANEL ─────────────────────────────────────────────────────────────
 
 interface BibleConnection {
     reference: string;
@@ -176,57 +176,46 @@ function BibleConnectionPanel({ connections }: { connections: BibleConnection[] 
 
     return (
         <div className="mt-8 not-italic">
-            {/* Header */}
             <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-7 h-7 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                    <Book size={14} className="text-amber-600" />
+                <div className="w-8 h-8 rounded-xl bg-gold-pale flex items-center justify-center border border-gold/10">
+                    <Book size={14} className="text-gold" />
                 </div>
-                <span className="text-[10px] font-black text-amber-700 uppercase tracking-[0.35em]">
+                <span className="text-[10px] font-black text-gold uppercase tracking-[0.35em]">
                     Biblical Prophecy Connection
                 </span>
-                <div className="h-px flex-1 bg-amber-200/60" />
-                <span className="text-[9px] text-amber-600/70 font-medium italic">KJV Â· Prophetic Lens</span>
+                <div className="h-px flex-1 bg-gold-border" />
+                <span className="text-[9px] text-gold/70 font-medium italic">KJV Â· Golden Lens</span>
             </div>
 
-            {/* Verse cards */}
-            <div className="space-y-3">
+            <div className="space-y-4">
                 {connections.map((bc, i) => (
                     <div
                         key={i}
-                        className="relative rounded-2xl overflow-hidden border border-amber-200/60
-                               bg-gradient-to-br from-amber-50 via-white to-orange-50
-                               shadow-sm hover:shadow-md transition-all duration-300
-                               animate-in fade-in slide-in-from-bottom-2"
+                        className="relative rounded-[2rem] overflow-hidden border border-gold-border bg-white shadow-sm hover:shadow-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-2"
                         style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
                     >
-                        {/* Decorative glow */}
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gold-pale/30 rounded-full blur-3xl pointer-events-none" />
 
-                        <div className="relative p-5">
-                            {/* Reference badge */}
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
-                                           bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider
-                                           shadow-sm shadow-amber-500/20">
+                        <div className="relative p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-navy text-white text-[10px] font-black uppercase tracking-wider shadow-lg shadow-navy/20">
                                     <BookOpen size={9} />
                                     {bc.reference}
                                 </span>
                                 <div className="flex gap-1">
                                     {[...Array(3)].map((_, s) => (
-                                        <Star key={s} size={8} className="fill-amber-400 text-amber-400" />
+                                        <Star key={s} size={8} className="fill-gold text-gold" />
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Verse */}
-                            <blockquote className="text-slate-800 text-sm font-serif italic leading-relaxed mb-3 pl-3 border-l-2 border-amber-400">
+                            <blockquote className="f-display text-navy text-base italic leading-relaxed mb-4 pl-4 border-l-2 border-gold pr-2">
                                 &ldquo;{bc.verse}&rdquo;
                             </blockquote>
 
-                            {/* Connection explanation */}
-                            <div className="flex items-start gap-2">
-                                <Zap size={11} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                                <p className="text-slate-600 text-xs leading-relaxed">{bc.connection}</p>
+                            <div className="flex items-start gap-2.5 bg-gold-pale/20 p-4 rounded-xl border border-gold-border">
+                                <Zap size={11} className="text-gold flex-shrink-0 mt-0.5" />
+                                <p className="text-navy/70 text-xs leading-relaxed font-medium">{bc.connection}</p>
                             </div>
                         </div>
                     </div>
@@ -254,11 +243,11 @@ function ResultCard({
 
     return (
         <div
-            className="group relative bg-white hover:bg-slate-50 border border-slate-200 hover:border-sky-500/30 rounded-3xl p-7 transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 shadow-sm hover:shadow-md"
+            className="result-card"
             style={{ animationDelay: `${index * 60}ms`, animationFillMode: "both" }}
         >
             {/* Source row */}
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-4">
                 {result.favicon || faviconUrl(finalUrl) ? (
                     <img
                         src={result.favicon || faviconUrl(finalUrl)}
@@ -267,49 +256,47 @@ function ResultCard({
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
                 ) : (
-                    <div className="w-4 h-4 rounded-sm bg-slate-500/10 flex items-center justify-center flex-shrink-0">
-                        <Globe size={10} className="text-slate-500" />
+                    <div className="w-4 h-4 rounded-sm bg-border-light flex items-center justify-center flex-shrink-0">
+                        <Globe size={10} className="text-text-3" />
                     </div>
                 )}
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-text-3 uppercase tracking-widest">
                     {isBible ? "Holy Bible Â· KJV" : (result.source || host || "Trusted Source")}
                 </span>
-                {isBible && <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase tracking-wider">Scripture</span>}
+                {isBible && <span className="ml-1 px-2.5 py-0.5 rounded-full bg-gold-pale text-gold text-[9px] font-black uppercase tracking-wider">Scripture</span>}
             </div>
 
             {/* Title */}
-            <h3 className="text-lg font-bold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug mb-3 pr-10">
+            <h3 className="result-title group-hover:text-gold">
                 {result.title}
             </h3>
 
             {/* Description */}
-            <p className="text-slate-600 text-sm leading-relaxed line-clamp-3 mb-5 font-[350] italic">
+            <p className="f-display text-text-2 text-sm leading-relaxed line-clamp-2 mb-6 italic opacity-80">
                 {isBible ? `"${result.description}"` : result.description}
             </p>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
                 {/* PRIMARY â€” Open Link */}
                 <button
                     onClick={() => openLink(finalUrl)}
-                    className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-sky-500/20"
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-navy hover:bg-navy-2 text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-navy/10"
                 >
                     <ArrowUpRight size={13} />
-                    {isBible ? "Read on BibleGateway" : "Open Article"}
+                    {isBible ? "Read Chapter" : "Read Full"}
                 </button>
 
                 {/* SECONDARY â€” Quick Preview */}
                 <button
                     onClick={() => onPreview({ ...result, link: finalUrl })}
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10
-                     border border-white/10 hover:border-white/20 text-slate-400 hover:text-white
-                     text-xs font-black uppercase tracking-wider transition-all"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-border hover:border-gold/40 text-text-3 hover:text-navy text-xs font-black uppercase tracking-widest transition-all"
                 >
                     <BookOpen size={12} />
-                    Preview
+                    Insight
                 </button>
 
-                {/* Copy URL */}
+                <div className="flex-1" />
                 <CopyButton text={finalUrl} />
             </div>
 
@@ -578,31 +565,30 @@ function SolutionDashboard({
     return (
         <div className="space-y-14 animate-in fade-in duration-700">
 
-            {/* â”€â”€ AI INSIGHT â”€â”€ */}
-            <div className="relative rounded-[3rem] bg-gradient-to-br from-sky-50 via-white to-transparent
-                      border border-sky-100 p-12 overflow-hidden shadow-sm">
-                <div className="absolute -top-20 -right-20 w-56 h-56 bg-sky-500/10 rounded-full blur-[70px] pointer-events-none" />
+            {/* ── AI INSIGHT ── */}
+            <div className="relative rounded-[3.5rem] bg-white border border-gold-border p-12 overflow-hidden shadow-sm">
+                <div className="absolute -top-20 -right-20 w-80 h-80 bg-gold-pale/40 rounded-full blur-[90px] pointer-events-none" />
                 <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
-                    <div className="text-sky-600 text-[10px] font-black uppercase tracking-[0.6em]">Divine Perspective</div>
-                    <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight font-['Cinzel'] italic">
+                    <div className="text-gold text-[10px] font-black uppercase tracking-[0.6em]">Holy Spirit Perspective</div>
+                    <h2 className="f-title text-3xl md:text-5xl font-black text-navy leading-tight italic">
                         "{query}"
                     </h2>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-sky-500 to-transparent mx-auto" />
-                    <p className="text-slate-700 text-lg md:text-xl leading-relaxed font-serif italic">
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto" />
+                    <p className="f-display text-navy text-xl md:text-2xl leading-relaxed italic opacity-90">
                         "{solution.insight}"
                     </p>
 
                     {/* Deep Crawl Suggestion */}
                     {solution && solution.deepCrawlAvailable && (
-                        <div className="pt-6">
+                        <div className="pt-8">
                             <button
                                 onClick={async () => {
-                                    alert("Deep Crawler Triggered! The Python Celery engine is now scanning YouTube, Twitter, and Scrapy news for '" + query + "'. This runs in the background to avoid slowing down your main search.");
+                                    alert("Deep Crawler Triggered! The Prophetic Sentinel is now scanning YouTube, Social Feeds, and Global News for '" + query + "'. Our background engine will update your results shortly.");
                                 }}
-                                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 group"
+                                className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-navy hover:bg-navy-2 text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 group shadow-xl shadow-navy/20"
                             >
-                                <Zap size={14} className="group-hover:animate-bounce" />
-                                Run Deep World Crawler (Python Service)
+                                <Zap size={14} className="group-hover:animate-pulse text-gold" />
+                                Activate Prophetic Deep Search
                             </button>
                         </div>
                     )}
@@ -1536,47 +1522,49 @@ export default function SearchEnginePortal() {
     const hasContent = (results?.length ?? 0) > 0 || instantAnswer || solution;
 
     return (
-        <div className="min-h-screen [background:var(--bg-mesh)] text-[var(--text-primary)] relative flex flex-col items-center overflow-x-hidden selection:bg-sky-500/30">
+        <div className="home-screen flex flex-col items-center">
+            {/* Styles / Keyframes */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes bell-ring {
-                    0% { transform: rotate(0); }
-                    10% { transform: rotate(25deg); }
-                    20% { transform: rotate(-20deg); }
-                    30% { transform: rotate(15deg); }
-                    40% { transform: rotate(-10deg); }
-                    50% { transform: rotate(5deg); }
-                    60% { transform: rotate(0); }
-                    100% { transform: rotate(0); }
+                    0%, 100% { transform: rotate(0); }
+                    10%, 20% { transform: rotate(-15deg); }
+                    30%, 50%, 70% { transform: rotate(15deg); }
+                    40%, 60% { transform: rotate(-12deg); }
+                    80% { transform: rotate(8deg); }
+                    90% { transform: rotate(-5deg); }
                 }
                 .animate-bell {
                     animation: bell-ring 1.5s ease-in-out infinite;
                     transform-origin: top center;
                 }
+                .f-display { font-family: var(--f-display); }
+                .f-title { font-family: var(--f-title); }
+                .f-body { font-family: var(--f-body); }
             `}} />
 
             {/* Preview Panel */}
             {preview && <PreviewPanel item={preview} onClose={closePreview} />}
 
-            {/* In-App Prophetic Alert Toast (Fallback for blocked OS notifications) */}
+            {/* In-App Prophetic Alert Toast */}
             {inAppAlert && (
-                <div className="fixed top-24 right-4 z-[9999] max-w-sm w-full bg-slate-900 border border-amber-500/30 shadow-2xl rounded-2xl p-5 animate-in slide-in-from-right fade-in duration-500">
-                    <button onClick={() => setInAppAlert(null)} className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors">
+                <div className="fixed top-24 right-4 z-[9999] max-w-sm w-full bg-navy border border-gold/30 shadow-2xl rounded-2xl p-5 animate-in slide-in-from-right fade-in duration-500">
+                    <button onClick={() => setInAppAlert(null)} className="absolute top-3 right-3 text-text-3 hover:text-white transition-colors">
                         <X size={16} />
                     </button>
                     <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                            <Bell className="text-amber-500 w-5 h-5 animate-pulse" />
+                        <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center flex-shrink-0">
+                            <Bell className="text-gold w-5 h-5 animate-pulse" />
                         </div>
                         <div>
-                            <h4 className="text-amber-500 font-bold text-sm mb-1">{inAppAlert.title}</h4>
-                            <p className="text-slate-300 text-xs leading-relaxed mb-3">
-                                <span className="font-bold text-sky-400 uppercase mr-1">{inAppAlert.source}:</span>
+                            <h4 className="text-gold font-bold text-sm mb-1">{inAppAlert.title}</h4>
+                            <p className="text-white/80 text-xs leading-relaxed mb-3">
+                                <span className="font-bold text-teal uppercase mr-1">{inAppAlert.source}:</span>
                                 {inAppAlert.body}
                             </p>
                             <button
                                 onClick={() => window.open(inAppAlert.link, '_blank')}
-                                className="text-[10px] font-black uppercase tracking-widest text-sky-400 hover:text-sky-300 transition-colors"
+                                className="text-[10px] font-black uppercase tracking-widest text-teal hover:text-teal/80 transition-colors"
                             >
                                 Read More ➔
                             </button>
@@ -1585,192 +1573,101 @@ export default function SearchEnginePortal() {
                 </div>
             )}
 
-            {/* Ambient blobs */}
-            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-slate-200/20 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-slate-100/20 rounded-full blur-[120px]" />
-                <div className="absolute top-[40%] left-[45%] w-[20%] h-[20%] bg-slate-50/10 rounded-full blur-[80px]" />
-            </div>
+            {/* ── HEADER ── */}
+            <header className={`w-full max-w-7xl px-8 py-6 flex items-center justify-between z-20 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/70 backdrop-blur-xl border-b border-border" : ""}`}>
+                <button
+                    onClick={resetSearch}
+                    className="f-title text-2xl font-black tracking-tight flex items-center gap-1"
+                >
+                    <span className="text-navy">DAILY</span>
+                    <span className="bg-gradient-to-br from-gold via-gold-2 to-gold text-transparent bg-clip-text">MANNA</span>
+                    <span className="text-navy">AI</span>
+                </button>
 
-            {/* â”€â”€ HEADER (post-search) â”€â”€ */}
-            {hasSearched && (
-                <header className="w-full max-w-7xl px-6 md:px-10 py-5 flex items-center justify-between z-20
-                           border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-2xl animate-in slide-in-from-top duration-300">
-                    <button
-                        onClick={resetSearch}
-                        className="font-['Cinzel'] text-xl font-black tracking-tight transition-all duration-300 hover:opacity-80"
-                        style={{ letterSpacing: "-0.02em" }}
-                    >
-                        <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>DAILY</span>
-                        <span style={{
-                            background: "linear-gradient(135deg, #B8860B 0%, #D4A017 40%, #F5C842 60%, #B8860B 100%)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
-                        }}>MANNA</span>
-                        <span style={{ color: "var(--logo-primary, #1a1a1a)" }}>AI</span>
-                    </button>
-                    {/* Notebook link moved to filter tabs */}
-                    <div className="w-[100px] hidden md:block" /> {/* Spacer to balance header */}
-                </header>
-            )}
+                <div className="flex items-center gap-6">
+                    <button className="text-[11px] font-bold uppercase tracking-widest text-navy-2 hover:text-gold transition-colors">Sign In</button>
+                    <ThemeToggle variant="pill" />
+                </div>
+            </header>
 
-            {/* â”€â”€ MAIN â”€â”€ */}
-            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-500 ${hasSearched ? "pt-8" : "pt-36 md:pt-48"}`}>
+            {/* ── MAIN ── */}
+            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? "pt-6" : "pt-28 md:pt-36"}`}>
 
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
-                    <div className="text-center space-y-7 mb-16 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-black tracking-[0.4em] text-slate-500 uppercase`}>
-                            <div className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
-                            AI Powered Revelation
-                        </div>
-                        <h1
-                            className="font-['Cinzel'] text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-none"
-                            style={{ letterSpacing: "-0.03em", lineHeight: 0.95 }}
-                        >
-                            <span className="text-[var(--logo-primary)]">DAILY</span>
-                            <span style={{
-                                background: "linear-gradient(135deg, #B8860B 0%, #D4A017 35%, #F5C842 55%, #D4A017 75%, #B8860B 100%)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                                backgroundClip: "text",
-                                textShadow: "none",
-                                filter: "drop-shadow(0 0 20px rgba(212,160,23,0.4))",
-                            }}>MANNA</span>
-                            <span className="text-[var(--logo-primary)]">AI</span>
+                    <div className="text-center space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                        <h1 className="f-title text-6xl md:text-8xl font-black tracking-tighter text-navy flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
+                            <span>DAILY</span>
+                            <span className="bg-gradient-to-br from-gold via-gold-2 to-gold text-transparent bg-clip-text drop-shadow-[0_0_20px_rgba(200,146,42,0.2)]">MANNA</span>
+                            <span>AI</span>
                         </h1>
-                        <p className="text-slate-400 max-w-md mx-auto text-lg font-medium italic leading-relaxed">
+                        <p className="f-display text-navy opacity-60 max-w-lg mx-auto text-xl md:text-2xl italic">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
                         </p>
                     </div>
                 )}
 
-                {/* â”€â”€ SEARCH BOX â”€â”€ */}
-                <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-5xl" : "max-w-3xl"}`}>
+                {/* ── SEARCH BOX & MODES ── */}
+                <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"}`}>
                     <form onSubmit={onSubmit}>
-                        <div
-                            className={`relative bg-[var(--bg-card)] border rounded-3xl px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 transition-all duration-500 ${
-                                isVoiceActive 
-                                ? "border-sky-500 ring-4 ring-sky-500/20 shadow-[0_0_40px_rgba(14,165,233,0.25)] scale-[1.01]" 
-                                : "border-[var(--border-primary)] focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500/30 shadow-[var(--shadow-card)]"
-                            }`}
-                        >
-                            <Search className="text-[var(--text-primary)] opacity-60 w-5 h-5 flex-shrink-0 hidden sm:block" />
+                        <div className="flex flex-wrap justify-center gap-3 mb-8">
+                            {FILTERS.slice(0, 6).map((f) => (
+                                <button
+                                    key={f.id}
+                                    type="button"
+                                    onClick={() => onFilterChange(f.id as FilterType)}
+                                    className={`mode-tab ${filter === f.id ? 'active' : ''}`}
+                                >
+                                    {f.icon}
+                                    <span>{f.label}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="search-bar-main group">
+                            <div className="flex-shrink-0 opacity-40 group-focus-within:opacity-100 transition-opacity">
+                                <Search size={18} />
+                            </div>
                             <input
                                 ref={inputRef}
-                                autoFocus
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder={isVoiceActive ? "Listening... speak now" : "Seek and ye shall find..."}
-                                className={`flex-1 bg-transparent border-none outline-none py-5 text-lg font-medium transition-all duration-300 ${
-                                    isVoiceActive 
-                                    ? "text-sky-400 italic placeholder:text-sky-300/50" 
-                                    : "text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
-                                }`}
+                                placeholder="Search the Scriptures, ask in faith…"
+                                className="search-input-main"
                             />
                             {query && (
-                                <button
-                                    type="button"
-                                    onClick={() => setQuery("")}
-                                    className="p-2 hover:bg-white/[0.08] rounded-full transition-colors text-slate-500 hover:text-white"
-                                >
+                                <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors">
                                     <X size={16} />
                                 </button>
                             )}
-                            <VoiceInput
-                                onTranscript={(text) => {
-                                    setQuery(text);
-                                    handleSearch(text, filter);
-                                }}
-                                onInterimTranscript={(text) => {
-                                    if (text) setQuery(text);
-                                }}
-                                onListeningChange={(active) => setIsVoiceActive(active)}
-                                className="mr-1"
-                            />
                             <button
-                                type="submit"
-                                className="bg-[var(--search-btn-bg)] hover:opacity-90 active:bg-[var(--search-btn-bg)] text-[var(--search-btn-text)] font-black px-7 py-3 rounded-2xl text-[11px] tracking-widest uppercase transition-all active:scale-95 shadow-lg shadow-black/10"
+                                type="button"
+                                onClick={() => setIsVoiceActive(!isVoiceActive)}
+                                className={`p-2 rounded-full transition-all ${isVoiceActive ? 'bg-teal-pale text-teal' : 'text-teal hover:bg-teal-pale'}`}
                             >
+                                <Mic2 size={16} />
+                            </button>
+                            <button type="submit" className="bg-navy text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-navy-2 transition-all shadow-md">
                                 Search
                             </button>
                         </div>
 
-                        {/* Filter chips - Refined 2-Row Design */}
-                        <div className="flex flex-col items-center gap-4 mt-8 w-full max-w-4xl mx-auto">
-                            
-                            {/* ROW 1: Main Filters */}
-                            <div className="flex flex-wrap justify-center bg-[var(--bg-input)] p-1.5 rounded-2xl border border-[var(--border-primary)] shadow-inner backdrop-blur-md">
-                                {FILTERS.slice(0, 6).map((f) => (
-                                    <button
-                                        key={f.id}
-                                        type="button"
-                                        onClick={() => onFilterChange(f.id as FilterType)}
-                                        className={`
-                                            flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                                            ${filter === f.id
-                                                ? 'bg-[var(--bg-primary)] text-sky-600 shadow-sm ring-1 ring-[var(--border-secondary)]'
-                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'}
-                                        `}
-                                    >
-                                        {f.icon}
-                                        {f.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* ROW 2: Special Filters + Prophetic Sentinel */}
-                            <div className="flex flex-wrap items-center justify-center gap-4 w-full">
-                                <div className="flex justify-center bg-[var(--bg-input)] p-1.5 rounded-2xl border border-[var(--border-primary)] shadow-inner backdrop-blur-md">
-                                    {FILTERS.slice(6).map((f) => (
-                                        <button
-                                            key={f.id}
-                                            type="button"
-                                            onClick={() => onFilterChange(f.id as FilterType)}
-                                            className={`
-                                                flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                                                ${filter === f.id
-                                                    ? 'bg-[var(--bg-primary)] text-sky-600 shadow-sm ring-1 ring-[var(--border-secondary)]'
-                                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'}
-                                            `}
-                                        >
-                                            {f.icon}
-                                            {f.label}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Prophetic Sentinel Toggle - Snippet Style */}
+                        {!hasSearched && (
+                            <div className="flex justify-center mt-12">
                                 <button
                                     type="button"
                                     onClick={togglePropheticAlerts}
-                                    className={`
-                                        group flex items-center gap-3 px-5 py-2.5 rounded-2xl border transition-all duration-500
-                                        ${alertsEnabled
-                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
-                                            : 'bg-[var(--bg-input)] border-[var(--border-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:border-amber-400 hover:text-amber-600 hover:shadow-md'}
-                                    `}
+                                    className={`group flex items-center gap-4 px-8 py-3 rounded-full border transition-all duration-500 ${alertsEnabled ? 'bg-orange-pale border-orange text-orange shadow-lg' : 'bg-white border-border text-text-3 hover:border-orange/40'}`}
                                 >
-                                    <div className="relative">
-                                        <Bell size={14} className={alertsEnabled ? 'animate-bell text-amber-500' : ''} />
-                                        {alertsEnabled && (
-                                            <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white animate-pulse" />
-                                        )}
+                                    <Bell size={18} className={alertsEnabled ? 'animate-bell' : ''} />
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-xs font-black uppercase tracking-widest">Prophetic Sentinel</span>
+                                        <span className="text-[10px] opacity-60">{alertsEnabled ? (isSentinelScanning ? 'Scanning Revelations...' : 'Sentinel Active') : 'Enable Global Prophetic Scanning'}</span>
                                     </div>
-                                    <div className="flex flex-col items-start leading-none">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-0.5">Prophetic Alerts</div>
-                                        <div className={`text-[8px] font-bold tracking-tight ${alertsEnabled ? 'text-amber-500' : 'text-slate-400'}`}>
-                                            {alertsEnabled ? (isSentinelScanning ? 'Scanning...' : 'SENTINEL ACTIVE') : 'DISABLED'}
-                                        </div>
-                                    </div>
-                                    {alertsEnabled && (
-                                        <Zap size={11} className="ml-1 text-amber-500 animate-pulse" />
-                                    )}
                                 </button>
                             </div>
-                        </div>
+                        )}
                     </form>
                 </div>
 
