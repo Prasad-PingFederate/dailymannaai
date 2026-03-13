@@ -66,7 +66,8 @@ function getHostname(url: string | null | undefined): string {
 /** Build a favicon URL via Google's public service */
 function faviconUrl(url: string | null | undefined): string {
     const host = getHostname(url);
-    return host ? `https://www.google.com/s2/favicons?domain=${host}&sz=32` : "";
+    if (!host || host.includes("google.com")) return "";
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
 }
 
 /** Generate a reliable BibleGateway link for any Bible reference */
@@ -110,7 +111,7 @@ interface AiNewsArticle {
 
 function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number }) {
     const host = (() => { try { return new URL(article.link).hostname.replace(/^www\./, ""); } catch { return ""; } })();
-    const faviconSrc = host ? `https://www.google.com/s2/favicons?domain=${host}&sz=32` : "";
+    const faviconSrc = (article as any).favicon || faviconUrl(article.link);
     const timeAgo = article.pubDate ? (() => {
         const diff = Date.now() - new Date(article.pubDate).getTime();
         const h = Math.floor(diff / 3_600_000);
@@ -126,9 +127,13 @@ function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number 
             <div className="p-5">
                 {/* Source row */}
                 <div className="flex items-center gap-2 mb-3">
-                    {faviconSrc && (
-                        <img src={faviconSrc} alt="" className="w-3.5 h-3.5 rounded-sm"
+                    {faviconSrc ? (
+                        <img src={faviconSrc} alt="" className="w-3.5 h-3.5 rounded-sm object-contain"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                        <div className="w-3.5 h-3.5 rounded-sm bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                            <Globe size={8} className="text-sky-500" />
+                        </div>
                     )}
                     <span className="text-[9px] font-black text-sky-600 uppercase tracking-widest truncate">{article.source || host}</span>
                     {timeAgo && <span className="ml-auto text-[9px] text-slate-400 font-medium flex-shrink-0">{timeAgo}</span>}
@@ -254,13 +259,17 @@ function ResultCard({
         >
             {/* Source row */}
             <div className="flex items-center gap-2 mb-3">
-                {faviconUrl(finalUrl) && (
+                {result.favicon || faviconUrl(finalUrl) ? (
                     <img
-                        src={faviconUrl(finalUrl)}
+                        src={result.favicon || faviconUrl(finalUrl)}
                         alt=""
                         className="w-4 h-4 rounded-sm object-contain"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
+                ) : (
+                    <div className="w-4 h-4 rounded-sm bg-slate-500/10 flex items-center justify-center flex-shrink-0">
+                        <Globe size={10} className="text-slate-500" />
+                    </div>
                 )}
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                     {isBible ? "Holy Bible Â· KJV" : (result.source || host || "Trusted Source")}
@@ -731,10 +740,16 @@ function NewsCard({
         >
             <div className="p-6 flex-1">
                 <div className="flex items-center gap-2 mb-3">
-                    <img
-                        src={item.favicon || faviconUrl(cleanUrl)} alt="" className="w-4 h-4 rounded-sm"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
+                    {item.favicon || faviconUrl(cleanUrl) ? (
+                        <img
+                            src={item.favicon || faviconUrl(cleanUrl)} alt="" className="w-4 h-4 rounded-sm object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                    ) : (
+                        <div className="w-4 h-4 rounded-sm bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                            <Globe size={10} className="text-sky-500" />
+                        </div>
+                    )}
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest truncate">{item.source || host}</span>
                     <Newspaper size={10} className="text-sky-500 ml-auto flex-shrink-0" />
                 </div>

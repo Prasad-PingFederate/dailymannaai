@@ -322,42 +322,77 @@ async function buildGlobalSolution(query: string, rssResults: SearchResult[]) {
 
 // ── BRAND LOGO RESOLVER (Aggregator peeling) ───────────────
 const SOURCE_DOMAINS: Record<string, string> = {
+    // --- Major Global ---
     "BBC News": "bbc.co.uk", "BBC": "bbc.co.uk",
     "CNN": "cnn.com", "Fox News": "foxnews.com",
     "NBC News": "nbcnews.com", "ABC News": "abcnews.go.com",
-    "Hindustan Times": "hindustantimes.com", "The Hindu": "thehindu.com",
-    "India Today": "indiatoday.in", "India TV News": "indiatvnews.com",
-    "Al Jazeera": "aljazeera.com", "NDTV": "ndtv.com",
+    "Reuters": "reuters.com", "AP News": "apnews.com",
+    "Bloomberg": "bloomberg.com", "The Guardian": "theguardian.com",
+    "NY Times": "nytimes.com", "New York Times": "nytimes.com",
+    "USA Today": "usatoday.com", "NPR": "npr.org",
+    "Wall Street Journal": "wsj.com", "WSJ": "wsj.com",
+    "Forbes": "forbes.com", "Time": "time.com",
+    
+    // --- India ---
     "Times of India": "timesofindia.indiatimes.com", "TOI": "timesofindia.indiatimes.com",
-    "Sky News": "skynews.com", "The Guardian": "theguardian.com",
-    "NY Times": "nytimes.com", "NPR": "npr.org",
-    "USA Today": "usatoday.com", "France 24": "france24.com",
-    "Le Monde": "lemonde.fr", "Reuters": "reuters.com",
-    "AP News": "apnews.com", "Bloomberg": "bloomberg.com",
-    "Yahoo News": "news.yahoo.com", "CBS News": "cbsnews.com",
+    "The Indian Express": "indianexpress.com", "Indian Express": "indianexpress.com",
+    "The Hindu": "thehindu.com", "Hindustan Times": "hindustantimes.com",
+    "India Today": "indiatoday.in", "India TV News": "indiatvnews.com", "NDTV": "ndtv.com",
+    "Economic Times": "economictimes.indiatimes.com", "ET": "economictimes.indiatimes.com",
+    "Scroll.in": "scroll.in", "The Quint": "thequint.com", "The Wire": "thewire.in",
+    "Firstpost": "firstpost.com", "News18": "news18.com", "Republic": "republicworld.com",
+    
+    // --- Israel / Prophecy ---
+    "Jerusalem Post": "jpost.com", "Times of Israel": "timesofisrael.com",
+    "Arutz Sheva": "israelnationalnews.com", "Israel National News": "israelnationalnews.com",
+    "Haaretz": "haaretz.com", "Israel Hayom": "israelhayom.com",
+    "CBN News": "cbn.com", "CBN Israel": "cbn.com", "CBN": "cbn.com",
+    "All Israel News": "allisrael.com", "Israel Today": "israeltoday.co.il",
+    "Breaking Israel News": "israel365news.com", "Israel365 News": "israel365news.com",
+    "Ynet": "ynetnews.com",
+
+    // --- Christian Global ---
     "Christianity Today": "christianitytoday.com", "Christian Post": "christianpost.com",
-    "CBN News": "cbn.com", "CBN Israel": "cbn.com",
     "Crosswalk": "crosswalk.com", "Got Questions": "gotquestions.org",
-    "The Gospel Coalition": "thegospelcoalition.org", "Desiring God": "desiringgod.org",
-    "Grace to You": "gty.org", "Ligonier": "ligonier.org",
-    "Focus on the Family": "focusonthefamily.com", "Billy Graham": "billygraham.org",
-    "Our Daily Bread": "odb.org", "SermonAudio": "sermonaudio.com"
+    "The Gospel Coalition": "thegospelcoalition.org", "TGC": "thegospelcoalition.org",
+    "Desiring God": "desiringgod.org", "Grace to You": "gty.org", "GTY": "gty.org",
+    "Ligonier": "ligonier.org", "Focus on the Family": "focusonthefamily.com",
+    "Billy Graham": "billygraham.org", "Our Daily Bread": "odb.org", "ODB": "odb.org",
+    "Relevant Magazine": "relevantmagazine.com", "Charisma News": "charismanews.com",
+    "National Catholic Register": "ncregister.com", "Catholic News Agency": "catholicnewsagency.com",
+    "Baptist Press": "baptistpress.com", "WNG": "wng.org", "World Magazine": "wng.org",
+    "MNN": "mnnonline.org", "Mission Network News": "mnnonline.org",
+    "Open Doors": "opendoors.org", "Behold Israel": "beholdisrael.org",
+    "Astra DB": "datastax.com", "Daily Manna News": "dailymannaai.com"
 };
 
 function resolveFavicon(source: string, originalLink: string): string | undefined {
     const s = source.trim();
-    // Try exact or partial match for domain mapping
+    if (!s) return undefined;
+
+    // 1. Try exact or partial match for domain mapping (Highest priority)
+    const sLower = s.toLowerCase();
     for (const [k, domain] of Object.entries(SOURCE_DOMAINS)) {
-        if (s.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(s.toLowerCase())) {
+        const kLower = k.toLowerCase();
+        if (sLower.includes(kLower) || kLower.includes(sLower)) {
             return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
         }
     }
-    // Fallback to original link's domain
+
+    // 2. Fallback to original link's domain (unless it's Google News)
     try {
         const url = new URL(originalLink);
-        if (url.hostname.includes("google.com")) return undefined; // Let frontend handle or use default
+        // If it's a Google News link, we MUST NOT return a favicon based on news.google.com
+        // because that results in the "eyecon" logo the user hates.
+        if (url.hostname.includes("google.com")) {
+            // We already tried mapping the source name above. 
+            // If it failed, we return undefined so frontend doesn't show the eyecon.
+            return undefined;
+        }
         return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
-    } catch { return undefined; }
+    } catch { 
+        return undefined; 
+    }
 }
 
 // ── HANDLER ─────────────────────────────────────────────────
