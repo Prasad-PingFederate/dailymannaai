@@ -59,6 +59,7 @@
   --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);
   --color-accent: var(--gold);
+  --color-brand-navy: var(--brand-navy);
   
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -84,27 +85,41 @@
   --input-bg: var(--white);
   --search-bar-shadow: 0 4px 32px rgba(12, 26, 46, 0.14), 0 1px 4px rgba(12, 26, 46, 0.06);
   
+  --brand-navy: #0C1A2E;
   --mesh-bg: linear-gradient(155deg, #F2EDE0 0%, #E8E0CE 40%, #DDD5C2 100%);
 }
 
 /* ─── Dark Mode (Midnight Design) ─── */
 [data-theme="dark"] {
-  --background: var(--navy);
+  --background: #0C1A2E;
   --foreground: #f0f0ef;
-  --card-bg: var(--navy-2);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --input-bg: var(--navy-3);
+  --card-bg: #142238;
+  --border-color: rgba(255, 255, 255, 0.12);
+  --input-bg: #1D3050;
   --search-bar-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
 
   --text-1: #f0f0ef;
   --text-2: #b0b0ae;
   --text-3: #777777;
-  --navy: #f0f0ef; /* Make navy text light in dark mode for logo */
+  --brand-navy: #f0f0ef;
 
   --mesh-bg: radial-gradient(ellipse at 20% 10%, #1a1408 0%, transparent 60%),
              radial-gradient(ellipse at 80% 90%, #0c1020 0%, transparent 60%),
              #0b0904;
   --search-btn-text: #0d0f14;
+}
+
+[data-theme="dark"] .bg-navy {
+  background-color: var(--gold);
+  color: #0C1A2E !important;
+}
+
+[data-theme="dark"] .border-navy {
+  border-color: var(--gold);
+}
+
+[data-theme="dark"] .hover\:bg-navy:hover {
+  background-color: var(--gold);
 }
 
 body {

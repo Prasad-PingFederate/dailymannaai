@@ -206,7 +206,7 @@ export default function BibleExplorer() {
             {/* Header / Topbar */}
             <header className="h-16 px-6 flex items-center justify-between border-b border-border bg-background z-20">
                 <div className="flex items-center gap-2">
-                    <div className="site-logo">
+                    <div className="site-logo text-brand-navy">
                         DAILY <span className="gold">MANNA</span> AI
                     </div>
                 </div>
@@ -220,10 +220,10 @@ export default function BibleExplorer() {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={toggleTheme}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card-bg hover:border-gold/30 transition-all text-sm font-medium"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card-bg hover:border-gold/30 transition-all text-sm font-medium shadow-sm active:scale-95"
                     >
-                        {isDark ? <Sun size={14} className="text-gold" /> : <Moon size={14} className="text-navy" />}
-                        <span className="hidden sm:inline">{isDark ? 'Light' : 'Dark'}</span>
+                        {isDark ? <Sun size={14} className="text-gold" /> : <Moon size={14} className="text-brand-navy" />}
+                        <span className={`hidden sm:inline ${isDark ? 'text-gold' : 'text-brand-navy'}`}>{isDark ? 'Light' : 'Dark'}</span>
                     </button>
                     
                     {user ? (
@@ -393,7 +393,7 @@ export default function BibleExplorer() {
                             {/* Reader Topbar — minimal premium */}
                             <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border px-6 md:px-8 py-3 flex items-center gap-4 z-20">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-title text-[12px] font-bold text-navy tracking-wider uppercase">{currentBook.name}</span>
+                                    <span className="font-title text-[12px] font-bold text-brand-navy tracking-wider uppercase">{currentBook.name}</span>
                                     <span className="text-border px-1">·</span>
                                     <span className="text-[12px] font-medium text-text-3">Chapter {currentChapter}</span>
                                     <span className="ml-2 px-2.5 py-1 bg-gold-pale/30 border border-gold/20 rounded-full text-[10px] font-bold text-gold uppercase tracking-tighter shrink-0">{verses.length} verses</span>
@@ -461,7 +461,7 @@ export default function BibleExplorer() {
                                 <div className={`mx-auto transition-all duration-700 ${isZenMode ? 'max-w-6xl' : 'max-w-4xl lg:max-w-5xl'}`}>
                                     <div className="text-center mb-12">
                                         <div className="font-title text-[10px] letter-spacing-[0.25em] text-gold uppercase mb-2">{currentBook.name}</div>
-                                        <div className="font-serif text-4xl font-medium text-navy">Chapter {currentChapter}</div>
+                                        <div className="font-serif text-4xl font-medium text-brand-navy">Chapter {currentChapter}</div>
                                         <div className="w-10 h-0.5 bg-gold/30 mx-auto mt-3" />
                                     </div>
 
@@ -558,7 +558,7 @@ export default function BibleExplorer() {
                                     <button
                                         key={tab}
                                         onClick={() => setActiveToolTab(tab)}
-                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-navy' : 'border-transparent text-muted-foreground hover:text-text-1'}`}
+                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-brand-navy' : 'border-transparent text-muted-foreground hover:text-text-1'}`}
                                     >
                                         {tab}
                                         {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
@@ -618,7 +618,7 @@ export default function BibleExplorer() {
                                     { ref: '2 Timothy 3:16', text: '"All Scripture is God-breathed and useful for teaching..."'}
                                 ].map((cr, i) => (
                                     <div key={i} className="p-4 bg-background border border-border rounded-xl hover:border-gold/40 cursor-pointer transition-all group">
-                                        <div className="font-bold text-[10px] text-navy group-hover:text-gold mb-1">{cr.ref}</div>
+                                        <div className="font-bold text-[10px] text-brand-navy group-hover:text-gold mb-1">{cr.ref}</div>
                                         <p className="font-serif text-[11px] italic text-muted-foreground leading-relaxed">{cr.text}</p>
                                     </div>
                                 ))}
