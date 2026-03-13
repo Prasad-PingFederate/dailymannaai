@@ -270,7 +270,7 @@ export default function BibleExplorer() {
 
             {/* Global Search Bar (Bible Logic) */}
             <div className="bg-background border-b border-border py-4 px-6 shrink-0 flex justify-center">
-                <div className="search-bar-main max-w-2xl">
+                <div className="search-bar-main max-w-4xl">
                     <Search className="s-icon shrink-0" size={18} />
                     <input 
                         className="search-input-main" 
@@ -458,7 +458,7 @@ export default function BibleExplorer() {
 
                             {/* Scripture Content */}
                             <div className={`flex-1 overflow-y-auto px-6 md:px-16 py-12 custom-scrollbar transition-all duration-700 bg-background`}>
-                                <div className={`mx-auto transition-all duration-700 ${isZenMode ? 'max-w-4xl' : 'max-w-2xl lg:max-w-3xl'}`}>
+                                <div className={`mx-auto transition-all duration-700 ${isZenMode ? 'max-w-6xl' : 'max-w-4xl lg:max-w-5xl'}`}>
                                     <div className="text-center mb-12">
                                         <div className="font-title text-[10px] letter-spacing-[0.25em] text-gold uppercase mb-2">{currentBook.name}</div>
                                         <div className="font-serif text-4xl font-medium text-navy">Chapter {currentChapter}</div>
