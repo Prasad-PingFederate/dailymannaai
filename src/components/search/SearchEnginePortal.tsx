@@ -1459,6 +1459,10 @@ export default function SearchEnginePortal() {
             window.location.href = "/notebook";
             return;
         }
+        if (f === "bible") {
+            window.location.href = "/bible-explorer";
+            return;
+        }
         if (f === "alerts") {
             togglePropheticAlerts();
             return;
