@@ -1858,9 +1858,9 @@ It's now part of my collective wisdom!`
                                     <div className="space-y-8 pb-6">
                                         {messages.map((msg: any, i) => (
                                             <div key={i} className={`group flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
-                                                <div className={`h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-accent to-accent-secondary' : 'bg-card-bg border border-border text-red-600 shadow-xl'}`}>
+                                                <div className={`h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-gold to-gold-2' : 'bg-card-bg border border-border/50 text-accent shadow-xl ring-1 ring-border/20'}`}>
                                                     {msg.role === 'user' ? 'U' : (
-                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-red-600 drop-shadow-md">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-accent drop-shadow-md">
                                                             <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
                                                         </svg>
                                                     )}
@@ -1899,7 +1899,7 @@ It's now part of my collective wisdom!`
                                                             </button>
                                                         </div>
                                                     )}
-                                                    <div className={`${msg.role === 'user' ? 'bg-accent/5 ring-1 ring-accent/20' : 'bg-card-bg/70 backdrop-blur-xl border border-border/50'} rounded-3xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full`}>
+                                                    <div className={`${msg.role === 'user' ? 'bg-card-bg border border-gold/30 shadow-sm' : 'bg-card-bg border border-border/60 shadow-md'} rounded-2xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full text-foreground`}>
                                                         {msg.role === 'assistant' && (msg.thought || msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)) && (
                                                             <div className="mb-4">
                                                                 <details className="group" open={msg.isThinking}>
@@ -1979,78 +1979,73 @@ It's now part of my collective wisdom!`
                 </div>
 
                 {/* 🚀 WORLD-CLASS FLOATING SEARCH BAR (ChatGPT/Antigravity Style) */}
-                <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-8 pt-24 pointer-events-none bg-gradient-to-t from-background via-background/90 to-transparent">
+                <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-8 pt-24 pointer-events-none bg-gradient-to-t from-background via-background to-transparent">
                     <div className="max-w-3xl mx-auto flex flex-col gap-4 pointer-events-auto">
-                        {/* Compact Tool Row (Subtle) */}
-                        <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1 px-2">
-                            {[
-
-                                { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-500 bg-amber-500/15 border-amber-500/30' },
-                                { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-accent bg-accent/15 border-accent/20' },
-                                { label: 'Image Studio', icon: <ImageIcon size={14} />, action: () => setIsStudioOpen(true), color: 'text-rose-500 bg-rose-500/15 border-rose-500/30' }
-                            ].map((tool, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={tool.action}
-                                    title={tool.label === 'Image Studio' ? 'Generate Image' : tool.label}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold transition-all hover:scale-105 active:scale-95 whitespace-nowrap shadow-sm ${tool.color}`}
-                                >
-                                    {tool.icon}
-                                    {tool.label}
-                                </button>
-                            ))}
-                        </div>
-
                         {/* ChatGPT-Style Simple & Effective Search Bar */}
-                        <div className="relative group">
-                            <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border/40 rounded-[1.8rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] focus-within:ring-1 ring-accent/30 transition-all p-3 md:p-4 pb-3 flex flex-col gap-1.5 group-hover:border-accent/20">
-                                <textarea
-                                    ref={textareaRef}
-                                    placeholder="Ask DailyMannaAI about Bible or scriptures..."
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSendMessage();
-                                        }
-                                    }}
-                                    className="w-full bg-transparent border-none py-1.5 px-2 text-[16px] md:text-[17px] focus:outline-none resize-none max-h-60 overflow-y-auto placeholder:text-muted/50 leading-relaxed"
-                                    rows={1}
-                                />
-
-                                <div className="flex items-center justify-between px-1">
+                        <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border shadow-2xl focus-within:ring-2 ring-gold/20 transition-all p-3 md:p-4 pb-3 flex flex-col gap-3 group-hover:border-gold/30 rounded-[2rem]">
+                            {/* Tool Row Inside Input Area for better organization */}
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1">
+                                {[
+                                    { label: 'Divine Intervention', icon: <Sparkles size={14} />, action: handleDivineMeditation, color: 'text-amber-600 bg-amber-500/10 border-amber-500/20' },
+                                    { label: 'Audio Podcast', icon: <Mic2 size={14} />, action: generateAudioOverview, color: 'text-teal-600 bg-teal-500/10 border-teal-500/20' },
+                                    { label: 'Image Studio', icon: <ImageIcon size={14} />, action: () => setIsStudioOpen(true), color: 'text-rose-600 bg-rose-500/10 border-rose-500/20' }
+                                ].map((tool, idx) => (
                                     <button
-                                        onClick={() => setUploadModalOpen(true)}
-                                        className="p-2.5 bg-muted/5 hover:bg-accent/10 rounded-xl text-muted/60 hover:text-accent transition-all hover:scale-105"
-                                        title="Add Source"
+                                        key={idx}
+                                        onClick={tool.action}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold transition-all hover:scale-105 active:scale-95 whitespace-nowrap ${tool.color}`}
                                     >
-                                        <Plus size={22} className="stroke-[2.5px]" />
+                                        {tool.icon}
+                                        {tool.label}
                                     </button>
-
-                                    <div className="flex items-center gap-3">
-                                        <VoiceInput
-                                            onTranscript={(text) => setInput(text)}
-                                            onInterimTranscript={(text) => text && setInput(text)}
-                                            onListeningChange={(active) => setIsVoiceActive(active)}
-                                            className="voice-input-mic"
-                                        />
-                                        <button
-                                            onClick={() => isChatting ? handleAbortChat() : handleSendMessage()}
-                                            disabled={!input.trim() && !isChatting}
-                                            className={`p-2.5 rounded-full transition-all ${input.trim() || isChatting ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
-                                            title={isChatting ? "Stop generating" : "Send message"}
-                                        >
-                                            {isChatting ? (
-                                                <Square size={22} className="fill-white stroke-none" />
-                                            ) : (
-                                                <ArrowRight size={22} className="stroke-[3px]" />
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
 
+                            <textarea
+                                ref={textareaRef}
+                                placeholder="Ask DailyMannaAI about Bible or scriptures..."
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendMessage();
+                                    }
+                                }}
+                                className="w-full bg-transparent border-none py-1.5 px-2 text-[16px] md:text-[17px] focus:outline-none resize-none max-h-60 overflow-y-auto placeholder:text-muted/50 leading-relaxed text-foreground"
+                                rows={1}
+                            />
+
+                            <div className="flex items-center justify-between px-1">
+                                <button
+                                    onClick={() => setUploadModalOpen(true)}
+                                    className="p-2.5 bg-muted/5 hover:bg-gold/10 rounded-xl text-muted/60 hover:text-gold transition-all hover:scale-105"
+                                    title="Add Source"
+                                >
+                                    <Plus size={22} className="stroke-[2.5px]" />
+                                </button>
+
+                                <div className="flex items-center gap-3">
+                                    <VoiceInput
+                                        onTranscript={(text) => setInput(text)}
+                                        onInterimTranscript={(text) => text && setInput(text)}
+                                        onListeningChange={(active) => setIsVoiceActive(active)}
+                                        className="voice-input-mic"
+                                    />
+                                    <button
+                                        onClick={() => isChatting ? handleAbortChat() : handleSendMessage()}
+                                        disabled={!input.trim() && !isChatting}
+                                        className={`p-2.5 rounded-full transition-all ${input.trim() || isChatting ? 'bg-accent text-white shadow-xl shadow-accent/40 hover:scale-110 active:scale-95' : 'bg-muted/10 text-muted/30 opacity-40 cursor-not-allowed'}`}
+                                        title={isChatting ? "Stop generating" : "Send message"}
+                                    >
+                                        {isChatting ? (
+                                            <Square size={22} className="fill-white stroke-none" />
+                                        ) : (
+                                            <ArrowRight size={22} className="stroke-[3px]" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

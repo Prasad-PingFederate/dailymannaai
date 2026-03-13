@@ -55,9 +55,20 @@
   --color-teal-pale: var(--teal-pale);
   --color-orange: var(--orange);
   --color-orange-pale: var(--orange-pale);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);
   --color-accent: var(--gold);
   
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-border: var(--border-color);
+  --color-input: var(--input-bg);
+  --color-muted: var(--text-3);
+  --color-muted-foreground: var(--text-2);
+  --color-accent-foreground: var(--text-1);
+
   --font-serif: var(--f-display);
   --font-title: var(--f-title);
   --font-sans: var(--f-body);
