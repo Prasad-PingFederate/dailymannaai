@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
-        const book = searchParams.get("book");
+        const book = searchParams.get("book")?.trim();
         const chapter = parseInt(searchParams.get("chapter") || "0");
         const translation = searchParams.get("translation")?.toLowerCase() || "kjv";
 
@@ -34,9 +34,10 @@ export async function GET(req: Request) {
         const collection = await getCollection(collectionName);
 
         // Fetch all verses for the chapter
-        const result = await collection.find(queryFilter, {
-            sort: { verse: 1 }
-        }).toArray();
+        const result = await collection.find(queryFilter).toArray();
+        
+        // Manual sort in JS if the DB doesn't have an index
+        result.sort((a: any, b: any) => (a.verse || 0) - (b.verse || 0));
 
         return NextResponse.json({ verses: result });
     } catch (error: any) {

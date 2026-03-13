@@ -103,7 +103,7 @@ export default function BibleExplorer() {
     const [verses, setVerses] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [translation, setTranslation] = useState('KJV');
-    const [activeToolTab, setActiveToolTab] = useState('commentary');
+    const [activeToolTab, setActiveToolTab] = useState('crossref');
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -239,32 +239,28 @@ export default function BibleExplorer() {
                 </div>
             </header>
 
-            {/* Mode Tabs Bar */}
-            <div className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-center gap-2 px-4 overflow-x-auto no-scrollbar shrink-0">
-                <a href="/" className="mode-tab transition-all">
-                    <Sparkles size={14} /> All
-                </a>
-                <button className="mode-tab">
-                    <Zap size={14} /> AI Mode
-                </button>
-                <button className="mode-tab active">
-                    <Book size={14} /> Bible
-                </button>
-                <button className="mode-tab">
-                    <Newspaper size={14} /> News
-                </button>
-                <button className="mode-tab" onClick={() => window.location.href='/notebook'}>
-                    <BookOpen size={14} /> Notebook
-                </button>
-                <button className="mode-tab">
-                    <Sun size={14} /> Devotionals
-                </button>
-                <button className="mode-tab">
-                    <User size={14} /> Sermons
-                </button>
-                <div className="mode-tab border-gold/40 bg-gold-pale/10 text-gold group">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange animate-pulse" />
-                    Prophetic Sentinel
+            {/* Mode Tabs Bar - Simplified */}
+            <div className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
+                <div className="flex items-center gap-4">
+                    <a 
+                        href="https://www.dailymannaai.com" 
+                        className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-navy text-white text-xs font-bold hover:bg-navy-3 transition-all shadow-md group"
+                    >
+                        <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                        Home
+                    </a>
+                    <div className="h-6 w-px bg-border" />
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gold/30 bg-gold-pale/10 text-gold text-xs font-bold">
+                        <Book size={14} />
+                        Bible Explorer
+                    </div>
+                </div>
+
+                <div className="hidden sm:flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-text-3 uppercase tracking-widest">
+                        <Globe size={12} />
+                        <span>Multilingual Version</span>
+                    </div>
                 </div>
             </div>
 
@@ -671,13 +667,13 @@ export default function BibleExplorer() {
                     <div className="flex flex-col h-full w-80">
                         <div className="flex items-center border-b border-border shrink-0">
                             <div className="flex flex-1">
-                                {['commentary', 'crossref', 'notes'].map((tab) => (
+                                {['crossref'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveToolTab(tab)}
-                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-brand-navy' : 'border-transparent text-muted-foreground hover:text-text-1'}`}
+                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-brand-navy' : 'border-transparent text-muted-foreground'}`}
                                     >
-                                        {tab}
+                                        Cross Reference
                                         {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
                                     </button>
                                 ))}
@@ -691,41 +687,6 @@ export default function BibleExplorer() {
                         </div>
 
                     <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
-                        {activeToolTab === 'commentary' && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                                {/* Verse of Day Card */}
-                                <div className="bg-navy rounded-2xl p-6 relative overflow-hidden shadow-xl ring-1 ring-white/10">
-                                    <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-gold to-gold-2" />
-                                    <div className="font-title text-[8px] tracking-widest text-gold mb-3 uppercase">Verse of the Day</div>
-                                    <p className="font-serif text-sm italic text-white/90 leading-relaxed mb-4">
-                                        "Your word is a lamp to my feet and a light to my path."
-                                    </p>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-gold">PSALM 119:105</span>
-                                        <div className="flex gap-2">
-                                            <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 transition-colors"><Volume2 size={12} /></button>
-                                            <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 transition-colors"><Share2 size={12} /></button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h5 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Study Tools</h5>
-                                    {[
-                                        { icon: '🙏', label: 'Generate Prayer' },
-                                        { icon: '⚡', label: 'AI Explanation' },
-                                        { icon: '🖼', label: 'Create Image' },
-                                        { icon: '📓', label: 'Save to Notebook' }
-                                    ].map((tool) => (
-                                        <button key={tool.label} className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl hover:border-gold/30 hover:bg-gold-pale/5 transition-all text-left group">
-                                            <span className="text-sm group-hover:scale-125 transition-transform">{tool.icon}</span>
-                                            <span className="text-xs font-semibold">{tool.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
                         {activeToolTab === 'crossref' && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <h5 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Parallel Passages</h5>
@@ -739,29 +700,6 @@ export default function BibleExplorer() {
                                         <p className="font-serif text-[11px] italic text-muted-foreground leading-relaxed">{cr.text}</p>
                                     </div>
                                 ))}
-                            </div>
-                        )}
-
-                        {activeToolTab === 'notes' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="space-y-3">
-                                    <h5 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Highlight</h5>
-                                    <div className="flex gap-2">
-                                        {['#FFE066', '#B8F0C8', '#B8D8FA', '#FFC8C8', '#E8C8F8'].map(c => (
-                                            <button key={c} className="w-8 h-8 rounded-full border-2 border-transparent hover:scale-110 active:scale-95 transition-all shadow-sm" style={{ backgroundColor: c }} />
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <h5 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Personal Reflections</h5>
-                                    <textarea 
-                                        placeholder="What is God speaking through this passage?..." 
-                                        className="w-full h-32 bg-background border border-border rounded-xl p-4 text-xs font-sans outline-none focus:ring-1 ring-gold/20 resize-none leading-relaxed"
-                                    />
-                                    <button className="w-full py-3 bg-navy text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-navy-3 transition-all shadow-lg shadow-navy/20">
-                                        💾 Save Reflection
-                                    </button>
-                                </div>
                             </div>
                         )}
                     </div>
