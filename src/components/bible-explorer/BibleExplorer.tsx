@@ -276,18 +276,23 @@ export default function BibleExplorer() {
                         <select 
                             value={translation}
                             onChange={(e) => setTranslation(e.target.value)}
-                            className="bg-transparent text-[11px] font-bold text-gold uppercase tracking-widest outline-none cursor-pointer hover:text-gold-2 transition-colors min-w-[80px]"
+                            className="bg-transparent text-[11px] font-bold text-gold-2 uppercase tracking-widest outline-none cursor-pointer hover:text-gold transition-colors min-w-[80px]"
                         >
-                            <optgroup label="English">
-                                {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(v => (
+                            <optgroup label="Primary">
+                                {['NIV', 'KJV', 'NKJV'].map(v => (
                                     <option key={v} value={v}>{v}</option>
                                 ))}
                             </optgroup>
-                            <optgroup label="Chinese">
-                                <option value="zh">ZH (Union)</option>
-                            </optgroup>
-                            <optgroup label="Indonesian">
-                                <option value="id">ID (TB)</option>
+                            <optgroup label="World Languages">
+                                <option value="es">Español</option>
+                                <option value="zh">中文 (Union)</option>
+                                <option value="id">Indonesia</option>
+                                <option value="fr">Français</option>
+                                <option value="pt">Português</option>
+                                <option value="de">Deutsch</option>
+                                <option value="ar">العربية</option>
+                                <option value="ru">Русский</option>
+                                <option value="ko">한국어</option>
                             </optgroup>
                         </select>
                         
@@ -364,16 +369,21 @@ export default function BibleExplorer() {
                                     onChange={(e) => setTranslation(e.target.value)}
                                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-bold text-text-2 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 gold-focus shadow-sm"
                                 >
-                                    <optgroup label="English">
-                                        {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(v => (
+                                    <optgroup label="Primary">
+                                        {['NIV', 'KJV', 'NKJV'].map(v => (
                                             <option key={v} value={v}>{v} Version</option>
                                         ))}
                                     </optgroup>
-                                    <optgroup label="Chinese">
-                                        <option value="zh">ZH (Union)</option>
-                                    </optgroup>
-                                    <optgroup label="Indonesian">
-                                        <option value="id">ID (TB)</option>
+                                    <optgroup label="World Languages">
+                                        <option value="es">Español (RVR)</option>
+                                        <option value="zh">中文 (Union)</option>
+                                        <option value="id">Indonesia (TB)</option>
+                                        <option value="fr">Français (Apee)</option>
+                                        <option value="pt">Português (NVI)</option>
+                                        <option value="de">Deutsch (Schlachter)</option>
+                                        <option value="ar">العربية (SVD)</option>
+                                        <option value="ru">Русский (Synodal)</option>
+                                        <option value="ko">한국어 (Hangul)</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -494,16 +504,21 @@ export default function BibleExplorer() {
                                         onChange={(e) => setTranslation(e.target.value)}
                                         className="bg-card-bg border border-border rounded-full px-3 py-1.5 text-[11px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans"
                                     >
-                                        <optgroup label="English">
-                                            {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
+                                        <optgroup label="Primary">
+                                            {['NIV', 'KJV', 'NKJV'].map(t => (
                                                 <option key={t} value={t}>{t}</option>
                                             ))}
                                         </optgroup>
-                                        <optgroup label="Chinese">
+                                        <optgroup label="Global">
+                                            <option value="es">ES</option>
                                             <option value="zh">ZH</option>
-                                        </optgroup>
-                                        <optgroup label="Indonesian">
                                             <option value="id">ID</option>
+                                            <option value="fr">FR</option>
+                                            <option value="pt">PT</option>
+                                            <option value="de">DE</option>
+                                            <option value="ar">AR</option>
+                                            <option value="ru">RU</option>
+                                            <option value="ko">KO</option>
                                         </optgroup>
                                     </select>
 
