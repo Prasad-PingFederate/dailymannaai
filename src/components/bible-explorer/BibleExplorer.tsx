@@ -592,8 +592,9 @@ export default function BibleExplorer() {
                                                         {v.verse}
                                                     </span>
                                                     <p 
-                                                        className={`font-serif leading-[1.9] text-text-1 selection:bg-gold/20`}
+                                                        className={`font-serif leading-[1.9] text-text-1 selection:bg-gold/20 ${translation === 'ar' ? 'text-right' : ''}`}
                                                         style={{ fontSize: `${fontSize}px` }}
+                                                        dir={translation === 'ar' ? 'rtl' : 'ltr'}
                                                     >
                                                         {v.text}
                                                     </p>
