@@ -45,10 +45,19 @@
 }
 
 @theme inline {
-  --color-primary-navy: var(--navy);
-  --color-accent-gold: var(--gold);
-  --color-accent-teal: var(--teal);
-  --color-bg-cream: var(--cream);
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-navy-3: var(--navy-3);
+  --color-gold: var(--gold);
+  --color-gold-2: var(--gold-2);
+  --color-gold-pale: var(--gold-pale);
+  --color-teal: var(--teal);
+  --color-teal-pale: var(--teal-pale);
+  --color-orange: var(--orange);
+  --color-orange-pale: var(--orange-pale);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--gold);
+  
   --font-serif: var(--f-display);
   --font-title: var(--f-title);
   --font-sans: var(--f-body);
@@ -79,6 +88,7 @@
   --text-1: #f0f0ef;
   --text-2: #b0b0ae;
   --text-3: #777777;
+  --navy: #f0f0ef; /* Make navy text light in dark mode for logo */
 
   --mesh-bg: radial-gradient(ellipse at 20% 10%, #1a1408 0%, transparent 60%),
              radial-gradient(ellipse at 80% 90%, #0c1020 0%, transparent 60%),
@@ -126,14 +136,31 @@ body {
 .search-bar-main {
   width: 100%;
   background: var(--white);
-  border: 1.5px solid rgba(200, 146, 42, 0.0);
+  border: 1.5px solid var(--border);
   border-radius: var(--r-pill);
   display: flex;
   align-items: center;
-  padding: 7px 7px 7px 22px;
+  padding: 6px 6px 6px 22px;
   gap: 12px;
   box-shadow: var(--search-bar-shadow);
   transition: all .25s;
+}
+
+.search-bar-mini {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  padding: 4px 4px 4px 14px;
+  gap: 8px;
+  width: 100%;
+  max-width: 500px;
+}
+
+[data-theme="dark"] .search-bar-mini {
+  background: var(--navy-3);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .search-bar-main {
@@ -150,6 +177,23 @@ body {
   font-size: 16px;
   font-weight: 400;
   color: var(--text-1);
+}
+
+.site-logo {
+  font-family: var(--f-title);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.site-logo span.gold {
+  background: linear-gradient(135deg, #C8922A 0%, #E2B055 50%, #C8922A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .mode-tab {

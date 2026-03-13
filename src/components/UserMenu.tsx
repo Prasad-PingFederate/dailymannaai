@@ -1,105 +1,74 @@
-// src/components/UserMenu.tsx
 "use client";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useState } from "react";
+import { User, LogOut, ChevronDown, Shield, Mail } from "lucide-react";
 
 export default function UserMenu() {
     const { user, loading, logout, isLoggedIn } = useAuth();
     const [open, setOpen] = useState(false);
 
-    if (loading) return <div style={{ width: 80, height: 32, borderRadius: 8, background: "rgba(0,0,0,0.05)" }} />;
+    if (loading) return <div className="w-20 h-8 rounded-lg bg-slate-100 dark:bg-navy-2 animate-pulse" />;
 
     if (!isLoggedIn) return (
-        <Link href="/auth/signin?callbackUrl=/" style={{
-            display: "inline-flex", alignItems: "center", gap: "6px",
-            background: "#D4A017", color: "#0a0a10",
-            border: "none", borderRadius: "8px",
-            padding: "7px 16px", fontSize: "12px",
-            fontWeight: 700, textDecoration: "none",
-            fontFamily: "sans-serif", letterSpacing: "0.05em",
-            transition: "all 0.2s", whiteSpace: "nowrap",
-        }}>
-            Sign In &#10022;
+        <Link 
+            href="/auth/signin?callbackUrl=/" 
+            className="inline-flex items-center gap-2 bg-gold hover:bg-gold-2 text-navy px-4 py-2 rounded-lg text-xs font-bold tracking-widest uppercase transition-all shadow-md active:scale-95"
+        >
+            Sign In
         </Link>
     );
 
     const initials = user!.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
     return (
-        <div style={{ position: "relative" }}>
-            <button onClick={() => setOpen(!open)} style={{
-                display: "flex", alignItems: "center", gap: "8px",
-                background: "rgba(0,0,0,0.05)",
-                border: "1px solid rgba(0,0,0,0.1)",
-                borderRadius: "20px", padding: "5px 12px 5px 5px",
-                cursor: "pointer", color: "var(--text-secondary, #555)",
-                fontSize: "13px", fontFamily: "sans-serif",
-                transition: "all 0.2s",
-            }}>
-                <div style={{
-                    width: 26, height: 26, borderRadius: "50%",
-                    background: "#D4A017", color: "#0a0a10",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "11px", fontWeight: 700, flexShrink: 0,
-                }}>
+        <div className="relative">
+            <button 
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-2 p-1 pr-3 rounded-full bg-slate-100 dark:bg-navy-2 border border-slate-200 dark:border-white/10 hover:border-gold/40 transition-all font-sans"
+            >
+                <div className="w-7 h-7 rounded-full bg-gold text-navy flex items-center justify-center text-[10px] font-black">
                     {initials}
                 </div>
-                <span style={{ maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 max-w-[80px] truncate">
                     {user!.name.split(" ")[0]}
                 </span>
-                <span style={{ fontSize: "10px", opacity: 0.5 }}>&#9662;</span>
+                <ChevronDown size={12} className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
                 <>
-                    {/* Backdrop */}
-                    <div style={{ position: "fixed", inset: 0, zIndex: 150 }} onClick={() => setOpen(false)} />
-                    {/* Dropdown */}
-                    <div style={{
-                        position: "absolute", top: "calc(100% + 8px)", right: 0,
-                        background: "var(--bg-card, #fff)",
-                        border: "1px solid var(--border-secondary, #ebebeb)",
-                        borderRadius: "14px", padding: "8px",
-                        minWidth: 200, zIndex: 200,
-                        boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-                        animation: "fadeUp 0.15s ease",
-                    }}>
-                        {/* User info */}
-                        <div style={{ padding: "8px 12px 12px", borderBottom: "1px solid var(--border-secondary, #ebebeb)", marginBottom: "6px" }}>
-                            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-primary, #1a1a1a)", fontFamily: "sans-serif" }}>
-                                {user!.name}
+                    <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
+                    <div className="absolute top-full mt-2 right-0 w-64 bg-white dark:bg-navy-2 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-[110] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="p-4 border-b border-slate-100 dark:border-white/5 mb-2">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold font-black">
+                                    {initials}
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="text-sm font-black text-slate-900 dark:text-white truncate">{user!.name}</div>
+                                    <div className="text-[10px] text-slate-500 flex items-center gap-1 font-sans">
+                                        <Mail size={10} />
+                                        <span className="truncate">{user!.email}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div style={{ fontSize: "11px", color: "var(--text-muted, #888)", fontFamily: "sans-serif", marginTop: "2px" }}>
-                                {user!.email}
-                            </div>
-                            <div style={{
-                                display: "inline-block", marginTop: "6px",
-                                background: "#D4A01720", border: "1px solid #D4A01740",
-                                borderRadius: "10px", padding: "2px 8px",
-                                fontSize: "10px", color: "#B8860B",
-                                fontFamily: "sans-serif", letterSpacing: "0.08em", textTransform: "uppercase",
-                            }}>
-                                {user!.plan} plan
+                            <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest text-emerald-600 font-sans">
+                                <Shield size={10} />
+                                {user!.plan} PLAN ACTIVE
                             </div>
                         </div>
 
-                        <button onClick={() => { setOpen(false); logout(); }} style={{
-                            width: "100%", textAlign: "left",
-                            background: "none", border: "none",
-                            padding: "9px 12px", borderRadius: "8px",
-                            fontSize: "13px", color: "#e53e3e",
-                            cursor: "pointer", fontFamily: "sans-serif",
-                            transition: "background 0.15s",
-                        }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = "#fff5f5"}
-                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                            &#128682; Sign Out
+                        <button 
+                            onClick={() => { setOpen(false); logout(); }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors font-sans"
+                        >
+                            <LogOut size={16} />
+                            Sign Out
                         </button>
                     </div>
                 </>
             )}
-            <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }`}</style>
         </div>
     );
 }

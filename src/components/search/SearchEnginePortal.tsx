@@ -1027,7 +1027,7 @@ function ThoughtPanel({
 
 // â”€â”€â”€ MAIN COMPONENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio" | "notebook";
+type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio" | "notebook" | "alerts";
 
 
 export default function SearchEnginePortal() {
@@ -1459,6 +1459,10 @@ export default function SearchEnginePortal() {
             window.location.href = "/notebook";
             return;
         }
+        if (f === "alerts") {
+            togglePropheticAlerts();
+            return;
+        }
         // Image Studio requires sign-in
         if (f === "studio" && !isLoggedIn) {
             window.location.href = "/auth/signin?callbackUrl=/";
@@ -1510,13 +1514,14 @@ export default function SearchEnginePortal() {
 
     const FILTERS = [
         { id: "global", label: "All", icon: <Sparkles size={13} /> },
-        { id: "ai", label: "AI Mode", icon: <Zap size={13} className="text-black" /> },
+        { id: "ai", label: "AI Mode", icon: <Zap size={13} /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
         { id: "notebook", label: "Notebook", icon: <BookOpen size={13} /> },
         { id: "devotionals", label: "Devotionals", icon: <Quote size={13} /> },
         { id: "sermons", label: "Sermons", icon: <MessageCircle size={13} /> },
         { id: "studio", label: "Image Studio", icon: <ImageIcon size={13} /> },
+        { id: "alerts", label: "Prophetic Alerts", icon: <Bell size={13} /> },
     ] as const;
 
     const hasContent = (results?.length ?? 0) > 0 || instantAnswer || solution;
@@ -1574,18 +1579,41 @@ export default function SearchEnginePortal() {
             )}
 
             {/* ── HEADER ── */}
-            <header className={`w-full max-w-7xl px-8 py-6 flex items-center justify-between z-20 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/70 backdrop-blur-xl border-b border-border" : ""}`}>
-                <button
-                    onClick={resetSearch}
-                    className="f-title text-2xl font-black tracking-tight flex items-center gap-1"
-                >
-                    <span className="text-navy">DAILY</span>
-                    <span className="bg-gradient-to-br from-gold via-gold-2 to-gold text-transparent bg-clip-text">MANNA</span>
-                    <span className="text-navy">AI</span>
-                </button>
+            <header className={`w-full px-8 py-5 flex items-center justify-between z-50 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/90 dark:bg-navy/90 backdrop-blur-xl border-b border-border/50 shadow-sm" : ""}`}>
+                <div className="flex items-center gap-10">
+                    <button
+                        onClick={resetSearch}
+                        className="site-logo"
+                    >
+                        <span>DAILY</span>
+                        <span className="gold">MANNA</span>
+                        <span>AI</span>
+                    </button>
+
+                    {hasSearched && (
+                        <div className="hidden md:flex flex-1 min-w-[300px] lg:min-w-[450px]">
+                            <form onSubmit={onSubmit} className="search-bar-mini group">
+                                <Search size={16} className="text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    placeholder="Search the Scriptures..."
+                                    className="flex-1 bg-transparent border-none outline-none text-sm text-text-1"
+                                />
+                                {query && <X size={14} className="text-slate-300 cursor-pointer" onClick={() => setQuery("")} />}
+                                <div className="h-4 w-px bg-slate-200" />
+                                <VoiceInput 
+                                    onTranscript={(text) => { setQuery(text); handleSearch(text, filter); }}
+                                    variant="minimal"
+                                />
+                            </form>
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex items-center gap-6">
-                    <button className="text-[11px] font-bold uppercase tracking-widest text-navy-2 hover:text-gold transition-colors">Sign In</button>
+                    <button className="text-[11px] font-bold uppercase tracking-widest text-text-2 hover:text-gold transition-colors">Sign In</button>
                     <ThemeToggle variant="pill" />
                 </div>
             </header>
@@ -1596,12 +1624,12 @@ export default function SearchEnginePortal() {
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <h1 className="f-title text-6xl md:text-8xl font-black tracking-tighter text-navy flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
+                        <h1 className="site-logo !text-6xl md:!text-8xl !gap-2 md:!gap-4 justify-center">
                             <span>DAILY</span>
-                            <span className="bg-gradient-to-br from-gold via-gold-2 to-gold text-transparent bg-clip-text drop-shadow-[0_0_20px_rgba(200,146,42,0.2)]">MANNA</span>
+                            <span className="gold drop-shadow-[0_0_25px_rgba(200,146,42,0.3)]">MANNA</span>
                             <span>AI</span>
                         </h1>
-                        <p className="f-display text-navy opacity-60 max-w-lg mx-auto text-xl md:text-2xl italic">
+                        <p className="f-display text-text-2 max-w-lg mx-auto text-xl md:text-2xl italic">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
                         </p>
                     </div>
@@ -1610,13 +1638,13 @@ export default function SearchEnginePortal() {
                 {/* ── SEARCH BOX & MODES ── */}
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"}`}>
                     <form onSubmit={onSubmit}>
-                        <div className="flex flex-wrap justify-center gap-3 mb-8">
-                            {FILTERS.slice(0, 6).map((f) => (
+                        <div className="flex flex-wrap justify-center gap-2 mb-8 items-center">
+                            {FILTERS.map((f) => (
                                 <button
                                     key={f.id}
                                     type="button"
                                     onClick={() => onFilterChange(f.id as FilterType)}
-                                    className={`mode-tab ${filter === f.id ? 'active' : ''}`}
+                                    className={`mode-tab ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
                                 >
                                     {f.icon}
                                     <span>{f.label}</span>
@@ -1624,10 +1652,11 @@ export default function SearchEnginePortal() {
                             ))}
                         </div>
 
-                        <div className="search-bar-main group">
+                        <div className="search-bar-main group relative">
                             <div className="flex-shrink-0 opacity-40 group-focus-within:opacity-100 transition-opacity">
-                                <Search size={18} />
+                                <Search size={20} />
                             </div>
+                            
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -1636,19 +1665,24 @@ export default function SearchEnginePortal() {
                                 placeholder="Search the Scriptures, ask in faith…"
                                 className="search-input-main"
                             />
+
                             {query && (
                                 <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors">
-                                    <X size={16} />
+                                    <X size={18} />
                                 </button>
                             )}
-                            <button
-                                type="button"
-                                onClick={() => setIsVoiceActive(!isVoiceActive)}
-                                className={`p-2 rounded-full transition-all ${isVoiceActive ? 'bg-teal-pale text-teal' : 'text-teal hover:bg-teal-pale'}`}
-                            >
-                                <Mic2 size={16} />
-                            </button>
-                            <button type="submit" className="bg-navy text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-navy-2 transition-all shadow-md">
+                            
+                            {/* Integrated Voice Input */}
+                            <VoiceInput 
+                                onTranscript={(text) => {
+                                    setQuery(text);
+                                    handleSearch(text, filter);
+                                }} 
+                                onListeningChange={setIsVoiceActive}
+                                className="flex-shrink-0"
+                            />
+
+                            <button type="submit" className="bg-[#0C1A2E] text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
                                 Search
                             </button>
                         </div>

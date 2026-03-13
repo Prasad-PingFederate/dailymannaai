@@ -9,6 +9,7 @@ interface VoiceInputProps {
     onListeningChange?: (isListening: boolean) => void;
     disabled?: boolean;
     className?: string;
+    variant?: "default" | "minimal";
 }
 
 declare global {
@@ -28,6 +29,7 @@ export default function VoiceInput({
     onListeningChange,
     disabled = false,
     className = "",
+    variant = "default",
 }: VoiceInputProps) {
 
     const [status, setStatus] = useState<Status>("idle");
@@ -292,21 +294,24 @@ export default function VoiceInput({
                 disabled={isTranscribing || disabled}
                 aria-label={isRecording ? "Stop recording" : "Start voice input"}
                 className={`
-                    group relative w-11 h-11 flex items-center justify-center rounded-full
-                    transition-all duration-200 z-50 focus-visible:ring-2 focus-visible:ring-accent
+                    group relative flex items-center justify-center rounded-full
+                    transition-all duration-200 z-50 focus-visible:ring-2 focus-visible:ring-teal
+                    ${variant === "minimal" ? "w-8 h-8" : "w-11 h-11"}
                     ${isRecording
                         ? "bg-red-500 shadow-[0_0_22px_rgba(239,68,68,0.45)] scale-110"
                         : isTranscribing
-                            ? "bg-accent/20 opacity-60 cursor-wait"
-                            : "bg-accent/10 hover:bg-accent/20 border border-accent/20 text-accent hover:scale-105"
+                            ? "bg-teal-500/20 opacity-60 cursor-wait"
+                            : variant === "minimal" 
+                                ? "text-teal-600 hover:text-teal-700 bg-transparent hover:bg-teal-500/5 shadow-none border-none" 
+                                : "bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-600 hover:scale-105"
                     }
                 `}
             >
                 {isTranscribing
-                    ? <Loader2 className="w-4 h-4 animate-spin text-accent" />
+                    ? <Loader2 className={variant === "minimal" ? "w-3.5 h-3.5 animate-spin text-teal-600" : "w-4 h-4 animate-spin text-teal-600"} />
                     : isRecording
-                        ? <Square className="w-4 h-4 fill-white text-white" />
-                        : <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        ? <Square className={variant === "minimal" ? "w-3 h-3 fill-white text-white" : "w-4 h-4 fill-white text-white"} />
+                        : <Mic className={variant === "minimal" ? "w-4 h-4 group-hover:scale-110 transition-transform" : "w-5 h-5 group-hover:scale-110 transition-transform"} />
                 }
                 {isRecording && (
                     <span className="absolute inset-0 rounded-full bg-red-400/25 animate-ping -z-10" />
