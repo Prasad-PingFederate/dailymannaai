@@ -418,10 +418,11 @@ export default function BibleExplorer() {
 
                                     <button 
                                         onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[11px] font-bold whitespace-nowrap ${rightSidebarOpen ? 'bg-gold-pale/30 border-gold/30 text-gold' : 'bg-card-bg border-border text-text-2 hover:border-gold/30'}`}
+                                        className={`p-2 rounded-full border transition-all ${rightSidebarOpen ? 'bg-gold-pale/30 border-gold/30 text-gold' : 'bg-card-bg border-border text-text-3 hover:border-gold/30'}`}
+                                        title={rightSidebarOpen ? "Collapse Tools" : "Expand Tools"}
                                     >
-                                        <Settings size={12} />
-                                        Study Tools
+                                        <PanelRightClose size={18} className={rightSidebarOpen ? "" : "hidden"} />
+                                        <PanelRightOpen size={18} className={rightSidebarOpen ? "hidden" : ""} />
                                     </button>
                                     
                                     <button 
@@ -551,17 +552,25 @@ export default function BibleExplorer() {
                     ${rightSidebarOpen && !isZenMode ? 'w-80' : 'w-0 overflow-hidden border-none'}`}
                 >
                     <div className="flex flex-col h-full w-80">
-                        <div className="flex border-b border-border shrink-0">
-                            {['commentary', 'crossref', 'notes'].map((tab) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveToolTab(tab)}
-                                    className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-navy' : 'border-transparent text-muted-foreground hover:text-text-1'}`}
-                                >
-                                    {tab}
-                                    {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
-                                </button>
-                            ))}
+                        <div className="flex items-center border-b border-border shrink-0">
+                            <div className="flex flex-1">
+                                {['commentary', 'crossref', 'notes'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveToolTab(tab)}
+                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-navy' : 'border-transparent text-muted-foreground hover:text-text-1'}`}
+                                    >
+                                        {tab}
+                                        {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
+                                    </button>
+                                ))}
+                            </div>
+                            <button 
+                                onClick={() => setRightSidebarOpen(false)}
+                                className="px-4 py-5 text-muted-foreground hover:text-gold transition-colors border-l border-border/50"
+                            >
+                                <ChevronRight size={16} />
+                            </button>
                         </div>
 
                     <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
