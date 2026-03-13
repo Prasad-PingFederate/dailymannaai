@@ -270,20 +270,73 @@ export default function BibleExplorer() {
 
             {/* Global Search Bar (Bible Logic) */}
             <div className="bg-background border-b border-border py-4 px-6 shrink-0 flex justify-center">
-                <div className="search-bar-main max-w-4xl">
-                    <Search className="s-icon shrink-0" size={18} />
-                    <input 
-                        className="search-input-main" 
-                        placeholder="Search the Scriptures, ask in faith..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                    <VoiceInput 
-                         onTranscript={(text) => { setSearchQuery(text); handleSearch(text); }}
-                         className="voice-input-mic"
-                    />
-                    <button className="s-btn" onClick={() => handleSearch()}>Search</button>
+                <div className="search-bar-main max-w-5xl">
+                    {/* Navigation Selectors (Integrated) */}
+                    <div className="hidden lg:flex items-center gap-2 pr-4 border-r border-border/60">
+                        <select 
+                            value={translation}
+                            onChange={(e) => setTranslation(e.target.value)}
+                            className="bg-transparent text-[11px] font-bold text-gold uppercase tracking-widest outline-none cursor-pointer hover:text-gold-2 transition-colors min-w-[70px]"
+                        >
+                            {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(v => (
+                                <option key={v} value={v}>{v}</option>
+                            ))}
+                        </select>
+                        
+                        <div className="h-4 w-px bg-border/40 mx-1" />
+
+                        <select 
+                            value={currentBook?.name || ""}
+                            onChange={(e) => {
+                                const b = [...BIBLE_BOOKS.OT, ...BIBLE_BOOKS.NT].find(x => x.name === e.target.value);
+                                if (b) handleBookSelect(b);
+                            }}
+                            className="bg-transparent text-[11px] font-bold text-text-1 outline-none cursor-pointer max-w-[120px] truncate"
+                        >
+                            <option value="">Select Book</option>
+                            <optgroup label="Old Testament">
+                                {BIBLE_BOOKS.OT.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                            </optgroup>
+                            <optgroup label="New Testament">
+                                {BIBLE_BOOKS.NT.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                            </optgroup>
+                        </select>
+
+                        {currentBook && (
+                            <>
+                                <div className="h-4 w-px bg-border/40 mx-1" />
+                                <select 
+                                    value={currentChapter || ""}
+                                    onChange={(e) => handleChapterSelect(parseInt(e.target.value))}
+                                    className="bg-transparent text-[11px] font-bold text-text-1 outline-none cursor-pointer w-12"
+                                >
+                                    <option value="">Ch</option>
+                                    {Array.from({ length: currentBook.chapters }, (_, i) => i + 1).map(ch => (
+                                        <option key={ch} value={ch}>{ch}</option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="flex-1 flex items-center gap-3">
+                        <Search className="s-icon shrink-0 ml-2" size={18} />
+                        <input 
+                            className="search-input-main" 
+                            placeholder="Search the Scriptures, ask in faith..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <VoiceInput 
+                             onTranscript={(text) => { setSearchQuery(text); handleSearch(text); }}
+                             className="voice-input-mic"
+                        />
+                        <button className="s-btn whitespace-nowrap" onClick={() => handleSearch()}>Search</button>
+                    </div>
                 </div>
             </div>
 
