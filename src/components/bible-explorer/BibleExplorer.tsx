@@ -113,6 +113,11 @@ export default function BibleExplorer() {
     const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
     const [fontSize, setFontSize] = useState(19);
     const [isZenMode, setIsZenMode] = useState(false);
+    
+    // New UX State for Inline Chapters
+    const [expandedBook, setExpandedBook] = useState<string | null>(null);
+    const [showVersePopup, setShowVersePopup] = useState(false);
+    const [popupVerse, setPopupVerse] = useState<number | null>(null);
 
     // Fetch Verses When Book/Chapter Changes
     useEffect(() => {
@@ -139,6 +144,11 @@ export default function BibleExplorer() {
     };
 
     const handleBookSelect = (book: any) => {
+        if (expandedBook === book.name) {
+            setExpandedBook(null);
+        } else {
+            setExpandedBook(book.name);
+        }
         setCurrentBook(book);
         setCurrentChapter(null);
         setVerses([]);
@@ -146,6 +156,8 @@ export default function BibleExplorer() {
 
     const handleChapterSelect = (chapter: number) => {
         setCurrentChapter(chapter);
+        setHighlightedVerse(null);
+        setShowVersePopup(false);
         setIsMobileMenuOpen(false);
     };
 
@@ -279,70 +291,78 @@ export default function BibleExplorer() {
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Column 1: Books & Chapters (Combined Side Navigation) */}
                 <aside 
-                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-500 ease-in-out fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 
-                    ${leftSidebarOpen && !isZenMode ? 'w-80 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 md:opacity-0 pointer-events-none md:w-0'} 
-                    ${isMobileMenuOpen ? 'w-full translate-x-0' : ''}`}
+                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 
+                    ${leftSidebarOpen && !isZenMode ? 'w-80' : 'w-11 md:w-11 -translate-x-full md:translate-x-0'} 
+                    ${isMobileMenuOpen ? 'w-full translate-x-0' : ''} overflow-hidden`}
                 >
                     <div className="flex flex-col h-full w-80">
-                        <div className="p-4 border-b border-border space-y-3 shrink-0">
-                            <div className="flex items-center justify-between">
-                                <h4 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Scripture Index</h4>
-                                <button onClick={() => setLeftSidebarOpen(false)} className="md:hidden p-1 text-muted-foreground hover:text-foreground">
-                                    <PanelLeftClose size={16} />
-                                </button>
-                            </div>
-                            <div className="flex p-1 bg-background rounded-lg border border-border">
-                                <button 
-                                    onClick={() => setTestament('OT')}
-                                    className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${testament === 'OT' ? 'bg-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
-                                >
-                                    OLD (39)
-                                </button>
-                                <button 
-                                    onClick={() => setTestament('NT')}
-                                    className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all ${testament === 'NT' ? 'bg-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
-                                >
-                                    NEW (27)
-                                </button>
-                            </div>
+                        <div className="p-3.5 border-b border-border space-y-3 shrink-0 flex items-center justify-between">
+                            <h4 className={`font-title text-[8px] font-bold uppercase tracking-[0.22em] text-gold transition-opacity duration-200 ${!leftSidebarOpen && 'opacity-0'}`}>Scripture Index</h4>
+                            <button 
+                                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
+                                className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all"
+                            >
+                                <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
+                            </button>
                         </div>
 
-                        <div className="flex flex-1 overflow-hidden">
-                            {/* Books List */}
-                            <div className="w-1/2 border-r border-border/40 overflow-y-auto custom-scrollbar bg-background/30">
-                                {BIBLE_BOOKS[testament].map((book) => (
-                                    <button
-                                        key={book.name}
-                                        onClick={() => handleBookSelect(book)}
-                                        className={`w-full flex flex-col items-start px-4 py-3 text-sm border-l-2 transition-all ${currentBook?.name === book.name ? 'bg-gold-pale/15 text-gold border-gold font-bold' : 'hover:bg-muted/5 border-transparent text-text-2 hover:text-foreground'}`}
+                        {!leftSidebarOpen ? (
+                             <div className="flex flex-col items-center gap-2 py-4">
+                                <button onClick={() => setLeftSidebarOpen(true)} className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-gold hover:bg-gold-pale/20">
+                                    <Book size={14} />
+                                </button>
+                                <div className="h-px w-4 bg-border" />
+                                <div className="text-[10px] font-bold text-gold/40 vertical-text py-2">INDEX</div>
+                             </div>
+                        ) : (
+                            <>
+                                <div className="flex p-3 px-3.5 gap-2 shrink-0">
+                                    <button 
+                                        onClick={() => setTestament('OT')}
+                                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold tracking-wider transition-all border-1.5 ${testament === 'OT' ? 'bg-navy border-navy text-white shadow-sm' : 'bg-background border-border text-text-3 hover:border-gold/40 hover:text-text-1'}`}
                                     >
-                                        <span className="text-xs">{book.name}</span>
-                                        <span className={`text-[8px] font-bold uppercase tracking-widest opacity-60`}>{book.abbr}</span>
+                                        OLD (39)
                                     </button>
-                                ))}
-                            </div>
-                            {/* Chapters Grid */}
-                            <div className="w-1/2 overflow-y-auto p-3 custom-scrollbar">
-                                {currentBook ? (
-                                    <div className="grid grid-cols-3 gap-1.5">
-                                        {Array.from({ length: currentBook.chapters }, (_, i) => i + 1).map((ch) => (
+                                    <button 
+                                        onClick={() => setTestament('NT')}
+                                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold tracking-wider transition-all border-1.5 ${testament === 'NT' ? 'bg-navy border-navy text-white shadow-sm' : 'text-muted-foreground hover:bg-muted/10'}`}
+                                    >
+                                        NEW (27)
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                    {BIBLE_BOOKS[testament].map((book) => (
+                                        <div key={book.name} className="border-b border-border/40">
                                             <button
-                                                key={ch}
-                                                onClick={() => handleChapterSelect(ch)}
-                                                className={`h-9 rounded-md border transition-all flex items-center justify-center text-[11px] font-bold ${currentChapter === ch ? 'bg-navy border-navy text-white shadow-md' : 'bg-card-bg border-border/60 hover:border-gold/30 hover:bg-gold-pale/5 text-muted-foreground hover:text-foreground'}`}
+                                                onClick={() => handleBookSelect(book)}
+                                                className={`w-full flex items-center justify-between px-4 py-3.5 text-sm transition-all ${expandedBook === book.name ? 'bg-gold-pale/20' : 'hover:bg-muted/5'}`}
                                             >
-                                                {ch}
+                                                <div className="flex flex-col items-start">
+                                                    <span className={`text-[13px] font-medium ${currentBook?.name === book.name ? 'text-gold font-bold' : 'text-text-1'}`}>{book.name}</span>
+                                                    <span className={`text-[9px] font-bold tracking-widest uppercase ${currentBook?.name === book.name ? 'text-gold/60' : 'text-text-3'}`}>{book.abbr}</span>
+                                                </div>
+                                                <ChevronRight size={12} className={`text-text-3 transition-transform duration-200 ${expandedBook === book.name ? 'rotate-90 text-gold' : ''}`} />
                                             </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
-                                        <Book size={24} className="mb-2" />
-                                        <p className="text-[8px] font-bold uppercase tracking-widest">Select Book</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                                            
+                                            {expandedBook === book.name && (
+                                                <div className="grid grid-cols-6 gap-1 p-3 pt-0 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                    {Array.from({ length: book.chapters }, (_, i) => i + 1).map((ch) => (
+                                                        <button
+                                                            key={ch}
+                                                            onClick={() => handleChapterSelect(ch)}
+                                                            className={`aspect-square rounded border flex items-center justify-center text-[11px] font-bold transition-all ${currentBook?.name === book.name && currentChapter === ch ? 'bg-navy border-navy text-white shadow-sm' : 'bg-background border-border/60 hover:border-gold/30 hover:bg-gold-pale/20 text-text-2 hover:text-gold'}`}
+                                                        >
+                                                            {ch}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </aside>
 
@@ -370,89 +390,102 @@ export default function BibleExplorer() {
 
                     {currentBook && currentChapter ? (
                         <>
-                            {/* Reader Controls - Slimmer & cleaner */}
-                            <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border px-6 md:px-10 py-4 flex items-center justify-between z-20">
-                                <div className="flex items-center gap-4">
-                                    <button 
-                                        onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
-                                        className="hidden md:flex p-1.5 rounded-lg hover:bg-muted/10 text-muted-foreground transition-colors"
-                                    >
-                                        {leftSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
-                                    </button>
-                                    <div className="h-4 w-[1px] bg-border mx-1 hidden md:block"></div>
-                                    <div>
-                                        <div className="font-title text-[9px] font-bold tracking-[0.2em] text-gold uppercase mb-0.5">{currentBook.name}</div>
-                                        <h2 className="font-serif text-2xl font-medium tracking-tight flex items-center gap-2">
-                                            Chapter {currentChapter}
-                                            <span className="text-xs font-sans font-bold text-muted-foreground/40 ml-1">{verses.length} verses</span>
-                                        </h2>
-                                    </div>
+                            {/* Reader Topbar — minimal premium */}
+                            <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border px-6 md:px-8 py-3 flex items-center gap-4 z-20">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-title text-[12px] font-bold text-navy tracking-wider uppercase">{currentBook.name}</span>
+                                    <span className="text-border px-1">·</span>
+                                    <span className="text-[12px] font-medium text-text-3">Chapter {currentChapter}</span>
+                                    <span className="ml-2 px-2.5 py-1 bg-gold-pale/30 border border-gold/20 rounded-full text-[10px] font-bold text-gold uppercase tracking-tighter shrink-0">{verses.length} verses</span>
                                 </div>
                                 
-                                <div className="flex items-center gap-3">
-                                    {/* Font Controls */}
-                                    <div className="hidden sm:flex items-center bg-muted/10 rounded-full border border-border p-0.5 mr-2">
-                                        <button onClick={() => setFontSize(Math.max(14, fontSize - 1))} className="p-1 px-2 hover:bg-muted/20 rounded-l-full transition-colors text-xs font-bold text-muted-foreground">A-</button>
-                                        <div className="px-2 text-[10px] font-bold border-x border-border/50 text-gold">{fontSize}</div>
-                                        <button onClick={() => setFontSize(Math.min(32, fontSize + 1))} className="p-1 px-2 hover:bg-muted/20 rounded-r-full transition-colors text-xs font-bold text-muted-foreground">A+</button>
+                                <div className="hidden sm:flex items-center gap-3 ml-auto">
+                                    <div className="flex items-center bg-card-bg rounded-full border border-border p-0.5">
+                                        <button onClick={() => setFontSize(Math.max(12, fontSize - 1))} className="w-6 h-6 flex items-center justify-center hover:bg-muted/10 rounded-full transition-colors text-xs font-bold text-text-2">−</button>
+                                        <div className="px-2 text-[10px] font-bold text-text-1 min-w-[24px] text-center">{fontSize}</div>
+                                        <button onClick={() => setFontSize(Math.min(32, fontSize + 1))} className="w-6 h-6 flex items-center justify-center hover:bg-muted/10 rounded-full transition-colors text-xs font-bold text-text-2">+</button>
                                     </div>
 
                                     <select 
                                         value={translation}
                                         onChange={(e) => setTranslation(e.target.value)}
-                                        className="bg-card-bg border border-border rounded-full px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase focus:ring-1 ring-gold/20 outline-none cursor-pointer hover:border-gold/30 transition-all"
+                                        className="bg-card-bg border border-border rounded-full px-3 py-1.5 text-[11px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans"
                                     >
-                                        <option value="KJV">KJV</option>
-                                        <option value="NIV">NIV</option>
-                                        <option value="ESV">ESV</option>
-                                        <option value="NKJV">NKJV</option>
+                                        {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
                                     </select>
-
-                                    <div className="flex items-center gap-1.5 pl-3 border-l border-border">
-                                        <button onClick={prevChapter} disabled={currentChapter === 1} className="p-2 border border-border rounded-full bg-card-bg hover:bg-navy hover:text-white disabled:opacity-20 transition-all"><ChevronLeft size={16} /></button>
-                                        <button onClick={nextChapter} disabled={currentChapter === currentBook.chapters} className="p-2 border border-border rounded-full bg-card-bg hover:bg-navy hover:text-white disabled:opacity-20 transition-all"><ChevronRight size={16} /></button>
-                                    </div>
-
-                                    <div className="h-4 w-[1px] bg-border mx-1 hidden md:block"></div>
-
-                                    <button 
-                                        onClick={() => setIsZenMode(!isZenMode)} 
-                                        className={`p-2 rounded-full transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'hover:bg-muted/10 text-muted-foreground'}`}
-                                        title={isZenMode ? "Exit Zen Mode" : "Zen Mode (Maximize Reading Area)"}
-                                    >
-                                        {isZenMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                                    </button>
 
                                     <button 
                                         onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
-                                        className="hidden md:flex p-1.5 rounded-lg hover:bg-muted/10 text-muted-foreground transition-colors"
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[11px] font-bold whitespace-nowrap ${rightSidebarOpen ? 'bg-gold-pale/30 border-gold/30 text-gold' : 'bg-card-bg border-border text-text-2 hover:border-gold/30'}`}
                                     >
-                                        {rightSidebarOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+                                        <Settings size={12} />
+                                        Study Tools
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => setIsZenMode(!isZenMode)} 
+                                        className={`p-2 rounded-full transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'hover:bg-muted/10 text-text-3'}`}
+                                        title={isZenMode ? "Exit Zen Mode" : "Zen Mode"}
+                                    >
+                                        {isZenMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Scripture Content - Centered for better focus */}
-                            <div className={`flex-1 overflow-y-auto px-6 md:px-12 py-16 custom-scrollbar transition-all duration-700 bg-[radial-gradient(circle_at_50%_0%,rgba(200,146,42,0.03),transparent)]`}>
+                            {/* Chapter Navigation Bar */}
+                            <div className="ch-nav-bar px-6 md:px-8 py-2.5 flex items-center justify-between bg-card-bg/30 border-b border-border text-text-2">
+                                <button 
+                                    onClick={prevChapter} 
+                                    disabled={currentChapter === 1} 
+                                    className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-background text-[11px] font-bold hover:bg-navy hover:text-white disabled:opacity-30 transition-all"
+                                >
+                                    <ChevronLeft size={14} /> Previous
+                                </button>
+                                <div className="text-[11px] font-bold text-text-3 uppercase tracking-widest hidden sm:block">
+                                    {currentBook.name} · Chapter {currentChapter}
+                                </div>
+                                <button 
+                                    onClick={nextChapter} 
+                                    disabled={currentChapter === currentBook.chapters} 
+                                    className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-background text-[11px] font-bold hover:bg-navy hover:text-white disabled:opacity-30 transition-all"
+                                >
+                                    Next <ChevronRight size={14} />
+                                </button>
+                            </div>
+
+                            {/* Scripture Content */}
+                            <div className={`flex-1 overflow-y-auto px-6 md:px-16 py-12 custom-scrollbar transition-all duration-700 bg-background`}>
                                 <div className={`mx-auto transition-all duration-700 ${isZenMode ? 'max-w-4xl' : 'max-w-2xl lg:max-w-3xl'}`}>
+                                    <div className="text-center mb-12">
+                                        <div className="font-title text-[10px] letter-spacing-[0.25em] text-gold uppercase mb-2">{currentBook.name}</div>
+                                        <div className="font-serif text-4xl font-medium text-navy">Chapter {currentChapter}</div>
+                                        <div className="w-10 h-0.5 bg-gold/30 mx-auto mt-3" />
+                                    </div>
+
                                     {loading ? (
-                                        <div className="text-center py-40">
+                                        <div className="text-center py-40 animate-pulse">
                                             <div className="w-16 h-16 rounded-full border-2 border-gold/10 border-t-gold animate-spin mx-auto mb-6" />
                                             <p className="font-serif italic text-muted-foreground text-lg">Drawing from the well of living water...</p>
                                         </div>
                                     ) : verses.length > 0 ? (
-                                        <div className="space-y-0.5">
+                                        <div className="space-y-1">
                                             {verses.map((v) => (
                                                 <div 
                                                     key={v.verse || v.pk} 
-                                                    onClick={() => setHighlightedVerse(v.verse)}
-                                                    className={`group flex items-start gap-4 md:gap-8 p-4 md:p-6 rounded-2xl transition-all cursor-pointer border-l-4 ${highlightedVerse === v.verse ? 'bg-gold-pale/15 border-gold shadow-sm ring-1 ring-gold/10' : 'hover:bg-muted/5 border-transparent'}`}
+                                                    onClick={() => {
+                                                        setHighlightedVerse(v.verse);
+                                                        setPopupVerse(v.verse);
+                                                        setShowVersePopup(true);
+                                                    }}
+                                                    className={`group flex items-start gap-3 p-3 md:p-4 rounded-xl transition-all cursor-pointer border-l-[3px] ${highlightedVerse === v.verse ? 'bg-gold-pale/20 border-gold' : 'hover:bg-gold-pale/10 border-transparent'}`}
                                                 >
-                                                    <span className={`shrink-0 w-8 md:w-12 text-right font-title text-[10px] md:text-xs font-black transition-colors ${highlightedVerse === v.verse ? 'text-gold' : 'text-gold/30 group-hover:text-gold/60'} pt-2`}>
+                                                    <span className={`shrink-0 w-8 text-right font-bold text-[9px] transition-colors ${highlightedVerse === v.verse ? 'text-gold' : 'text-gold opacity-50'} pt-2`}>
                                                         {v.verse}
                                                     </span>
                                                     <p 
-                                                        className="font-serif leading-[1.8] text-foreground/90 selection:bg-gold/30 antialiased"
+                                                        className={`font-serif leading-[1.9] text-text-1 selection:bg-gold/20`}
                                                         style={{ fontSize: `${fontSize}px` }}
                                                     >
                                                         {v.text}
@@ -462,15 +495,26 @@ export default function BibleExplorer() {
                                         </div>
                                     ) : (
                                         <div className="text-center py-32 space-y-4">
-                                            <div className="w-20 h-20 bg-muted/5 rounded-full flex items-center justify-center mx-auto ring-1 ring-border/50">
-                                                <Info size={32} className="text-muted-foreground/30" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <h3 className="font-title text-sm tracking-widest text-gold uppercase">Content Not Available</h3>
-                                                <p className="text-muted-foreground text-sm font-serif italic">The requested chapter could not be loaded in {translation}.</p>
-                                            </div>
+                                            <Info size={48} className="text-gold opacity-10 mx-auto" />
+                                            <h3 className="font-serif text-xl italic text-text-3">Wait on the Lord...</h3>
+                                            <p className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Content Loading Problem</p>
                                         </div>
                                     )}
+
+                                    {/* Bottom Reader Nav */}
+                                    <div className="mt-20 pt-10 border-t border-border flex items-center justify-between text-text-3 pb-20">
+                                        <div className="text-[11px] font-bold">
+                                            READING <strong>{currentBook.name.toUpperCase()} {currentChapter}</strong>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={prevChapter} disabled={currentChapter === 1} className="flex items-center gap-2 px-5 py-2 rounded-full border border-border bg-card-bg text-[11px] font-bold hover:bg-navy hover:text-white disabled:opacity-30 transition-all">
+                                                <ChevronLeft size={16} /> Previous
+                                            </button>
+                                            <button onClick={nextChapter} disabled={currentChapter === currentBook.chapters} className="flex items-center gap-2 px-5 py-2 rounded-full border border-border bg-card-bg text-[11px] font-bold hover:bg-navy hover:text-white disabled:opacity-30 transition-all">
+                                                Next <ChevronRight size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </>
@@ -600,13 +644,35 @@ export default function BibleExplorer() {
             </main>
 
             {/* Footer */}
-            <footer className="h-10 border-t border-border bg-card-bg/50 px-6 flex items-center justify-between shrink-0">
-                <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">© 2026 DailyMannaAI — Built with Prayer ✦</p>
+            <footer className="h-10 border-t border-border bg-card-bg px-6 flex items-center justify-between shrink-0 z-20">
+                <p className="text-[10px] font-bold text-text-3 uppercase tracking-widest">© 2026 DailyMannaAI — Built with Prayer ✦</p>
                 <div className="flex gap-6">
-                    <button className="text-[10px] font-bold text-muted-foreground hover:text-gold transition-colors uppercase tracking-widest">About Us</button>
-                    <button className="text-[10px] font-bold text-muted-foreground hover:text-gold transition-colors uppercase tracking-widest">Privacy Policy</button>
+                    <button className="text-[10px] font-bold text-text-3 hover:text-gold transition-colors uppercase tracking-widest">About Us</button>
+                    <button className="text-[10px] font-bold text-text-3 hover:text-gold transition-colors uppercase tracking-widest">Privacy Policy</button>
                 </div>
             </footer>
+
+            {/* Verse Action Popup */}
+            <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 transform ${showVersePopup ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
+                <div className="bg-navy border border-gold/20 rounded-2xl shadow-2xl p-2 flex items-center gap-2 px-4 py-2.5">
+                    <span className="text-[10px] font-bold text-gold/60 mr-2">v.{popupVerse}</span>
+                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-all text-white/80 text-[11px] font-medium">
+                        <Check size={12} className="text-gold" /> Highlight
+                    </button>
+                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-all text-white/80 text-[11px] font-medium">
+                        <Heart size={12} className="text-gold" /> Save
+                    </button>
+                    <button className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10 transition-all text-white/80 text-[11px] font-medium">
+                        <Share2 size={12} className="text-gold" /> Share
+                    </button>
+                    <button 
+                        onClick={() => setShowVersePopup(false)}
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-white/40 hover:text-white transition-all ml-1"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

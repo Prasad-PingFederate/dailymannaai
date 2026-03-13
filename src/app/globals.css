@@ -13,14 +13,14 @@
   --gold-border: rgba(200, 146, 42, 0.25);
   --teal: #1FA698;
   --teal-pale: rgba(31, 166, 152, 0.1);
-  --cream: #F5F0E8;
-  --cream-2: #EDE8DC;
+  --cream: #F2EDE3;
+  --cream-2: #EAE4D8;
   --white: #FFFFFF;
   --text-1: #0C1A2E;
   --text-2: #4A5568;
   --text-3: #8896A8;
-  --border: #E2DDD4;
-  --border-light: rgba(10, 22, 40, 0.07);
+  --border: #DDD8CE;
+  --border-2: #E8E2D8;
   --orange: #E07B39;
   --orange-pale: rgba(224, 123, 57, 0.12);
   --blue: #2B6CB0;
@@ -204,6 +204,7 @@ body {
 .site-logo span.gold {
   background: linear-gradient(135deg, #C8922A 0%, #E2B055 50%, #C8922A 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -294,4 +295,33 @@ body {
   font-weight: 300;
 }
 
-/* ───────────────────────────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────────────────── */
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(200, 146, 42, 0.18);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 146, 42, 0.35);
+}
+
+/* Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-blink {
+  animation: blink 2s infinite;
+}
