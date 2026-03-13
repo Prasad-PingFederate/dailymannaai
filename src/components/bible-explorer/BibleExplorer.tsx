@@ -294,6 +294,10 @@ export default function BibleExplorer() {
                                 <option value="ru">Русский</option>
                                 <option value="ko">한국어</option>
                             </optgroup>
+                            <optgroup label="Regional">
+                                <option value="te">తెలుగు (Telugu)</option>
+                                <option value="ta">தமிழ் (Tamil)</option>
+                            </optgroup>
                         </select>
                         
                         <div className="h-4 w-px bg-border/40 mx-1" />
@@ -384,6 +388,10 @@ export default function BibleExplorer() {
                                         <option value="ar">العربية (SVD)</option>
                                         <option value="ru">Русский (Synodal)</option>
                                         <option value="ko">한국어 (Hangul)</option>
+                                    </optgroup>
+                                    <optgroup label="Regional">
+                                        <option value="te">తెలుగు (Telugu)</option>
+                                        <option value="ta">தமிழ் (Tamil)</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -519,6 +527,8 @@ export default function BibleExplorer() {
                                             <option value="ar">AR</option>
                                             <option value="ru">RU</option>
                                             <option value="ko">KO</option>
+                                            <option value="te">TE</option>
+                                            <option value="ta">TA</option>
                                         </optgroup>
                                     </select>
 
