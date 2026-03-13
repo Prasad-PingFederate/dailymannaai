@@ -276,11 +276,19 @@ export default function BibleExplorer() {
                         <select 
                             value={translation}
                             onChange={(e) => setTranslation(e.target.value)}
-                            className="bg-transparent text-[11px] font-bold text-gold uppercase tracking-widest outline-none cursor-pointer hover:text-gold-2 transition-colors min-w-[70px]"
+                            className="bg-transparent text-[11px] font-bold text-gold uppercase tracking-widest outline-none cursor-pointer hover:text-gold-2 transition-colors min-w-[80px]"
                         >
-                            {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(v => (
-                                <option key={v} value={v}>{v}</option>
-                            ))}
+                            <optgroup label="English">
+                                {['NIV', 'KJV', 'ESV', 'NKJV', 'NLT', 'NASB', 'AMP'].map(v => (
+                                    <option key={v} value={v}>{v}</option>
+                                ))}
+                            </optgroup>
+                            <optgroup label="Chinese">
+                                <option value="zh">ZH (Union)</option>
+                            </optgroup>
+                            <optgroup label="Indonesian">
+                                <option value="id">ID (TB)</option>
+                            </optgroup>
                         </select>
                         
                         <div className="h-4 w-px bg-border/40 mx-1" />
