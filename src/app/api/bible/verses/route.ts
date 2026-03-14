@@ -45,6 +45,7 @@ export async function GET(req: Request) {
             'dogri': 'bible_ar',
             'assamese': 'bible_ar',
             'manipuri': 'bible_ar',
+            'sanskrit': 'bible_ar',
         };
 
         if (hybridMap[translation]) {

@@ -337,6 +337,7 @@ export default function BibleExplorer() {
                                         <option value="nepali">Nepali</option>
                                         <option value="oriya">Oriya</option>
                                         <option value="punjabi">Punjabi</option>
+                                        <option value="sanskrit">संस्कृतम् (Sanskrit)</option>
                                         <option value="sepedi">Sepedi</option>
                                         <option value="urdu">اردو (Urdu)</option>
                                         <option value="xhosa">Xhosa</option>
