@@ -322,7 +322,9 @@ export default function BibleExplorer() {
                                     </optgroup>
                                     <optgroup label="Global (Database)">
                                         <option value="afrikaans">Afrikaans</option>
+                                        <option value="assamese">অসমীয়া (Assamese)</option>
                                         <option value="bengali">Bengali</option>
+                                        <option value="dogri">Dogri</option>
                                         <option value="english">English (Global)</option>
                                         <option value="gujarati">Gujarati</option>
                                         <option value="hindi">Hindi</option>
@@ -330,11 +332,13 @@ export default function BibleExplorer() {
                                         <option value="indonesian">Indonesian</option>
                                         <option value="kannada">Kannada</option>
                                         <option value="malayalam">Malayalam</option>
+                                        <option value="manipuri">Manipuri (Meitei)</option>
                                         <option value="marathi">Marathi</option>
                                         <option value="nepali">Nepali</option>
                                         <option value="oriya">Oriya</option>
                                         <option value="punjabi">Punjabi</option>
                                         <option value="sepedi">Sepedi</option>
+                                        <option value="urdu">اردو (Urdu)</option>
                                         <option value="xhosa">Xhosa</option>
                                         <option value="zulu">Zulu</option>
                                     </optgroup>

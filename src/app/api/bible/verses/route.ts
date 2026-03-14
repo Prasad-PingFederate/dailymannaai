@@ -23,6 +23,7 @@ export async function GET(req: Request) {
             'ko': 'bible_fr',
             'te': 'bible_es',
             'ta': 'bible_pt',
+            // godlytalias/Bible-Database imports (bible_ar collection)
             'afrikaans': 'bible_ar',
             'bengali': 'bible_ar',
             'english': 'bible_ar',
@@ -38,7 +39,12 @@ export async function GET(req: Request) {
             'punjabi': 'bible_ar',
             'sepedi': 'bible_ar',
             'xhosa': 'bible_ar',
-            'zulu': 'bible_ar'
+            'zulu': 'bible_ar',
+            // New imports (also in bible_ar collection)
+            'urdu': 'bible_ar',
+            'dogri': 'bible_ar',
+            'assamese': 'bible_ar',
+            'manipuri': 'bible_ar',
         };
 
         if (hybridMap[translation]) {

@@ -78,6 +78,8 @@ next-env.d.ts
 spurgeon_data/
 llama3_repo/
 Bible-Database/
+Bible-Corpus-XML/
+Bible-Assamese-1951/
 
 # Temporary migration and verification scripts
 import_*.py
