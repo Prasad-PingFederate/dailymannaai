@@ -18,12 +18,27 @@ export async function GET(req: Request) {
         let collectionName = `bible_${translation}`;
         let queryFilter: any = { book, chapter };
 
-        // Hybrid storage mapping to bypass Astra DB collection/index limits
         const hybridMap: Record<string, string> = {
             'ru': 'bible_de',
             'ko': 'bible_fr',
             'te': 'bible_es',
-            'ta': 'bible_pt'
+            'ta': 'bible_pt',
+            'afrikaans': 'bible_ar',
+            'bengali': 'bible_ar',
+            'english': 'bible_ar',
+            'gujarati': 'bible_ar',
+            'hindi': 'bible_ar',
+            'hungarian': 'bible_ar',
+            'indonesian': 'bible_ar',
+            'kannada': 'bible_ar',
+            'malayalam': 'bible_ar',
+            'marathi': 'bible_ar',
+            'nepali': 'bible_ar',
+            'oriya': 'bible_ar',
+            'punjabi': 'bible_ar',
+            'sepedi': 'bible_ar',
+            'xhosa': 'bible_ar',
+            'zulu': 'bible_ar'
         };
 
         if (hybridMap[translation]) {

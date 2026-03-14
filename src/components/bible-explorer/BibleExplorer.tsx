@@ -233,7 +233,7 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA'].map(v => (
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU'].map(v => (
                                 <option key={v} value={v.toLowerCase()}>{v}</option>
                             ))}
                         </select>
@@ -319,6 +319,24 @@ export default function BibleExplorer() {
                                     <optgroup label="Regional">
                                         <option value="te">తెలుగు (Telugu)</option>
                                         <option value="ta">தமிழ் (Tamil)</option>
+                                    </optgroup>
+                                    <optgroup label="Global (Database)">
+                                        <option value="afrikaans">Afrikaans</option>
+                                        <option value="bengali">Bengali</option>
+                                        <option value="english">English (Global)</option>
+                                        <option value="gujarati">Gujarati</option>
+                                        <option value="hindi">Hindi</option>
+                                        <option value="hungarian">Hungarian</option>
+                                        <option value="indonesian">Indonesian</option>
+                                        <option value="kannada">Kannada</option>
+                                        <option value="malayalam">Malayalam</option>
+                                        <option value="marathi">Marathi</option>
+                                        <option value="nepali">Nepali</option>
+                                        <option value="oriya">Oriya</option>
+                                        <option value="punjabi">Punjabi</option>
+                                        <option value="sepedi">Sepedi</option>
+                                        <option value="xhosa">Xhosa</option>
+                                        <option value="zulu">Zulu</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -458,7 +476,7 @@ export default function BibleExplorer() {
                                         onChange={(e) => setTranslation(e.target.value)}
                                         className="bg-card-bg border border-border rounded-lg px-2 py-1.5 text-[10px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans hidden md:block"
                                     >
-                                        {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA'].map(t => (
+                                        {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU'].map(t => (
                                             <option key={t} value={t.toLowerCase()}>{t}</option>
                                         ))}
                                     </select>

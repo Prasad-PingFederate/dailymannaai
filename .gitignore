@@ -77,3 +77,24 @@ next-env.d.ts
 # Embedded repos (not needed for build)
 spurgeon_data/
 llama3_repo/
+Bible-Database/
+
+# Temporary migration and verification scripts
+import_*.py
+clean_*.py
+verify_*.py
+check_*.py
+fresh_*.py
+hard_reset.py
+nuclear_fix.py
+full_health_scan.py
+diagnose_*.ts
+find_healthy.py
+*.txt
+*.csv
+api/
+backend/
+llama3_repo/
+prisma/
+scripts/
+!scripts/reach_booster.js
