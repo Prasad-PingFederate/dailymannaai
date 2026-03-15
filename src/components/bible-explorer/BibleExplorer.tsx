@@ -233,7 +233,7 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN'].map(v => {
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN', 'NORWEGIAN BOKMAL', 'NORWEGIAN NYNORSK', 'ESTONIAN', 'LATVIAN', 'LITHUANIAN', 'BASQUE', 'ESPERANTO', 'SCOTTISH GAELIC', 'MANX GAELIC', 'BRETON'].map(v => {
                                 let val = v.toLowerCase();
                                 if (val === 'kashmiri') val = 'ks';
                                 if (val === 'greek') val = 'el';
@@ -259,6 +259,16 @@ export default function BibleExplorer() {
                                 if (val === 'maori') val = 'mi';
                                 if (val === 'latin') val = 'la';
                                 if (val === 'albanian') val = 'sq';
+                                if (val === 'norwegian bokmal') val = 'nb';
+                                if (val === 'norwegian nynorsk') val = 'nn';
+                                if (val === 'estonian') val = 'et';
+                                if (val === 'latvian') val = 'lv';
+                                if (val === 'lithuanian') val = 'lt';
+                                if (val === 'basque') val = 'eu';
+                                if (val === 'esperanto') val = 'eo';
+                                if (val === 'scottish gaelic') val = 'gd';
+                                if (val === 'manx gaelic') val = 'gv';
+                                if (val === 'breton') val = 'br';
                                 return <option key={v} value={val}>{v}</option>;
                             })}
                         </select>
@@ -340,12 +350,22 @@ export default function BibleExplorer() {
                                         <option value="nl">Nederlands (Dutch)</option>
                                         <option value="uk">Українська (Ukrainian)</option>
                                         <option value="sv">Svenska (Swedish)</option>
+                                        <option value="nb">Norsk Bokmål (Norwegian)</option>
+                                        <option value="nn">Norsk Nynorsk (Norwegian)</option>
                                         <option value="fi">Suomi (Finnish)</option>
                                         <option value="da">Dansk (Danish)</option>
                                         <option value="cs">Čeština (Czech)</option>
                                         <option value="hr">Hrvatski (Croatian)</option>
                                         <option value="sr">Српски (Serbian)</option>
                                         <option value="ro">Română (Romanian)</option>
+                                        <option value="et">Eesti (Estonian)</option>
+                                        <option value="lv">Latviešu (Latvian)</option>
+                                        <option value="lt">Lietuvių (Lithuanian)</option>
+                                        <option value="eu">Euskara (Basque)</option>
+                                        <option value="eo">Esperanto</option>
+                                        <option value="gd">Gàidhlig (Scottish Gaelic)</option>
+                                        <option value="gv">Gaelg (Manx Gaelic)</option>
+                                        <option value="br">Brezhoneg (Breton)</option>
                                         <option value="sw">Kiswahili (Swahili)</option>
                                         <option value="sq">Shqip (Albanian)</option>
                                         <option value="ar">العربية (SVD)</option>

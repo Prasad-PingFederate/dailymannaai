@@ -71,6 +71,16 @@ export async function GET(req: Request) {
             'mi': 'bible_ar',
             'la': 'bible_ar',
             'sq': 'bible_ar',
+            'nb': 'bible_ar',
+            'nn': 'bible_ar',
+            'et': 'bible_ar',
+            'lv': 'bible_ar',
+            'lt': 'bible_ar',
+            'eu': 'bible_ar',
+            'eo': 'bible_ar',
+            'gd': 'bible_ar',
+            'gv': 'bible_ar',
+            'br': 'bible_ar',
         };
 
         if (hybridMap[translation]) {
