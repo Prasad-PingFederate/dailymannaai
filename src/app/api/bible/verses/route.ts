@@ -7,22 +7,47 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
-        const book = searchParams.get("book")?.trim();
+        const bookRaw = searchParams.get("book")?.trim() || "";
+        // Normalize to Title Case (e.g. genesis -> Genesis)
+        const book = bookRaw.charAt(0).toUpperCase() + bookRaw.slice(1).toLowerCase();
         const chapter = parseInt(searchParams.get("chapter") || "0");
-        const translation = searchParams.get("translation")?.toLowerCase() || "kjv";
+        const translationRaw = searchParams.get("translation")?.toLowerCase() || "kjv";
+
+        // LOGGING FOR FUTURE MONITORING
+        console.log(`[BIBLE_API] Request: ${book} ${chapter} (Translation: ${translationRaw})`);
 
         if (!book || !chapter) {
             return NextResponse.json({ error: "Book and Chapter are required" }, { status: 400 });
         }
 
-        let collectionName = `bible_${translation}`;
+        // VERSION RESOLVER: Maps legacy UI IDs to actual DB Version Codes
+        const VERSION_RESOLVER: Record<string, string> = {
+            'el': 'GRCMT',
+            'he': 'HEBSG',
+            'te': 'TEL2017',
+            'ta': 'TAM2017',
+            'hindi': 'HIN2017',
+            'bengali': 'BENIRV',
+            'kannada': 'KANIRV',
+            'malayalam': 'MAL2015',
+            'marathi': 'MAR',
+            'oriya': 'ORI',
+            'punjabi': 'PAN',
+            'gujarati': 'GUJ2017',
+            'nepali': 'NPIULB',
+            'indonesian': 'IND',
+            'english': 'ENG-WEB-C',
+            'afrikaans': 'AFR1953',
+            'zh': 'CMN-CU89S',
+            'es': 'SPARV1909',
+            'ar': 'ARBNAV'
+        };
+
+        const translation = VERSION_RESOLVER[translationRaw] || translationRaw.toUpperCase();
+        let collectionName = `bible_${translation.toLowerCase()}`;
         let queryFilter: any = { book, chapter };
 
                 const hybridMap: Record<string, string> = {
-            'ru': 'bible_de',
-            'ko': 'bible_fr',
-            'te': 'bible_es',
-            'ta': 'bible_pt',
             'afrikaans': 'bible_ar',
             'bengali': 'bible_ar',
             'english': 'bible_ar',
@@ -1178,22 +1203,52 @@ export async function GET(req: Request) {
             'tap': 'bible_ar',
         };
 
-        if (hybridMap[translation]) {
-            collectionName = hybridMap[translation];
-            queryFilter.version = translation.toUpperCase();
+        // Resolve Collection and Version
+        if (hybridMap[translationRaw]) {
+            collectionName = hybridMap[translationRaw];
+            queryFilter.version = translation; // Using the resolved code (e.g., GRCMT)
+        } else if (hybridMap[translation.toLowerCase()]) {
+            collectionName = hybridMap[translation.toLowerCase()];
+            queryFilter.version = translation;
         }
 
+        console.log(`[BIBLE_API] Final Query: Collection=${collectionName}, Version=${queryFilter.version}, Filter=${JSON.stringify(queryFilter)}`);
+
         const collection = await getCollection(collectionName);
+        if (!collection) {
+            throw new Error(`Collection not found: ${collectionName}`);
+        }
 
         // Fetch all verses for the chapter
         const result = await collection.find(queryFilter).toArray();
         
+        if (result.length === 0) {
+            console.warn(`[BIBLE_API] No verses found for ${book} ${chapter} in ${translation} (${collectionName})`);
+        } else {
+            console.log(`[BIBLE_API] Success! Found ${result.length} verses.`);
+        }
+
         // Manual sort in JS if the DB doesn't have an index
         result.sort((a: any, b: any) => (a.verse || 0) - (b.verse || 0));
 
-        return NextResponse.json({ verses: result });
+        return NextResponse.json({ 
+            verses: result,
+            meta: {
+                resolvedVersion: translation,
+                collection: collectionName,
+                count: result.length
+            }
+        });
     } catch (error: any) {
-        console.error("Bible Fetch Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("Bible Fetch Error Details:", {
+            message: error.message,
+            stack: error.stack,
+            url: req.url
+        });
+        return NextResponse.json({ 
+            error: "Failed to load scripture content", 
+            details: error.message,
+            help: "Try selecting a different translation or verify if this book/chapter exists in this version."
+        }, { status: 500 });
     }
 }

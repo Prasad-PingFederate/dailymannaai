@@ -57,7 +57,7 @@ with open(route_path, 'r', encoding='utf-8') as f:
 
 # Replace the entire hybridMap content
 map_pattern = re.compile(r'const hybridMap: Record<string, string> = \{([\s\S]*?)\};')
-new_map_str = "const hybridMap: Record<string, string> = {\n            'ru': 'bible_de',\n            'ko': 'bible_fr',\n            'te': 'bible_es',\n            'ta': 'bible_pt',\n" + "\n".join(map_entries) + "\n        };"
+new_map_str = "const hybridMap: Record<string, string> = {\n" + "\n".join(map_entries) + "\n        };"
 route_content = map_pattern.sub(new_map_str, route_content)
 
 with open(route_path, 'w', encoding='utf-8') as f:

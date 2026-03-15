@@ -102,6 +102,7 @@ export default function BibleExplorer() {
     const [currentChapter, setCurrentChapter] = useState<number | null>(null);
     const [verses, setVerses] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const [translation, setTranslation] = useState('KJV');
     const [activeToolTab, setActiveToolTab] = useState('crossref');
     const [searchQuery, setSearchQuery] = useState('');
@@ -128,16 +129,23 @@ export default function BibleExplorer() {
 
     const fetchVerses = async (book: string, chapter: number) => {
         setLoading(true);
+        setFetchError(null);
         try {
             const res = await fetch(`/api/bible/verses?book=${encodeURIComponent(book)}&chapter=${chapter}&translation=${translation}`);
             const data = await res.json();
-            if (data.verses) {
+            
+            if (res.ok && data.verses) {
                 setVerses(data.verses);
+                if (data.verses.length === 0) {
+                    setFetchError("NO_VERSES");
+                }
             } else {
                 setVerses([]);
+                setFetchError(data.details || data.error || "Failed to load content");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Bible Fetch Error:", error);
+            setFetchError("System error connecting to Bible service.");
         } finally {
             setLoading(false);
         }
@@ -454,6 +462,8 @@ export default function BibleExplorer() {
 
 
 
+
+
                                         <option value="el">Ελληνικά (Greek)</option>
                                         <option value="he">עִברִית (Hebrew)</option>
                                         <option value="hbo">Ancient Hebrew (Aleppo)</option>
@@ -463,6 +473,8 @@ export default function BibleExplorer() {
                                         <option value="cop">Coptic (Bohairic)</option>
                                         <option value="cu">Church Slavonic</option>
                                         <option value="got">Gothic</option>
+                                    
+                                    
                                     
                                     
                                     
@@ -2009,10 +2021,33 @@ export default function BibleExplorer() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-32 space-y-4">
-                                            <Info size={48} className="text-gold opacity-10 mx-auto" />
-                                            <h3 className="font-serif text-xl italic text-text-3">Wait on the Lord...</h3>
-                                            <p className="text-muted-foreground text-sm uppercase tracking-widest font-bold">Content Loading Problem</p>
+                                        <div className="text-center py-32 space-y-6 max-w-md mx-auto">
+                                            <div className="p-4 rounded-full bg-gold/5 w-fit mx-auto mb-2">
+                                                <Info size={40} className="text-gold/40" />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <h3 className="font-serif text-xl italic text-brand-navy">
+                                                    {fetchError === "NO_VERSES" ? "Content not available" : "Seeking the Word..."}
+                                                </h3>
+                                                <p className="text-text-2 text-xs leading-relaxed">
+                                                    {fetchError === "NO_VERSES" 
+                                                        ? `This translation may only include the New Testament or specific books. Please try a different version for ${currentBook.name}.`
+                                                        : fetchError || "The selected content could not be retrieved at this time."}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex flex-wrap justify-center gap-2 pt-4">
+                                                {['KJV', 'NIV', 'NKJV'].map(v => (
+                                                    <button 
+                                                        key={v}
+                                                        onClick={() => setTranslation(v)}
+                                                        className="px-4 py-1.5 rounded-full border border-border bg-card-bg text-[9px] font-bold hover:border-gold transition-all"
+                                                    >
+                                                        Try {v}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
 
