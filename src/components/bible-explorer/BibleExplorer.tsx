@@ -233,7 +233,7 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH'].map(v => {
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN'].map(v => {
                                 let val = v.toLowerCase();
                                 if (val === 'kashmiri') val = 'ks';
                                 if (val === 'greek') val = 'el';
@@ -253,6 +253,12 @@ export default function BibleExplorer() {
                                 if (val === 'swedish') val = 'sv';
                                 if (val === 'finnish') val = 'fi';
                                 if (val === 'danish') val = 'da';
+                                if (val === 'czech') val = 'cs';
+                                if (val === 'croatian') val = 'hr';
+                                if (val === 'serbian') val = 'sr';
+                                if (val === 'maori') val = 'mi';
+                                if (val === 'latin') val = 'la';
+                                if (val === 'albanian') val = 'sq';
                                 return <option key={v} value={val}>{v}</option>;
                             })}
                         </select>
@@ -313,6 +319,7 @@ export default function BibleExplorer() {
                                     <optgroup label="Biblical Languages">
                                         <option value="el">Ελληνικά (Greek)</option>
                                         <option value="he">עִברִית (Hebrew)</option>
+                                        <option value="la">Latina (Latin)</option>
                                     </optgroup>
                                     <optgroup label="World Languages">
                                         <option value="es">Español (RVR)</option>
@@ -335,8 +342,12 @@ export default function BibleExplorer() {
                                         <option value="sv">Svenska (Swedish)</option>
                                         <option value="fi">Suomi (Finnish)</option>
                                         <option value="da">Dansk (Danish)</option>
+                                        <option value="cs">Čeština (Czech)</option>
+                                        <option value="hr">Hrvatski (Croatian)</option>
+                                        <option value="sr">Српски (Serbian)</option>
                                         <option value="ro">Română (Romanian)</option>
                                         <option value="sw">Kiswahili (Swahili)</option>
+                                        <option value="sq">Shqip (Albanian)</option>
                                         <option value="ar">العربية (SVD)</option>
                                         <option value="ru">Русский (Synodal)</option>
                                     </optgroup>
@@ -359,6 +370,7 @@ export default function BibleExplorer() {
                                         <option value="malayalam">Malayalam</option>
                                         <option value="maithili">मैथिली (Maithili)</option>
                                         <option value="manipuri">Manipuri (Meitei)</option>
+                                        <option value="mi">Te Reo (Maori)</option>
                                         <option value="marathi">Marathi</option>
                                         <option value="nepali">Nepali</option>
                                         <option value="oriya">Oriya</option>
