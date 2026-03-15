@@ -43,8 +43,7 @@ for b in xml_bibles:
     all_ids.add(b['id'].lower())
     map_entries.append(f"            '{b['id'].lower()}': 'bible_ar',")
 
-# Add eligible ones (Batch 1, 2, 3...)
-# We'll include EVERYTHING in the eligible list because the API should be ready for them
+# Add eligible ones
 for b in eligible:
     bid = b['id'].lower()
     if bid not in all_ids:
@@ -67,8 +66,6 @@ with open(route_path, 'w', encoding='utf-8') as f:
 with open(ui_path, 'r', encoding='utf-8') as f:
     ui_content = f.read()
 
-# Build UI options for World Languages
-ui_options = []
 # Pre-defined world languages (keep them at top)
 predefined = [
     {"id": "es", "name": "Español (RVR)"},
@@ -82,57 +79,87 @@ predefined = [
     {"id": "id", "name": "Indonesia (TB)"}
 ]
 existing_ui_ids = set()
+primary_options = []
 for p in predefined:
-    ui_options.append(f'                                        <option value="{p["id"]}">{p["name"]}</option>')
+    primary_options.append(f'                                        <option value="{p["id"]}">{p["name"]}</option>')
     existing_ui_ids.add(p['id'])
 
-# Add XML ones
-ui_options.append('                                        <option disabled>──────────</option>')
-ui_options.append('                                        <option disabled>LOCAL XML</option>')
-for b in xml_bibles:
-    if b['id'] not in existing_ui_ids:
-        ui_options.append(f'                                        <option value="{b["id"]}">{b["name"]}</option>')
-        existing_ui_ids.add(b['id'])
+# Add XML ones to a separate block or similar? 
+# The user wants "New Testament" block.
+# Let's split eligible into "Complete" and "NT Only"
+complete_bibles = []
+nt_only_bibles = []
 
-# Add the rest (Batch 1, 2, 3...)
-ui_options.append('                                        <option disabled>──────────</option>')
-ui_options.append('                                        <option disabled>EBIBLE.ORG COLLECTIONS</option>')
-
-# Group by first letter
-grouped = {}
 for b in eligible:
-    bid = b['id'].lower()
-    if bid not in existing_ui_ids:
-        letter = b['lang'][0].upper()
-        if letter not in grouped: grouped[letter] = []
-        grouped[letter].append(f'                                        <option value="{bid}">{b["lang"]} ({bid})</option>')
-        existing_ui_ids.add(bid)
+    if b['id'].lower() in existing_ui_ids: continue
+    
+    if b.get('ot', 0) > 0:
+        complete_bibles.append(b)
+    else:
+        nt_only_bibles.append(b)
 
-for letter in sorted(grouped.keys()):
-    ui_options.append(f'                                        <option disabled>─── {letter} ───</option>')
-    ui_options.extend(grouped[letter])
+def build_grouped_options(bibles, already_added_ids):
+    grouped = {}
+    options = []
+    for b in bibles:
+        bid = b['id'].lower()
+        if bid not in already_added_ids:
+            letter = b['lang'][0].upper()
+            if letter not in grouped: grouped[letter] = []
+            grouped[letter].append(f'                                        <option value="{bid}">{b["lang"]} ({bid})</option>')
+            already_added_ids.add(bid)
+    
+    for letter in sorted(grouped.keys()):
+        options.append(f'                                        <option disabled>─── {letter} ───</option>')
+        options.extend(grouped[letter])
+    return options
 
-# Replace the World Languages optgroup content
-# Find <optgroup label="World Languages"> ... </optgroup>
+# Build World Languages (Complete)
+world_options = build_grouped_options(complete_bibles, existing_ui_ids)
+
+# Build New Testament Only bibles
+nt_options = build_grouped_options(nt_only_bibles, existing_ui_ids)
+
+# Build the final strings for optgroups
+new_world_optgroup = '<optgroup label="World Languages (Complete)">\n' + "\n".join(primary_options) + '\n                                        <option disabled>──────────</option>\n' + "\n".join(world_options) + '\n                                    </optgroup>'
+new_nt_optgroup = '<optgroup label="New Testament Only">\n' + "\n".join(nt_options) + '\n                                    </optgroup>'
+
+# Replace the World Languages optgroup content with BOTH groups
 world_pattern = re.compile(r'<optgroup label="World Languages">[\s\S]*?</optgroup>')
-new_world_str = '<optgroup label="World Languages">\n' + "\n".join(ui_options) + '\n                                    </optgroup>'
-ui_content = world_pattern.sub(new_world_str, ui_content)
+# If the pattern above doesn't match (because we already renamed it in a previous run), 
+# we need a more flexible pattern or handle the renamed case.
+# Let's search for "World Languages" in the label.
+flexible_pattern = re.compile(r'<optgroup label="World Languages.*?">[\s\S]*?</optgroup>')
 
-# Also clean up the double XML in Biblical Languages if it's there
-biblical_pattern = re.compile(r'<optgroup label="Biblical Languages">([\s\S]*?)</optgroup>')
-match = biblical_pattern.search(ui_content)
-if match:
-    biblical_inner = match.group(1)
-    # Remove any lines containing "// Local XML Batch" or the specific XML options if they were mistakenly added
-    clean_biblical = []
-    for line in biblical_inner.splitlines():
-        if "Local XML Batch" in line or any(xb['id'] in line for xb in xml_bibles):
-            continue
-        clean_biblical.append(line)
-    new_biblical_str = '<optgroup label="Biblical Languages">\n' + "\n".join(clean_biblical) + '\n                                    </optgroup>'
-    ui_content = biblical_pattern.sub(new_biblical_str, ui_content)
+# Also search for "New Testament Only" group if it exists to replace it too, 
+# but usually it's easier to replace a larger block.
+# Let's try to replace the block that starts with World Languages.
+
+combined_groups = new_world_optgroup + "\n                                    " + new_nt_optgroup
+
+if flexible_pattern.search(ui_content):
+    ui_content = flexible_pattern.sub(combined_groups, ui_content)
+    # If we had a previously added New Testament Only group that was NOT inside the World Languages match, 
+    # we might have duplicates. So let's clean up any existing New Testament Only group.
+    existing_nt_pattern = re.compile(r'<optgroup label="New Testament Only">[\s\S]*?</optgroup>')
+    # If it's already there (and NOT part of what we just replaced), remove it to avoid double groups
+    match_nt = existing_nt_pattern.search(ui_content)
+    if match_nt:
+        # Check if this match is separate from the combined_groups we just inserted
+        # This is a bit tricky with simple string replace.
+        # Let's just do a clean sweep: find where World Languages starts, and replace until the end of the select or specific point.
+        pass
+
+# Simplified: Use a marker-based approach or targets
+# Let's find "World Languages" and replace it. 
+# Then find "New Testament Only" and replace/remove it.
+# Actually, sync_all_mappings is the authority.
+
+# Let's try to find the whole group block.
+ui_content = re.sub(r'<optgroup label="New Testament Only">[\s\S]*?</optgroup>', '', ui_content)
+ui_content = flexible_pattern.sub(combined_groups, ui_content)
 
 with open(ui_path, 'w', encoding='utf-8') as f:
     f.write(ui_content)
 
-print("Synchronized Route and UI with ALL identified languages.")
+print("Synchronized Route and UI with ALL identified languages (Split Complete vs NT-Only).")

@@ -1,30 +1,38 @@
 import os
+import json
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
 
-load_dotenv(".env.local")
-client = DataAPIClient(os.getenv("ASTRA_DB_APPLICATION_TOKEN"))
-db = client.get_database(os.getenv("ASTRA_DB_API_ENDPOINT"))
+load_dotenv('.env.local')
+token = os.getenv('ASTRA_DB_APPLICATION_TOKEN')
+endpoint = os.getenv('ASTRA_DB_API_ENDPOINT')
 
-hybrid_map = {
-    "AR": "bible_ar",
-    "RU": "bible_de",
-    "KO": "bible_fr",
-    "TE": "bible_es",
-    "TA": "bible_pt",
-    "ZH": "bible_zh"
-}
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+coll = db.get_collection('bible_ar')
 
-print("FINAL LANGUAGE HEALTH CHECK:")
-for lang, coll_name in hybrid_map.items():
+with open('refined_eligible.json', 'r') as f:
+    eligible = json.load(f)
+
+missing = []
+print(f"Verifying final count for {len(eligible)} bibles...")
+
+for b in eligible:
+    vers = b['id'].upper()
     try:
-        coll = db.get_collection(coll_name)
-        res = coll.find_one({"version": lang})
-        if res:
-            print(f"✅ {lang}: FOUND (in {coll_name})")
-        else:
-            print(f"❌ {lang}: NOT FOUND (in {coll_name})")
-    except Exception as e:
-        print(f"❌ {lang}: Error ({str(e)[:50]})")
+        # Check for existence of at least one verse
+        doc = coll.find_one({"version": vers}, projection={"_id": 1})
+        if not doc:
+            missing.append(b['id'])
+    except:
+        missing.append(b['id'])
 
-print("\nUI Mapping is active. All systems ready.")
+print(f"\nRESULTS:")
+print(f"Total in Catalog: {len(eligible)}")
+print(f"Total Successfully in DB: {len(eligible) - len(missing)}")
+print(f"Total Still Missing: {len(missing)}")
+
+if missing:
+    print(f"Missing IDs: {missing}")
+else:
+    print("MISSION ACCOMPLISHED: 100% of the catalog is now live in Astra DB.")
