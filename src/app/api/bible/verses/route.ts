@@ -47,6 +47,9 @@ export async function GET(req: Request) {
             'manipuri': 'bible_ar',
             'sanskrit': 'bible_ar',
             'maithili': 'bible_ar',
+            'ks': 'bible_ar',
+            'el': 'bible_ar',
+            'he': 'bible_ar',
         };
 
         if (hybridMap[translation]) {

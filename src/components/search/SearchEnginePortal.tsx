@@ -1616,9 +1616,8 @@ export default function SearchEnginePortal() {
                     )}
                 </div>
 
-                <div className="flex items-center gap-6">
-                    <button className="text-[11px] font-bold uppercase tracking-widest text-text-2 hover:text-gold transition-colors">Sign In</button>
-                    <ThemeToggle variant="pill" />
+                <div className="flex items-center gap-6 w-[120px] justify-end">
+                    {/* Handled by global layout */}
                 </div>
             </header>
 

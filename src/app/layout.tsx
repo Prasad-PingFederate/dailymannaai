@@ -134,13 +134,6 @@ export const metadata: Metadata = {
         alt: `${SITE_NAME} — ${TAGLINE}`,
         type: "image/png",
       },
-      {
-        url: `${BASE_URL}/og-image-square.png`,
-        width: 600,
-        height: 600,
-        alt: `${SITE_NAME} logo`,
-        type: "image/png",
-      },
     ],
   },
   twitter: {
@@ -186,7 +179,7 @@ export default function RootLayout({
         {/* Anti-flash: sets theme before React hydrates to prevent white flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('dailymanna-theme');if(t){document.documentElement.setAttribute('data-theme',t);}else{var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',d?'dark':'light');}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('dailymanna-theme');var r=document.documentElement;if(t){r.setAttribute('data-theme',t);if(t==='dark')r.classList.add('dark');else r.classList.remove('dark');}else{var d=window.matchMedia('(prefers-color-scheme: dark)').matches;var th=d?'dark':'light';r.setAttribute('data-theme',th);if(d)r.classList.add('dark');else r.classList.remove('dark');}}catch(e){}})();`,
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

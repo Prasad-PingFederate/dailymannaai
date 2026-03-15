@@ -6,7 +6,7 @@ import {
     Search, Book, Mic2, Sparkles, BookOpen, Share2, 
     ChevronLeft, ChevronRight, Volume2, Copy, Pin, 
     ExternalLink, Check, Heart, MessageSquare, Plus,
-    Sun, Moon, User, ChevronDown, List, Settings, 
+    User, ChevronDown, List, Settings, 
     Download, FileAudio, Clock, Flag, Globe, Info,
     Zap, Newspaper,
     PanelLeftClose, PanelLeftOpen,
@@ -93,7 +93,7 @@ const BIBLE_BOOKS = {
 };
 
 export default function BibleExplorer() {
-    const { theme, toggleTheme, isDark } = useTheme();
+    const { theme, isDark } = useTheme();
     const { user } = useAuth();
     
     // State
@@ -233,9 +233,13 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU'].map(v => (
-                                <option key={v} value={v.toLowerCase()}>{v}</option>
-                            ))}
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI'].map(v => {
+                                let val = v.toLowerCase();
+                                if (val === 'kashmiri') val = 'ks';
+                                if (val === 'greek') val = 'el';
+                                if (val === 'hebrew') val = 'he';
+                                return <option key={v} value={val}>{v}</option>;
+                            })}
                         </select>
 
                         <div className="h-4 w-px bg-border/60" />
@@ -264,23 +268,9 @@ export default function BibleExplorer() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                    <button 
-                        onClick={toggleTheme}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-border bg-card-bg hover:border-gold/30 transition-all shadow-sm active:scale-95"
-                    >
-                        {isDark ? <Sun size={15} className="text-gold" /> : <Moon size={15} className="text-brand-navy" />}
-                    </button>
-                    
-                    {user ? (
-                        <div className="flex items-center gap-2 pl-2 border-l border-border">
-                            <div className="w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center font-black text-[10px]">
-                                {user.name?.[0] || 'U'}
-                            </div>
-                        </div>
-                    ) : (
-                        <button className="px-4 py-1.5 bg-navy text-white rounded-xl text-[10px] font-black hover:bg-navy-3 transition-all uppercase tracking-wider">Sign In</button>
-                    )}
+                {/* Right side placeholder to keep search centered */}
+                <div className="flex items-center gap-3 shrink-0 w-[120px] justify-end">
+                    {/* Handled by global layout */}
                 </div>
             </header>
 
@@ -538,9 +528,9 @@ export default function BibleExplorer() {
                                                         {v.verse}
                                                     </span>
                                                     <p 
-                                                        className={`font-serif leading-[1.9] text-text-1 selection:bg-gold/20 ${translation === 'ar' ? 'text-right' : ''}`}
-                                                        style={{ fontSize: `${fontSize}px` }}
-                                                        dir={translation === 'ar' ? 'rtl' : 'ltr'}
+                                                        className={`font-serif leading-[1.9] text-text-1 selection:bg-gold/20 ${['ar', 'he', 'urdu', 'ks'].includes(translation) ? 'text-right' : ''} ${translation === 'he' ? 'tracking-wide' : ''}`}
+                                                        style={{ fontSize: `${translation === 'he' ? fontSize + 2 : fontSize}px` }}
+                                                        dir={['ar', 'he', 'urdu', 'ks'].includes(translation) ? 'rtl' : 'ltr'}
                                                     >
                                                         {v.text}
                                                     </p>
