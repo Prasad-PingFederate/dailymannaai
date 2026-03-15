@@ -233,7 +233,7 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN', 'NORWEGIAN BOKMAL', 'NORWEGIAN NYNORSK', 'ESTONIAN', 'LATVIAN', 'LITHUANIAN', 'BASQUE', 'ESPERANTO', 'SCOTTISH GAELIC', 'MANX GAELIC', 'BRETON'].map(v => {
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN', 'NORWEGIAN BOKMAL', 'NORWEGIAN NYNORSK', 'ESTONIAN', 'LATVIAN', 'LITHUANIAN', 'BASQUE', 'ESPERANTO', 'SCOTTISH GAELIC', 'MANX GAELIC', 'BRETON', 'CALO', 'CHAMORRO', 'CHEROKEE', 'COPTIC', 'CHURCH SLAVONIC', 'DARI', 'EASTERN ARMENIAN', 'GOTHIC', 'KLINGON', 'KOINE GREEK', 'MALAGASY', 'MONGOLIAN', 'NORTHERN NDEBELE', 'SYRIAC', 'POHNPEIAN', 'POTAWATOMI', 'SHONA', 'TAUSUG', 'TOK PISIN', 'UMA', 'ANCIENT HEBREW'].map(v => {
                                 let val = v.toLowerCase();
                                 if (val === 'kashmiri') val = 'ks';
                                 if (val === 'greek') val = 'el';
@@ -269,6 +269,27 @@ export default function BibleExplorer() {
                                 if (val === 'scottish gaelic') val = 'gd';
                                 if (val === 'manx gaelic') val = 'gv';
                                 if (val === 'breton') val = 'br';
+                                if (val === 'calo') val = 'rmq';
+                                if (val === 'chamorro') val = 'ch';
+                                if (val === 'cherokee') val = 'chr';
+                                if (val === 'coptic') val = 'cop';
+                                if (val === 'church slavonic') val = 'cu';
+                                if (val === 'dari') val = 'prs';
+                                if (val === 'eastern armenian') val = 'hy';
+                                if (val === 'gothic') val = 'got';
+                                if (val === 'klingon') val = 'tlh';
+                                if (val === 'koine greek') val = 'grc';
+                                if (val === 'malagasy') val = 'mg';
+                                if (val === 'mongolian') val = 'mn';
+                                if (val === 'northern ndebele') val = 'nd';
+                                if (val === 'syriac') val = 'syr';
+                                if (val === 'pohnpeian') val = 'pon';
+                                if (val === 'potawatomi') val = 'pot';
+                                if (val === 'shona') val = 'sn';
+                                if (val === 'tausug') val = 'tsg';
+                                if (val === 'tok pisin') val = 'tpi';
+                                if (val === 'uma') val = 'ppk';
+                                if (val === 'ancient hebrew') val = 'hbo';
                                 return <option key={v} value={val}>{v}</option>;
                             })}
                         </select>
@@ -329,7 +350,13 @@ export default function BibleExplorer() {
                                     <optgroup label="Biblical Languages">
                                         <option value="el">Ελληνικά (Greek)</option>
                                         <option value="he">עִברִית (Hebrew)</option>
+                                        <option value="hbo">Ancient Hebrew (Aleppo)</option>
+                                        <option value="grc">Koine Greek (LXX)</option>
+                                        <option value="syr">Syriac (Peshitta)</option>
                                         <option value="la">Latina (Latin)</option>
+                                        <option value="cop">Coptic (Bohairic)</option>
+                                        <option value="cu">Church Slavonic</option>
+                                        <option value="got">Gothic</option>
                                     </optgroup>
                                     <optgroup label="World Languages">
                                         <option value="es">Español (RVR)</option>
@@ -366,10 +393,14 @@ export default function BibleExplorer() {
                                         <option value="gd">Gàidhlig (Scottish Gaelic)</option>
                                         <option value="gv">Gaelg (Manx Gaelic)</option>
                                         <option value="br">Brezhoneg (Breton)</option>
+                                        <option value="rmq">Caló (Romani)</option>
                                         <option value="sw">Kiswahili (Swahili)</option>
                                         <option value="sq">Shqip (Albanian)</option>
                                         <option value="ar">العربية (SVD)</option>
                                         <option value="ru">Русский (Synodal)</option>
+                                        <option value="prs">Dari (Afghan Persian)</option>
+                                        <option value="hy">Eastern Armenian</option>
+                                        <option value="mn">Mongolian</option>
                                     </optgroup>
                                     <optgroup label="Regional">
                                         <option value="te">తెలుగు (Telugu)</option>
@@ -379,6 +410,8 @@ export default function BibleExplorer() {
                                         <option value="afrikaans">Afrikaans</option>
                                         <option value="assamese">অসমীয়া (Assamese)</option>
                                         <option value="bengali">Bengali</option>
+                                        <option value="ch">Chamorro</option>
+                                        <option value="chr">Cherokee</option>
                                         <option value="dogri">Dogri</option>
                                         <option value="english">English (Global)</option>
                                         <option value="gujarati">Gujarati</option>
@@ -387,16 +420,25 @@ export default function BibleExplorer() {
                                         <option value="indonesian">Indonesian</option>
                                         <option value="kannada">Kannada</option>
                                         <option value="ks">کٲشُر (Kashmiri)</option>
+                                        <option value="tlh">Klingon</option>
+                                        <option value="mg">Malagasy</option>
                                         <option value="malayalam">Malayalam</option>
                                         <option value="maithili">मैथिली (Maithili)</option>
-                                        <option value="manipuri">Manipuri (Meitei)</option>
                                         <option value="mi">Te Reo (Maori)</option>
+                                        <option value="manipuri">Manipuri (Meitei)</option>
                                         <option value="marathi">Marathi</option>
+                                        <option value="nd">Northern Ndebele</option>
                                         <option value="nepali">Nepali</option>
                                         <option value="oriya">Oriya</option>
+                                        <option value="pon">Pohnpeian</option>
+                                        <option value="pot">Potawatomi</option>
                                         <option value="punjabi">Punjabi</option>
                                         <option value="sanskrit">संस्कृतम् (Sanskrit)</option>
                                         <option value="sepedi">Sepedi</option>
+                                        <option value="sn">Shona</option>
+                                        <option value="tsg">Tausug</option>
+                                        <option value="tpi">Tok Pisin</option>
+                                        <option value="ppk">Uma</option>
                                         <option value="urdu">اردو (Urdu)</option>
                                         <option value="xhosa">Xhosa</option>
                                         <option value="zulu">Zulu</option>
