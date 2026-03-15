@@ -464,6 +464,7 @@ export default function BibleExplorer() {
 
 
 
+
                                         <option value="el">Ελληνικά (Greek)</option>
                                         <option value="he">עִברִית (Hebrew)</option>
                                         <option value="hbo">Ancient Hebrew (Aleppo)</option>
@@ -473,6 +474,7 @@ export default function BibleExplorer() {
                                         <option value="cop">Coptic (Bohairic)</option>
                                         <option value="cu">Church Slavonic</option>
                                         <option value="got">Gothic</option>
+                                    
                                     
                                     
                                     
