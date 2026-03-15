@@ -8,8 +8,35 @@ export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const bookRaw = searchParams.get("book")?.trim() || "";
-        // Normalize to Title Case (e.g. genesis -> Genesis)
-        const book = bookRaw.charAt(0).toUpperCase() + bookRaw.slice(1).toLowerCase();
+        
+        // Canonical book name map — guarantees exact DB match for ALL 66 books
+        const CANONICAL_BOOKS: Record<string, string> = {
+            // Old Testament
+            'genesis': 'Genesis', 'exodus': 'Exodus', 'leviticus': 'Leviticus',
+            'numbers': 'Numbers', 'deuteronomy': 'Deuteronomy', 'joshua': 'Joshua',
+            'judges': 'Judges', 'ruth': 'Ruth', '1 samuel': '1 Samuel', '2 samuel': '2 Samuel',
+            '1 kings': '1 Kings', '2 kings': '2 Kings', '1 chronicles': '1 Chronicles',
+            '2 chronicles': '2 Chronicles', 'ezra': 'Ezra', 'nehemiah': 'Nehemiah',
+            'esther': 'Esther', 'job': 'Job', 'psalms': 'Psalms', 'proverbs': 'Proverbs',
+            'ecclesiastes': 'Ecclesiastes', 'song of solomon': 'Song of Solomon',
+            'isaiah': 'Isaiah', 'jeremiah': 'Jeremiah', 'lamentations': 'Lamentations',
+            'ezekiel': 'Ezekiel', 'daniel': 'Daniel', 'hosea': 'Hosea', 'joel': 'Joel',
+            'amos': 'Amos', 'obadiah': 'Obadiah', 'jonah': 'Jonah', 'micah': 'Micah',
+            'nahum': 'Nahum', 'habakkuk': 'Habakkuk', 'zephaniah': 'Zephaniah',
+            'haggai': 'Haggai', 'zechariah': 'Zechariah', 'malachi': 'Malachi',
+            // New Testament
+            'matthew': 'Matthew', 'mark': 'Mark', 'luke': 'Luke', 'john': 'John',
+            'acts': 'Acts', 'romans': 'Romans', '1 corinthians': '1 Corinthians',
+            '2 corinthians': '2 Corinthians', 'galatians': 'Galatians', 'ephesians': 'Ephesians',
+            'philippians': 'Philippians', 'colossians': 'Colossians',
+            '1 thessalonians': '1 Thessalonians', '2 thessalonians': '2 Thessalonians',
+            '1 timothy': '1 Timothy', '2 timothy': '2 Timothy', 'titus': 'Titus',
+            'philemon': 'Philemon', 'hebrews': 'Hebrews', 'james': 'James',
+            '1 peter': '1 Peter', '2 peter': '2 Peter',
+            '1 john': '1 John', '2 john': '2 John', '3 john': '3 John',
+            'jude': 'Jude', 'revelation': 'Revelation',
+        };
+        const book = CANONICAL_BOOKS[bookRaw.toLowerCase()] || bookRaw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
         const chapter = parseInt(searchParams.get("chapter") || "0");
         const translationRaw = searchParams.get("translation")?.toLowerCase() || "kjv";
 
