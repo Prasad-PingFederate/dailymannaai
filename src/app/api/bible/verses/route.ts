@@ -1219,8 +1219,8 @@ export async function GET(req: Request) {
             throw new Error(`Collection not found: ${collectionName}`);
         }
 
-        // Fetch all verses for the chapter
-        const result = await collection.find(queryFilter).toArray();
+        // Fetch all verses for the chapter (Limit to 200 for maximum performance so Astra doesn't scan millions of rows searching for non-existent verses)
+        const result = await collection.find(queryFilter, { limit: 200 }).toArray();
         
         if (result.length === 0) {
             console.warn(`[BIBLE_API] No verses found for ${book} ${chapter} in ${translation} (${collectionName})`);
