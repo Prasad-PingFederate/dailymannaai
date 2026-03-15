@@ -290,6 +290,97 @@ export default function BibleExplorer() {
                                 if (val === 'tok pisin') val = 'tpi';
                                 if (val === 'uma') val = 'ppk';
                                 if (val === 'ancient hebrew') val = 'hbo';
+                                // Deep Search Combined Batch (Automated)
+                                if (val === 'shi') val = 'shr';
+                                if (val === 'tarifit') val = 'rifa';
+                                if (val === 'belarusian') val = 'bel';
+                                if (val === 'toma') val = 'tod';
+                                if (val === 'lingála') val = 'lin';
+                                if (val === 'yalunka') val = 'yal';
+                                if (val === 'kituba') val = 'mkw';
+                                if (val === 'susu') val = 'sus';
+                                if (val === 'wolof') val = 'wolmbs';
+                                if (val === 'português') val = 'poronbv';
+                                if (val === 'chin, thaiphum') val = 'cth';
+                                if (val === 'chin, matu') val = 'hlt';
+                                if (val === 'luganda') val = 'lug';
+                                if (val === 'chichewa') val = 'nya';
+                                if (val === 'panjabi, eastern') val = 'pan';
+                                if (val === 'sunwar') val = 'suzbl';
+                                if (val === 'cebuano') val = 'cebulb';
+                                if (val === 'central kurdish') val = 'ckb';
+                                if (val === 'eʋegbe') val = 'ewe';
+                                if (val === 'haitian') val = 'hatbsa';
+                                if (val === 'chhattisgarhi') val = 'hne';
+                                if (val === 'igbo') val = 'ibo';
+                                if (val === 'dholuo') val = 'luo';
+                                if (val === 'māori') val = 'mri2012';
+                                if (val === 'ndebele') val = 'nde';
+                                if (val === 'chishona') val = 'sna';
+                                if (val === 'somali') val = 'som';
+                                if (val === 'oromo, west central') val = 'gaz';
+                                if (val === 'hawaiian') val = 'haw1868';
+                                if (val === 'ilocano') val = 'iloulb';
+                                if (val === 'tongan') val = 'ton';
+                                if (val === 'guaraní, mbyá') val = 'gun';
+                                if (val === 'gikuyu') val = 'kik';
+                                if (val === 'san blas kuna') val = 'cuk';
+                                if (val === 'twi') val = 'twi';
+                                if (val === 'اردو') val = 'urdoucv';
+                                if (val === 'chuukese') val = 'chk';
+                                if (val === 'tiếng việt') val = 'vieovcb';
+                                if (val === 'kauana') val = 'ksd';
+                                if (val === 'नेपाली') val = 'npioncb';
+                                if (val === 'kamano') val = 'kbq';
+                                if (val === 'persian') val = 'pesopv';
+                                if (val === 'motu') val = 'meu';
+                                if (val === 'romani, carpathian') val = 'rmc';
+                                if (val === 'hausa') val = 'hausa';
+                                if (val === 'yorùbá') val = 'yor';
+                                if (val === 'malagasy, tandroy-mahafaly') val = 'tdx';
+                                if (val === 'मराठी') val = 'marc';
+                                if (val === 'chin, eastern khumi') val = 'cekak';
+                                if (val === 'azerbaijani, south') val = 'azb';
+                                if (val === 'huichol') val = 'hch';
+                                if (val === 'gujii') val = 'gax';
+                                if (val === 'chin, thado') val = 'tczchongthu';
+                                if (val === 'tibetan') val = 'bodn';
+                                if (val === 'telugu') val = 'tel2017';
+                                if (val === 'boko') val = 'bqcsim';
+                                if (val === 'goofa') val = 'gofe';
+                                if (val === 'gofa') val = 'gofl';
+                                if (val === 'kosraean') val = 'kos';
+                                if (val === 'മലയാളം') val = 'malc';
+                                if (val === 'gamo') val = 'gmve';
+                                if (val === 'motu, hiri') val = 'hmo';
+                                if (val === 'ditammari') val = 'tbzsim';
+                                if (val === 'quechua, huallaga huánuco') val = 'qub';
+                                if (val === 'uyghur') val = 'uigara';
+                                if (val === 'dawro') val = 'dwrent';
+                                if (val === 'nahuatl, huasteca central') val = 'nchbl';
+                                if (val === 'nahuatl, huasteca oriental') val = 'nhebl';
+                                if (val === 'nahuatl,  huasteca occidental') val = 'nhwbl';
+                                if (val === 'baatonum') val = 'bba';
+                                if (val === 'kankanaey') val = 'kne';
+                                if (val === 'male') val = 'mdyeth';
+                                if (val === 'melanesian pidgin') val = 'tpi';
+                                if (val === 'roviana') val = 'rug';
+                                if (val === 'ilonggo') val = 'hil';
+                                if (val === 'yapese') val = 'yap';
+                                if (val === 'dadibi') val = 'mps';
+                                if (val === 'kapingamarangi') val = 'kpg';
+                                if (val === 'guajajára') val = 'gubbl';
+                                if (val === 'kilivila') val = 'kij';
+                                if (val === 'beami') val = 'beo';
+                                if (val === 'huli') val = 'hui';
+                                if (val === 'chuj') val = 'cac';
+                                if (val === 'aruamu') val = 'msy2020';
+                                if (val === 'iranian persian') val = 'pesopcb';
+                                if (val === 'kriol') val = 'rop';
+                                if (val === 'español') val = 'spaonbv';
+                                if (val === 'wolaytta') val = 'wal';
+                                if (val === 'busa') val = 'bqp';
+                                if (val === 'lukpa') val = 'dop';
                                 return <option key={v} value={val}>{v}</option>;
                             })}
                         </select>
@@ -346,8 +437,23 @@ export default function BibleExplorer() {
                                         {['NIV', 'KJV', 'NKJV'].map(v => (
                                             <option key={v} value={v}>{v} Version</option>
                                         ))}
+                                        // Local XML Batch
+                                        <option value="pck">Paite</option>
+                                        <option value="arb-xml">Arabic (XML)</option>
+                                        <option value="my-xml">Burmese (XML)</option>
+                                        <option value="pes-xml">Farsi (XML)</option>
+                                        <option value="tl-xml">Tagalog (XML)</option>
+                                        <option value="tr-xml">Turkish (XML)</option>
                                     </optgroup>
                                     <optgroup label="Biblical Languages">
+
+
+
+
+
+
+
+
                                         <option value="el">Ελληνικά (Greek)</option>
                                         <option value="he">עִברִית (Hebrew)</option>
                                         <option value="hbo">Ancient Hebrew (Aleppo)</option>
@@ -357,6 +463,14 @@ export default function BibleExplorer() {
                                         <option value="cop">Coptic (Bohairic)</option>
                                         <option value="cu">Church Slavonic</option>
                                         <option value="got">Gothic</option>
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
                                     </optgroup>
                                     <optgroup label="World Languages">
                                         <option value="es">Español (RVR)</option>
@@ -368,43 +482,1193 @@ export default function BibleExplorer() {
                                         <option value="th">ไทย (Thai)</option>
                                         <option value="my">မြန်မာစာ (Burmese)</option>
                                         <option value="id">Indonesia (TB)</option>
-                                        <option value="fr">Français (Apee)</option>
-                                        <option value="pt">Português (NVI)</option>
-                                        <option value="de">Deutsch (Schlachter)</option>
-                                        <option value="it">Italiano (Italian)</option>
-                                        <option value="pl">Polski (Polish)</option>
-                                        <option value="tr">Türkçe (Turkish)</option>
-                                        <option value="nl">Nederlands (Dutch)</option>
-                                        <option value="uk">Українська (Ukrainian)</option>
-                                        <option value="sv">Svenska (Swedish)</option>
-                                        <option value="nb">Norsk Bokmål (Norwegian)</option>
-                                        <option value="nn">Norsk Nynorsk (Norwegian)</option>
-                                        <option value="fi">Suomi (Finnish)</option>
-                                        <option value="da">Dansk (Danish)</option>
-                                        <option value="cs">Čeština (Czech)</option>
-                                        <option value="hr">Hrvatski (Croatian)</option>
-                                        <option value="sr">Српски (Serbian)</option>
-                                        <option value="ro">Română (Romanian)</option>
-                                        <option value="et">Eesti (Estonian)</option>
-                                        <option value="lv">Latviešu (Latvian)</option>
-                                        <option value="lt">Lietuvių (Lithuanian)</option>
-                                        <option value="eu">Euskara (Basque)</option>
-                                        <option value="eo">Esperanto</option>
-                                        <option value="gd">Gàidhlig (Scottish Gaelic)</option>
-                                        <option value="gv">Gaelg (Manx Gaelic)</option>
-                                        <option value="br">Brezhoneg (Breton)</option>
-                                        <option value="rmq">Caló (Romani)</option>
-                                        <option value="sw">Kiswahili (Swahili)</option>
-                                        <option value="sq">Shqip (Albanian)</option>
-                                        <option value="ar">العربية (SVD)</option>
-                                        <option value="ru">Русский (Synodal)</option>
-                                        <option value="prs">Dari (Afghan Persian)</option>
-                                        <option value="hy">Eastern Armenian</option>
-                                        <option value="mn">Mongolian</option>
+                                        <option disabled>──────────</option>
+                                        <option disabled>LOCAL XML</option>
+                                        <option value="pck">Paite</option>
+                                        <option value="arb-xml">Arabic (XML)</option>
+                                        <option value="my-xml">Burmese (XML)</option>
+                                        <option value="pes-xml">Farsi (XML)</option>
+                                        <option value="tl-xml">Tagalog (XML)</option>
+                                        <option value="tr-xml">Turkish (XML)</option>
+                                        <option value="tam-repo">Tamil (Special)</option>
+                                        <option value="tel-repo">Telugu (Special)</option>
+                                        <option disabled>──────────</option>
+                                        <option disabled>EBIBLE.ORG COLLECTIONS</option>
+                                        <option disabled>─── ' ───</option>
+                                        <option value="kud">'Auhelawa (kud)</option>
+                                        <option disabled>─── A ───</option>
+                                        <option value="arb-vd">Arabic (arb-vd)</option>
+                                        <option value="arbnav">Arabic, Standard (arbnav)</option>
+                                        <option value="asmfb">Assamese (asmfb)</option>
+                                        <option value="azb">Azerbaijani, South (azb)</option>
+                                        <option value="msy2020">Aruamu (msy2020)</option>
+                                        <option value="agubl">Aguacateco (agubl)</option>
+                                        <option value="agr">Aguaruna (agr)</option>
+                                        <option value="ahr">Ahirani (ahr)</option>
+                                        <option value="acunt">Achuar-shiwiar (acunt)</option>
+                                        <option value="cpy">Ashéninka, South Ucayali (cpy)</option>
+                                        <option value="aii">Assyrian Neo-Aramaic (aii)</option>
+                                        <option value="ena">Apal (ena)</option>
+                                        <option value="boj2014">Anjam (boj2014)</option>
+                                        <option value="aer">Arrernte, Eastern (aer)</option>
+                                        <option value="aey">Amele (aey)</option>
+                                        <option value="aaz">Amarasi (aaz)</option>
+                                        <option value="aly">Alyawarr (aly)</option>
+                                        <option value="tvk">Ambrym, Southeast (tvk)</option>
+                                        <option value="att">Atta, Pamplona (att)</option>
+                                        <option value="acrnnt">Achi (acrnnt)</option>
+                                        <option value="acrtnt">Achi (acrtnt)</option>
+                                        <option value="cpbnt">Ashéninka, Ucayali-yurúa (cpbnt)</option>
+                                        <option value="cpcnt">Ajyíninka Apurucayali (cpcnt)</option>
+                                        <option value="cpunt">Ashéninka, Pichis (cpunt)</option>
+                                        <option value="amo">Amo (amo)</option>
+                                        <option value="apunt">Apurinã (apunt)</option>
+                                        <option value="apwnt">Apache, Western (apwnt)</option>
+                                        <option value="amunt">Amuzgo, Guerrero (amunt)</option>
+                                        <option value="agn">Agutaynen (agn)</option>
+                                        <option value="sgb">Ayta, Mag-antsi (sgb)</option>
+                                        <option value="akent">Akawaio (akent)</option>
+                                        <option value="azgnt">Amuzgo, San Pedro Amuzgos (azgnt)</option>
+                                        <option value="awb">Awa (awb)</option>
+                                        <option value="aau">Abau (aau)</option>
+                                        <option value="bssnt">Akoose (bssnt)</option>
+                                        <option value="acr-acc">Achi (acr-acc)</option>
+                                        <option value="alqalgnt">Algonquin (alqalgnt)</option>
+                                        <option value="knjnt">Akateko (knjnt)</option>
+                                        <option value="agd">Agarabi (agd)</option>
+                                        <option value="alw">Alaba-K'abeena (alw)</option>
+                                        <option value="are">Arrarnta, Western (are)</option>
+                                        <option value="kwi">Awa-Cuaiquer (kwi)</option>
+                                        <option value="amn-amanab">Amanab (amn-amanab)</option>
+                                        <option value="amn-n">Amanab (amn-n)</option>
+                                        <option value="arlnt">Arabela (arlnt)</option>
+                                        <option value="amm">Ama (amm)</option>
+                                        <option value="amk">Ambai (amk)</option>
+                                        <option value="agm">Angaataha (agm)</option>
+                                        <option value="apr">Arop-Lokep (apr)</option>
+                                        <option value="gah">Alekano or Gahuku (gah)</option>
+                                        <option value="avt">Au (avt)</option>
+                                        <option value="dgc">Agta, Casiguran Dumagat (dgc)</option>
+                                        <option value="alpnt">Alune (alpnt)</option>
+                                        <option value="aia">Arosi (aia)</option>
+                                        <option value="aon">Arapesh (aon)</option>
+                                        <option value="amp">Alamblak (amp)</option>
+                                        <option value="agg">Angor (agg)</option>
+                                        <option value="aak">Ankave (aak)</option>
+                                        <option value="auy">Awiyaana (auy)</option>
+                                        <option value="cnint">Asháninka (cnint)</option>
+                                        <option value="cjont">Ashéninka Pajonal (cjont)</option>
+                                        <option value="msy">Aruamu (msy)</option>
+                                        <option value="boj">Anjam (boj)</option>
+                                        <option value="amrnt">Amarakaeri (amrnt)</option>
+                                        <option value="agt">Agta, Central Cagayan (agt)</option>
+                                        <option value="abt-maprik">Ambulas (abt-maprik)</option>
+                                        <option value="amh">Amharic (amh)</option>
+                                        <option value="apnnt">Apinayé (apnnt)</option>
+                                        <option value="aby">Aneme Wake (aby)</option>
+                                        <option disabled>─── B ───</option>
+                                        <option value="bel">Belarusian (bel)</option>
+                                        <option value="myajvb">Burmese (myajvb)</option>
+                                        <option value="benobcv">Bengali (benobcv)</option>
+                                        <option value="benirv">Bengali (benirv)</option>
+                                        <option value="bqcsim">Boko (bqcsim)</option>
+                                        <option value="bba">Baatonum (bba)</option>
+                                        <option value="beo">Beami (beo)</option>
+                                        <option value="mya">Burmese (mya)</option>
+                                        <option value="bqp">Busa (bqp)</option>
+                                        <option value="bus">Bokobaru (bus)</option>
+                                        <option value="bnp">Bola (bnp)</option>
+                                        <option value="bjr">Binumarien (bjr)</option>
+                                        <option value="bps">Blaan, Sarangani (bps)</option>
+                                        <option value="bsp">Baga Sitemu (bsp)</option>
+                                        <option value="bch">Bariai (bch)</option>
+                                        <option value="bbb">Barai (bbb)</option>
+                                        <option value="bzdntpo">Bribri (bzdntpo)</option>
+                                        <option value="ksr">Borong (ksr)</option>
+                                        <option value="bhl">Bimin (bhl)</option>
+                                        <option value="lbk">Bontok, Central (lbk)</option>
+                                        <option value="ptu">Bambam (ptu)</option>
+                                        <option value="bvr">Burarra (bvr)</option>
+                                        <option value="byr">Baruya (byr)</option>
+                                        <option value="bdv">Bodo Parja (bdv)</option>
+                                        <option value="bhi">Bhilali (bhi)</option>
+                                        <option value="bhu">Bhunjia (bhu)</option>
+                                        <option value="blznt">Balantak (blznt)</option>
+                                        <option value="mmo">Buang, Mangga (mmo)</option>
+                                        <option value="bjvnt">Bedjond (bjvnt)</option>
+                                        <option value="jid">Bu (jid)</option>
+                                        <option value="bkw">Bekwel (bkw)</option>
+                                        <option value="bswe">Baiso (bswe)</option>
+                                        <option value="bwo">Borna (bwo)</option>
+                                        <option value="bzh">Buang (bzh)</option>
+                                        <option value="ebk">Bontok, Eastern (ebk)</option>
+                                        <option value="bpr">Blaan, Koronadal (bpr)</option>
+                                        <option value="bhd">Bhadrawahi (bhd)</option>
+                                        <option value="bon">Bine (bon)</option>
+                                        <option value="boxnt">Buamu (boxnt)</option>
+                                        <option value="bgg">Bugun (bgg)</option>
+                                        <option value="bjk">Barok (bjk)</option>
+                                        <option value="blw">Balangao (blw)</option>
+                                        <option value="smknt">Bolinao (smknt)</option>
+                                        <option value="bvd">Baeggu (bvd)</option>
+                                        <option value="bht">Bhattiyali (bht)</option>
+                                        <option value="bdd">Bunama (bdd)</option>
+                                        <option value="bwd">Bwaidoka (bwd)</option>
+                                        <option value="bkd">Binukid (bkd)</option>
+                                        <option value="gai">Borei (gai)</option>
+                                        <option value="bgt">Bughotu (bgt)</option>
+                                        <option value="big">Biangai (big)</option>
+                                        <option value="big2013">Biangai (big2013)</option>
+                                        <option value="bef">Benabena (bef)</option>
+                                        <option value="bzj">Belize Kriol English (bzj)</option>
+                                        <option value="apeb">Bukiyip (apeb)</option>
+                                        <option value="bki">Baki (bki)</option>
+                                        <option value="apec">Bukiyip (apec)</option>
+                                        <option value="bsj">Bangwinji (bsj)</option>
+                                        <option value="bkqnt">Bakairí (bkqnt)</option>
+                                        <option value="buk">Bukawa (buk)</option>
+                                        <option value="mlp">Bargam (mlp)</option>
+                                        <option value="tte">Bwanabwana (tte)</option>
+                                        <option value="mux">Bo-Ung (mux)</option>
+                                        <option value="boant">Bora (boant)</option>
+                                        <option value="bjz">Baruga (bjz)</option>
+                                        <option value="bsnnt">Barasana-Eduria (bsnnt)</option>
+                                        <option value="sabnt">Buglere (sabnt)</option>
+                                        <option value="tteo">Bwanabwana (tteo)</option>
+                                        <option value="bswl">Baiso (bswl)</option>
+                                        <option value="bhg">Binandere (bhg)</option>
+                                        <option disabled>─── C ───</option>
+                                        <option value="ces1613">Czech (ces1613)</option>
+                                        <option value="hrv">Croatian (hrv)</option>
+                                        <option value="cth">Chin, Thaiphum (cth)</option>
+                                        <option value="hlt">Chin, Matu (hlt)</option>
+                                        <option value="hltmcsb">Chin, Matu (hltmcsb)</option>
+                                        <option value="nya">Chichewa (nya)</option>
+                                        <option value="cebulb">Cebuano (cebulb)</option>
+                                        <option value="ckb">Central Kurdish (ckb)</option>
+                                        <option value="hne">Chhattisgarhi (hne)</option>
+                                        <option value="sna">chiShona (sna)</option>
+                                        <option value="chk">Chuukese (chk)</option>
+                                        <option value="cekak">Chin, Eastern Khumi (cekak)</option>
+                                        <option value="tczchongthu">Chin, Thado (tczchongthu)</option>
+                                        <option value="cmn-cu89s">Chinese (cmn-cu89s)</option>
+                                        <option value="cmn-cu89t">Chinese (cmn-cu89t)</option>
+                                        <option value="cebocb">Cebuano (cebocb)</option>
+                                        <option value="cac">Chuj (cac)</option>
+                                        <option value="asg">Cishingini (asg)</option>
+                                        <option value="cbunt">Candoshi-Shapra (cbunt)</option>
+                                        <option value="hltthb">Chin, Matu (hltthb)</option>
+                                        <option value="cbintpo">Chachi (cbintpo)</option>
+                                        <option value="caa">Chorti (caa)</option>
+                                        <option value="crxntpo">Carrier (crxntpo)</option>
+                                        <option value="conntpo">Cofán (conntpo)</option>
+                                        <option value="cbrnt">Cashibo-Cacataibo (cbrnt)</option>
+                                        <option value="cbtntpo">Chayahuita (cbtntpo)</option>
+                                        <option value="ctucti">Chol (ctucti)</option>
+                                        <option value="clent">Chinantec, Lealao (clent)</option>
+                                        <option value="cmnfeb">Chinese (cmnfeb)</option>
+                                        <option value="csy">Chin, Siyin (csy)</option>
+                                        <option value="yao">Chiyawo (yao)</option>
+                                        <option value="chzntps">Chinantec, Ozumacín (chzntps)</option>
+                                        <option value="cpant">Chinantec, Palantla (cpant)</option>
+                                        <option value="cya">Chatino, Nopala (cya)</option>
+                                        <option value="copcnt">Coptic (copcnt)</option>
+                                        <option value="csont">Chinantec, Sochiapam (csont)</option>
+                                        <option value="copbhc">Coptic (copbhc)</option>
+                                        <option value="cuxnt">Cuicatec, Tepeuxila (cuxnt)</option>
+                                        <option value="cesnkb">Czech (cesnkb)</option>
+                                        <option value="cug">Cung (cug)</option>
+                                        <option value="zypnt">Chin, Zyphe (zypnt)</option>
+                                        <option value="cnlnt">Chinantec, Lalana (cnlnt)</option>
+                                        <option value="cucnt">Chinantec, Usila (cucnt)</option>
+                                        <option value="cafnt">Carrier, Southern (cafnt)</option>
+                                        <option value="cntnt">Chinantec, Tepetotutla (cntnt)</option>
+                                        <option value="copshc">Coptic (copshc)</option>
+                                        <option value="cbk">Chavacano (cbk)</option>
+                                        <option value="caxnt">Chiquitano (caxnt)</option>
+                                        <option value="ctubl">Chol (ctubl)</option>
+                                        <option value="chfnt">Chontal, Tabasco (chfnt)</option>
+                                        <option value="ctu76">Chol (ctu76)</option>
+                                        <option value="dao">Chin, Daai (dao)</option>
+                                        <option value="kaqnt">Capanahua (kaqnt)</option>
+                                        <option value="cment">Cerma (cment)</option>
+                                        <option value="cotnt">Caquinte (cotnt)</option>
+                                        <option value="ctant">Chatino, Tataltepec (ctant)</option>
+                                        <option value="ctpnt">Chatino, Western Highland (ctpnt)</option>
+                                        <option value="caont">Chácobo (caont)</option>
+                                        <option value="capnt">Chipaya (capnt)</option>
+                                        <option value="kbh">Camsá (kbh)</option>
+                                        <option value="ccont">Chinantec, Comaltepec (ccont)</option>
+                                        <option value="chqnt">Chinantec, Quiotepec (chqnt)</option>
+                                        <option value="cui">Cuiba (cui)</option>
+                                        <option value="clu">Caluyanun (clu)</option>
+                                        <option value="chdnt">Chontal, Highland Oaxaca (chdnt)</option>
+                                        <option value="cjv">Chuave (cjv)</option>
+                                        <option value="cutnt">Cuicatec, Teutila (cutnt)</option>
+                                        <option value="cavnt">Cavineña (cavnt)</option>
+                                        <option value="cubnt">Cubeo (cubnt)</option>
+                                        <option value="cbcnt">Carapana (cbcnt)</option>
+                                        <option value="crnnt">Cora, El Nayar (crnnt)</option>
+                                        <option value="cbv">Cacua (cbv)</option>
+                                        <option value="ncunt">Chumburung (ncunt)</option>
+                                        <option value="cofnt">Colorado (cofnt)</option>
+                                        <option value="ceslb">Czech (ceslb)</option>
+                                        <option value="cha">Chamorro (cha)</option>
+                                        <option disabled>─── D ───</option>
+                                        <option value="nldnbg">Dutch (nldnbg)</option>
+                                        <option value="dan1931">Danish (dan1931)</option>
+                                        <option value="luo">Dholuo (luo)</option>
+                                        <option value="nld">Dutch (nld)</option>
+                                        <option value="tbzsim">Ditammari (tbzsim)</option>
+                                        <option value="dwrent">Dawro (dwrent)</option>
+                                        <option value="dwrl">Dawro (dwrl)</option>
+                                        <option value="nld1939">Dutch (nld1939)</option>
+                                        <option value="mps">Dadibi (mps)</option>
+                                        <option value="dhn">Dhanki (dhn)</option>
+                                        <option value="ded">Dedua (ded)</option>
+                                        <option value="dgrdognt">Dogrib (dgrdognt)</option>
+                                        <option value="nfa">Dhao (nfa)</option>
+                                        <option value="row">Dela-Oenale (row)</option>
+                                        <option value="kqc">Doromu-Koki (kqc)</option>
+                                        <option value="dif">Dieri (dif)</option>
+                                        <option value="dso">Desiya (dso)</option>
+                                        <option value="dov">Dombe (dov)</option>
+                                        <option value="anvnt">Denya (anvnt)</option>
+                                        <option value="dnv">Danu (dnv)</option>
+                                        <option value="ldb">Duya (ldb)</option>
+                                        <option value="sce">Dongxiang (sce)</option>
+                                        <option value="daant">Dangaléat (daant)</option>
+                                        <option value="diknt">Dinka, Southwestern (diknt)</option>
+                                        <option value="dob">Dobu (dob)</option>
+                                        <option value="dww">Dawawa (dww)</option>
+                                        <option value="dgz">Daga (dgz)</option>
+                                        <option value="dwrnt">Dawro (dwrnt)</option>
+                                        <option value="djr">Djambarrpuyngu (djr)</option>
+                                        <option value="aso">Dano (aso)</option>
+                                        <option disabled>─── E ───</option>
+                                        <option value="engdra">English (engdra)</option>
+                                        <option value="engojb">English (engojb)</option>
+                                        <option value="engfbv">English (engfbv)</option>
+                                        <option value="englsv">English (englsv)</option>
+                                        <option value="engwyc2017">English (engwyc2017)</option>
+                                        <option value="engwyc2018">English (engwyc2018)</option>
+                                        <option value="eng-web">English (eng-web)</option>
+                                        <option value="eng-webbe">English (eng-webbe)</option>
+                                        <option value="engwebp">English (engwebp)</option>
+                                        <option value="engwebpb">English (engwebpb)</option>
+                                        <option value="engwebu">English (engwebu)</option>
+                                        <option value="engwmb">English (engwmb)</option>
+                                        <option value="engwmbb">English (engwmbb)</option>
+                                        <option value="ewe">eʋegbe (ewe)</option>
+                                        <option value="eng-asv">English (eng-asv)</option>
+                                        <option value="engbbe">English (engbbe)</option>
+                                        <option value="eng-kjv">English (eng-kjv)</option>
+                                        <option value="eng-kjv2006">English (eng-kjv2006)</option>
+                                        <option value="engkjvcpb">English (engkjvcpb)</option>
+                                        <option value="engmsb">English (engmsb)</option>
+                                        <option value="engnet">English (engnet)</option>
+                                        <option value="eng-rv">English (eng-rv)</option>
+                                        <option value="engwebster">English (engwebster)</option>
+                                        <option value="engylt">English (engylt)</option>
+                                        <option value="epo">Esperanto (epo)</option>
+                                        <option value="engasvbt">English (engasvbt)</option>
+                                        <option value="engdby">English (engdby)</option>
+                                        <option value="engulb">English (engulb)</option>
+                                        <option value="enggnv">English (enggnv)</option>
+                                        <option value="engbsb">English (engbsb)</option>
+                                        <option value="eng-t4t">English (eng-t4t)</option>
+                                        <option value="eng-web-c">English (eng-web-c)</option>
+                                        <option value="spaonbv">Español (spaonbv)</option>
+                                        <option value="engjps">English (engjps)</option>
+                                        <option value="englee">English (englee)</option>
+                                        <option value="eng-brenton">English (eng-brenton)</option>
+                                        <option value="eng-lxx2012">English (eng-lxx2012)</option>
+                                        <option value="eng-uk-lxx2012">English (eng-uk-lxx2012)</option>
+                                        <option value="englxxup">English (englxxup)</option>
+                                        <option value="engnoy">English (engnoy)</option>
+                                        <option value="eka">Ekajuk (eka)</option>
+                                        <option value="engourb">English (engourb)</option>
+                                        <option value="engoebcw">English (engoebcw)</option>
+                                        <option value="engoebus">English (engoebus)</option>
+                                        <option value="empntpo">Emberá, Northern (empntpo)</option>
+                                        <option value="engwycliffe">English (engwycliffe)</option>
+                                        <option value="utr">Etulo (utr)</option>
+                                        <option value="ekk">Estonian, Standard (ekk)</option>
+                                        <option value="engtnt">English (engtnt)</option>
+                                        <option value="engemtv">English (engemtv)</option>
+                                        <option value="engtcent">English (engtcent)</option>
+                                        <option value="engf35">English (engf35)</option>
+                                        <option value="mcq">Ese or Managalasi (mcq)</option>
+                                        <option value="sjant">Epena (sjant)</option>
+                                        <option value="kjs">East Kewa (kjs)</option>
+                                        <option value="djknt">Eastern Maroon Creole (djknt)</option>
+                                        <option value="esent">Ese Ejja (esent)</option>
+                                        <option value="nou">Ewage-Notu (nou)</option>
+                                        <option value="enq2">Enga (enq2)</option>
+                                        <option value="engpev">English (engpev)</option>
+                                        <option value="engoke">English (engoke)</option>
+                                        <option value="etr">Edolo (etr)</option>
+                                        <option disabled>─── F ───</option>
+                                        <option value="francl">French (francl)</option>
+                                        <option value="frajnd">French (frajnd)</option>
+                                        <option value="fralsg">French (fralsg)</option>
+                                        <option value="fra_fob">French (fra_fob)</option>
+                                        <option value="frasbl">French (frasbl)</option>
+                                        <option value="fuhbkf">Fulfulde, Western Niger (fuhbkf)</option>
+                                        <option value="fai">Faiwol (fai)</option>
+                                        <option value="ffm">Fulfulde, Maasina (ffm)</option>
+                                        <option value="bjp">Fanamaket (bjp)</option>
+                                        <option value="for">Fore (for)</option>
+                                        <option value="far">Fataleka (far)</option>
+                                        <option value="faa">Fasu (faa)</option>
+                                        <option value="aoj-filifita">Filifita dialect of Mufian (aoj-filifita)</option>
+                                        <option value="ppo">Folopa (ppo)</option>
+                                        <option value="fin">Finnish (fin)</option>
+                                        <option disabled>─── G ───</option>
+                                        <option value="deuelbbk">German (deuelbbk)</option>
+                                        <option value="deutkw">German, Standard (deutkw)</option>
+                                        <option value="guj2017">Gujarati (guj2017)</option>
+                                        <option value="deu1912">German, Standard (deu1912)</option>
+                                        <option value="deu1951">German, Standard (deu1951)</option>
+                                        <option value="deuelo">German, Standard (deuelo)</option>
+                                        <option value="gun">Guaraní, Mbyá (gun)</option>
+                                        <option value="kik">Gikuyu (kik)</option>
+                                        <option value="gax">gujii (gax)</option>
+                                        <option value="gofe">Goofa (gofe)</option>
+                                        <option value="gofl">Gofa (gofl)</option>
+                                        <option value="gmve">Gamo (gmve)</option>
+                                        <option value="gmvl">Gamo (gmvl)</option>
+                                        <option value="gubbl">Guajajára (gubbl)</option>
+                                        <option value="grcbrent">Greek, Ancient (grcbrent)</option>
+                                        <option value="grclxx">Greek, Ancient (grclxx)</option>
+                                        <option value="nlg">Gela (nlg)</option>
+                                        <option value="gnn">Gumatj (gnn)</option>
+                                        <option value="gvs">Gumawana (gvs)</option>
+                                        <option value="gup">Gunwinggu (gup)</option>
+                                        <option value="gum">Guambiano (gum)</option>
+                                        <option value="pwg">Gapapaiwa (pwg)</option>
+                                        <option value="tof">Gizrra (tof)</option>
+                                        <option value="grcsr">Greek, Ancient (grcsr)</option>
+                                        <option value="gaq">Gata' (gaq)</option>
+                                        <option value="goj">Gowlan (goj)</option>
+                                        <option value="grcbyz">Greek, Ancient (grcbyz)</option>
+                                        <option value="grcmt">Greek, Ancient (grcmt)</option>
+                                        <option value="grctr">Greek, Ancient (grctr)</option>
+                                        <option value="gux">Gourmanchéma (gux)</option>
+                                        <option value="grcf35">Greek, Ancient (grcf35)</option>
+                                        <option value="grctcgnt">Greek, Ancient (grctcgnt)</option>
+                                        <option value="gyl">Gayil (gyl)</option>
+                                        <option value="ghn">Ghanongga (ghn)</option>
+                                        <option value="cabnt">Garifuna (cabnt)</option>
+                                        <option value="gok">Gowli (gok)</option>
+                                        <option value="guxg">Gourmanchéma (guxg)</option>
+                                        <option value="grcsbl">Greek, Ancient (grcsbl)</option>
+                                        <option value="grc-tisch">Greek, Ancient (grc-tisch)</option>
+                                        <option value="gofent">Gofa (gofent)</option>
+                                        <option value="gofrnt">Gofa (gofrnt)</option>
+                                        <option value="gofwftw">Gofa (gofwftw)</option>
+                                        <option value="gbl">Gamit (gbl)</option>
+                                        <option value="gnwnt">Guaraní, Western Bolivian (gnwnt)</option>
+                                        <option value="guint">Guaraní, Eastern Bolivian (guint)</option>
+                                        <option value="gvf">Golin (gvf)</option>
+                                        <option value="gyrnt">Guarayu (gyrnt)</option>
+                                        <option value="guh">Guahibo (guh)</option>
+                                        <option value="gwint">Gwich'in (gwint)</option>
+                                        <option value="gmvrnt">Gamo (gmvrnt)</option>
+                                        <option value="gmvggm">Gamotso (gmvggm)</option>
+                                        <option value="guont">Guayabero (guont)</option>
+                                        <option value="gvc">Guanano (gvc)</option>
+                                        <option value="dah">Gwahatike (dah)</option>
+                                        <option value="bbr">Girawa (bbr)</option>
+                                        <option value="bbr2013">Girawa (bbr2013)</option>
+                                        <option value="ghs">Guhu-Samane (ghs)</option>
+                                        <option value="gyz">Geji (gyz)</option>
+                                        <option disabled>─── H ───</option>
+                                        <option value="hin2017">Hindi (hin2017)</option>
+                                        <option value="hatbsa">Haitian (hatbsa)</option>
+                                        <option value="hat">Haitian (hat)</option>
+                                        <option value="haw1868">Hawaiian (haw1868)</option>
+                                        <option value="heb">Hebrew (heb)</option>
+                                        <option value="hausa">Hausa (hausa)</option>
+                                        <option value="hincv">Hindi (hincv)</option>
+                                        <option value="hch">Huichol (hch)</option>
+                                        <option value="hui">Huli (hui)</option>
+                                        <option value="hbo">Hebrew (hbo)</option>
+                                        <option value="hbowlc">Hebrew (hbowlc)</option>
+                                        <option value="hoy">Holiya (hoy)</option>
+                                        <option value="hegntpo">Helong (hegntpo)</option>
+                                        <option value="hauulb">Hausa (hauulb)</option>
+                                        <option value="hlb">Halbi (hlb)</option>
+                                        <option value="huvnt">Huave, San Mateo Del Mar (huvnt)</option>
+                                        <option value="hebsg">Hebrew (hebsg)</option>
+                                        <option value="hchnt">Huichol (hchnt)</option>
+                                        <option value="hwo">Hwana (hwo)</option>
+                                        <option value="hrebt">Hre (hrebt)</option>
+                                        <option value="husnt1971">Huastec (husnt1971)</option>
+                                        <option value="xed">Hdi (xed)</option>
+                                        <option value="hrvbib">Hrvatski (hrvbib)</option>
+                                        <option value="husnt2005">Huastec (husnt2005)</option>
+                                        <option value="hto">Huitoto, Minica (hto)</option>
+                                        <option value="hopnt">Hopi (hopnt)</option>
+                                        <option value="bgc">Haryanvi (bgc)</option>
+                                        <option value="wos">Hanga Hundi (wos)</option>
+                                        <option value="amf">Hamer-Banna (amf)</option>
+                                        <option value="hnsnt">Hindustani, Caribbean (hnsnt)</option>
+                                        <option value="hixnt">Hixkaryána (hixnt)</option>
+                                        <option value="huunt">Huitoto, Murui (huunt)</option>
+                                        <option value="hubnt">Huambisa (hubnt)</option>
+                                        <option value="tmd">Haruai (tmd)</option>
+                                        <option value="heblb">Hebrew (heblb)</option>
+                                        <option value="hla">Halia (hla)</option>
+                                        <option disabled>─── I ───</option>
+                                        <option value="ibo">Igbo (ibo)</option>
+                                        <option value="iloulb">Ilocano (iloulb)</option>
+                                        <option value="indayt">Indonesian (indayt)</option>
+                                        <option value="ita1927">Italian (ita1927)</option>
+                                        <option value="ita1885">Italian (ita1885)</option>
+                                        <option value="hil">Ilonggo (hil)</option>
+                                        <option value="pesopcb">Iranian Persian (pesopcb)</option>
+                                        <option value="ind">Indonesian (ind)</option>
+                                        <option value="isl">Icelandic (isl)</option>
+                                        <option value="ikwnt">Ikwere (ikwnt)</option>
+                                        <option value="indags">Indonesian (indags)</option>
+                                        <option value="ikknt">Ika (ikknt)</option>
+                                        <option value="ixlnnt">Ixil (ixlnnt)</option>
+                                        <option value="ikz">Ikizu (ikz)</option>
+                                        <option value="iws">Iwam, Sepik (iws)</option>
+                                        <option value="isn">Isanzu (isn)</option>
+                                        <option value="atgnt">Ivbie North-Okpela-Arhe (atgnt)</option>
+                                        <option value="inb">Inga (inb)</option>
+                                        <option value="nca">Iyo (nca)</option>
+                                        <option value="abx">Inabaknon (abx)</option>
+                                        <option value="ixlcnt">Ixil (ixlcnt)</option>
+                                        <option value="kbm">Iwal (kbm)</option>
+                                        <option value="imo">Imbo Ungu (imo)</option>
+                                        <option value="ian">Iatmul (ian)</option>
+                                        <option value="viv">Iduna (viv)</option>
+                                        <option value="ignnt">Ignaciano (ignnt)</option>
+                                        <option value="ino">Inoke-Yate (ino)</option>
+                                        <option value="ino2013">Inoke-Yate (ino2013)</option>
+                                        <option value="yml">Iamalele (yml)</option>
+                                        <option value="ipi">Ipili (ipi)</option>
+                                        <option disabled>─── J ───</option>
+                                        <option value="juy">Juray (juy)</option>
+                                        <option value="jni">Janji (jni)</option>
+                                        <option value="jpn1965">Japanese (jpn1965)</option>
+                                        <option value="jacnt">Jakalteko (jacnt)</option>
+                                        <option value="jvnnt">Javanese, Caribbean (jvnnt)</option>
+                                        <option disabled>─── K ───</option>
+                                        <option value="mkw">Kituba (mkw)</option>
+                                        <option value="ksd">Kauana (ksd)</option>
+                                        <option value="kbq">Kamano (kbq)</option>
+                                        <option value="kanokcv">Kannada (kanokcv)</option>
+                                        <option value="kanirv">Kannada (kanirv)</option>
+                                        <option value="kor">Korean (kor)</option>
+                                        <option value="kos">Kosraean (kos)</option>
+                                        <option value="kne">Kankanaey (kne)</option>
+                                        <option value="kpg">Kapingamarangi (kpg)</option>
+                                        <option value="kij">Kilivila (kij)</option>
+                                        <option value="rop">Kriol (rop)</option>
+                                        <option value="kdc">Kutu (kdc)</option>
+                                        <option value="kyc">Kyaka Enga (kyc)</option>
+                                        <option value="cwe">Kwere (cwe)</option>
+                                        <option value="zajp">Kizalamo (zajp)</option>
+                                        <option value="soq">Kanasi (soq)</option>
+                                        <option value="yom">Kiyombi (yom)</option>
+                                        <option value="kgf">Kube (kgf)</option>
+                                        <option value="kpr">Korafe (kpr)</option>
+                                        <option value="xla">Kamula (xla)</option>
+                                        <option value="kyg">Keyagana (kyg)</option>
+                                        <option value="mkn">Kupang Malay (mkn)</option>
+                                        <option value="kwf">Kwara'ae (kwf)</option>
+                                        <option value="bco">Kaluli (bco)</option>
+                                        <option value="gvn">Kuku-Yalanji (gvn)</option>
+                                        <option value="kvg">Kuni-Boazi (kvg)</option>
+                                        <option value="kdc2014">Kutu (kdc2014)</option>
+                                        <option value="kff">Koya (kff)</option>
+                                        <option value="kue">Kuman (kue)</option>
+                                        <option value="caksnt">Kaqchikel (caksnt)</option>
+                                        <option value="cuk09">Kuna, San Blas (cuk09)</option>
+                                        <option value="cak">Kaqchikel (cak)</option>
+                                        <option value="quctt">K'iche' (quctt)</option>
+                                        <option value="cakwnt">Kaqchikel (cakwnt)</option>
+                                        <option value="qucnnt">K'iche' (qucnnt)</option>
+                                        <option value="quctnt">K'iche' (quctnt)</option>
+                                        <option value="reg">Kara (reg)</option>
+                                        <option value="caknt">Kaqchikel (caknt)</option>
+                                        <option value="khz">Keapara (khz)</option>
+                                        <option value="cakynt">Kaqchikel (cakynt)</option>
+                                        <option value="cakcnt">Kaqchikel (cakcnt)</option>
+                                        <option value="cakent">Kaqchikel (cakent)</option>
+                                        <option value="kennt">Kenyang (kennt)</option>
+                                        <option value="kiz">Kisi (kiz)</option>
+                                        <option value="kwj">Kwanga (kwj)</option>
+                                        <option value="kxw">Konai (kxw)</option>
+                                        <option value="kyq">Kenga (kyq)</option>
+                                        <option value="kvnnt">Kuna, Border (kvnnt)</option>
+                                        <option value="nit">Kolami, Southeastern (nit)</option>
+                                        <option value="sbs">Kuhane (sbs)</option>
+                                        <option value="kgpnt">Kaingang (kgpnt)</option>
+                                        <option value="kmk">Kalinga, Limos (kmk)</option>
+                                        <option value="zgam">Kinga (zgam)</option>
+                                        <option value="xon">Konkomba (xon)</option>
+                                        <option value="cgc">Kagayanen (cgc)</option>
+                                        <option value="kfcp">Konda-Dora (kfcp)</option>
+                                        <option value="kyf">Kouya (kyf)</option>
+                                        <option value="kwd">Kwaio (kwd)</option>
+                                        <option value="leu">Kara (leu)</option>
+                                        <option value="kms">Kamasau (kms)</option>
+                                        <option value="kxv">Kuvi (kxv)</option>
+                                        <option value="kbcnt">Kadiwéu (kbcnt)</option>
+                                        <option value="kpf">Komba (kpf)</option>
+                                        <option value="khs">Kasua (khs)</option>
+                                        <option value="kmo">Kwoma (kmo)</option>
+                                        <option value="yuj">Karkar-Yuri (yuj)</option>
+                                        <option value="kjent">Kisar (kjent)</option>
+                                        <option value="geb">Kire (geb)</option>
+                                        <option value="kto">Kuot (kto)</option>
+                                        <option value="kpx">Koiali, Mountain (kpx)</option>
+                                        <option value="gam">Kandawo (gam)</option>
+                                        <option value="xnn">Kankanay, Northern (xnn)</option>
+                                        <option value="kze">Kosena (kze)</option>
+                                        <option value="urbnt">Kaapor (urbnt)</option>
+                                        <option value="kpw">Kobon (kpw)</option>
+                                        <option value="bmh">Kein (bmh)</option>
+                                        <option value="txunt">Kayapó (txunt)</option>
+                                        <option value="kgknt">Kaiwá (kgknt)</option>
+                                        <option value="kpjnt">Karajá (kpjnt)</option>
+                                        <option value="kyznt">Kayabí (kyznt)</option>
+                                        <option value="kmu">Kanite (kmu)</option>
+                                        <option value="kup">Kunimaipa (kup)</option>
+                                        <option value="cbsnt">Kashinawa (cbsnt)</option>
+                                        <option value="kmh">Kalam (kmh)</option>
+                                        <option value="eko">Kote (eko)</option>
+                                        <option value="kmg">Kate (kmg)</option>
+                                        <option value="mwp">Kala Lagaw Ya (mwp)</option>
+                                        <option value="tbx">Kapin (tbx)</option>
+                                        <option disabled>─── L ───</option>
+                                        <option value="latvuc">Latin (latvuc)</option>
+                                        <option value="lin">Lingála (lin)</option>
+                                        <option value="lug">Luganda (lug)</option>
+                                        <option value="dop">Lukpa (dop)</option>
+                                        <option value="lbm">Lodhi (lbm)</option>
+                                        <option value="lex">Luang (lex)</option>
+                                        <option value="lga">Lungga (lga)</option>
+                                        <option value="llg">Lole (llg)</option>
+                                        <option value="lyn">Luyana (lyn)</option>
+                                        <option value="nrz">Lala (nrz)</option>
+                                        <option value="ruf">Luguru (ruf)</option>
+                                        <option value="lacnt">Lacandon (lacnt)</option>
+                                        <option value="uvl">Lote (uvl)</option>
+                                        <option value="lbb">Label (lbb)</option>
+                                        <option value="lifnt">Limbu (lifnt)</option>
+                                        <option value="lifnt2">Limbu (lifnt2)</option>
+                                        <option value="lww">Lewo (lww)</option>
+                                        <option value="lit">Lithuanian (lit)</option>
+                                        <option disabled>─── M ───</option>
+                                        <option value="mri2012">Māori (mri2012)</option>
+                                        <option value="mal">Malayalam (mal)</option>
+                                        <option value="mal2015">Malayalam (mal2015)</option>
+                                        <option value="meu">Motu (meu)</option>
+                                        <option value="mar">Marathi (mar)</option>
+                                        <option value="tdx">Malagasy, Tandroy-Mahafaly (tdx)</option>
+                                        <option value="cmncbs">Mandarin Chinese (cmncbs)</option>
+                                        <option value="cmncbt">Mandarin Chinese (cmncbt)</option>
+                                        <option value="hmo">Motu, Hiri (hmo)</option>
+                                        <option value="mdyeth">Male (mdyeth)</option>
+                                        <option value="tpi">Melanesian Pidgin (tpi)</option>
+                                        <option value="tpiotnt">Melanesian Pidgin (tpiotnt)</option>
+                                        <option value="mbbot">Manobo, Western Bukidnon (mbbot)</option>
+                                        <option value="mbu">Mbula-Bwazza (mbu)</option>
+                                        <option value="mna">Mbula (mna)</option>
+                                        <option value="tuc-t">Mutu (tuc-t)</option>
+                                        <option value="tuc-o">Mutu (tuc-o)</option>
+                                        <option value="mpx">Misima-Paneati (mpx)</option>
+                                        <option value="mmx">Madak (mmx)</option>
+                                        <option value="kde">Makonde (kde)</option>
+                                        <option value="knf">Mankanya (knf)</option>
+                                        <option value="met">Mato (met)</option>
+                                        <option value="mbs">Manobo, Sarangani (mbs)</option>
+                                        <option value="mfo">Mbe (mfo)</option>
+                                        <option value="emi">Mussau-Emira (emi)</option>
+                                        <option value="mgv">Matengo (mgv)</option>
+                                        <option value="mpa">Mpoto (mpa)</option>
+                                        <option value="mwe">Mwera (mwe)</option>
+                                        <option value="vmynt">Mazateco, Ayautla (vmynt)</option>
+                                        <option value="wmw">Mwani (wmw)</option>
+                                        <option value="majnt">Mazatec, Jalapa de Díaz (majnt)</option>
+                                        <option value="mca">Maka (mca)</option>
+                                        <option value="mksnt">Mixtec, Silacayoapan (mksnt)</option>
+                                        <option value="mxbnt">Mixtec, Tezoatlán (mxbnt)</option>
+                                        <option value="unx">Munda (unx)</option>
+                                        <option value="zlmkszi">Malay (zlmkszi)</option>
+                                        <option value="hun">Magyar (hun)</option>
+                                        <option value="maunt">Mazatec, Huautla (maunt)</option>
+                                        <option value="mgh2016">Makhuwa-Meetto (mgh2016)</option>
+                                        <option value="mignt">Mixtec, San Miguel el Grande (mignt)</option>
+                                        <option value="mri">Māori (mri)</option>
+                                        <option value="mxqnt">Mixe, Juquila (mxqnt)</option>
+                                        <option value="mcp">Makaa (mcp)</option>
+                                        <option value="mient">Mixtec, Ocotepec (mient)</option>
+                                        <option value="miznt">Mixtec, Coatzospan (miznt)</option>
+                                        <option value="aai">Miniafia (aai)</option>
+                                        <option value="xtmntpp">Mixtec, Magdalena Peñasco (xtmntpp)</option>
+                                        <option value="mibnt">Mixtec, Atatláhuca (mibnt)</option>
+                                        <option value="mva">Manam (mva)</option>
+                                        <option value="mtont">Mixe, Totontepec (mtont)</option>
+                                        <option value="meq">Merey (meq)</option>
+                                        <option value="maant">Mazatec, San Jerónimo Tecóatl (maant)</option>
+                                        <option value="soy">Miyobe (soy)</option>
+                                        <option value="maqnt">Mazatec, Chiquihuitlán (maqnt)</option>
+                                        <option value="mamnt">Mam (mamnt)</option>
+                                        <option value="mdybse">Male (mdybse)</option>
+                                        <option value="dad">Marik (dad)</option>
+                                        <option value="tbf">Mandara (tbf)</option>
+                                        <option value="mfxe">Melo (mfxe)</option>
+                                        <option value="mfxl">Melo (mfxl)</option>
+                                        <option value="mhl">Mauwake (mhl)</option>
+                                        <option value="mlh">Mape (mlh)</option>
+                                        <option value="muy">Muyang (muy)</option>
+                                        <option value="mee">Mengen (mee)</option>
+                                        <option value="mti">Maiwa (mti)</option>
+                                        <option value="obont">Manobo, Obo (obont)</option>
+                                        <option value="mxpnt">Mixe, Tlahuitoltepec (mxpnt)</option>
+                                        <option value="bmrnt">Muinane (bmrnt)</option>
+                                        <option value="mihnt">Mixtec, Chayuco (mihnt)</option>
+                                        <option value="mni">Meitei (mni)</option>
+                                        <option value="msb">Masbatenyo (msb)</option>
+                                        <option value="mbtnt">Manobo, Matigsalug (mbtnt)</option>
+                                        <option value="miont">Mixtec, Pinotepa Nacional (miont)</option>
+                                        <option value="arnnt">Mapudungun (arnnt)</option>
+                                        <option value="mjcnt">Mixtec, San Juan Colorado (mjcnt)</option>
+                                        <option value="mopnt">Maya, Mopán (mopnt)</option>
+                                        <option value="mqbnt">Mbuko (mqbnt)</option>
+                                        <option value="mxm">Meramera (mxm)</option>
+                                        <option value="mxtnt">Mixtec, Jamiltepec (mxtnt)</option>
+                                        <option value="micmiqnt">Mi'kmaq (micmiqnt)</option>
+                                        <option value="klv">Maskelynes (klv)</option>
+                                        <option value="mblnt">Maxakalí (mblnt)</option>
+                                        <option value="milnt">Mixtec, Peñoles (milnt)</option>
+                                        <option value="mbh">Mangseng (mbh)</option>
+                                        <option value="mkl">Mokole (mkl)</option>
+                                        <option value="mpmnt">Mixtec, Yosondúa (mpmnt)</option>
+                                        <option value="xtdnt">Mixtec, Diuxi-tilantongo (xtdnt)</option>
+                                        <option value="mpp">Migabac (mpp)</option>
+                                        <option value="mqjnt">Mamasa (mqjnt)</option>
+                                        <option value="mamc">Mam (mamc)</option>
+                                        <option value="mbcnt">Macushi (mbcnt)</option>
+                                        <option value="mcbnt">Machiguenga (mcbnt)</option>
+                                        <option value="mcont">Mixe, Coatlán (mcont)</option>
+                                        <option value="atdnt">Manobo, Ata (atdnt)</option>
+                                        <option value="maznt">Mazahua, Central (maznt)</option>
+                                        <option value="mcfnt">Matsés (mcfnt)</option>
+                                        <option value="myy">Macuna (myy)</option>
+                                        <option value="msmnt">Manobo, Agusan (msmnt)</option>
+                                        <option value="mvn">Minaveha (mvn)</option>
+                                        <option value="mox">Molima (mox)</option>
+                                        <option value="aoj">Mufian (aoj)</option>
+                                        <option value="mek">Mekeo (mek)</option>
+                                        <option value="msk">Mansaka (msk)</option>
+                                        <option value="sim">Mende (sim)</option>
+                                        <option value="mitnt">Mixtec, Southern Puebla (mitnt)</option>
+                                        <option value="mpt">Mian (mpt)</option>
+                                        <option value="kmh-m">Minimib dialect of Kalam (kmh-m)</option>
+                                        <option value="hot">Malei-Hote (hot)</option>
+                                        <option value="mcr">Menya (mcr)</option>
+                                        <option value="myu">Mundurukú (myu)</option>
+                                        <option value="mirnt">Mixe, Isthmus (mirnt)</option>
+                                        <option value="med">Melpa (med)</option>
+                                        <option value="mle">Manambu (mle)</option>
+                                        <option value="myw">Muyuw (myw)</option>
+                                        <option value="mkj">Mokilese (mkj)</option>
+                                        <option value="mfm">Marghi South (mfm)</option>
+                                        <option value="mgw">Matumbi (mgw)</option>
+                                        <option value="mpj">Martu Wangka (mpj)</option>
+                                        <option disabled>─── N ───</option>
+                                        <option value="nde">Ndebele (nde)</option>
+                                        <option value="npiulb">Nepali (npiulb)</option>
+                                        <option value="nchbl">Nahuatl, Huasteca Central (nchbl)</option>
+                                        <option value="nhebl">Nahuatl, Huasteca Oriental (nhebl)</option>
+                                        <option value="nhwbl">Nahuatl,  Huasteca Occidental (nhwbl)</option>
+                                        <option value="nop">Numanggang (nop)</option>
+                                        <option value="ntj">Ngaanyatjarra (ntj)</option>
+                                        <option value="ntu">Natügu (ntu)</option>
+                                        <option value="lid">Nyindrou (lid)</option>
+                                        <option value="nuy">Nunggubuyu (nuy)</option>
+                                        <option value="nss">Nali (nss)</option>
+                                        <option value="nas">Naasioi (nas)</option>
+                                        <option value="dne">Ndendeule (dne)</option>
+                                        <option value="nag">Naga Pidgin (nag)</option>
+                                        <option value="nhint">Nahuatl, Zacatlán-Ahuacatlán-Tepetzintla (nhint)</option>
+                                        <option value="nnq">Ngindo (nnq)</option>
+                                        <option value="nww">Ndwewe (nww)</option>
+                                        <option value="xnj">Ngoni (xnj)</option>
+                                        <option value="ndj">Ndamba (ndj)</option>
+                                        <option value="ngp">Nguu (ngp)</option>
+                                        <option value="nplnt">Nahuatl, Southeastern Puebla (nplnt)</option>
+                                        <option value="ninnt">Ninzo (ninnt)</option>
+                                        <option value="kfw">Naga, Kharam (kfw)</option>
+                                        <option value="nhent">Nahuatl,  Huasteca Oriental (nhent)</option>
+                                        <option value="ncr">Ncane (ncr)</option>
+                                        <option value="nhunt">Noone (nhunt)</option>
+                                        <option value="nhynt">Nahuatl, Northern Oaxaca (nhynt)</option>
+                                        <option value="azznt">Nahuatl, Highland Puebla (azznt)</option>
+                                        <option value="gngnt">Ngangam (gngnt)</option>
+                                        <option value="ndg">Ndengereko (ndg)</option>
+                                        <option value="nldgbv">Nederlands (nldgbv)</option>
+                                        <option value="ncf">Notsi (ncf)</option>
+                                        <option value="nclnt">Nahuatl, Michoacán (nclnt)</option>
+                                        <option value="nhr">Naro (nhr)</option>
+                                        <option value="ncjnt">Nahuatl, Northern Puebla (ncjnt)</option>
+                                        <option value="ngunt">Nahuatl, Guerrero (ngunt)</option>
+                                        <option value="nal">Nalik (nal)</option>
+                                        <option value="esknt">Northwest Alaska Eskimo (esknt)</option>
+                                        <option value="nhgnt">Nahuatl, Tetelcingo (nhgnt)</option>
+                                        <option value="tnk">Nafe (tnk)</option>
+                                        <option value="tvt">Naga, Tutsa (tvt)</option>
+                                        <option value="nuq">Nukumanu (nuq)</option>
+                                        <option value="nak">Nakanai (nak)</option>
+                                        <option value="mbjnt">Nadeb (mbjnt)</option>
+                                        <option value="nsn">Nehan (nsn)</option>
+                                        <option value="tnn">North Tanna (tnn)</option>
+                                        <option value="nkont">Nkonya (nkont)</option>
+                                        <option value="notnt">Nomatsiguenga (notnt)</option>
+                                        <option value="gaw">Nobonob (gaw)</option>
+                                        <option value="gymnt">Ngäbere (gymnt)</option>
+                                        <option value="nii">Nii (nii)</option>
+                                        <option value="noblb">Norwegian (noblb)</option>
+                                        <option value="naf">Nabak (naf)</option>
+                                        <option value="nabnt">Nambikuára, Southern (nabnt)</option>
+                                        <option value="nvm">Namiae (nvm)</option>
+                                        <option value="nkn">Nkangala (nkn)</option>
+                                        <option disabled>─── O ───</option>
+                                        <option value="ory">Oriya (ory)</option>
+                                        <option value="gaz">Oromo, West Central (gaz)</option>
+                                        <option value="gaze">Oromo, West Central (gaze)</option>
+                                        <option value="otqnt">Otomi, Querétaro (otqnt)</option>
+                                        <option value="otent">Otomi, Mezquital (otent)</option>
+                                        <option value="ons">Ono (ons)</option>
+                                        <option value="otnnt">Otomi, Tenango (otnnt)</option>
+                                        <option value="oyde">Oyda (oyde)</option>
+                                        <option value="oydl">Oyda (oydl)</option>
+                                        <option value="otsnt">Otomi, Estado de México (otsnt)</option>
+                                        <option value="aom">Omie (aom)</option>
+                                        <option value="eri">Ogea (eri)</option>
+                                        <option value="ong">Olo (ong)</option>
+                                        <option value="otmnt">Otomi, Eastern Highland (otmnt)</option>
+                                        <option value="okv">Orokaiva (okv)</option>
+                                        <option value="okvh">Orokaiva (okvh)</option>
+                                        <option value="opm">Oksapmin (opm)</option>
+                                        <option value="kkc">Odoodee (kkc)</option>
+                                        <option disabled>─── P ───</option>
+                                        <option value="poronbv">Português (poronbv)</option>
+                                        <option value="pan">Panjabi, Eastern (pan)</option>
+                                        <option value="porbrbsl">Portuguese (porbrbsl)</option>
+                                        <option value="polubg">Polish (polubg)</option>
+                                        <option value="porbr2018">Portuguese (porbr2018)</option>
+                                        <option value="pesopv">Persian (pesopv)</option>
+                                        <option value="pon2006">Pohnpeian (pon2006)</option>
+                                        <option value="pon2006a">Pohnpeian (pon2006a)</option>
+                                        <option value="pma">Paama (pma)</option>
+                                        <option value="pjt">Pitjantjatjara (pjt)</option>
+                                        <option value="pon">Pohnpeian (pon)</option>
+                                        <option value="pon-pdn">Pohnpeian (pon-pdn)</option>
+                                        <option value="gfk">Patpatar (gfk)</option>
+                                        <option value="ata">Pele-Ata (ata)</option>
+                                        <option value="porblt">Português (porblt)</option>
+                                        <option value="poy">Pogolo (poy)</option>
+                                        <option value="pabnt">Parecís (pabnt)</option>
+                                        <option value="pohnt">Poqomchi' (pohnt)</option>
+                                        <option value="poent">Popoloca, San Juan Atzingo (poent)</option>
+                                        <option value="point">Popoluca, Highland (point)</option>
+                                        <option value="bfz">Pahari, Mahasu (bfz)</option>
+                                        <option value="plsnt">Popoloca, San Marcos Tlalcoyalco (plsnt)</option>
+                                        <option value="plu">Palikúr (plu)</option>
+                                        <option value="fuf">Pular (fuf)</option>
+                                        <option value="prfnt">Paranan (prfnt)</option>
+                                        <option value="ptp">Patep (ptp)</option>
+                                        <option value="polsz">Polish (polsz)</option>
+                                        <option value="portft">Portuguese (portft)</option>
+                                        <option value="piont">Piapoco (piont)</option>
+                                        <option value="peg">Pengo (peg)</option>
+                                        <option value="padnt">Paumarí (padnt)</option>
+                                        <option value="pirnt">Piratapuyo (pirnt)</option>
+                                        <option value="gfkh">Patpatar (gfkh)</option>
+                                        <option value="gfks">Patpatar (gfks)</option>
+                                        <option value="print">Paicî (print)</option>
+                                        <option value="piu2006">Pintupi-Luritja (piu2006)</option>
+                                        <option value="paont">Paiute, Northern (paont)</option>
+                                        <option value="plj">Polci (plj)</option>
+                                        <option value="pwr">Powari (pwr)</option>
+                                        <option disabled>─── Q ───</option>
+                                        <option value="qub">Quechua, Huallaga Huánuco (qub)</option>
+                                        <option value="qvsnt">Quechua, San Martín (qvsnt)</option>
+                                        <option value="qvent">Quechua, Eastern Apurímac (qvent)</option>
+                                        <option value="keknt">Q'eqchi' (keknt)</option>
+                                        <option value="qulnt">Quechua, North Bolivian (qulnt)</option>
+                                        <option value="qvnnt">Quechua, North Junín (qvnnt)</option>
+                                        <option value="qxnnt">Quechua, Northern Conchucos Ancash (qxnnt)</option>
+                                        <option value="quhnt">Quechua, South Bolivian (quhnt)</option>
+                                        <option value="qwhnt">Quechua, Huaylas Ancash (qwhnt)</option>
+                                        <option value="byx">Qaqet (byx)</option>
+                                        <option value="qufnt">Quechua, Lambayeque (qufnt)</option>
+                                        <option value="qvznt">Quichua, Northern Pastaza (qvznt)</option>
+                                        <option value="qvcnt">Quechua, Cajamarca (qvcnt)</option>
+                                        <option value="qxhnt">Quechua, Panao Huánuco (qxhnt)</option>
+                                        <option value="qupnt">Quechua, Southern Pastaza (qupnt)</option>
+                                        <option value="qvwnt">Quechua, Huaylla Wanca (qvwnt)</option>
+                                        <option value="qxont">Quechua, Southern Conchucos Ancash (qxont)</option>
+                                        <option value="qvhnt">Quechua, Huamalíes-Dos de Mayo Huánuco (qvhnt)</option>
+                                        <option value="qvmnt">Quechua, Margos-Yarowilca-Lauricocha (qvmnt)</option>
+                                        <option disabled>─── R ───</option>
+                                        <option value="russyn">Russian (russyn)</option>
+                                        <option value="ronbtf">Romanian (ronbtf)</option>
+                                        <option value="rmc">Romani, Carpathian (rmc)</option>
+                                        <option value="ron1924">Romanian (ron1924)</option>
+                                        <option value="rug">Roviana (rug)</option>
+                                        <option value="rai">Ramoaaina (rai)</option>
+                                        <option value="rgu">Rikou (rgu)</option>
+                                        <option value="rmychergash">Romani, Vlax (rmychergash)</option>
+                                        <option value="rmygurbet">Romani, Vlax (rmygurbet)</option>
+                                        <option value="rhgc">Rohingya (rhgc)</option>
+                                        <option value="ronlsb">Romanian (ronlsb)</option>
+                                        <option value="lag">Rangi (lag)</option>
+                                        <option value="rmna">Romani (rmna)</option>
+                                        <option value="rki">Rakhine (rki)</option>
+                                        <option value="roo">Rotokas (roo)</option>
+                                        <option value="rkbnt">Rikbaktsa (rkbnt)</option>
+                                        <option value="rwo-karo">Rawa (rwo-karo)</option>
+                                        <option value="rwo-rawa">Rawa (rwo-rawa)</option>
+                                        <option value="rhg">Rohingya (rhg)</option>
+                                        <option disabled>─── S ───</option>
+                                        <option value="shr">Shi (shr)</option>
+                                        <option value="swe">Swedish (swe)</option>
+                                        <option value="sus">Susu (sus)</option>
+                                        <option value="susa">Susu (susa)</option>
+                                        <option value="swef">Swedish (swef)</option>
+                                        <option value="srp1865">Serbian (srp1865)</option>
+                                        <option value="srp1868">Serbian (srp1868)</option>
+                                        <option value="suzbl">Sunwar (suzbl)</option>
+                                        <option value="som">Somali (som)</option>
+                                        <option value="swhonen">Swahili (swhonen)</option>
+                                        <option value="swhonmm">Swahili (swhonmm)</option>
+                                        <option value="sparv1909">Spanish (sparv1909)</option>
+                                        <option value="sparvg">Spanish (sparvg)</option>
+                                        <option value="spavbl">Spanish (spavbl)</option>
+                                        <option value="srponspc">Serbian (srponspc)</option>
+                                        <option value="srponstl">Serbian (srponstl)</option>
+                                        <option value="spabes">Spanish (spabes)</option>
+                                        <option value="swhulb">Swahili (swhulb)</option>
+                                        <option value="cuk">San Blas Kuna (cuk)</option>
+                                        <option value="spablm">Spanish (spablm)</option>
+                                        <option value="spav1602p">Spanish (spav1602p)</option>
+                                        <option value="spapddpt">Spanish (spapddpt)</option>
+                                        <option value="swp">Suau (swp)</option>
+                                        <option value="ssd">Siroi (ssd)</option>
+                                        <option value="sav">Saafi-Saafi (sav)</option>
+                                        <option value="tgo">Sudest (tgo)</option>
+                                        <option value="xsi">Sio (xsi)</option>
+                                        <option value="shpntpo">Shipibo-Conibo (shpntpo)</option>
+                                        <option value="bmu">Somba-Siawari or Burum-Mindik (bmu)</option>
+                                        <option value="spp">Sénoufo, Supyire (spp)</option>
+                                        <option value="ssx">Sembeleke (ssx)</option>
+                                        <option value="msc">Sankaran Maninka (msc)</option>
+                                        <option value="sps">Saposa (sps)</option>
+                                        <option value="myk">Sénoufo, Mamara (myk)</option>
+                                        <option value="sanasm">Sanskrit (sanasm)</option>
+                                        <option value="sanben">Sanskrit (sanben)</option>
+                                        <option value="sanbur">Sanskrit (sanbur)</option>
+                                        <option value="sancol">Sanskrit (sancol)</option>
+                                        <option value="sandev">Sanskrit (sandev)</option>
+                                        <option value="sanguj">Sanskrit (sanguj)</option>
+                                        <option value="sanhk">Sanskrit (sanhk)</option>
+                                        <option value="sanias">Sanskrit (sanias)</option>
+                                        <option value="saniso">Sanskrit (saniso)</option>
+                                        <option value="sanitr">Sanskrit (sanitr)</option>
+                                        <option value="sankan">Saṃskṛtam (sankan)</option>
+                                        <option value="sankhm">Saṃskṛtam (sankhm)</option>
+                                        <option value="sanmal">Saṃskṛtam (sanmal)</option>
+                                        <option value="sanori">Saṃskṛtam (sanori)</option>
+                                        <option value="sanpun">Saṃskṛtam (sanpun)</option>
+                                        <option value="sansin">Saṃskṛtam (sansin)</option>
+                                        <option value="santam">Saṃskṛtam (santam)</option>
+                                        <option value="santel">Saṃskṛtam (santel)</option>
+                                        <option value="santha">Saṃskṛtam (santha)</option>
+                                        <option value="santib">Saṃskṛtam (santib)</option>
+                                        <option value="sanurd">Saṃskṛtam (sanurd)</option>
+                                        <option value="sanvel">Saṃskṛtam (sanvel)</option>
+                                        <option value="sby">Soli (sby)</option>
+                                        <option value="mavnt">Sateré-Mawé (mavnt)</option>
+                                        <option value="sle">Sholaga (sle)</option>
+                                        <option value="sbk">Safwa (sbk)</option>
+                                        <option value="gulnt">Sea Island Creole English (gulnt)</option>
+                                        <option value="slk">Slovak (slk)</option>
+                                        <option value="asj">Sari (asj)</option>
+                                        <option value="snc">Sinaugoro (snc)</option>
+                                        <option value="sxbnt">Suba (sxbnt)</option>
+                                        <option value="srnnt">Sranan (srnnt)</option>
+                                        <option value="ssg">Seimat (ssg)</option>
+                                        <option value="acfnt">Saint Lucian Creole French (acfnt)</option>
+                                        <option value="seynt">Secoya (seynt)</option>
+                                        <option value="sch">Sakachep (sch)</option>
+                                        <option value="sbe">Saliba (sbe)</option>
+                                        <option value="snnnt">Siona (snnnt)</option>
+                                        <option value="sue">Suena (sue)</option>
+                                        <option value="srqnt">Sirionó (srqnt)</option>
+                                        <option value="sll">Salt-Yui (sll)</option>
+                                        <option value="nwi">Southwest Tanna (nwi)</option>
+                                        <option value="snp">Siane (snp)</option>
+                                        <option value="snp-lambau">Siane (snp-lambau)</option>
+                                        <option value="swh1850">Swahili (swh1850)</option>
+                                        <option value="sny">Saniyo-Hiyewe (sny)</option>
+                                        <option value="apz">Safeyoka (apz)</option>
+                                        <option value="spynt">Sabaot (spynt)</option>
+                                        <option value="apb">Sa'a (apb)</option>
+                                        <option value="sri">Siriano (sri)</option>
+                                        <option value="jivnt">Shuar (jivnt)</option>
+                                        <option value="sgz">Sursurunga (sgz)</option>
+                                        <option value="srmnt">Saramaccan (srmnt)</option>
+                                        <option value="sua">Sulka (sua)</option>
+                                        <option value="tsn">Setswana (tsn)</option>
+                                        <option value="mcdnt">Sharanahua (mcdnt)</option>
+                                        <option value="spl">Selepet (spl)</option>
+                                        <option disabled>─── T ───</option>
+                                        <option value="rifa">Tarifit (rifa)</option>
+                                        <option value="rifl">Tarifit (rifl)</option>
+                                        <option value="rift">Tarifit (rift)</option>
+                                        <option value="tod">Toma (tod)</option>
+                                        <option value="tam2017">Tamil (tam2017)</option>
+                                        <option value="tglulb">Tagalog (tglulb)</option>
+                                        <option value="tamtcv">Tamil (tamtcv)</option>
+                                        <option value="thakjv">Thai (thakjv)</option>
+                                        <option value="ton">Tongan (ton)</option>
+                                        <option value="twi">Twi (twi)</option>
+                                        <option value="twiasante">Twi (twiasante)</option>
+                                        <option value="vieovcb">Tiếng Việt (vieovcb)</option>
+                                        <option value="turytc">Turkish (turytc)</option>
+                                        <option value="bodn">Tibetan (bodn)</option>
+                                        <option value="tel2017">Telugu (tel2017)</option>
+                                        <option value="telotsa">Telugu (telotsa)</option>
+                                        <option value="tbg">Tairora (tbg)</option>
+                                        <option value="iou">Tuma-Irumu (iou)</option>
+                                        <option value="tuont">Tucano (tuont)</option>
+                                        <option value="yer">Tarok (yer)</option>
+                                        <option value="tdt">Tetun Dili (tdt)</option>
+                                        <option value="bgs">Tagabawa (bgs)</option>
+                                        <option value="lcm">Tungag (lcm)</option>
+                                        <option value="tcs">Torres Strait Creole (tcs)</option>
+                                        <option value="tfrntpo">Teribe (tfrntpo)</option>
+                                        <option value="tet">Tetun (tet)</option>
+                                        <option value="txq">Tii (txq)</option>
+                                        <option value="lth">Thur (lth)</option>
+                                        <option value="thr">Tharu, Rana (thr)</option>
+                                        <option value="ttcnt">Tektiteko (ttcnt)</option>
+                                        <option value="ternt">Terêna (ternt)</option>
+                                        <option value="tvn">Tavoyan (tvn)</option>
+                                        <option value="tptnt">Tepehua, Tlachichilco (tptnt)</option>
+                                        <option value="tyx">Teke-Tyee (tyx)</option>
+                                        <option value="tkunt">Totonac, Upper Necaxa (tkunt)</option>
+                                        <option value="toont">Totonac, Xicotepec De Juárez (toont)</option>
+                                        <option value="teent">Tepehua, Huehuetla (teent)</option>
+                                        <option value="tzotzc">Tzotzil (tzotzc)</option>
+                                        <option value="klg">Tagakaulo (klg)</option>
+                                        <option value="tgp">Tangoa (tgp)</option>
+                                        <option value="nho">Takuu (nho)</option>
+                                        <option value="stpnt">Tepehuan, Southeastern (stpnt)</option>
+                                        <option value="tbo">Tawala (tbo)</option>
+                                        <option value="jicnt">Tol (jicnt)</option>
+                                        <option value="taj">Tamang, Eastern (taj)</option>
+                                        <option value="tgj">Tagin (tgj)</option>
+                                        <option value="tocnt">Totonac, Coyutla (tocnt)</option>
+                                        <option value="trcnt">Triqui, Copala (trcnt)</option>
+                                        <option value="tosnt">Totonac, Highland (tosnt)</option>
+                                        <option value="kdlnt">Tsikimba (kdlnt)</option>
+                                        <option value="tiy">Tiruray (tiy)</option>
+                                        <option value="tswnt">Tsishingini (tswnt)</option>
+                                        <option value="tzjnt">Tz'utujil (tzjnt)</option>
+                                        <option value="tzje">Tz'utujil (tzje)</option>
+                                        <option value="turobt">Turkish (turobt)</option>
+                                        <option value="tacnt">Tarahumara, Western (tacnt)</option>
+                                        <option value="tuf">Tunebo, Central (tuf)</option>
+                                        <option value="topnt">Totonac, Papantla (topnt)</option>
+                                        <option value="tue">Tuyuca (tue)</option>
+                                        <option value="omw">Tairora, South (omw)</option>
+                                        <option value="tojnt">Tojolabal (tojnt)</option>
+                                        <option value="tpz">Tinputz (tpz)</option>
+                                        <option value="tzont">Tzotzil (tzont)</option>
+                                        <option value="tbc">Takia (tbc)</option>
+                                        <option value="tzotze">Tzotzil (tzotze)</option>
+                                        <option value="tzoznt">Tzotzil (tzoznt)</option>
+                                        <option value="knv-aramia">Tabo (knv-aramia)</option>
+                                        <option value="knv-fly_river">Tabo (knv-fly_river)</option>
+                                        <option value="tzosa">Tzotzil (tzosa)</option>
+                                        <option value="tim">Timbe (tim)</option>
+                                        <option value="ntpnt">Tepehuan, Northern (ntpnt)</option>
+                                        <option value="tnant">Tacana (tnant)</option>
+                                        <option value="tcant">Ticuna (tcant)</option>
+                                        <option value="taw">Tai (taw)</option>
+                                        <option value="pahnt">Tenharim (pahnt)</option>
+                                        <option value="tlf">Telefol (tlf)</option>
+                                        <option value="tif">Tifal (tif)</option>
+                                        <option value="tav">Tatuyo (tav)</option>
+                                        <option value="oodnt">Tohono O'odham (oodnt)</option>
+                                        <option value="tkr">Tsakhur (tkr)</option>
+                                        <option value="tap">Taabwa (tap)</option>
+                                        <option disabled>─── U ───</option>
+                                        <option value="urd">Urdu (urd)</option>
+                                        <option value="ukr1871">Ukrainian (ukr1871)</option>
+                                        <option value="ukr1996">Ukrainian (ukr1996)</option>
+                                        <option value="ukrfb">Ukrainian (ukrfb)</option>
+                                        <option value="uigara">Uyghur (uigara)</option>
+                                        <option value="uigcyr">Uyghur (uigcyr)</option>
+                                        <option value="uiglat">Uyghur (uiglat)</option>
+                                        <option value="uigpin">Uyghur (uigpin)</option>
+                                        <option value="urdgvh">Urdu (urdgvh)</option>
+                                        <option value="urdgvr">Urdu (urdgvr)</option>
+                                        <option value="urdgvu">Urdu (urdgvu)</option>
+                                        <option value="udu">Uduk (udu)</option>
+                                        <option value="ukronpu">Ukranian (ukronpu)</option>
+                                        <option value="ubr">Ubir (ubr)</option>
+                                        <option value="usa">Usarufa (usa)</option>
+                                        <option value="uspnt">Uspanteko (uspnt)</option>
+                                        <option value="uro">Ura (uro)</option>
+                                        <option value="ksj">Uare (ksj)</option>
+                                        <option value="urim">Urim (urim)</option>
+                                        <option value="upv">Uripiv-Wala-Rano-Atchin (upv)</option>
+                                        <option value="uli">Ulithian (uli)</option>
+                                        <option value="urt">Urat (urt)</option>
+                                        <option value="urant">Urarina (urant)</option>
+                                        <option value="gdn">Umanakaina (gdn)</option>
+                                        <option value="ubu-kala">Umbu-Ungu (ubu-kala)</option>
+                                        <option value="ubu-nopenge">Umbu-Ungu (ubu-nopenge)</option>
+                                        <option value="wnu">Usan (wnu)</option>
+                                        <option value="ubu-andelale">Umbu-Ungu (ubu-andelale)</option>
+                                        <option value="uvh">Uri (uvh)</option>
+                                        <option value="gel">ut-Ma'in (gel)</option>
+                                        <option disabled>─── V ───</option>
+                                        <option value="vie1934">Vietnamese (vie1934)</option>
+                                        <option value="vid">Vidunda (vid)</option>
+                                        <option value="wbi">Vwanji (wbi)</option>
+                                        <option value="vgr">Vaghri (vgr)</option>
+                                        <option value="vaa">Vaagri Booli (vaa)</option>
+                                        <option value="wiv">Vitu (wiv)</option>
+                                        <option disabled>─── W ───</option>
+                                        <option value="wolmbs">Wolof (wolmbs)</option>
+                                        <option value="wal">Wolaytta (wal)</option>
+                                        <option value="wsk">Waskia (wsk)</option>
+                                        <option value="wlo">Wolio (wlo)</option>
+                                        <option value="wnc">Wantoat (wnc)</option>
+                                        <option value="wbp">Warlpiri (wbp)</option>
+                                        <option value="kew">West Kewa (kew)</option>
+                                        <option value="wrs">Waris (wrs)</option>
+                                        <option value="rro">Waima (rro)</option>
+                                        <option value="aucnt">Waorani (aucnt)</option>
+                                        <option value="hrw">Warwar Feni (hrw)</option>
+                                        <option value="wuv">Wuvalu-Aua (wuv)</option>
+                                        <option value="baont">Waimaha (baont)</option>
+                                        <option value="gdr">Wipi (gdr)</option>
+                                        <option value="wol2010">Wolof (wol2010)</option>
+                                        <option value="waj">Waffa (waj)</option>
+                                        <option value="wapnt">Wapishana (wapnt)</option>
+                                        <option value="wer">Weri (wer)</option>
+                                        <option value="tnp">Whitesands (tnp)</option>
+                                        <option value="noae">Woun Meu (noae)</option>
+                                        <option value="noah">Woun Meu (noah)</option>
+                                        <option value="lgl">Wala (lgl)</option>
+                                        <option value="wiu">Wiru (wiu)</option>
+                                        <option value="wim">Wik-Mungkan (wim)</option>
+                                        <option value="abt-wosera">Wosera-Kamu dialect of Ambulas (abt-wosera)</option>
+                                        <option disabled>─── X ───</option>
+                                        <option value="xavnt">Xavánte (xavnt)</option>
+                                        <option disabled>─── Y ───</option>
+                                        <option value="yal">Yalunka (yal)</option>
+                                        <option value="yor">Yorùbá (yor)</option>
+                                        <option value="yap">Yapese (yap)</option>
+                                        <option value="jae">Yabem (jae)</option>
+                                        <option value="yon">Yongkom (yon)</option>
+                                        <option value="yvant">Yawa (yvant)</option>
+                                        <option value="yut">Yopno (yut)</option>
+                                        <option value="yka">Yakan (yka)</option>
+                                        <option value="yns">Yansi (yns)</option>
+                                        <option value="ydd">Yiddish, Eastern (ydd)</option>
+                                        <option value="yrent">Yaouré (yrent)</option>
+                                        <option value="pibnt">Yine (pibnt)</option>
+                                        <option value="iyx">Yaka (iyx)</option>
+                                        <option value="yaqnt">Yaqui (yaqnt)</option>
+                                        <option value="jnje">Yemsa (jnje)</option>
+                                        <option value="jnjl">Yemsa (jnjl)</option>
+                                        <option value="yss-yamano">Yessan-Mayo (yss-yamano)</option>
+                                        <option value="yss-yawu">Yessan-Mayo (yss-yawu)</option>
+                                        <option value="yby">Yaweyuha (yby)</option>
+                                        <option value="ycn">Yucuna (ycn)</option>
+                                        <option value="yuw">Yau (yuw)</option>
+                                        <option value="ament">Yanesha' (ament)</option>
+                                        <option value="yle">Yele (yle)</option>
+                                        <option value="yaant">Yaminahua (yaant)</option>
+                                        <option value="yadnt">Yagua (yadnt)</option>
+                                        <option value="yrb">Yareba (yrb)</option>
+                                        <option value="yaf">Yaka (yaf)</option>
+                                        <option disabled>─── Z ───</option>
+                                        <option value="zatntps">Zapotec, Tabaa (zatntps)</option>
+                                        <option value="zarnt">Zapotec, Rincón (zarnt)</option>
+                                        <option value="ztyntps">Zapotec, Yatee (ztyntps)</option>
+                                        <option value="ziw">Zigua (ziw)</option>
+                                        <option value="ztp">Zapotec, Loxicha (ztp)</option>
+                                        <option value="zpunt">Zapotec, Yalálag (zpunt)</option>
+                                        <option value="zaj">Zaramo (zaj)</option>
+                                        <option value="zawnt">Zapotec, Mitla (zawnt)</option>
+                                        <option value="zplnt">Zapotec, Lachixío (zplnt)</option>
+                                        <option value="zadnt">Zapotec, Cajonos (zadnt)</option>
+                                        <option value="zosnt">Zoque, Francisco León (zosnt)</option>
+                                        <option value="zabnt">Zapotec, San Juan Guelavía (zabnt)</option>
+                                        <option value="zapnt">Zapotec, Santa María Quiegolani (zapnt)</option>
+                                        <option value="zacnt">Zapotec, Ocotlán (zacnt)</option>
+                                        <option value="zasnt">Zapotec, Santo Domingo Albarradas (zasnt)</option>
+                                        <option value="zpzntpp">Zapotec, Texmelucan (zpzntpp)</option>
+                                        <option value="zcant">Zapotec, Coatecas Altas (zcant)</option>
+                                        <option value="zamnt">Zapotec, Miahuatlán (zamnt)</option>
+                                        <option value="zin">Zinza (zin)</option>
+                                        <option value="zpvnt">Zapotec, Chichicapan (zpvnt)</option>
+                                        <option value="zaont">Zapotec, Ozolotepec (zaont)</option>
+                                        <option value="atbnt">Zaiwa (atbnt)</option>
+                                        <option value="zak">Zanaki (zak)</option>
+                                        <option value="zpont">Zapotec, Amatlán (zpont)</option>
+                                        <option value="zaint">Zapotec, Isthmus (zaint)</option>
+                                        <option value="zsrnt">Zapotec, Southern Rincon (zsrnt)</option>
+                                        <option value="zpcnt">Zapotec, Choapan (zpcnt)</option>
+                                        <option value="ztqnt">Zapotec, Quioquitani-Quierí (ztqnt)</option>
+                                        <option value="zia">Zia (zia)</option>
+                                        <option value="zaant">Zapotec, Sierra de Juárez (zaant)</option>
+                                        <option value="zpqnt">Zapotec, Zoogocho (zpqnt)</option>
+                                        <option value="zavnt">Zapotec, Yatzachi (zavnt)</option>
+                                        <option value="zpmnt">Zapotec, Mixtepec (zpmnt)</option>
+                                        <option disabled>─── Б ───</option>
+                                        <option value="beln">беларуская (beln)</option>
+                                        <option disabled>─── ע ───</option>
+                                        <option value="hebwlc">עברית (hebwlc)</option>
+                                        <option disabled>─── ا ───</option>
+                                        <option value="urdoucv">اردو (urdoucv)</option>
+                                        <option disabled>─── न ───</option>
+                                        <option value="npioncb">नेपाली (npioncb)</option>
+                                        <option disabled>─── म ───</option>
+                                        <option value="marc">मराठी (marc)</option>
+                                        <option disabled>─── ಕ ───</option>
+                                        <option value="kans">ಕನ್ನಡ (kans)</option>
+                                        <option disabled>─── മ ───</option>
+                                        <option value="malc">മലയാളം (malc)</option>
+                                        <option disabled>─── ’ ───</option>
+                                        <option value="kud2014">’Auhelawa (kud2014)</option>
                                     </optgroup>
                                     <optgroup label="Regional">
                                         <option value="te">తెలుగు (Telugu)</option>
                                         <option value="ta">தமிழ் (Tamil)</option>
+                                        // Local XML Batch
+                                        <option value="pck">Paite</option>
+                                        <option value="arb-xml">Arabic (XML)</option>
+                                        <option value="my-xml">Burmese (XML)</option>
+                                        <option value="pes-xml">Farsi (XML)</option>
+                                        <option value="tl-xml">Tagalog (XML)</option>
+                                        <option value="tr-xml">Turkish (XML)</option>
                                     </optgroup>
                                     <optgroup label="Global (Database)">
                                         <option value="afrikaans">Afrikaans</option>
@@ -442,6 +1706,104 @@ export default function BibleExplorer() {
                                         <option value="urdu">اردو (Urdu)</option>
                                         <option value="xhosa">Xhosa</option>
                                         <option value="zulu">Zulu</option>
+                                        // Deep Search Combined Batch (Automated)
+                                        <option value="shr">Shi</option>
+                                        <option value="rifa">Tarifit</option>
+                                        <option value="bel">Belarusian</option>
+                                        <option value="tod">Toma</option>
+                                        <option value="lin">Lingála</option>
+                                        <option value="yal">Yalunka</option>
+                                        <option value="mkw">Kituba</option>
+                                        <option value="sus">Susu</option>
+                                        <option value="wolmbs">Wolof</option>
+                                        <option value="poronbv">Português</option>
+                                        <option value="cth">Chin, Thaiphum</option>
+                                        <option value="hlt">Chin, Matu</option>
+                                        <option value="lug">Luganda</option>
+                                        <option value="nya">Chichewa</option>
+                                        <option value="pan">Panjabi, Eastern</option>
+                                        <option value="suzbl">Sunwar</option>
+                                        <option value="cebulb">Cebuano</option>
+                                        <option value="ckb">Central Kurdish</option>
+                                        <option value="ewe">eʋegbe</option>
+                                        <option value="hatbsa">Haitian</option>
+                                        <option value="hne">Chhattisgarhi</option>
+                                        <option value="ibo">Igbo</option>
+                                        <option value="luo">Dholuo</option>
+                                        <option value="mri2012">Māori</option>
+                                        <option value="nde">Ndebele</option>
+                                        <option value="sna">chiShona</option>
+                                        <option value="som">Somali</option>
+                                        <option value="gaz">Oromo, West Central</option>
+                                        <option value="haw1868">Hawaiian</option>
+                                        <option value="iloulb">Ilocano</option>
+                                        <option value="ton">Tongan</option>
+                                        <option value="gun">Guaraní, Mbyá</option>
+                                        <option value="kik">Gikuyu</option>
+                                        <option value="cuk">San Blas Kuna</option>
+                                        <option value="twi">Twi</option>
+                                        <option value="urdoucv">اردو</option>
+                                        <option value="chk">Chuukese</option>
+                                        <option value="vieovcb">Tiếng Việt</option>
+                                        <option value="ksd">Kauana</option>
+                                        <option value="npioncb">नेपाली</option>
+                                        <option value="kbq">Kamano</option>
+                                        <option value="pesopv">Persian</option>
+                                        <option value="meu">Motu</option>
+                                        <option value="rmc">Romani, Carpathian</option>
+                                        <option value="hausa">Hausa</option>
+                                        <option value="yor">Yorùbá</option>
+                                        <option value="tdx">Malagasy, Tandroy-Mahafaly</option>
+                                        <option value="marc">मराठी</option>
+                                        <option value="cekak">Chin, Eastern Khumi</option>
+                                        <option value="azb">Azerbaijani, South</option>
+                                        <option value="hch">Huichol</option>
+                                        <option value="gax">gujii</option>
+                                        <option value="tczchongthu">Chin, Thado</option>
+                                        <option value="bodn">Tibetan</option>
+                                        <option value="tel2017">Telugu</option>
+                                        <option value="bqcsim">Boko</option>
+                                        <option value="gofe">Goofa</option>
+                                        <option value="gofl">Gofa</option>
+                                        <option value="kos">Kosraean</option>
+                                        <option value="malc">മലയാളം</option>
+                                        <option value="gmve">Gamo</option>
+                                        <option value="hmo">Motu, Hiri</option>
+                                        <option value="tbzsim">Ditammari</option>
+                                        <option value="qub">Quechua, Huallaga Huánuco</option>
+                                        <option value="uigara">Uyghur</option>
+                                        <option value="dwrent">Dawro</option>
+                                        <option value="nchbl">Nahuatl, Huasteca Central</option>
+                                        <option value="nhebl">Nahuatl, Huasteca Oriental</option>
+                                        <option value="nhwbl">Nahuatl,  Huasteca Occidental</option>
+                                        <option value="bba">Baatonum</option>
+                                        <option value="kne">Kankanaey</option>
+                                        <option value="mdyeth">Male</option>
+                                        <option value="tpi">Melanesian Pidgin</option>
+                                        <option value="rug">Roviana</option>
+                                        <option value="hil">Ilonggo</option>
+                                        <option value="yap">Yapese</option>
+                                        <option value="mps">Dadibi</option>
+                                        <option value="kpg">Kapingamarangi</option>
+                                        <option value="gubbl">Guajajára</option>
+                                        <option value="kij">Kilivila</option>
+                                        <option value="beo">Beami</option>
+                                        <option value="hui">Huli</option>
+                                        <option value="cac">Chuj</option>
+                                        <option value="msy2020">Aruamu</option>
+                                        <option value="pesopcb">Iranian Persian</option>
+                                        <option value="rop">Kriol</option>
+                                        <option value="spaonbv">Español</option>
+                                        <option value="wal">Wolaytta</option>
+                                        <option value="bqp">Busa</option>
+                                        <option value="dop">Lukpa</option>
+                                        // Local XML Batch
+                                        <option value="pck">Paite</option>
+                                        <option value="arb-xml">Arabic (XML)</option>
+                                        <option value="my-xml">Burmese (XML)</option>
+                                        <option value="pes-xml">Farsi (XML)</option>
+                                        <option value="tl-xml">Tagalog (XML)</option>
+                                        <option value="tr-xml">Turkish (XML)</option>
                                     </optgroup>
                                 </select>
                             </div>
