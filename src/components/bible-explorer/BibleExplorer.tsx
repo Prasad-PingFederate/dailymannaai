@@ -233,7 +233,7 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE'].map(v => {
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI'].map(v => {
                                 let val = v.toLowerCase();
                                 if (val === 'kashmiri') val = 'ks';
                                 if (val === 'greek') val = 'el';
@@ -243,6 +243,11 @@ export default function BibleExplorer() {
                                 if (val === 'tagalog') val = 'tl';
                                 if (val === 'thai') val = 'th';
                                 if (val === 'burmese') val = 'my';
+                                if (val === 'italian') val = 'it';
+                                if (val === 'polish') val = 'pl';
+                                if (val === 'turkish') val = 'tr';
+                                if (val === 'romanian') val = 'ro';
+                                if (val === 'swahili') val = 'sw';
                                 return <option key={v} value={val}>{v}</option>;
                             })}
                         </select>
@@ -317,6 +322,11 @@ export default function BibleExplorer() {
                                         <option value="fr">Français (Apee)</option>
                                         <option value="pt">Português (NVI)</option>
                                         <option value="de">Deutsch (Schlachter)</option>
+                                        <option value="it">Italiano (Italian)</option>
+                                        <option value="pl">Polski (Polish)</option>
+                                        <option value="tr">Türkçe (Turkish)</option>
+                                        <option value="ro">Română (Romanian)</option>
+                                        <option value="sw">Kiswahili (Swahili)</option>
                                         <option value="ar">العربية (SVD)</option>
                                         <option value="ru">Русский (Synodal)</option>
                                     </optgroup>
