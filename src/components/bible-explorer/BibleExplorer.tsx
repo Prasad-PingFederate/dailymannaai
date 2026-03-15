@@ -295,6 +295,10 @@ export default function BibleExplorer() {
                                             <option key={v} value={v}>{v} Version</option>
                                         ))}
                                     </optgroup>
+                                    <optgroup label="Biblical Languages">
+                                        <option value="el">Ελληνικά (Greek)</option>
+                                        <option value="he">עִברִית (Hebrew)</option>
+                                    </optgroup>
                                     <optgroup label="World Languages">
                                         <option value="es">Español (RVR)</option>
                                         <option value="zh">中文 (Union)</option>
@@ -321,6 +325,7 @@ export default function BibleExplorer() {
                                         <option value="hungarian">Hungarian</option>
                                         <option value="indonesian">Indonesian</option>
                                         <option value="kannada">Kannada</option>
+                                        <option value="ks">کٲشُر (Kashmiri)</option>
                                         <option value="malayalam">Malayalam</option>
                                         <option value="maithili">मैथिली (Maithili)</option>
                                         <option value="manipuri">Manipuri (Meitei)</option>
