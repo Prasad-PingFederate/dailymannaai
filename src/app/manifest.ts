@@ -26,72 +26,18 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en-US",
     scope: "/",
     categories: ["religion", "education", "productivity"],
-    screenshots: [
-      {
-        src: "/screenshot-mobile.png",
-        sizes: "390x844",
-        type: "image/png",
-        // @ts-ignore — form_factor not yet in TS types
-        form_factor: "narrow",
-        label: "DailyMannaAI on mobile",
-      },
-      {
-        src: "/screenshot-desktop.png",
-        sizes: "1280x800",
-        type: "image/png",
-        // @ts-ignore
-        form_factor: "wide",
-        label: "DailyMannaAI on desktop",
-      },
-    ],
     icons: [
       {
-        src: "/icon-72.png",
-        sizes: "72x72",
-        type: "image/png",
+        src: "/icon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any",
+      },
+      {
+        src: "/icon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
         purpose: "maskable",
-      },
-      {
-        src: "/icon-96.png",
-        sizes: "96x96",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/icon-128.png",
-        sizes: "128x128",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icon-144.png",
-        sizes: "144x144",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/icon-152.png",
-        sizes: "152x152",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icon-192.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icon-384.png",
-        sizes: "384x384",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: "/icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
       },
     ],
     shortcuts: [
@@ -100,14 +46,7 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Search",
         description: "Search the Bible with AI",
         url: "/bible-explorer",
-        icons: [{ src: "/icon-search.png", sizes: "96x96" }],
-      },
-      {
-        name: "Daily Manna",
-        short_name: "Today",
-        description: "Read today's devotional",
-        url: "/daily-manna",
-        icons: [{ src: "/icon-manna.png", sizes: "96x96" }],
+        icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
       },
     ],
     related_applications: [],

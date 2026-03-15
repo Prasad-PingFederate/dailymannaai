@@ -332,6 +332,7 @@ export default function BibleExplorer() {
                                         <option value="indonesian">Indonesian</option>
                                         <option value="kannada">Kannada</option>
                                         <option value="malayalam">Malayalam</option>
+                                        <option value="maithili">मैथिली (Maithili)</option>
                                         <option value="manipuri">Manipuri (Meitei)</option>
                                         <option value="marathi">Marathi</option>
                                         <option value="nepali">Nepali</option>

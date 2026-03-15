@@ -95,7 +95,9 @@ function AuthForm() {
             {/* Left Dark Brand Panel */}
             <div style={{
                 flex: "0 0 44%",
-                background: "linear-gradient(160deg, #080810 0%, #0f1118 55%, #1a1d24 100%)",
+                background: "linear-gradient(to bottom, rgba(8, 8, 16, 0.7), rgba(15, 17, 24, 0.9)), url('/og-image.png')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
                 display: "flex", flexDirection: "column", justifyContent: "space-between",
                 padding: "44px 48px 36px", position: "relative", overflow: "hidden",
             }}>
