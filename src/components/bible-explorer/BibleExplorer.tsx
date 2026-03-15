@@ -233,11 +233,16 @@ export default function BibleExplorer() {
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI'].map(v => {
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE'].map(v => {
                                 let val = v.toLowerCase();
                                 if (val === 'kashmiri') val = 'ks';
                                 if (val === 'greek') val = 'el';
                                 if (val === 'hebrew') val = 'he';
+                                if (val === 'japanese') val = 'ja';
+                                if (val === 'vietnamese') val = 'vi';
+                                if (val === 'tagalog') val = 'tl';
+                                if (val === 'thai') val = 'th';
+                                if (val === 'burmese') val = 'my';
                                 return <option key={v} value={val}>{v}</option>;
                             })}
                         </select>
@@ -302,13 +307,18 @@ export default function BibleExplorer() {
                                     <optgroup label="World Languages">
                                         <option value="es">Español (RVR)</option>
                                         <option value="zh">中文 (Union)</option>
+                                        <option value="ja">日本語 (Japanese)</option>
+                                        <option value="ko">한국어 (Korean)</option>
+                                        <option value="vi">Tiếng Việt (Vietnamese)</option>
+                                        <option value="tl">Tagalog (Ang Biblia)</option>
+                                        <option value="th">ไทย (Thai)</option>
+                                        <option value="my">မြန်မာစာ (Burmese)</option>
                                         <option value="id">Indonesia (TB)</option>
                                         <option value="fr">Français (Apee)</option>
                                         <option value="pt">Português (NVI)</option>
                                         <option value="de">Deutsch (Schlachter)</option>
                                         <option value="ar">العربية (SVD)</option>
                                         <option value="ru">Русский (Synodal)</option>
-                                        <option value="ko">한국어 (Hangul)</option>
                                     </optgroup>
                                     <optgroup label="Regional">
                                         <option value="te">తెలుగు (Telugu)</option>
