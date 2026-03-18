@@ -1,68 +1,36 @@
-// src/app/sitemap.ts
-// ─────────────────────────────────────────────────────────────
-//  DailyMannaAI — Dynamic Sitemap (Next.js App Router)
-//
-//  WHY THIS IS BETTER THAN STATIC XML:
-//  • Auto-regenerates on every build — always current
-//  • Can pull real lastModified dates from your database/CMS
-//  • Supports image sitemaps (major ranking signal for visuals)
-//  • Supports alternate language URLs (hreflang)
-//  • No manual updates ever needed
-//  • Next.js submits it automatically via metadata
-//
-//  Google indexes pages faster when:
-//    1. Priority reflects actual importance (not all 0.8)
-//    2. changeFreq is honest (don't say "daily" if monthly)
-//    3. lastModified is accurate (use real DB timestamps)
-//    4. Image locations are included
-// ─────────────────────────────────────────────────────────────
-
 import type { MetadataRoute } from "next";
 
 const BASE_URL = "https://www.dailymannaai.com";
 const NOW = new Date().toISOString();
 
-// ─── Static routes ────────────────────────────────────────────
-//  Define every important page. Add new pages here as you build.
-const STATIC_ROUTES: MetadataRoute.Sitemap = [
-  {
-    url: BASE_URL,
-    lastModified: NOW,
-    changeFrequency: "daily",
-    priority: 1.0,
-  },
-  {
-    url: `${BASE_URL}/bible-explorer`,
-    lastModified: NOW,
-    changeFrequency: "weekly",
-    priority: 0.9,
-  },
-  {
-    url: `${BASE_URL}/notebook`,
-    lastModified: NOW,
-    changeFrequency: "weekly",
-    priority: 0.8,
-  },
-  {
-    url: `${BASE_URL}/about`,
-    lastModified: "2026-03-14T00:00:00.000Z",
-    changeFrequency: "monthly",
-    priority: 0.7,
-  },
-  {
-    url: `${BASE_URL}/contact`,
-    lastModified: "2026-03-14T00:00:00.000Z",
-    changeFrequency: "monthly",
-    priority: 0.6,
-  },
-  {
-    url: `${BASE_URL}/privacy-policy`,
-    lastModified: "2026-03-14T00:00:00.000Z",
-    changeFrequency: "monthly",
-    priority: 0.5,
-  },
+const BIBLE_BOOKS = [
+  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", 
+  "1-Samuel", "2-Samuel", "1-Kings", "2-Kings", "1-Chronicles", "2-Chronicles", "Ezra", "Nehemiah", "Esther", 
+  "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song-of-Solomon", "Isaiah", "Jeremiah", "Lamentations", 
+  "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", 
+  "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke", "John", "Acts", 
+  "Romans", "1-Corinthians", "2-Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", 
+  "1-Thessalonians", "2-Thessalonians", "1-Timothy", "2-Timothy", "Titus", "Philemon", "Hebrews", 
+  "James", "1-Peter", "2-Peter", "1-John", "2-John", "3-John", "Jude", "Revelation"
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return STATIC_ROUTES;
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: BASE_URL, lastModified: NOW, changeFrequency: "daily", priority: 1.0 },
+    { url: `${BASE_URL}/daily-manna`, lastModified: NOW, changeFrequency: "daily", priority: 0.9 },
+    { url: `${BASE_URL}/bible-explorer`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/notebook`, lastModified: NOW, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE_URL}/about`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE_URL}/contact`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE_URL}/privacy-policy`, lastModified: NOW, changeFrequency: "monthly", priority: 0.5 },
+  ];
+
+  const bibleRoutes: MetadataRoute.Sitemap = BIBLE_BOOKS.map((book) => ({
+    url: `${BASE_URL}/bible/${book.toLowerCase()}`,
+    lastModified: NOW,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...bibleRoutes];
 }

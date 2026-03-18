@@ -92,7 +92,14 @@ const BIBLE_BOOKS = {
     ]
 };
 
-export default function BibleExplorer() {
+export default function BibleExplorer({ 
+    initialBookSlug = null, 
+    initialChapter = null 
+}: { 
+    initialBookSlug?: string | null, 
+    initialChapter?: number | null 
+}) {
+
     const { theme, isDark } = useTheme();
     const { user } = useAuth();
     
@@ -119,6 +126,25 @@ export default function BibleExplorer() {
     const [expandedBook, setExpandedBook] = useState<string | null>(null);
     const [showVersePopup, setShowVersePopup] = useState(false);
     const [popupVerse, setPopupVerse] = useState<number | null>(null);
+
+    // Initial Deep Link Logic
+    useEffect(() => {
+        if (initialBookSlug) {
+            const allBooks = [...BIBLE_BOOKS.OT, ...BIBLE_BOOKS.NT];
+            const found = allBooks.find(b => 
+                b.name.toLowerCase().replace(/\s+/g, '-') === initialBookSlug.toLowerCase()
+            );
+            if (found) {
+                setCurrentBook(found);
+                if (initialChapter) {
+                    setCurrentChapter(initialChapter);
+                } else {
+                    setExpandedBook(found.name);
+                }
+            }
+        }
+    }, [initialBookSlug, initialChapter]);
+
 
     // Fetch Verses When Book/Chapter Changes
     useEffect(() => {
