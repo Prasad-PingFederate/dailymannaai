@@ -11,6 +11,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.9.2",
     "@datastax/astra-db-ts": "^2.1.2",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.10",

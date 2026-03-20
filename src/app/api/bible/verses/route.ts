@@ -1,6 +1,6 @@
 // src/app/api/bible/verses/route.ts
 import { NextResponse } from "next/server";
-import { getCollection } from "@/lib/astra";
+import { getCosmosContainer } from "@/lib/cosmos";
 
 export const dynamic = 'force-dynamic';
 
@@ -1262,39 +1262,52 @@ export async function GET(req: Request) {
             'tap': 'bible_ar',
         };
 
-        // Resolve Collection and Version
-        if (hybridMap[translationRaw]) {
-            collectionName = hybridMap[translationRaw];
-            queryFilter.version = translation; // Using the resolved code (e.g., GRCMT)
-        } else if (hybridMap[translation.toLowerCase()]) {
-            collectionName = hybridMap[translation.toLowerCase()];
+        // ------------------------------------------------------------------------
+        // CHANGED TO COSMOS DB
+        // ------------------------------------------------------------------------
+        // We no longer query split collections like `bible_ar` vs `bible_kjv`.
+        // Cosmos DB contains ALL verses in the single `verses` container!
+        // We only need the version string (e.g. GRCMT) out of the maps.
+        
+        if (hybridMap[translationRaw] || hybridMap[translation.toLowerCase()]) {
+            queryFilter.version = translation;
+        } else {
+            // Default edge cases just use the direct translation code
             queryFilter.version = translation;
         }
 
-        console.log(`[BIBLE_API] Final Query: Collection=${collectionName}, Version=${queryFilter.version}, Filter=${JSON.stringify(queryFilter)}`);
+        console.log(`[BIBLE_API] Final Cosmos Query Filter: ${JSON.stringify(queryFilter)}`);
 
-        const collection = await getCollection(collectionName);
-        if (!collection) {
-            throw new Error(`Collection not found: ${collectionName}`);
-        }
+        // Connect to Cosmos DB
+        const container = getCosmosContainer("BibleDatabase", "verses");
 
-        // Fetch all verses for the chapter (Limit to 200 for maximum performance so Astra doesn't scan millions of rows searching for non-existent verses)
-        const result = await collection.find(queryFilter, { limit: 200 }).toArray();
+        // Execute parameterized SQL Query
+        const querySpec = {
+            query: "SELECT * FROM c WHERE c.book = @book AND c.chapter = @chapter AND c.version = @version",
+            parameters: [
+                { name: "@book", value: book },
+                { name: "@chapter", value: chapter },
+                { name: "@version", value: queryFilter.version }
+            ]
+        };
+
+        const { resources: result } = await container.items.query(querySpec, { maxItemCount: 200 }).fetchAll();
         
         if (result.length === 0) {
-            console.warn(`[BIBLE_API] No verses found for ${book} ${chapter} in ${translation} (${collectionName})`);
+            console.warn(`[BIBLE_API] No verses found for ${book} ${chapter} in ${translation} in CosmosDB`);
         } else {
             console.log(`[BIBLE_API] Success! Found ${result.length} verses.`);
         }
 
-        // Manual sort in JS if the DB doesn't have an index
+        // Manual sort by verse number locally
         result.sort((a: any, b: any) => (a.verse || 0) - (b.verse || 0));
 
         return NextResponse.json({ 
             verses: result,
             meta: {
                 resolvedVersion: translation,
-                collection: collectionName,
+                collection: "verses",
+                db: "CosmosDB",
                 count: result.length
             }
         });

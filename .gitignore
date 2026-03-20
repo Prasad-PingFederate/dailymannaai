@@ -100,3 +100,9 @@ llama3_repo/
 prisma/
 scripts/
 !scripts/reach_booster.js
+
+# Data Export Folders - DO NOT COMMIT 18 MILLION VERSES!
+export/
+processed_backup/
+*.json.done
+__pycache__/
