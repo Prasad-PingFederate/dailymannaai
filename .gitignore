@@ -94,7 +94,6 @@ diagnose_*.ts
 find_healthy.py
 *.txt
 *.csv
-api/
 backend/
 llama3_repo/
 prisma/
