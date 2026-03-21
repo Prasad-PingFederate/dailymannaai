@@ -28,10 +28,17 @@ export const metadata: Metadata = {
     robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
 };
 
-export default function BibleExplorerPage() {
+type Props = {
+    searchParams?: Promise<{ lang?: string }>;
+};
+
+export default async function BibleExplorerPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const initialTranslation = params?.lang || null;
+
     return (
         <main className="h-screen w-screen overflow-hidden">
-             <BibleExplorer />
+             <BibleExplorer initialTranslation={initialTranslation} />
         </main>
     );
 }

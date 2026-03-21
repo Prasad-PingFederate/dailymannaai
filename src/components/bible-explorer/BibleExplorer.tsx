@@ -94,10 +94,12 @@ const BIBLE_BOOKS = {
 
 export default function BibleExplorer({ 
     initialBookSlug = null, 
-    initialChapter = null 
+    initialChapter = null,
+    initialTranslation = null
 }: { 
     initialBookSlug?: string | null, 
-    initialChapter?: number | null 
+    initialChapter?: number | null,
+    initialTranslation?: string | null
 }) {
 
     const { theme, isDark } = useTheme();
@@ -110,7 +112,7 @@ export default function BibleExplorer({
     const [verses, setVerses] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
-    const [translation, setTranslation] = useState('KJV');
+    const [translation, setTranslation] = useState(initialTranslation || 'kjv');
     const [activeToolTab, setActiveToolTab] = useState('crossref');
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
@@ -267,7 +269,7 @@ export default function BibleExplorer({
                             onChange={(e) => setTranslation(e.target.value)}
                             className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
                         >
-                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN', 'NORWEGIAN BOKMAL', 'NORWEGIAN NYNORSK', 'ESTONIAN', 'LATVIAN', 'LITHUANIAN', 'BASQUE', 'ESPERANTO', 'SCOTTISH GAELIC', 'MANX GAELIC', 'BRETON', 'CALO', 'CHAMORRO', 'CHEROKEE', 'COPTIC', 'CHURCH SLAVONIC', 'DARI', 'EASTERN ARMENIAN', 'GOTHIC', 'KLINGON', 'KOINE GREEK', 'MALAGASY', 'MONGOLIAN', 'NORTHERN NDEBELE', 'SYRIAC', 'POHNPEIAN', 'POTAWATOMI', 'SHONA', 'TAUSUG', 'TOK PISIN', 'UMA', 'ANCIENT HEBREW'].map(v => {
+                            {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN', 'NORWEGIAN BOKMAL', 'NORWEGIAN NYNORSK', 'ESTONIAN', 'LATVIAN', 'LITHUANIAN', 'BASQUE', 'ESPERANTO', 'SCOTTISH GAELIC', 'MANX GAELIC', 'BRETON', 'CALO', 'CHAMORRO', 'CHEROKEE', 'COPTIC', 'CHURCH SLAVONIC', 'DARI', 'EASTERN ARMENIAN', 'GOTHIC', 'KLINGON', 'KOINE GREEK', 'MALAGASY', 'MONGOLIAN', 'NORTHERN NDEBELE', 'SYRIAC', 'POHNPEIAN', 'POTAWATOMI', 'SHONA', 'TAUSUG', 'TOK PISIN', 'UMA', 'ANCIENT HEBREW', 'ICELANDIC', "CH'OL", 'KEYAGANA', 'DAWAWA', 'KUBE', 'SIROI', 'PAITE'].map(v => {
                                 let val = v.toLowerCase();
                                 if (val === 'kashmiri') val = 'ks';
                                 if (val === 'greek') val = 'el';
@@ -298,6 +300,13 @@ export default function BibleExplorer({
                                 if (val === 'estonian') val = 'et';
                                 if (val === 'latvian') val = 'lv';
                                 if (val === 'lithuanian') val = 'lt';
+                                if (val === 'icelandic') val = 'isl';
+                                if (val === "ch'ol") val = 'ctu';
+                                if (val === 'keyagana') val = 'kyg';
+                                if (val === 'dawawa') val = 'dww';
+                                if (val === 'kube') val = 'kgf';
+                                if (val === 'siroi') val = 'ssd';
+                                if (val === 'paite') val = 'pck';
                                 if (val === 'basque') val = 'eu';
                                 if (val === 'esperanto') val = 'eo';
                                 if (val === 'scottish gaelic') val = 'gd';
@@ -511,6 +520,64 @@ export default function BibleExplorer({
                                     
                                     
                                     
+                                    </optgroup>
+                                    <optgroup label="Featured World Languages">
+                                        <option value="english">English (WEB)</option>
+                                        <option value="es">Español (RVR)</option>
+                                        <option value="fr">Français (Crampon)</option>
+                                        <option value="de">Deutsch (Textbibel)</option>
+                                        <option value="pt">Português (Nova Bíblia)</option>
+                                        <option value="it">Italiano (Riveduta)</option>
+                                        <option value="ru">Русский (Synodal)</option>
+                                        <option value="zh">中文 (Union)</option>
+                                        <option value="ko">한국어 (Korean)</option>
+                                        <option value="ja">日本語 (Japanese)</option>
+                                        <option value="ar">العربية (Van Dyke)</option>
+                                        <option value="hindi">हिन्दी (Hindi)</option>
+                                        <option value="bengali">বাংলা (Bengali)</option>
+                                        <option value="te">తెలుగు (Telugu)</option>
+                                        <option value="ta">தமிழ் (Tamil)</option>
+                                        <option value="kannada">ಕನ್ನಡ (Kannada)</option>
+                                        <option value="malayalam">മലയാളം (Malayalam)</option>
+                                        <option value="marathi">मराठी (Marathi)</option>
+                                        <option value="gujarati">ગુજરાતી (Gujarati)</option>
+                                        <option value="punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                                        <option value="nepali">नेपाली (Nepali)</option>
+                                        <option value="tl">Tagalog (Ang Biblia)</option>
+                                        <option value="vi">Tiếng Việt (Vietnamese)</option>
+                                        <option value="th">ไทย (Thai)</option>
+                                        <option value="my">မြန်မာစာ (Burmese)</option>
+                                        <option value="indonesian">Bahasa Indonesia</option>
+                                        <option value="tr">Türkçe (Turkish)</option>
+                                        <option value="pl">Polski (Polish)</option>
+                                        <option value="ro">Română (Romanian)</option>
+                                        <option value="nl">Nederlands (Dutch)</option>
+                                        <option value="sv">Svenska (Swedish)</option>
+                                        <option value="fi">Suomi (Finnish)</option>
+                                        <option value="da">Dansk (Danish)</option>
+                                        <option value="nb">Norsk (Norwegian)</option>
+                                        <option value="cs">Čeština (Czech)</option>
+                                        <option value="hr">Hrvatski (Croatian)</option>
+                                        <option value="sr">Српски (Serbian)</option>
+                                        <option value="uk">Українська (Ukrainian)</option>
+                                        <option value="et">Eesti (Estonian)</option>
+                                        <option value="lt">Lietuvių (Lithuanian)</option>
+                                        <option value="lv">Latviešu (Latvian)</option>
+                                        <option value="sq">Shqip (Albanian)</option>
+                                        <option value="el">Ελληνικά (Greek)</option>
+                                        <option value="he">עברית (Hebrew)</option>
+                                        <option value="sw">Kiswahili (Swahili)</option>
+                                        <option value="afrikaans">Afrikaans</option>
+                                        <option value="eo">Esperanto</option>
+                                    </optgroup>
+                                    <optgroup label="New Languages">
+                                        <option value="isl">Icelandic</option>
+                                        <option value="ctu">Ch'ol (Maya)</option>
+                                        <option value="kyg">Keyagana</option>
+                                        <option value="dww">Dawawa</option>
+                                        <option value="kgf">Kube</option>
+                                        <option value="ssd">Siroi</option>
+                                        <option value="pck">Paite</option>
                                     </optgroup>
                                     <optgroup label="World Languages (Complete)">
                                         <option value="es">Español (RVR)</option>
@@ -1999,9 +2066,10 @@ export default function BibleExplorer({
                                         onChange={(e) => setTranslation(e.target.value)}
                                         className="bg-card-bg border border-border rounded-lg px-2 py-1.5 text-[10px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans hidden md:block"
                                     >
-                                        {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU'].map(t => (
+                                        {['NIV', 'KJV', 'NKJV', 'ENGLISH', 'ES', 'FR', 'DE', 'PT', 'IT', 'RU', 'ZH', 'KO', 'JA', 'AR', 'HINDI', 'BENGALI', 'TE', 'TA', 'KANNADA', 'MALAYALAM', 'MARATHI', 'GUJARATI', 'PUNJABI', 'NEPALI', 'ORIYA', 'TL', 'VI', 'TH', 'MY', 'INDONESIAN', 'TR', 'PL', 'RO', 'NL', 'SV', 'FI', 'DA', 'NB', 'CS', 'HR', 'SR', 'UK', 'ET', 'LT', 'LV', 'SQ', 'EL', 'HE', 'SW', 'AFRIKAANS', 'ISL', 'EO', 'CTU', 'KYG', 'DWW', 'KGF', 'SSD', 'PCK', 'GRC', 'HBO', 'LA', 'CU', 'GOT', 'COP', 'SYR', 'HUNGARIAN', 'SEPEDI', 'XHOSA', 'ZULU'].map(t => (
                                             <option key={t} value={t.toLowerCase()}>{t}</option>
                                         ))}
+
                                     </select>
 
                                     <div className="flex items-center gap-1 border-l border-border/40 pl-2 md:pl-3">
