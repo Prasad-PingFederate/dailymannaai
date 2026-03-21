@@ -1741,8 +1741,17 @@ export default function SearchEnginePortal() {
                                             ))}
                                         </div>
                                     </div>
-                                ) : (
-                                    [...aiMessages].reverse().map((msg, i) => (
+                                ) : (() => {
+                                    // Group messages into [user, assistant] pairs, reverse the pairs
+                                    // so newest conversation is at top, but within each pair question comes before answer
+                                    const groups: any[][] = [];
+                                    for (let g = 0; g < aiMessages.length; g += 2) {
+                                        const pair = [aiMessages[g]];
+                                        if (aiMessages[g + 1]) pair.push(aiMessages[g + 1]);
+                                        groups.push(pair);
+                                    }
+                                    const displayMessages = groups.reverse().flat();
+                                    return displayMessages.map((msg, i) => (
                                         <div key={i} className={`flex gap-3 sm:gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
                                             <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
                                                 {msg.role === 'user' ? (
@@ -1805,7 +1814,8 @@ export default function SearchEnginePortal() {
                                                     )}
                                                 </div>
 
-                                                {i === 0 && aiSuggestions.length > 0 && !isAiChatting && (
+                                                {/* Show suggestions below the latest AI answer (index 1 in pair-reversed display) */}
+                                                {i === 1 && msg.role === 'assistant' && aiSuggestions.length > 0 && !isAiChatting && (
                                                     <div className="flex flex-wrap gap-3 mt-8">
                                                         {aiSuggestions.map((s, idx) => (
                                                             <button
@@ -1821,7 +1831,7 @@ export default function SearchEnginePortal() {
                                             </div>
                                         </div>
                                     ))
-                                )}
+                                })()}
                                 {isAiChatting && (
                                     <div className="flex flex-col items-center gap-4 py-16">
                                         <div className="flex gap-2.5">
