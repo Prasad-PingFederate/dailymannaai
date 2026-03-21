@@ -1274,34 +1274,56 @@ export async function GET(req: Request) {
         // We no longer query split collections like `bible_ar` vs `bible_kjv`.
         // Cosmos DB contains ALL verses in the single `verses` container!
         
-        const targetVersion = translation;
-        console.log(`[BIBLE_API] Final Cosmos Query: ${book} ${chapter} (Version: ${targetVersion})`);
-
-        // Connect to Cosmos DB
-        const container = getCosmosContainer("BibleDatabase", "verses");
-
-        // Execute parameterized SQL Query with Case-Insensitive Book Name
-        // In Cosmos DB, we use UPPER() or LOWER() for case-insensitivity if needed, 
-        // though our canonical map usually handles it.
-        const querySpec = {
-            query: "SELECT * FROM c WHERE UPPER(c.book) = @book AND c.chapter = @chapter AND c.version = @version",
-            parameters: [
-                { name: "@book", value: book.toUpperCase() },
-                { name: "@chapter", value: chapter },
-                { name: "@version", value: targetVersion }
-            ]
+        // SMART FALLBACK SYSTEM: Combine fragments (e.g. Greek LXX + NT)
+        const PRIMARY_VERSION = translation;
+        const FALLBACK_STRATEGY: Record<string, string[]> = {
+            'GRCMT': ['GRCLXX', 'GRC-TISCH', 'GRCTCGNT', 'GRCSBL'],
+            'GRCLXX': ['GRCMT', 'GRC-TISCH', 'GRCTCGNT', 'GRCSBL'],
+            'HEBSG': ['HBOWLC', 'HEBWLC'],
+            'HBOWLC': ['HEBSG', 'HEBLB', 'HEGNTPO'],
+            'LATVUC': ['LAT'],
+            'ARBNAV': ['ARB-VD', 'ARB-XML'],
+            'MYA': ['MYAJVB', 'MYK', 'MYW', 'MYY'],
+            'TGLULB': ['TGLB'],
+            'TURYTC': ['TUR', 'UTR'],
         };
 
-        // Supplying the partitionKey ('version' field) directly for performance and reliability
-        const { resources: result } = await container.items.query(querySpec, { 
-            partitionKey: targetVersion,
-            maxItemCount: 200 
-        }).fetchAll();
+        const versionTries = [PRIMARY_VERSION, ...(FALLBACK_STRATEGY[PRIMARY_VERSION] || [])];
+        
+        // Connect to Cosmos DB
+        const container = getCosmosContainer("BibleDatabase", "verses");
+        let result: any[] = [];
+        let finalResolvedVersion = PRIMARY_VERSION;
+
+        // Try primary then fallbacks until success
+        for (const targetVer of versionTries) {
+            console.log(`[BIBLE_API] Querying Cosmos: ${book} ${chapter} (Version: ${targetVer})`);
+
+            const querySpec = {
+                query: "SELECT * FROM c WHERE UPPER(c.book) = @book AND c.chapter = @chapter AND c.version = @version",
+                parameters: [
+                    { name: "@book", value: book.toUpperCase() },
+                    { name: "@chapter", value: chapter },
+                    { name: "@version", value: targetVer }
+                ]
+            };
+
+            const { resources: currentResult } = await container.items.query(querySpec, { 
+                partitionKey: targetVer,
+                maxItemCount: 200 
+            }).fetchAll();
+
+            if (currentResult && currentResult.length > 0) {
+                result = currentResult;
+                finalResolvedVersion = targetVer;
+                break; // Found it!
+            }
+        }
         
         if (result.length === 0) {
-            console.warn(`[BIBLE_API] No verses found for ${book} ${chapter} in ${targetVersion} in CosmosDB`);
+            console.warn(`[BIBLE_API] No verses found for ${book} ${chapter} in ${PRIMARY_VERSION} or its fallbacks (${versionTries.join(', ')})`);
         } else {
-            console.log(`[BIBLE_API] Success! Found ${result.length} verses.`);
+            console.log(`[BIBLE_API] Success! Found ${result.length} verses in ${finalResolvedVersion}.`);
         }
 
         // Manual sort by verse number locally
@@ -1310,7 +1332,9 @@ export async function GET(req: Request) {
         return NextResponse.json({ 
             verses: result,
             meta: {
-                resolvedVersion: targetVersion,
+                resolvedVersion: finalResolvedVersion,
+                requestedVersion: PRIMARY_VERSION,
+                isFallback: finalResolvedVersion !== PRIMARY_VERSION,
                 requestedBook: book,
                 requestedChapter: chapter,
                 db: "CosmosDB",
