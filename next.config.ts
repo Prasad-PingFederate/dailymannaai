@@ -5,6 +5,22 @@ const nextConfig: NextConfig = {
   // @ts-ignore
   turbopack: {},
 
+  // Clean up old URLs found by Googlebot to prevent 404s
+  async redirects() {
+    return [
+      {
+        source: '/prophetic-insights',
+        destination: '/daily-manna',
+        permanent: true, // 301 Redirect for SEO
+      },
+      {
+        source: '/blog/:path*',
+        destination: '/daily-manna',
+        permanent: true,
+      },
+    ];
+  },
+
   webpack: (config) => {
     // Definitive fix for canvas dependencies during bundling
     config.resolve.alias.canvas = false;
