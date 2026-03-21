@@ -112,6 +112,14 @@ export async function GET(req: Request) {
             'lv': 'LAT',
             'eu': 'EUS',
             'mi': 'MAO',
+            'ctu': 'CTUBL',
+            'kyg': 'KYG',
+            'dww': 'DWW',
+            'isl': 'ISL',
+            'kgf': 'KGF',
+            'ssd': 'SSD',
+            'cesnb': 'CESLB',
+            'cesnkb': 'CESNKB',
         };
 
         const translation = VERSION_RESOLVER[translationRaw] || translationRaw.toUpperCase();

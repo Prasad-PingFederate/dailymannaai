@@ -1352,16 +1352,9 @@ export default function SearchEnginePortal() {
                     stillThinking = false;
                     thinkingPhase = "Response generated.";
                 } else {
-                    // No markers found: Keep it in a hidden 'thinking' state for first 400 chars
-                    if (fullText.length < 400) {
-                        currentContent = "";
-                        stillThinking = true;
-                        thinkingPhase = "Analyzingâ€¦";
-                    } else {
-                        currentContent = fullText;
-                        stillThinking = false;
-                        thinkingPhase = "Speakingâ€¦";
-                    }
+                    currentContent = fullText;
+                    stillThinking = false;
+                    thinkingPhase = "Speaking...";
                 }
 
                 // â”€â”€ Nuclear content cleanup: strip ALL variations of thought tags, metadata, suggestions â”€â”€
@@ -1749,7 +1742,7 @@ export default function SearchEnginePortal() {
                                         </div>
                                     </div>
                                 ) : (
-                                    aiMessages.map((msg, i) => (
+                                    [...aiMessages].reverse().map((msg, i) => (
                                         <div key={i} className={`flex gap-3 sm:gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
                                             <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
                                                 {msg.role === 'user' ? (
@@ -1762,7 +1755,6 @@ export default function SearchEnginePortal() {
                                             <div className={`flex flex-col gap-4 min-w-0 max-w-full ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
                                                 <div className={`relative p-5 sm:p-10 md:p-14 rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'} w-full`}>
 
-                                                    {/* Ambient background for AI messages */}
                                                     {msg.role === 'assistant' && (
                                                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
                                                     )}
@@ -1778,21 +1770,14 @@ export default function SearchEnginePortal() {
 
                                                     {msg.role === 'assistant' && (
                                                         <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">
-                                                            {msg.isConflictMode ? (
-                                                                <span className="flex items-center gap-2">
-                                                                    <Zap size={10} className="text-amber-500" />
-                                                                    <span className="text-amber-600">Prophetic Analysis</span>
-                                                                </span>
-                                                            ) : "Divine Perspective"}
+                                                            {msg.isConflictMode ? "Prophetic Analysis" : "Divine Perspective"}
                                                         </div>
                                                     )}
 
                                                     <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : ''}`}>
                                                         {msg.role === 'user' ? (
-                                                            // User message â€” plain text
                                                             msg.content || ""
                                                         ) : (
-                                                            // AI message â€” rich formatted component
                                                             <RichAIMessage
                                                                 content={msg.content || (msg.isThinking ? "Consulting internal archives..." : "")}
                                                                 isThinking={msg.isThinking}
@@ -1800,31 +1785,27 @@ export default function SearchEnginePortal() {
                                                         )}
                                                     </div>
 
-                                                    {/* Live News Cards â€” only shown when AI returns news results */}
                                                     {msg.role === 'assistant' && msg.isNewsMode && msg.newsArticles && msg.newsArticles.length > 0 && (
                                                         <div className="mt-8 not-italic">
                                                             <div className="flex items-center gap-2 mb-4">
                                                                 <Newspaper size={13} className="text-sky-500" />
                                                                 <span className="text-[10px] font-black text-sky-600 uppercase tracking-[0.3em]">Live News</span>
                                                                 <div className="h-px flex-1 bg-slate-100" />
-                                                                <span className="text-[9px] text-slate-400 font-medium">Fetched just now</span>
                                                             </div>
                                                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                                                                {msg.newsArticles.map((article: AiNewsArticle, ni: number) => (
+                                                                {msg.newsArticles.map((article: any, ni: number) => (
                                                                     <AiNewsCard key={ni} article={article} index={ni} />
                                                                 ))}
                                                             </div>
                                                         </div>
                                                     )}
 
-                                                    {/* Bible Prophecy Connections â€” only shown in conflict/prophecy mode */}
                                                     {msg.role === 'assistant' && msg.isConflictMode && msg.bibleConnections && msg.bibleConnections.length > 0 && (
                                                         <BibleConnectionPanel connections={msg.bibleConnections} />
                                                     )}
                                                 </div>
 
-                                                {/* Suggestions for last message */}
-                                                {i === aiMessages.length - 1 && aiSuggestions.length > 0 && !isAiChatting && (
+                                                {i === 0 && aiSuggestions.length > 0 && !isAiChatting && (
                                                     <div className="flex flex-wrap gap-3 mt-8">
                                                         {aiSuggestions.map((s, idx) => (
                                                             <button
