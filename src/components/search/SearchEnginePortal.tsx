@@ -1899,7 +1899,7 @@ export default function SearchEnginePortal() {
             <footer style={{ width: "100%", borderTop: "1px solid var(--border-secondary, #ebebeb)", background: "var(--nav-bg, #fff)", padding: "22px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, }}>
                 <span style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-muted, #888)" }}>&copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer &#10022;</span>
                 <nav style={{ display: "flex", gap: 20 }}>
-                    {[{ label: "About Us", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy Policy", href: "/privacy-policy" }].map((link) => (<a key={link.href} href={link.href} style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-secondary, #666)", textDecoration: "none" }}>{link.label}</a>))}
+                    {[{ label: "Daily Manna", href: "/daily-manna" }, { label: "Bible Explorer", href: "/bible-explorer" }, { label: "Notebook", href: "/notebook" }, { label: "About Us", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy Policy", href: "/privacy-policy" }].map((link) => (<a key={link.href} href={link.href} style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-secondary, #666)", textDecoration: "none" }}>{link.label}</a>))}
                 </nav>
             </footer>
         </div>
