@@ -1246,3 +1246,12 @@ bible_zh_export.json
 bible_fr_export.json
 hebrew_bible.json
 bible_ar_export.json
+christian_news.json
+sermons.json
+openai_embedding_collection.json
+ARB-XML.json
+TUR-XML.json
+PES-XML.json
+TGL-XML.json
+PCK.json
+MYA-XML.json
