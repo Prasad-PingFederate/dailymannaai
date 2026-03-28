@@ -14,13 +14,12 @@ const BIBLE_BOOKS = [
   "James", "1-Peter", "2-Peter", "1-John", "2-John", "3-John", "Jude", "Revelation"
 ];
 
-// We add key translations to the sitemap to ensure they get indexed.
-// This is critical for capturing international search traffic.
+// Key translations to include in the sitemap for global reach.
 const LANGUAGES = [
   { code: "kjv", name: "English" },
   { code: "es", name: "Spanish" },
   { code: "zh", name: "Chinese" },
-  { code: "hi", name: "Hindi" },
+  { code: "hindi", name: "Hindi" },
   { code: "ar", name: "Arabic" },
   { code: "ja", name: "Japanese" },
   { code: "fr", name: "French" },
@@ -28,6 +27,9 @@ const LANGUAGES = [
   { code: "pt", name: "Portuguese" },
   { code: "ru", name: "Russian" },
   { code: "ko", name: "Korean" },
+  { code: "tl", name: "Tagalog" },
+  { code: "vi", name: "Vietnamese" },
+  { code: "id", name: "Indonesian" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -38,26 +40,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/notebook`, lastModified: NOW, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/about`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/contact`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE_URL}/privacy-policy`, lastModified: NOW, changeFrequency: "monthly", priority: 0.5 },
   ];
 
   const bibleRoutes: MetadataRoute.Sitemap = [];
 
-  // Generate 1 URL per book for default KJV
   BIBLE_BOOKS.forEach((book) => {
+    const slug = book.toLowerCase();
+    
+    // Default URL (KJV)
     bibleRoutes.push({
-      url: `${BASE_URL}/bible/${book.toLowerCase()}`,
+      url: `${BASE_URL}/bible/${slug}`,
       lastModified: NOW,
       changeFrequency: "monthly",
       priority: 0.8,
     });
     
-    // Generate multi-language URLs for featured translations
-    // Example: /bible/genesis?v=ja
+    // Translation specific URLs
     LANGUAGES.forEach((lang) => {
-        if (lang.code === 'kjv') return; // Skip default
+        if (lang.code === 'kjv') return;
         bibleRoutes.push({
-            url: `${BASE_URL}/bible/${book.toLowerCase()}?v=${lang.code}`,
+            url: `${BASE_URL}/bible/${slug}?v=${lang.code}`,
             lastModified: NOW,
             changeFrequency: "monthly",
             priority: 0.6,
@@ -65,6 +67,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   });
 
-  // Limit check: Next.js handles splitting sitemaps automatically if they exceed 50k
   return [...staticRoutes, ...bibleRoutes];
 }

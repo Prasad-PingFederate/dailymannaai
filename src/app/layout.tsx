@@ -86,7 +86,7 @@ export const viewport: Viewport = {
 // ─── Root Metadata ──────────────────────────────────────────
 export const metadata: Metadata = {
   title: {
-    default: "DailyManna AI — Christian AI Search Engine | Bible Verses & Faith Answers",
+    default: "Christian AI Bible Search — DailyManna AI",
     template: "%s | DailyManna AI",
   },
   description:
@@ -136,7 +136,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-video-preview": -1, "max-image-preview": "large", "max-snippet": -1 },
   },
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   category: "religion",
   referrer: "origin-when-cross-origin",
 };

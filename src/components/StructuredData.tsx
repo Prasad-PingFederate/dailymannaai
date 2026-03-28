@@ -124,13 +124,6 @@ const webAppSchema = {
     "Christian Q&A",
   ],
   screenshot: `${BASE_URL}/screenshot.png`,
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    bestRating: "5",
-    worstRating: "1",
-    ratingCount: "847",  // Update with real numbers
-  },
 };
 
 // ─── 4. FAQPage Schema ───────────────────────────────────────
