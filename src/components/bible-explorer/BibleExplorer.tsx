@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { 
     Search, Book, Mic2, Sparkles, BookOpen, Share2, 
     ChevronLeft, ChevronRight, Volume2, Copy, Pin, 
@@ -151,6 +152,17 @@ export default function BibleExplorer({
 
     const { theme, isDark } = useTheme();
     const { user } = useAuth();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    const fallbackSlugFromPath = pathname?.startsWith('/bible/')
+        ? pathname.replace('/bible/', '').split('/')[0]
+        : null;
+
+    const effectiveInitialSlug = (initialBookSlug || fallbackSlugFromPath || '').toLowerCase() || null;
+    const chapterFromQuery = Number.parseInt(searchParams?.get('chapter') || '', 10);
+    const effectiveInitialChapter = initialChapter || (Number.isFinite(chapterFromQuery) && chapterFromQuery > 0 ? chapterFromQuery : null);
+    const verseFromQuery = Number.parseInt(searchParams?.get('verse') || '', 10);
     
     // State
     const [testament, setTestament] = useState<'OT' | 'NT'>('OT');
@@ -178,8 +190,8 @@ export default function BibleExplorer({
 
     // Initial Deep Link Logic
     useEffect(() => {
-        if (initialBookSlug) {
-            const normalizedSlug = initialBookSlug.toLowerCase();
+        if (effectiveInitialSlug) {
+            const normalizedSlug = effectiveInitialSlug;
             const foundInOT = BIBLE_BOOKS.OT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
             const foundInNT = BIBLE_BOOKS.NT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
             const found = foundInOT || foundInNT;
@@ -188,10 +200,11 @@ export default function BibleExplorer({
                 setTestament(foundInNT ? 'NT' : 'OT');
                 setCurrentBook(found);
                 setExpandedBook(found.name);
-                setCurrentChapter(initialChapter || 1);
+                setCurrentChapter(effectiveInitialChapter || 1);
+                setHighlightedVerse(Number.isFinite(verseFromQuery) && verseFromQuery > 0 ? verseFromQuery : null);
             }
         }
-    }, [initialBookSlug, initialChapter]);
+    }, [effectiveInitialSlug, effectiveInitialChapter, verseFromQuery]);
 
 
     // Fetch Verses When Book/Chapter Changes
