@@ -20,6 +20,10 @@ import VoiceInput from '@/components/notebook/VoiceInput';
 import { useSearchParams } from 'next/navigation';
 
 // --- HELPERS ---
+const NT_ONLY_TRANSLATIONS = [
+    'ja', 'fi', 'et', 'cop', 'isl', 'ctu', 'kyg', 'dww', 'syr', 'syrp', 'got', 'la', 'sq', 'afrikaans', 'jpn1965', 'copbhc', 'est', 'lav', 'alb', 'ks', 'nb', 'nn', 'lt', 'lv'
+];
+
 const getBookSlugVariants = (name: string): string[] => {
     const main = name.toLowerCase().trim().replace(/\s+/g, '-');
     const noSpace = name.toLowerCase().trim().replace(/\s+/g, '');
@@ -217,6 +221,20 @@ export default function BibleExplorer({
 
     // Fetch Verses When Book/Chapter Changes
     useEffect(() => {
+        // Auto-switch to Matthew if NT-only translation is selected on an OT book
+        if (NT_ONLY_TRANSLATIONS.includes(translation)) {
+            const isOT = BIBLE_BOOKS.OT.some(b => b.name === currentBook?.name);
+            if (isOT) {
+                const matthew = BIBLE_BOOKS.NT.find(b => b.name === "Matthew");
+                if (matthew) {
+                    setCurrentBook(matthew);
+                    setCurrentChapter(1);
+                    setTestament('NT');
+                }
+                return;
+            }
+        }
+
         if (currentBook && currentChapter) {
             fetchVerses(currentBook.name, currentChapter);
         }
@@ -560,11 +578,11 @@ export default function BibleExplorer({
                                         <option value="he">עִברִית (Hebrew)</option>
                                         <option value="hbo">Ancient Hebrew (Aleppo)</option>
                                         <option value="grc">Koine Greek (LXX)</option>
-                                        <option value="syr">Syriac (Peshitta)</option>
+                                        <option value="syrp">Syriac (Peshitta) ❌ NT-Only</option>
                                         <option value="la">Latina (Latin)</option>
-                                        <option value="cop">Coptic (Bohairic)</option>
+                                        <option value="cop">Coptic (Bohairic) ❌ NT-Only</option>
                                         <option value="cu">Church Slavonic</option>
-                                        <option value="got">Gothic</option>
+                                        <option value="got">Gothic ❌ NT-Only</option>
                                     
                                     
                                     
@@ -584,10 +602,8 @@ export default function BibleExplorer({
                                         <option value="de">Deutsch (Textbibel)</option>
                                         <option value="pt">Português (Nova Bíblia)</option>
                                         <option value="it">Italiano (Riveduta)</option>
-                                        <option value="ru">Русский (Synodal)</option>
-                                        <option value="zh">中文 (Union)</option>
-                                        <option value="ko">한국어 (Korean)</option>
-                                        <option value="ja">日本語 (Japanese)</option>
+                                                 <option value="zh">中文 (Union)</option>
+                                        <option value="ja">日本語 (Japanese) ❌ NT-Only</option>
                                         <option value="ar">العربية (Van Dyke)</option>
                                         <option value="hindi">हिन्दी (Hindi)</option>
                                         <option value="bengali">বাংলা (Bengali)</option>
@@ -609,30 +625,30 @@ export default function BibleExplorer({
                                         <option value="ro">Română (Romanian)</option>
                                         <option value="nl">Nederlands (Dutch)</option>
                                         <option value="sv">Svenska (Swedish)</option>
-                                        <option value="fi">Suomi (Finnish)</option>
+                                        <option value="fi">Suomi (Finnish) ❌ NT-Only</option>
                                         <option value="da">Dansk (Danish)</option>
-                                        <option value="nb">Norsk (Norwegian)</option>
+                                        <option value="nb">Norsk (Norwegian) ❌ NT-Only</option>
                                         <option value="cs">Čeština (Czech)</option>
                                         <option value="hr">Hrvatski (Croatian)</option>
                                         <option value="sr">Српски (Serbian)</option>
                                         <option value="uk">Українська (Ukrainian)</option>
-                                        <option value="et">Eesti (Estonian)</option>
-                                        <option value="lt">Lietuvių (Lithuanian)</option>
-                                        <option value="lv">Latviešu (Latvian)</option>
-                                        <option value="sq">Shqip (Albanian)</option>
+                                        <option value="et">Eesti (Estonian) ❌ NT-Only</option>
+                                        <option value="lt">Lietuvių (Lithuanian) ❌ NT-Only</option>
+                                        <option value="lv">Latviešu (Latvian) ❌ NT-Only</option>
+                                        <option value="sq">Shqip (Albanian) ❌ NT-Only</option>
                                         <option value="el">Ελληνικά (Greek)</option>
                                         <option value="he">עברית (Hebrew)</option>
                                         <option value="sw">Kiswahili (Swahili)</option>
-                                        <option value="afrikaans">Afrikaans</option>
+                                        <option value="afrikaans">Afrikaans ❌ NT-Only</option>
                                         <option value="eo">Esperanto</option>
                                     </optgroup>
-                                    <optgroup label="New Languages">
-                                        <option value="isl">Icelandic</option>
-                                        <option value="ctu">Ch'ol (Maya)</option>
-                                        <option value="kyg">Keyagana</option>
-                                        <option value="dww">Dawawa</option>
-                                        <option value="kgf">Kube</option>
-                                        <option value="ssd">Siroi</option>
+                                    <optgroup label="New Languages (NT-Only)">
+                                        <option value="isl">Icelandic ❌ NT-Only</option>
+                                        <option value="ctu">Ch'ol (Maya) ❌ NT-Only</option>
+                                        <option value="kyg">Keyagana ❌ NT-Only</option>
+                                        <option value="dww">Dawawa ❌ NT-Only</option>
+                                        <option value="kgf">Kube ❌ NT-Only</option>
+                                        <option value="ssd">Siroi ❌ NT-Only</option>
                                         <option value="pck">Paite</option>
                                     </optgroup>
                                     <optgroup label="World Languages (Complete)">

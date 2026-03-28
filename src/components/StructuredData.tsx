@@ -192,10 +192,18 @@ const faqSchema = {
     },
     {
       "@type": "Question",
+      name: "Which Bible books are in the Bible Explorer?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "All 66 books of the Bible — Genesis through Revelation — with AI-powered search, cross-references, and contextual insights for every book.",
+      },
+    },
+    {
+      "@type": "Question",
       name: "Does DailyMannaAI support prophetic ministry?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. DailyMannaAI has a dedicated prophetic insights section that surfaces biblical prophecy, prophetic themes, and Spirit-led encouragements rooted firmly in scripture.",
+        text: "Yes. DailyMannaAI has a dedicated prophetic insights section surfacing biblical prophecy, prophetic themes, and Spirit-led encouragements rooted firmly in scripture.",
       },
     },
   ],

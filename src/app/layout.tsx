@@ -86,85 +86,58 @@ export const viewport: Viewport = {
 // ─── Root Metadata ──────────────────────────────────────────
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} — ${TAGLINE}`,
-    template: `%s | ${SITE_NAME}`,
+    default: "DailyManna AI — Christian AI Search Engine | Bible Verses & Faith Answers",
+    template: "%s | DailyManna AI",
   },
   description:
-    "DailyMannaAI is the #1 Christian search engine powered by AI. " +
-    "Discover Bible verses, prophetic insights, and Spirit-led answers " +
-    "to life's deepest questions — free, consecrated, and always faithful.",
-  keywords: KEYWORDS,
-  authors: [{ name: "DailyMannaAI", url: BASE_URL }],
-  creator: "DailyMannaAI",
-  publisher: "DailyMannaAI",
-  metadataBase: new URL(BASE_URL),
+    "DailyManna AI is the #1 Christian search engine powered by AI. Search Bible verses, get Spirit-led devotionals, and find faith answers instantly — free forever. The search engine built for believers.",
+  keywords: [
+    "Christian search engine", "Bible AI search", "DailyManna AI",
+    "faith-based AI assistant", "what does the Bible say about",
+    "Bible verse finder", "scripture search engine", "AI Bible study tool",
+    "Christian devotional AI", "Holy Spirit guided answers", "prophetic word AI",
+    "daily prophetic insights", "Spirit-led search engine", "biblical prophecy search",
+    "daily manna devotional", "morning Bible reading AI", "daily bread scripture",
+    "Christian morning devotion", "better than Google for Christians",
+    "Christian alternative to ChatGPT", "Bible-trained AI chatbot",
+    "faith AI assistant free", "how to find peace in the Bible",
+    "scriptures for anxiety and depression", "Bible verses for healing",
+    "Bible verses about love", "Bible verses about forgiveness",
+    "Christian guidance AI", "daily devotional",
+  ],
+  authors: [{ name: "DailyManna AI", url: "https://www.dailymannaai.com" }],
+  creator: "DailyManna AI",
+  publisher: "DailyManna AI",
   alternates: {
-    canonical: "/",
-    languages: {
-      "en-US": "/",
-    },
-  },
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-    googleBot: {
-      index: true,
-      follow: true,
-      noimageindex: false,
-      "max-video-preview": -1,   // unlimited
-      "max-image-preview": "large",
-      "max-snippet": -1,   // full snippet
-    },
+    canonical: "https://www.dailymannaai.com",
+    languages: { "en-US": "https://www.dailymannaai.com" },
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: BASE_URL,
-    siteName: SITE_NAME,
-    title: `${SITE_NAME} — The Search Engine Built for the Faithful`,
+    url: "https://www.dailymannaai.com",
+    siteName: "DailyManna AI",
+    title: "DailyManna AI — The Search Engine Built for the Faithful",
     description:
-      "Seek and you shall find — with AI. DailyMannaAI merges the power " +
-      "of modern AI with timeless scripture. Search the Word. Find the Way.",
-    images: [
-      {
-        url: OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: `${SITE_NAME} — ${TAGLINE}`,
-        type: "image/png",
-      },
-    ],
+      "Seek and you shall find — with AI. Search Bible verses, get prophetic insights, and find Spirit-led answers. Free Christian AI search engine.",
+    images: [{ url: "https://www.dailymannaai.com/og-image.png", width: 1200, height: 630, alt: "DailyManna AI — Holy Spirit-Guided Search", type: "image/png" }],
   },
   twitter: {
     card: "summary_large_image",
     site: "@DailyMannaAI",
     creator: "@DailyMannaAI",
-    title: `${SITE_NAME} — Christian AI Search Engine`,
-    description: "Search the Word. Find the Way. AI-powered Bible insights, " +
-      "prophetic wisdom, and daily scripture — free forever.",
-    images: [{
-      url: OG_IMAGE,
-      alt: `${SITE_NAME} — ${TAGLINE}`,
-    }],
+    title: "DailyManna AI — Christian AI Search Engine",
+    description: "Search the Word. Find the Way. AI-powered Bible insights, prophetic wisdom, and daily scripture — free forever.",
+    images: { url: "https://www.dailymannaai.com/og-image.png", alt: "DailyManna AI — Holy Spirit-Guided Search" },
   },
-  icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-    apple: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-video-preview": -1, "max-image-preview": "large", "max-snippet": -1 },
   },
-  manifest: "/manifest.json",
-  appLinks: {
-    web: {
-      url: BASE_URL,
-      should_fallback: true,
-    },
-  },
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
   category: "religion",
-  classification: "Christian Faith, Bible Study, AI Technology",
   referrer: "origin-when-cross-origin",
 };
 
