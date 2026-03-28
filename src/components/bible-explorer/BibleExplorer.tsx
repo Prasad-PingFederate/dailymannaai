@@ -92,6 +92,53 @@ const BIBLE_BOOKS = {
     ]
 };
 
+const getBookSlugVariants = (bookName: string): string[] => {
+    const canonical = bookName.toLowerCase().replace(/\s+/g, '-');
+    const leadingNumberMatch = bookName.match(/^(\d)\s+(.+)$/);
+
+    if (!leadingNumberMatch) {
+        return [canonical];
+    }
+
+    const [, number, rest] = leadingNumberMatch;
+    const trailingVariant = `${rest.toLowerCase().replace(/\s+/g, '-')}-${number}`;
+    return [canonical, trailingVariant];
+};
+
+const parseSearchBookAndChapter = (query: string): { book: string; chapter: number } => {
+    const normalized = query.trim().replace(/\s+/g, ' ');
+    const parts = normalized.split(' ');
+
+    if (parts.length === 0) {
+        return { book: '', chapter: 1 };
+    }
+
+    const first = parts[0];
+    const last = parts[parts.length - 1];
+
+    // Handles "1 John 2" or "2 Peter"
+    if (/^[1-3]$/.test(first)) {
+        const chapterToken = parts[2];
+        const chapter = Number.parseInt(chapterToken?.split(':')[0] || '1', 10) || 1;
+        return { book: `${first} ${parts[1] || ''}`.trim(), chapter };
+    }
+
+    // Handles "John 3" and "Samuel 1"
+    if (/^\d+(:\d+)?$/.test(last)) {
+        const chapter = Number.parseInt(last.split(':')[0], 10) || 1;
+        const book = parts.slice(0, -1).join(' ');
+
+        // If this is a numbered book in reverse order (e.g., "Samuel 1"), normalize to "1 Samuel".
+        if (/^[1-3]$/.test(last) && book) {
+            return { book: `${last} ${book}`.trim(), chapter: 1 };
+        }
+
+        return { book, chapter };
+    }
+
+    return { book: parts[0], chapter: Number.parseInt(parts[1]?.split(':')[0] || '1', 10) || 1 };
+};
+
 export default function BibleExplorer({ 
     initialBookSlug = null, 
     initialChapter = null,
@@ -133,9 +180,8 @@ export default function BibleExplorer({
     useEffect(() => {
         if (initialBookSlug) {
             const allBooks = [...BIBLE_BOOKS.OT, ...BIBLE_BOOKS.NT];
-            const found = allBooks.find(b => 
-                b.name.toLowerCase().replace(/\s+/g, '-') === initialBookSlug.toLowerCase()
-            );
+            const normalizedSlug = initialBookSlug.toLowerCase();
+            const found = allBooks.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
             if (found) {
                 setCurrentBook(found);
                 if (initialChapter) {
@@ -213,19 +259,8 @@ export default function BibleExplorer({
         const query = queryOverride || searchQuery;
         if (!query.trim()) return;
         
-        // Basic parsing for "Book Chapter" or "Book Chapter:Verse"
-        const parts = query.trim().split(/\s+/);
-        let bookMatch = "";
-        let chapterMatch = 1;
-
-        // Handle cases like "1 John"
-        if (['1', '2', '3'].includes(parts[0]) && parts[1]) {
-            bookMatch = `${parts[0]} ${parts[1]}`;
-            chapterMatch = parseInt(parts[2]?.split(':')[0]) || 1;
-        } else {
-            bookMatch = parts[0];
-            chapterMatch = parseInt(parts[1]?.split(':')[0]) || 1;
-        }
+        // Supports "1 John", "John 3", and reverse-numbered books like "Samuel 1".
+        const { book: bookMatch, chapter: chapterMatch } = parseSearchBookAndChapter(query);
 
         const allBooks = [...BIBLE_BOOKS.OT, ...BIBLE_BOOKS.NT];
         const foundBook = allBooks.find(b => b.name.toLowerCase() === bookMatch.toLowerCase() || b.abbr.toLowerCase() === bookMatch.toLowerCase());
