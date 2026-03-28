@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ lang?: string; v?: string; head?: string }>;
 };
 
 // SEO Metadata for the specific book
@@ -29,12 +30,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function BibleBookPage({ params }: Props) {
+export default async function BibleBookPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const sParams = await searchParams;
+  const initialTranslation = sParams?.v || sParams?.lang || null;
+  const headVerse = sParams?.head ? parseInt(sParams.head) : 1;
   
   return (
     <main className="h-screen w-screen overflow-hidden">
-      <BibleExplorer initialBookSlug={slug} />
+      <BibleExplorer 
+        initialBookSlug={slug} 
+        initialTranslation={initialTranslation}
+        initialChapter={1} 
+      />
     </main>
   );
 }

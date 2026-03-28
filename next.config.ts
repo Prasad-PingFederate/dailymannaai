@@ -21,6 +21,20 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow',
+          },
+        ],
+      },
+    ];
+  },
+
   webpack: (config) => {
     // Definitive fix for canvas dependencies during bundling
     config.resolve.alias.canvas = false;

@@ -29,16 +29,17 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-    searchParams?: Promise<{ lang?: string }>;
+    searchParams?: Promise<{ lang?: string; v?: string; book?: string }>;
 };
 
 export default async function BibleExplorerPage({ searchParams }: Props) {
     const params = await searchParams;
-    const initialTranslation = params?.lang || null;
+    const initialTranslation = params?.v || params?.lang || null;
+    const initialBookSlug = params?.book || null;
 
     return (
         <main className="h-screen w-screen overflow-hidden">
-             <BibleExplorer initialTranslation={initialTranslation} />
+             <BibleExplorer initialTranslation={initialTranslation} initialBookSlug={initialBookSlug} />
         </main>
     );
 }

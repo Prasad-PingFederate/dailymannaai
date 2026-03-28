@@ -17,6 +17,16 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import VoiceInput from '@/components/notebook/VoiceInput';
+import { useSearchParams } from 'next/navigation';
+
+// --- HELPERS ---
+const getBookSlugVariants = (name: string): string[] => {
+    const main = name.toLowerCase().trim().replace(/\s+/g, '-');
+    const noSpace = name.toLowerCase().trim().replace(/\s+/g, '');
+    const plain = name.toLowerCase().trim();
+    // Special cases like "1-Samuel" or "1 Samuel"
+    return [main, noSpace, plain, main.replace('-', ' ')];
+};
 
 // --- DATA ---
 const BIBLE_BOOKS = {
@@ -177,21 +187,32 @@ export default function BibleExplorer({
     const [popupVerse, setPopupVerse] = useState<number | null>(null);
 
     // Initial Deep Link Logic
+    const searchParams = useSearchParams();
+    
     useEffect(() => {
-        if (initialBookSlug) {
-            const allBooks = [...BIBLE_BOOKS.OT, ...BIBLE_BOOKS.NT];
-            const normalizedSlug = initialBookSlug.toLowerCase();
-            const found = allBooks.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
-            if (found) {
-                setCurrentBook(found);
-                if (initialChapter) {
-                    setCurrentChapter(initialChapter);
-                } else {
-                    setExpandedBook(found.name);
-                }
-            }
+        const effectiveInitialSlug = initialBookSlug;
+        const effectiveInitialChapter = initialChapter;
+        const verseFromQuery = searchParams ? parseInt(searchParams.get('head') || '1') : 1;
+
+        const slugFromWindow = typeof window !== 'undefined' && window.location.pathname.startsWith('/bible/')
+            ? window.location.pathname.replace('/bible/', '').split('/')[0]
+            : null;
+
+        const normalizedSlug = (effectiveInitialSlug || slugFromWindow || '').toLowerCase().trim();
+        if (!normalizedSlug) return;
+
+        const foundInOT = BIBLE_BOOKS.OT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
+        const foundInNT = BIBLE_BOOKS.NT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
+        const found = foundInOT || foundInNT;
+
+        if (found) {
+            setTestament(foundInNT ? 'NT' : 'OT');
+            setCurrentBook(found);
+            setExpandedBook(found.name);
+            setCurrentChapter(effectiveInitialChapter || 1);
+            setHighlightedVerse(Number.isFinite(verseFromQuery) && verseFromQuery > 0 ? verseFromQuery : 1);
         }
-    }, [initialBookSlug, initialChapter]);
+    }, [initialBookSlug, initialChapter, searchParams]);
 
 
     // Fetch Verses When Book/Chapter Changes
