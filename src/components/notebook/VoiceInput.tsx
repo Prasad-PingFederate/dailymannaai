@@ -166,12 +166,34 @@ export default function VoiceInput({
         resetDisplay();
         cancelledRef.current = false;
 
+        // ── 0. Secure Context & Support Check ────────────────────────────────
+        if (!window.isSecureContext && window.location.hostname !== "localhost") {
+            setError("Voice input requires a secure (HTTPS) connection.");
+            console.error("[Voice] Not a secure context. Mic access will be denied.");
+            return;
+        }
+
+        if (!navigator?.mediaDevices?.getUserMedia) {
+            setError("Mic access is not supported in this browser.");
+            console.error("[Voice] navigator.mediaDevices.getUserMedia is undefined.");
+            return;
+        }
+
         let audioStream: MediaStream;
         try {
+            console.log("[Voice] Requesting microphone access...");
             audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             streamRef.current = audioStream;
-        } catch {
-            setError("Microphone permission denied.");
+            console.log("[Voice] Microphone access granted.");
+        } catch (err: any) {
+            console.error("[Voice] Microhone Error:", err);
+            if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                setError("Microphone permission denied.");
+            } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                setError("No microphone found.");
+            } else {
+                setError("Could not access microphone.");
+            }
             return;
         }
 

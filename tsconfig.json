@@ -38,6 +38,8 @@
   ],
   "exclude": [
     "node_modules",
-    "spurgeon_data"
+    "spurgeon_data",
+    "DailyMannaAI-Mobile",
+    "android"
   ]
 }

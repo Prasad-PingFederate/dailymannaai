@@ -1620,7 +1620,7 @@ export default function SearchEnginePortal() {
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <h1 className="site-logo !text-6xl md:!text-8xl !gap-2 md:!gap-4 justify-center">
+                        <h1 className="site-logo !text-4xl sm:!text-6xl md:!text-8xl !gap-2 md:!gap-4 justify-center">
                             <span>DAILY</span>
                             <span className="gold drop-shadow-[0_0_25px_rgba(200,146,42,0.3)]">MANNA</span>
                             <span>AI</span>
@@ -1634,13 +1634,13 @@ export default function SearchEnginePortal() {
                 {/* ── SEARCH BOX & MODES ── */}
                 <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"}`}>
                     <form onSubmit={onSubmit}>
-                        <div className="flex flex-wrap justify-center gap-2 mb-8 items-center">
+                        <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 mb-8 items-center w-full max-w-full no-scrollbar px-2 sm:flex-wrap sm:justify-center">
                             {FILTERS.map((f) => (
                                 <button
                                     key={f.id}
                                     type="button"
                                     onClick={() => onFilterChange(f.id as FilterType)}
-                                    className={`mode-tab ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
+                                    className={`mode-tab flex-shrink-0 ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
                                 >
                                     {f.icon}
                                     <span>{f.label}</span>
@@ -1658,8 +1658,8 @@ export default function SearchEnginePortal() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search the Scriptures, ask in faith…"
-                                className="search-input-main"
+                                placeholder="Search..."
+                                className="search-input-main !text-sm sm:!text-base"
                             />
 
                             {query && (
@@ -1678,8 +1678,9 @@ export default function SearchEnginePortal() {
                                 className="flex-shrink-0"
                             />
 
-                            <button type="submit" className="bg-[#0C1A2E] text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
-                                Search
+                            <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
+                                <span className="hidden sm:inline">Search</span>
+                                <Search size={16} className="sm:hidden" />
                             </button>
                         </div>
 

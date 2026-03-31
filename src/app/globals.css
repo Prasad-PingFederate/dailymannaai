@@ -207,7 +207,7 @@ body {
 
 .site-logo {
   font-family: var(--f-title);
-  font-size: 24px;
+  font-size: clamp(18px, 5vw, 24px);
   font-weight: 900;
   letter-spacing: -0.02em;
   color: var(--navy);
@@ -369,3 +369,12 @@ select optgroup {
 .animate-blink {
   animation: blink 2s infinite;
 }
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
