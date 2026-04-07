@@ -28,8 +28,17 @@ const getBookSlugVariants = (name: string): string[] => {
     const main = name.toLowerCase().trim().replace(/\s+/g, '-');
     const noSpace = name.toLowerCase().trim().replace(/\s+/g, '');
     const plain = name.toLowerCase().trim();
-    // Special cases like "1-Samuel" or "1 Samuel"
-    return [main, noSpace, plain, main.replace('-', ' ')];
+    
+    const variants = [main, noSpace, plain, main.replace('-', ' ')];
+    
+    const leadingNumberMatch = name.match(/^(\d)\s+(.+)$/);
+    if (leadingNumberMatch) {
+        const [, number, rest] = leadingNumberMatch;
+        const trailingVariant = `${rest.toLowerCase().replace(/\s+/g, '-')}-${number}`;
+        variants.push(trailingVariant);
+    }
+    
+    return Array.from(new Set(variants));
 };
 
 // --- DATA ---
@@ -106,18 +115,7 @@ const BIBLE_BOOKS = {
     ]
 };
 
-const getBookSlugVariants = (bookName: string): string[] => {
-    const canonical = bookName.toLowerCase().replace(/\s+/g, '-');
-    const leadingNumberMatch = bookName.match(/^(\d)\s+(.+)$/);
 
-    if (!leadingNumberMatch) {
-        return [canonical];
-    }
-
-    const [, number, rest] = leadingNumberMatch;
-    const trailingVariant = `${rest.toLowerCase().replace(/\s+/g, '-')}-${number}`;
-    return [canonical, trailingVariant];
-};
 
 const parseSearchBookAndChapter = (query: string): { book: string; chapter: number } => {
     const normalized = query.trim().replace(/\s+/g, ' ');
