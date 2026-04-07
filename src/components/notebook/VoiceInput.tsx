@@ -110,11 +110,13 @@ export default function VoiceInput({
 
     // ── API waterfall (Deepgram → AssemblyAI → Whisper) ──────────────────────
     const sendToApi = useCallback(async (): Promise<string | null> => {
-        const blob = new Blob(chunksRef.current, { type: mimeTypeRef.current || "audio/webm" });
+        const mime = mimeTypeRef.current || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mime });
         if (blob.size < 500) return null;
 
         const fd = new FormData();
-        fd.append("audio", blob, "recording.webm");
+        const ext = mime.includes("mp4") ? "m4a" : mime.includes("ogg") ? "ogg" : "webm";
+        fd.append("audio", blob, `recording.${ext}`);
 
         const controller = new AbortController();
         const tid = setTimeout(() => controller.abort(), 20_000);
@@ -198,9 +200,26 @@ export default function VoiceInput({
         }
 
         // ── 1. MediaRecorder: captures audio for API submission ───────────────
-        const recorder = new MediaRecorder(audioStream);
+        const supportedTypes = [
+            "audio/webm;codecs=opus", 
+            "audio/ogg;codecs=opus", 
+            "audio/webm", 
+            "audio/ogg", 
+            "audio/mp4",
+            ""
+        ];
+        const bestType = supportedTypes.find(t => !t || MediaRecorder.isTypeSupported(t)) ?? "";
+        
+        let recorder: MediaRecorder;
+        try {
+            recorder = new MediaRecorder(audioStream, bestType ? { mimeType: bestType } : undefined);
+        } catch (err) {
+            console.warn("[Voice] MediaRecorder fallback init", err);
+            recorder = new MediaRecorder(audioStream);
+        }
+        
         recorderRef.current = recorder;
-        mimeTypeRef.current = recorder.mimeType;
+        mimeTypeRef.current = recorder.mimeType || bestType;
 
         recorder.ondataavailable = (e) => {
             if (e.data.size > 0) chunksRef.current.push(e.data);

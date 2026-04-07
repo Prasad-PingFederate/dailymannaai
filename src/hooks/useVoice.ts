@@ -181,7 +181,13 @@ export function useVoice({
         await setupAnalyser(micStream);
 
         const mimeType = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/webm", "audio/ogg", "audio/mp4", ""].find((t) => !t || MediaRecorder.isTypeSupported(t)) ?? "";
-        const recorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
+        let recorder: MediaRecorder;
+        try {
+            recorder = new MediaRecorder(micStream, mimeType ? { mimeType } : undefined);
+        } catch (e) {
+            console.warn("MediaRecorder init failed, falling back", e);
+            recorder = new MediaRecorder(micStream);
+        }
         mediaRecorderRef.current = recorder;
         chunksRef.current = [];
 

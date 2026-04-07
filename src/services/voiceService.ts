@@ -42,14 +42,22 @@ export async function startRecording(): Promise<void> {
     recordingStream = stream;
     recordedChunks = [];
 
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/webm")
-            ? "audio/webm"
-            : "";
+    const supportedTypes = [
+        "audio/webm;codecs=opus", 
+        "audio/ogg;codecs=opus", 
+        "audio/webm", 
+        "audio/ogg", 
+        "audio/mp4",
+        ""
+    ];
+    const bestType = supportedTypes.find(t => !t || MediaRecorder.isTypeSupported(t)) ?? "";
 
-    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-
+    try {
+        mediaRecorder = new MediaRecorder(stream, bestType ? { mimeType: bestType } : undefined);
+    } catch (e) {
+        mediaRecorder = new MediaRecorder(stream);
+    }
+    
     mediaRecorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
             recordedChunks.push(e.data);
