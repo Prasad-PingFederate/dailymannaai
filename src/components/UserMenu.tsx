@@ -13,7 +13,7 @@ export default function UserMenu() {
     if (!isLoggedIn) return (
         <Link 
             href="/auth/signin?callbackUrl=/" 
-            className="inline-flex items-center gap-2 bg-gold hover:bg-gold-2 text-navy px-4 py-2 rounded-lg text-xs font-bold tracking-widest uppercase transition-all shadow-md active:scale-95"
+            className="inline-flex items-center gap-1.5 sm:gap-2 bg-gold hover:bg-gold-2 text-navy px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all shadow-md active:scale-95"
         >
             Sign In
         </Link>

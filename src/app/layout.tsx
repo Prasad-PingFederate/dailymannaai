@@ -177,15 +177,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           {/* ── Fixed Dark/Light Mode Toggle & User Menu — top-right corner ── */}
-          <div style={{
-            position: "fixed",
-            top: "14px",
-            right: "18px",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}>
+          <div className="fixed top-3 right-2 sm:top-4 sm:right-4 z-[9999] flex items-center gap-2 sm:gap-3">
             <UserMenu />
             <ThemeToggle variant="pill" />
           </div>
