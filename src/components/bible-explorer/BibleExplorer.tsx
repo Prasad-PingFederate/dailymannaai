@@ -164,10 +164,32 @@ export default function BibleExplorer({
     const { theme, isDark } = useTheme();
     const { user } = useAuth();
     
+    // Synchronous Initialization for SSR & SEO
+    let initTestament: 'OT' | 'NT' = 'OT';
+    let initBook = null;
+    let initChapter: number | null = initialChapter;
+    let initExpandedBook = null;
+
+    if (initialBookSlug) {
+        const normalizedSlug = initialBookSlug.toLowerCase().trim();
+        const foundInOT = BIBLE_BOOKS.OT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
+        const foundInNT = BIBLE_BOOKS.NT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
+        const found = foundInOT || foundInNT;
+        
+        if (found) {
+            initTestament = foundInNT ? 'NT' : 'OT';
+            initBook = found;
+            initExpandedBook = found.name;
+            if (initChapter === null) {
+                initChapter = 1;
+            }
+        }
+    }
+
     // State
-    const [testament, setTestament] = useState<'OT' | 'NT'>('OT');
-    const [currentBook, setCurrentBook] = useState<any>(null);
-    const [currentChapter, setCurrentChapter] = useState<number | null>(null);
+    const [testament, setTestament] = useState<'OT' | 'NT'>(initTestament);
+    const [currentBook, setCurrentBook] = useState<any>(initBook);
+    const [currentChapter, setCurrentChapter] = useState<number | null>(initChapter);
     const [verses, setVerses] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
@@ -184,7 +206,7 @@ export default function BibleExplorer({
     const [isZenMode, setIsZenMode] = useState(false);
     
     // New UX State for Inline Chapters
-    const [expandedBook, setExpandedBook] = useState<string | null>(null);
+    const [expandedBook, setExpandedBook] = useState<string | null>(initExpandedBook);
     const [showVersePopup, setShowVersePopup] = useState(false);
     const [popupVerse, setPopupVerse] = useState<number | null>(null);
 
@@ -192,29 +214,29 @@ export default function BibleExplorer({
     const searchParams = useSearchParams();
     
     useEffect(() => {
-        const effectiveInitialSlug = initialBookSlug;
-        const effectiveInitialChapter = initialChapter;
-        const verseFromQuery = searchParams ? parseInt(searchParams.get('head') || '1') : 1;
+        // Deep link parameter for highlighted verse
+        const verseFromQuery = searchParams ? parseInt(searchParams.get('head') || '0') : 0;
+        
+        // Client-side fallback if URL wasn't passed via props but is in window
+        if (!initialBookSlug && typeof window !== 'undefined' && window.location.pathname.startsWith('/bible/')) {
+            const slugFromWindow = window.location.pathname.replace('/bible/', '').split('/')[0];
+            const normalizedSlug = slugFromWindow.toLowerCase().trim();
+            const foundInOT = BIBLE_BOOKS.OT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
+            const foundInNT = BIBLE_BOOKS.NT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
+            const found = foundInOT || foundInNT;
 
-        const slugFromWindow = typeof window !== 'undefined' && window.location.pathname.startsWith('/bible/')
-            ? window.location.pathname.replace('/bible/', '').split('/')[0]
-            : null;
-
-        const normalizedSlug = (effectiveInitialSlug || slugFromWindow || '').toLowerCase().trim();
-        if (!normalizedSlug) return;
-
-        const foundInOT = BIBLE_BOOKS.OT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
-        const foundInNT = BIBLE_BOOKS.NT.find((b) => getBookSlugVariants(b.name).includes(normalizedSlug));
-        const found = foundInOT || foundInNT;
-
-        if (found) {
-            setTestament(foundInNT ? 'NT' : 'OT');
-            setCurrentBook(found);
-            setExpandedBook(found.name);
-            setCurrentChapter(effectiveInitialChapter || 1);
-            setHighlightedVerse(Number.isFinite(verseFromQuery) && verseFromQuery > 0 ? verseFromQuery : 1);
+            if (found && (!currentBook || currentBook.name !== found.name)) {
+                setTestament(foundInNT ? 'NT' : 'OT');
+                setCurrentBook(found);
+                setExpandedBook(found.name);
+                setCurrentChapter(initialChapter || 1);
+            }
         }
-    }, [initialBookSlug, initialChapter, searchParams]);
+
+        if (Number.isFinite(verseFromQuery) && verseFromQuery > 0) {
+            setHighlightedVerse(verseFromQuery);
+        }
+    }, [initialBookSlug, initialChapter, searchParams, currentBook]);
 
 
     // Fetch Verses When Book/Chapter Changes
@@ -268,9 +290,12 @@ export default function BibleExplorer({
         } else {
             setExpandedBook(book.name);
         }
-        setCurrentBook(book);
-        setCurrentChapter(null);
-        setVerses([]);
+        
+        if (currentBook?.name !== book.name) {
+            setCurrentBook(book);
+            setCurrentChapter(1);
+            setVerses([]);
+        }
     };
 
     const handleChapterSelect = (chapter: number) => {
