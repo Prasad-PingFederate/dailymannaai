@@ -171,11 +171,11 @@ body {
   width: 100%;
   background: var(--white);
   border: 1.5px solid var(--border);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-md);
   display: flex;
-  align-items: center;
-  padding: 6px 6px 6px 22px;
-  gap: 12px;
+  align-items: flex-end; /* Align items to the bottom as textarea grows */
+  padding: 8px 8px 8px 12px;
+  gap: 8px;
   box-shadow: var(--search-bar-shadow);
   transition: all .25s;
 }

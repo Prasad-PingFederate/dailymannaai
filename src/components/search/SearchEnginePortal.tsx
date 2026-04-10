@@ -1041,7 +1041,7 @@ export default function SearchEnginePortal() {
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [preview, setPreview] = useState<PreviewPanel | null>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const studioRef = useRef<HTMLDivElement>(null);
     const [isVoiceActive, setIsVoiceActive] = useState(false);
@@ -1063,6 +1063,14 @@ export default function SearchEnginePortal() {
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [isSentinelScanning, setIsSentinelScanning] = useState(false);
     const [inAppAlert, setInAppAlert] = useState<{ title: string; body: string; link: string; source: string } | null>(null);
+
+    // Auto-resize textarea based on content
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [query]);
 
     // Load saved preference on mount seamlessly
     useEffect(() => {
@@ -1506,7 +1514,7 @@ export default function SearchEnginePortal() {
         setInstantAnswer(null);
         setAiMessages([]);
         setAiSuggestions([]);
-        setTimeout(() => inputRef.current?.focus(), 300);
+        setTimeout(() => textareaRef.current?.focus(), 300);
     };
 
     const FILTERS = [
@@ -1664,39 +1672,50 @@ export default function SearchEnginePortal() {
                         {/* Search Bar Inner Container */}
                         <div className={`w-full transition-all duration-500 ${hasSearched ? (filter === 'ai' ? 'fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-transparent dark:from-navy dark:via-navy p-4 pb-8 flex justify-center' : 'max-w-4xl px-4 sm:px-0 mx-auto') : 'max-w-2xl px-4 sm:px-0 mx-auto'}`}>
                             <div className={`${hasSearched && filter === 'ai' ? 'w-full max-w-2xl' : 'w-full'}`}>
-                                <div className="search-bar-main group relative shadow-2xl">
-                                    <div className="flex-shrink-0 opacity-40 group-focus-within:opacity-100 transition-opacity">
-                                        <Search size={20} />
-                                    </div>
+                                <div className="search-bar-main group relative shadow-2xl !rounded-[2rem] overflow-hidden min-h-[56px] py-2">
+                                    <button type="button" className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
+                                        <div className="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center font-bold text-lg">+</div>
+                                    </button>
                                     
-                                    <input
-                                        ref={inputRef}
-                                        type="text"
+                                    <textarea
+                                        ref={textareaRef}
+                                        rows={1}
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" && !e.shiftKey) {
+                                                e.preventDefault();
+                                                onSubmit(e as any);
+                                            }
+                                        }}
                                         placeholder={filter === 'ai' ? "Reply to DailyMannaAI..." : "Search..."}
-                                        className="search-input-main min-w-0 !text-sm sm:!text-base"
+                                        className="search-input-main min-w-0 !text-sm sm:!text-base resize-none py-2 max-h-48 overflow-y-auto leading-relaxed"
                                     />
 
-                                    {query && (
-                                        <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors flex-shrink-0">
-                                            <X size={18} />
+                                    <div className="flex items-center gap-1.5 px-2">
+                                        {query && (
+                                            <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors flex-shrink-0 p-1.5">
+                                                <X size={18} />
+                                            </button>
+                                        )}
+                                        
+                                        <VoiceInput 
+                                            onTranscript={(text) => {
+                                                setQuery(text);
+                                                handleSearch(text, filter);
+                                            }} 
+                                            onListeningChange={setIsVoiceActive}
+                                            className="flex-shrink-0"
+                                        />
+
+                                        <button 
+                                            type="submit" 
+                                            disabled={!query.trim() && !isVoiceActive}
+                                            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${query.trim() ? "bg-navy text-white shadow-lg active:scale-90" : "bg-slate-100 text-slate-300 dark:bg-white/5"}`}
+                                        >
+                                            <ArrowUpRight size={20} className="rotate-[270deg]" />
                                         </button>
-                                    )}
-                                    
-                                    <VoiceInput 
-                                        onTranscript={(text) => {
-                                            setQuery(text);
-                                            handleSearch(text, filter);
-                                        }} 
-                                        onListeningChange={setIsVoiceActive}
-                                        className="flex-shrink-0"
-                                    />
-
-                                    <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2 flex-shrink-0">
-                                        <span className="hidden sm:inline">Search</span>
-                                        <Search size={16} className="sm:hidden" />
-                                    </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1906,12 +1925,11 @@ export default function SearchEnginePortal() {
                 )}
             </main>
 
-            {/* Site Footer */}
-            <footer style={{ width: "100%", borderTop: "1px solid var(--border-secondary, #ebebeb)", background: "var(--nav-bg, #fff)", padding: "22px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, }}>
-                <span style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-muted, #888)" }}>&copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer &#10022;</span>
-                <nav style={{ display: "flex", gap: 20 }}>
-                    {[{ label: "Daily Manna", href: "/daily-manna" }, { label: "Bible Explorer", href: "/bible-explorer" }, { label: "Notebook", href: "/notebook" }, { label: "About Us", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy Policy", href: "/privacy-policy" }].map((link) => (<a key={link.href} href={link.href} style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-secondary, #666)", textDecoration: "none" }}>{link.label}</a>))}
-                </nav>
+            {/* Site Footer - Simplified */}
+            <footer className="w-full py-8 text-center border-t border-slate-100 dark:border-white/5 opacity-50">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+                    &copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer
+                </p>
             </footer>
         </div>
     );
