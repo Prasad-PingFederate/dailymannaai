@@ -1702,7 +1702,7 @@ It's now part of my collective wisdom!`
             {/* Source Viewer Modal */}
             {viewingSource && (
                 <div className="absolute inset-0 z-[110] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm transition-all animate-in fade-in">
-                    <div className="relative w-full max-w-4xl h-[80vh] bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200 flex flex-col">
+                    <div className="relative w-full max-w-6xl h-[80vh] bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200 flex flex-col">
                         <header className="p-6 border-b border-border flex items-center justify-between bg-muted/5">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-accent/10 text-accent rounded-lg">
@@ -1718,7 +1718,7 @@ It's now part of my collective wisdom!`
                             </button>
                         </header>
                         <div className="flex-1 overflow-y-auto p-4 md:p-8 leading-relaxed text-foreground select-text custom-scrollbar">
-                            <div className="max-w-3xl mx-auto space-y-4">
+                            <div className="max-w-5xl w-full mx-auto space-y-4">
                                 {viewingSource.name.toLowerCase().endsWith(".mp3") ? (
                                     <div className="p-6 bg-accent/5 rounded-2xl border border-accent/20">
                                         <h4 className="font-bold text-accent mb-2">Simulated Sermon Transcription</h4>
@@ -1848,9 +1848,9 @@ It's now part of my collective wisdom!`
                         <div
                             ref={chatContainerRef}
                             onScroll={handleChatScroll}
-                            className="flex-1 overflow-y-auto px-4 pb-48 md:px-10 pt-14 space-y-6 relative custom-scrollbar"
+                            className="flex-1 overflow-y-auto res-container pb-48 pt-14 space-y-6 relative custom-scrollbar"
                         >
-                            <div className="max-w-3xl mx-auto">
+                            <div className="w-full mx-auto">
                                 <div className="chat-focus-messages space-y-6 pt-2">
                                     {messages.length === 1 && (
                                         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-in fade-in zoom-in-95 duration-1000 ease-out">
@@ -1862,7 +1862,7 @@ It's now part of my collective wisdom!`
                                             <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-foreground">
                                                 What can I help with?
                                             </h1>
-                                            <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
+                                            <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
                                                 {["Explain Romans 8", "John Wesley on Grace", "Study guide for Ephesians", "Sermon summary"].map((hint, idx) => (
                                                     <button
                                                         key={idx}
@@ -1878,14 +1878,8 @@ It's now part of my collective wisdom!`
                                     <div className="space-y-8 pb-6">
                                         {messages.map((msg: any, i) => (
                                             <div key={i} className={`group flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
-                                                <div className={`h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-gold to-gold-2' : 'bg-card-bg border border-border/50 text-accent shadow-xl ring-1 ring-border/20'}`}>
-                                                    {msg.role === 'user' ? 'U' : (
-                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-accent drop-shadow-md">
-                                                            <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                                <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
+                                                <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end w-full' : 'items-start w-full flex-1'}`}>
+                                                    <div className={`adaptive-bubble flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-gold to-gold-2' : 'bg-card-bg border border-border/50 text-accent shadow-xl ring-1 ring-border/20'}`}>
                                                     {msg.role === 'assistant' && (
                                                         <div className={`flex flex-wrap items-center gap-3 md:gap-6 px-4 mb-2 transition-opacity ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
 
@@ -2000,7 +1994,7 @@ It's now part of my collective wisdom!`
 
                 {/* 🚀 WORLD-CLASS FLOATING SEARCH BAR (ChatGPT/Antigravity Style) */}
                 <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-8 pt-24 pointer-events-none bg-gradient-to-t from-background via-background to-transparent">
-                    <div className="max-w-3xl mx-auto flex flex-col gap-4 pointer-events-auto">
+                    <div className="max-w-5xl w-full mx-auto flex flex-col gap-4 pointer-events-auto">
                         {/* ChatGPT-Style Simple & Effective Search Bar */}
                         <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border shadow-2xl focus-within:ring-2 ring-gold/20 transition-all p-3 md:p-4 pb-3 flex flex-col gap-3 group-hover:border-gold/30 rounded-[2rem]">
                             {/* Tool Row Inside Input Area for better organization */}

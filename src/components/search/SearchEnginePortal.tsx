@@ -1620,7 +1620,7 @@ export default function SearchEnginePortal() {
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <h1 className="site-logo !text-4xl sm:!text-6xl md:!text-8xl !gap-2 md:!gap-4 justify-center">
+                        <h1 className="site-logo text-fluid-h1 !gap-2 md:!gap-4 justify-center">
                             <span>DAILY</span>
                             <span className="gold drop-shadow-[0_0_25px_rgba(200,146,42,0.3)]">MANNA</span>
                             <span>AI</span>
@@ -1702,9 +1702,9 @@ export default function SearchEnginePortal() {
                     </form>
                 </div>
 
-                {/* â”€â”€ RESULTS AREA â”€â”€ */}
+                {/* ── RESULTS AREA ── */}
                 {(hasSearched || filter === "studio" || filter === "devotionals") && (
-                    <div className="w-full max-w-7xl px-4 md:px-8 mt-14 pb-32" ref={chatContainerRef}>
+                    <div className="res-container mt-14 pb-32" ref={chatContainerRef}>
                         {isSearching && filter !== "ai" ? (
                             <LoadingState />
                         ) : filter === "ai" ? (
@@ -1753,8 +1753,8 @@ export default function SearchEnginePortal() {
                                     }
                                     const displayMessages = groups.reverse().flat();
                                     return displayMessages.map((msg, i) => (
-                                        <div key={i} className={`flex gap-3 sm:gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
-                                            <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
+                                        <div key={i} className={`flex gap-2 sm:gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
+                                            <div className={`w-8 h-8 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
                                                 {msg.role === 'user' ? (
                                                     <div className="font-['Cinzel'] font-black text-lg sm:text-xl">U</div>
                                                 ) : (
@@ -1762,8 +1762,8 @@ export default function SearchEnginePortal() {
                                                 )}
                                             </div>
 
-                                            <div className={`flex flex-col gap-4 min-w-0 max-w-full ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
-                                                <div className={`relative p-5 sm:p-10 md:p-14 rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 md:max-w-[85%] sm:p-6 p-4 rounded-2xl md:rounded-3xl' : 'bg-slate-50 border border-slate-200 text-slate-900 w-full'}`}>
+                                            <div className={`flex flex-col gap-2 min-w-0 max-w-full ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
+                                                <div className={`relative p-3 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 w-full sm:max-w-[85%] sm:p-6 p-4 rounded-xl' : 'bg-slate-50 border border-slate-200 text-slate-900 w-full'}`}>
 
                                                     {msg.role === 'assistant' && (
                                                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
