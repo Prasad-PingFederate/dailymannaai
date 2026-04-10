@@ -42,6 +42,14 @@
   --f-display: 'Playfair Display', Georgia, serif;
   --f-title: 'Cinzel', serif;
   --f-body: 'Inter', system-ui, sans-serif;
+
+  /* --- FLUID SCALE (Automatic Optimization) --- */
+  /* This scales from 320px (Compact) to 1200px (Large/Foldable) */
+  --fluid-gutter: clamp(0.5rem, 2vw, 2.5rem);
+  --fluid-text-base: clamp(0.875rem, 0.8rem + 0.4vw, 1.125rem);
+  --fluid-text-h1: clamp(2rem, 1.5rem + 4vw, 5rem);
+  --fluid-text-h2: clamp(1.5rem, 1.25rem + 2vw, 3.5rem);
+  --fluid-card-radius: clamp(1rem, 5vw, 3.5rem);
 }
 
 @theme inline {
@@ -377,4 +385,48 @@ select optgroup {
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
-}
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ADAPTIVE LAYOUT UTILITIES (Auto Maximize/Minimize)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Fluid Container: Uses clamp to minimize on compact phones and maximize on large screens */
+.res-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--fluid-gutter);
+  padding-right: var(--fluid-gutter);
+}
+
+/* Dynamic Typography */
+.text-fluid-h1 { font-size: var(--fluid-text-h1); }
+.text-fluid-h2 { font-size: var(--fluid-text-h2); }
+.text-fluid-base { font-size: var(--fluid-text-base); }
+
+/* Adaptive Message Bubbles */
+.adaptive-bubble {
+  border-radius: var(--fluid-card-radius);
+  padding: clamp(0.75rem, 3vw, 2.5rem);
+}
+
+/* Foldable/Large Specific Adjustments */
+@media (min-width: 1024px) {
+  .res-container {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+/* One-Handed Optimization (Compact Phones) */
+@media (max-width: 450px) {
+  .search-bar-main {
+    padding: 4px 4px 4px 16px;
+    gap: 8px;
+  }
+  .site-logo {
+    letter-spacing: -0.04em;
+  }
+}
