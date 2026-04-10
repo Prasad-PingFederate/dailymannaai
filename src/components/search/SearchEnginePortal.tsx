@@ -1576,8 +1576,17 @@ export default function SearchEnginePortal() {
             )}
 
             {/* ── HEADER ── */}
-            <header className={`w-full px-8 py-5 flex items-center justify-between z-50 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/90 dark:bg-navy/90 backdrop-blur-xl border-b border-border/50 shadow-sm" : ""}`}>
-                <div className="flex items-center gap-10">
+            <header className={`w-full px-4 sm:px-8 py-4 flex items-center justify-between z-50 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/90 dark:bg-navy/90 backdrop-blur-xl border-b border-border/50 shadow-sm" : ""}`}>
+                <div className="flex items-center gap-3 md:gap-10">
+                    {hasSearched && (
+                        <button onClick={resetSearch} className="flex items-center gap-2 text-slate-500 hover:text-navy dark:text-slate-400 dark:hover:text-gold transition-colors pr-2 border-r border-slate-200 dark:border-slate-800">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <ChevronLeft size={18} />
+                            </div>
+                            <span className="text-sm font-bold uppercase tracking-wider hidden sm:inline">Back</span>
+                        </button>
+                    )}
+
                     <button
                         onClick={resetSearch}
                         className="site-logo"
@@ -1596,14 +1605,16 @@ export default function SearchEnginePortal() {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Search the Scriptures..."
-                                    className="flex-1 bg-transparent border-none outline-none text-sm text-text-1"
+                                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-text-1"
                                 />
-                                {query && <X size={14} className="text-slate-300 cursor-pointer" onClick={() => setQuery("")} />}
-                                <div className="h-4 w-px bg-slate-200" />
-                                <VoiceInput 
-                                    onTranscript={(text) => { setQuery(text); handleSearch(text, filter); }}
-                                    variant="minimal"
-                                />
+                                {query && <X size={14} className="text-slate-300 cursor-pointer flex-shrink-0" onClick={() => setQuery("")} />}
+                                <div className="h-4 w-px bg-slate-200 flex-shrink-0" />
+                                <div className="flex-shrink-0">
+                                    <VoiceInput 
+                                        onTranscript={(text) => { setQuery(text); handleSearch(text, filter); }}
+                                        variant="minimal"
+                                    />
+                                </div>
                             </form>
                         </div>
                     )}
@@ -1664,11 +1675,11 @@ export default function SearchEnginePortal() {
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
                                         placeholder={filter === 'ai' ? "Reply to DailyMannaAI..." : "Search..."}
-                                        className="search-input-main !text-sm sm:!text-base"
+                                        className="search-input-main min-w-0 !text-sm sm:!text-base"
                                     />
 
                                     {query && (
-                                        <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors">
+                                        <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors flex-shrink-0">
                                             <X size={18} />
                                         </button>
                                     )}
@@ -1682,7 +1693,7 @@ export default function SearchEnginePortal() {
                                         className="flex-shrink-0"
                                     />
 
-                                    <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
+                                    <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2 flex-shrink-0">
                                         <span className="hidden sm:inline">Search</span>
                                         <Search size={16} className="sm:hidden" />
                                     </button>
