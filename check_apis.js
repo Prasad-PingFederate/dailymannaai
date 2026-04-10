@@ -156,6 +156,25 @@ const providers = [
             const data = await res.json();
             return data.choices?.[0]?.message?.content;
         }
+    },
+    {
+        name: "12. Claude (OpenRouter)",
+        key: process.env.OPENROUTER_API_KEY,
+        test: async (key) => {
+            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${key}`,
+                    "HTTP-Referer": "https://dailymannaai.com",
+                    "X-Title": "Daily Manna AI"
+                },
+                body: JSON.stringify({ model: "anthropic/claude-3.5-sonnet", messages: [{ role: "user", content: TEST_PROMPT }], max_tokens: 50 })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+            const data = await res.json();
+            return data.choices[0]?.message?.content;
+        }
     }
 ];
 

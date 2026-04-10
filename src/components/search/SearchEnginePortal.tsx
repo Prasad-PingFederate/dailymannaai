@@ -1763,7 +1763,7 @@ export default function SearchEnginePortal() {
                                             </div>
 
                                             <div className={`flex flex-col gap-4 min-w-0 max-w-full ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
-                                                <div className={`relative p-5 sm:p-10 md:p-14 rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'} w-full`}>
+                                                <div className={`relative p-5 sm:p-10 md:p-14 rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 md:max-w-[85%] sm:p-6 p-4 rounded-2xl md:rounded-3xl' : 'bg-slate-50 border border-slate-200 text-slate-900 w-full'}`}>
 
                                                     {msg.role === 'assistant' && (
                                                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
