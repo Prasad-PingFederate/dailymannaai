@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -1632,7 +1632,7 @@ export default function SearchEnginePortal() {
                 )}
 
                 {/* ── SEARCH BOX & MODES ── */}
-                <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"}`}>
+                <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"} px-4 sm:px-0 mx-auto`}>
                     <form onSubmit={onSubmit}>
                         <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 mb-8 items-center w-full max-w-full no-scrollbar px-2 sm:flex-wrap sm:justify-center">
                             {FILTERS.map((f) => (
