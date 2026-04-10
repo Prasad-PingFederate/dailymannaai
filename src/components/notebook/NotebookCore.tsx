@@ -119,26 +119,36 @@ export default function NotebookWorkspace() {
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
-        const savedSources = localStorage.getItem("notebook_sources");
-        const savedMessages = localStorage.getItem("notebook_messages");
-        const savedNote = localStorage.getItem("notebook_note");
+        try {
+            const savedSources = localStorage.getItem("notebook_sources");
+            const savedMessages = localStorage.getItem("notebook_messages");
+            const savedNote = localStorage.getItem("notebook_note");
 
-        if (savedSources) setSources(JSON.parse(savedSources));
-        if (savedMessages) setMessages(JSON.parse(savedMessages));
-        if (savedNote) setNoteContent(savedNote);
+            if (savedSources) setSources(JSON.parse(savedSources));
+            if (savedMessages) setMessages(JSON.parse(savedMessages));
+            if (savedNote) setNoteContent(savedNote);
+        } catch (e) {
+            console.warn("Persistence load failed:", e);
+        }
     }, []);
 
     // --- PERSISTENCE: Save data on change ---
     useEffect(() => {
-        if (sources.length > 0) localStorage.setItem("notebook_sources", JSON.stringify(sources));
+        try {
+            if (sources.length > 0) localStorage.setItem("notebook_sources", JSON.stringify(sources));
+        } catch (e) { console.warn("Persistence save failed:", e); }
     }, [sources]);
 
     useEffect(() => {
-        if (messages.length > 0) localStorage.setItem("notebook_messages", JSON.stringify(messages));
+        try {
+            if (messages.length > 0) localStorage.setItem("notebook_messages", JSON.stringify(messages));
+        } catch (e) { console.warn("Persistence save failed:", e); }
     }, [messages]);
 
     useEffect(() => {
-        localStorage.setItem("notebook_note", noteContent);
+        try {
+            localStorage.setItem("notebook_note", noteContent);
+        } catch (e) { console.warn("Persistence save failed:", e); }
     }, [noteContent]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -201,12 +211,16 @@ export default function NotebookWorkspace() {
     // Load available voices
     React.useEffect(() => {
         const loadVoices = () => {
-            const voices = window.speechSynthesis.getVoices();
-            setAvailableVoices(voices);
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                const voices = window.speechSynthesis.getVoices();
+                setAvailableVoices(voices);
+            }
         };
 
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
     }, []);
 
     // --- DAILY MANNA: Fetch message ---
@@ -1234,7 +1248,9 @@ It's now part of my collective wisdom!`
         if (!audioOverview) return;
 
         // Stop any existing speech
-        window.speechSynthesis.cancel();
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
 
         // Parse the script to separate speakers
         const lines = audioOverview.script.split('\n').filter(line => line.trim());
@@ -1357,28 +1373,32 @@ It's now part of my collective wisdom!`
             };
 
             speechSynthesisRef.current = utterance;
-            window.speechSynthesis.speak(utterance);
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                window.speechSynthesis.speak(utterance);
+            }
         };
 
         speakNextLine();
     };
 
     const pauseAudio = () => {
-        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+        if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
             window.speechSynthesis.pause();
             setIsPaused(true);
         }
     };
 
     const resumeAudio = () => {
-        if (window.speechSynthesis.paused) {
+        if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.paused) {
             window.speechSynthesis.resume();
             setIsPaused(false);
         }
     };
 
     const stopAudio = () => {
-        window.speechSynthesis.cancel();
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
         setIsPlaying(false);
         isPlayingRef.current = false;
         setIsPaused(false);
