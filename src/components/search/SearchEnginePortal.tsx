@@ -1615,7 +1615,7 @@ export default function SearchEnginePortal() {
             </header>
 
             {/* ── MAIN ── */}
-            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? "pt-6" : "pt-28 md:pt-36"}`}>
+            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? (filter === 'ai' ? "pt-2" : "pt-6") : "pt-28 md:pt-36"}`}>
 
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
@@ -1632,56 +1632,62 @@ export default function SearchEnginePortal() {
                 )}
 
                 {/* ── SEARCH BOX & MODES ── */}
-                <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"} px-4 sm:px-0 mx-auto`}>
+                <div className={`w-full transition-all duration-500 ${hasSearched && filter === 'ai' ? 'mb-0' : 'max-w-4xl px-4 sm:px-0 mx-auto'}`}>
                     <form onSubmit={onSubmit}>
-                        <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 mb-8 items-center w-full max-w-full no-scrollbar px-2 sm:flex-wrap sm:justify-center">
-                            {FILTERS.map((f) => (
-                                <button
-                                    key={f.id}
-                                    type="button"
-                                    onClick={() => onFilterChange(f.id as FilterType)}
-                                    className={`mode-tab flex-shrink-0 ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
-                                >
-                                    {f.icon}
-                                    <span>{f.label}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="search-bar-main group relative">
-                            <div className="flex-shrink-0 opacity-40 group-focus-within:opacity-100 transition-opacity">
-                                <Search size={20} />
+                        {(!hasSearched || (hasSearched && filter !== 'ai')) && (
+                            <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 mb-8 items-center w-full max-w-full no-scrollbar px-2 sm:flex-wrap sm:justify-center">
+                                {FILTERS.map((f) => (
+                                    <button
+                                        key={f.id}
+                                        type="button"
+                                        onClick={() => onFilterChange(f.id as FilterType)}
+                                        className={`mode-tab flex-shrink-0 ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
+                                    >
+                                        {f.icon}
+                                        <span>{f.label}</span>
+                                    </button>
+                                ))}
                             </div>
-                            
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search..."
-                                className="search-input-main !text-sm sm:!text-base"
-                            />
+                        )}
 
-                            {query && (
-                                <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors">
-                                    <X size={18} />
-                                </button>
-                            )}
-                            
-                            {/* Integrated Voice Input */}
-                            <VoiceInput 
-                                onTranscript={(text) => {
-                                    setQuery(text);
-                                    handleSearch(text, filter);
-                                }} 
-                                onListeningChange={setIsVoiceActive}
-                                className="flex-shrink-0"
-                            />
+                        {/* Search Bar Inner Container */}
+                        <div className={`w-full transition-all duration-500 ${hasSearched ? (filter === 'ai' ? 'fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-transparent dark:from-navy dark:via-navy p-4 pb-8 flex justify-center' : 'max-w-4xl px-4 sm:px-0 mx-auto') : 'max-w-2xl px-4 sm:px-0 mx-auto'}`}>
+                            <div className={`${hasSearched && filter === 'ai' ? 'w-full max-w-2xl' : 'w-full'}`}>
+                                <div className="search-bar-main group relative shadow-2xl">
+                                    <div className="flex-shrink-0 opacity-40 group-focus-within:opacity-100 transition-opacity">
+                                        <Search size={20} />
+                                    </div>
+                                    
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        placeholder={filter === 'ai' ? "Reply to DailyMannaAI..." : "Search..."}
+                                        className="search-input-main !text-sm sm:!text-base"
+                                    />
 
-                            <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
-                                <span className="hidden sm:inline">Search</span>
-                                <Search size={16} className="sm:hidden" />
-                            </button>
+                                    {query && (
+                                        <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors">
+                                            <X size={18} />
+                                        </button>
+                                    )}
+                                    
+                                    <VoiceInput 
+                                        onTranscript={(text) => {
+                                            setQuery(text);
+                                            handleSearch(text, filter);
+                                        }} 
+                                        onListeningChange={setIsVoiceActive}
+                                        className="flex-shrink-0"
+                                    />
+
+                                    <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
+                                        <span className="hidden sm:inline">Search</span>
+                                        <Search size={16} className="sm:hidden" />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {!hasSearched && (
@@ -1704,7 +1710,7 @@ export default function SearchEnginePortal() {
 
                 {/* ── RESULTS AREA ── */}
                 {(hasSearched || filter === "studio" || filter === "devotionals") && (
-                    <div className="w-full px-2 sm:px-6 md:px-10 mt-14 pb-32" ref={chatContainerRef}>
+                    <div className={`w-full px-2 sm:px-6 md:px-10 ${filter === 'ai' ? 'mt-4' : 'mt-14'} pb-32`} ref={chatContainerRef}>
                         {isSearching && filter !== "ai" ? (
                             <LoadingState />
                         ) : filter === "ai" ? (
@@ -1762,7 +1768,7 @@ export default function SearchEnginePortal() {
                                             {/* Full-width message */}
                                             <div className="flex flex-col gap-2 flex-1 min-w-0">
 
-                                                <div className={`relative w-full p-4 sm:p-8 rounded-2xl transition-all duration-500 shadow-md text-[15px] sm:text-lg leading-relaxed ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}>
+                                                <div className={`relative w-full p-4 sm:p-8 transition-all duration-500 text-[15px] sm:text-lg leading-relaxed ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 rounded-2xl shadow-md' : 'bg-transparent text-slate-900 border-none px-0'}`}>
 
                                                     {msg.role === 'assistant' && (
                                                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
@@ -1775,12 +1781,6 @@ export default function SearchEnginePortal() {
                                                             phase={msg.thinkingPhase}
                                                             startTime={msg.thinkStartTime}
                                                         />
-                                                    )}
-
-                                                    {msg.role === 'assistant' && (
-                                                        <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">
-                                                            {msg.isConflictMode ? "Prophetic Analysis" : "Divine Perspective"}
-                                                        </div>
                                                     )}
 
                                                     <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : ''}`}>
