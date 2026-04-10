@@ -156,6 +156,18 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('dailymanna-theme');var r=document.documentElement;if(t){r.setAttribute('data-theme',t);if(t==='dark')r.classList.add('dark');else r.classList.remove('dark');}else{var d=window.matchMedia('(prefers-color-scheme: dark)').matches;var th=d?'dark':'light';r.setAttribute('data-theme',th);if(d)r.classList.add('dark');else r.classList.remove('dark');}}catch(e){}})();`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('error', function(e) {
+                if (e.message && (e.message.indexOf('chunk') > -1 || e.message.indexOf('Loading chunk') > -1)) {
+                  console.log('Force refreshing due to chunk load error...');
+                  window.location.reload();
+                }
+              }, true);
+            `,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet" />
