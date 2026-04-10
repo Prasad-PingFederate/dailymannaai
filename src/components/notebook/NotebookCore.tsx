@@ -1878,8 +1878,14 @@ It's now part of my collective wisdom!`
                                     <div className="space-y-8 pb-6">
                                         {messages.map((msg: any, i) => (
                                             <div key={i} className={`group flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-6 fade-in duration-700 ease-out`}>
+                                                <div className={`h-10 w-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-gold to-gold-2' : 'bg-card-bg border border-border/50 text-accent shadow-xl ring-1 ring-border/20'}`}>
+                                                    {msg.role === 'user' ? 'U' : (
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-accent drop-shadow-md">
+                                                            <path d="M10 2h4v6h6v4h-6v10h-4v-10h-6v-4h6V2z" />
+                                                        </svg>
+                                                    )}
+                                                </div>
                                                 <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end w-full' : 'items-start w-full flex-1'}`}>
-                                                    <div className={`adaptive-bubble flex-shrink-0 flex items-center justify-center text-white text-lg font-bold shadow-lg transition-transform hover:scale-105 ${msg.role === 'user' ? 'bg-gradient-to-br from-gold to-gold-2' : 'bg-card-bg border border-border/50 text-accent shadow-xl ring-1 ring-border/20'}`}>
                                                     {msg.role === 'assistant' && (
                                                         <div className={`flex flex-wrap items-center gap-3 md:gap-6 px-4 mb-2 transition-opacity ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
 
@@ -1913,7 +1919,7 @@ It's now part of my collective wisdom!`
                                                             </button>
                                                         </div>
                                                     )}
-                                                    <div className={`${msg.role === 'user' ? 'bg-card-bg border border-gold/30 shadow-sm' : 'bg-card-bg border border-border/60 shadow-md'} rounded-2xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full text-foreground`}>
+                                                    <div className={`adaptive-bubble ${msg.role === 'user' ? 'bg-card-bg border border-gold/30 shadow-sm' : 'bg-card-bg border border-border/60 shadow-md'} text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full text-foreground`}>
                                                         {msg.role === 'assistant' && (msg.thought || msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)) && (
                                                             <div className="mb-4">
                                                                 <details className="group" open={msg.isThinking}>

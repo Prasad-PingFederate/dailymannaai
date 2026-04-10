@@ -1,4 +1,4 @@
-// src/middleware.ts
+// src/proxy.ts  (renamed from middleware.ts — required by Next.js 16+)
 // Combines:
 //  1. Auth protection for Image Studio tab (redirects to /auth/signin)
 //  2. Existing analytics logging (fire-and-forget)
@@ -6,7 +6,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getSessionFromRequest } from "@/lib/session";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname, href } = request.nextUrl;
 
     // ── 1. Auth guard for /auth/signin confirmation (already logged in → home) ─
