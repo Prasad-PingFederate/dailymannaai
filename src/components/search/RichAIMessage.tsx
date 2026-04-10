@@ -204,12 +204,11 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 }
             `}</style>
 
-            <div className="rich-ai-card" style={{
+            <div className="rich-ai-card adaptive-bubble" style={{
                 background: "var(--bg-card, #fff)",
                 border: "1px solid var(--border-secondary, #ebebeb)",
-                borderRadius: 20, overflow: "hidden",
                 boxShadow: "var(--shadow-card, 0 2px 12px rgba(0,0,0,0.06))",
-                fontFamily: "Georgia, serif", maxWidth: 780, width: "100%",
+                fontFamily: "Georgia, serif", maxWidth: 1024, width: "100%",
             }}>
 
                 {/* Header */}

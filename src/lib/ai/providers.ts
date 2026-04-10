@@ -385,9 +385,10 @@ class OpenRouterProvider implements AIProvider {
 
     async generateResponse(prompt: string): Promise<string> {
         const fallbackModels = [
+            "anthropic/claude-3.5-sonnet",
             "google/gemini-2.0-flash-exp:free",
-            "meta-llama/llama-3.3-70b-instruct:free",
             "deepseek/deepseek-r1:free",
+            "meta-llama/llama-3.3-70b-instruct:free",
             "mistralai/mistral-7b-instruct:free",
             "meta-llama/llama-3.1-8b-instruct:free",
             "qwen/qwen-2.5-72b-instruct:free"
@@ -473,6 +474,98 @@ class OpenRouterProvider implements AIProvider {
             }
         }
         throw new Error(`OpenRouter Stream failed: ${lastError}`);
+    }
+}
+
+/**
+ * Claude Provider (Anthropic / OpenRouter Proxy)
+ */
+class ClaudeProvider implements AIProvider {
+    name = "Claude";
+    private apiKey: string;
+    private baseUrl: string;
+
+    constructor(apiKey: string, baseUrl: string = "https://api.anthropic.com") {
+        this.apiKey = apiKey;
+        this.baseUrl = baseUrl || "https://api.anthropic.com";
+    }
+
+    async generateResponse(prompt: string): Promise<string> {
+        const isOpenRouter = this.baseUrl.includes("openrouter.ai");
+        // OpenRouter provides a proxy of Anthropic's Messages API at /v1/messages if we want to use the same headers.
+        // But for consistency we'll use their native /v1/chat/completions for OpenRouter.
+        const url = isOpenRouter ? "https://openrouter.ai/api/v1/chat/completions" : `${this.baseUrl}/v1/messages`;
+
+        const payload = isOpenRouter ? {
+            model: "anthropic/claude-3.5-sonnet",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 4096,
+        } : {
+            model: "claude-3-5-sonnet-20241022",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 4096,
+        };
+
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+
+        if (isOpenRouter) {
+            headers["Authorization"] = `Bearer ${this.apiKey}`;
+            headers["HTTP-Referer"] = "https://dailymannaai.com";
+            headers["X-Title"] = "Daily Manna AI";
+        } else {
+            headers["x-api-key"] = this.apiKey;
+            headers["anthropic-version"] = "2023-06-01";
+        }
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`Claude Error ${response.status}: ${err}`);
+        }
+
+        const data = await response.json();
+        // OpenRouter returns choices[0].message.content, Anthropic returns content[0].text
+        return isOpenRouter ? data.choices?.[0]?.message?.content : data.content?.[0]?.text;
+    }
+
+    async generateStream(prompt: string): Promise<ReadableStream> {
+        const isOpenRouter = this.baseUrl.includes("openrouter.ai");
+        const url = isOpenRouter ? "https://openrouter.ai/api/v1/chat/completions" : `${this.baseUrl}/v1/messages`;
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(isOpenRouter ? { 
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "HTTP-Referer": "https://dailymannaai.com",
+                    "X-Title": "Daily Manna AI"
+                } : {
+                    "x-api-key": this.apiKey,
+                    "anthropic-version": "2023-06-01"
+                })
+            },
+            body: JSON.stringify({
+                model: isOpenRouter ? "anthropic/claude-3.5-sonnet" : "claude-3-5-sonnet-20241022",
+                messages: [{ role: "user", content: prompt }],
+                stream: true,
+                max_tokens: 4096
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`Claude Stream Error: ${err}`);
+        }
+
+        return parseSSEStream(response.body!);
     }
 }
 
@@ -629,8 +722,16 @@ export class AIProviderManager {
         const xaiKey = process.env.X_AI_API || process.env.XAI_API_KEY;
         const mistralKey = process.env.MISTRAL_API_KEY || process.env.mistralKey;
         const togetherKey = process.env.together_api || process.env.TOGETHER_API_KEY;
+        const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN;
+        const anthropicBase = process.env.ANTHROPIC_BASE_URL;
 
         // 🏆 ELITE COALITION (Priority Order for 10k Users)
+
+        // 0. Claude (Primary Premium if Keys Exist)
+        if (anthropicKey) {
+            this.providers.push(new ClaudeProvider(anthropicKey, anthropicBase));
+            console.log(`[AI] Initialized Claude with base: ${anthropicBase || 'Official API'}`);
+        }
 
         // 1. Google Gemini (1500 req/day + massive Flash context)
         if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));

@@ -119,26 +119,36 @@ export default function NotebookWorkspace() {
 
     // --- PERSISTENCE: Load data on mount ---
     useEffect(() => {
-        const savedSources = localStorage.getItem("notebook_sources");
-        const savedMessages = localStorage.getItem("notebook_messages");
-        const savedNote = localStorage.getItem("notebook_note");
+        try {
+            const savedSources = localStorage.getItem("notebook_sources");
+            const savedMessages = localStorage.getItem("notebook_messages");
+            const savedNote = localStorage.getItem("notebook_note");
 
-        if (savedSources) setSources(JSON.parse(savedSources));
-        if (savedMessages) setMessages(JSON.parse(savedMessages));
-        if (savedNote) setNoteContent(savedNote);
+            if (savedSources) setSources(JSON.parse(savedSources));
+            if (savedMessages) setMessages(JSON.parse(savedMessages));
+            if (savedNote) setNoteContent(savedNote);
+        } catch (e) {
+            console.warn("Persistence load failed:", e);
+        }
     }, []);
 
     // --- PERSISTENCE: Save data on change ---
     useEffect(() => {
-        if (sources.length > 0) localStorage.setItem("notebook_sources", JSON.stringify(sources));
+        try {
+            if (sources.length > 0) localStorage.setItem("notebook_sources", JSON.stringify(sources));
+        } catch (e) { console.warn("Persistence save failed:", e); }
     }, [sources]);
 
     useEffect(() => {
-        if (messages.length > 0) localStorage.setItem("notebook_messages", JSON.stringify(messages));
+        try {
+            if (messages.length > 0) localStorage.setItem("notebook_messages", JSON.stringify(messages));
+        } catch (e) { console.warn("Persistence save failed:", e); }
     }, [messages]);
 
     useEffect(() => {
-        localStorage.setItem("notebook_note", noteContent);
+        try {
+            localStorage.setItem("notebook_note", noteContent);
+        } catch (e) { console.warn("Persistence save failed:", e); }
     }, [noteContent]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -201,12 +211,16 @@ export default function NotebookWorkspace() {
     // Load available voices
     React.useEffect(() => {
         const loadVoices = () => {
-            const voices = window.speechSynthesis.getVoices();
-            setAvailableVoices(voices);
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                const voices = window.speechSynthesis.getVoices();
+                setAvailableVoices(voices);
+            }
         };
 
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
     }, []);
 
     // --- DAILY MANNA: Fetch message ---
@@ -1234,7 +1248,9 @@ It's now part of my collective wisdom!`
         if (!audioOverview) return;
 
         // Stop any existing speech
-        window.speechSynthesis.cancel();
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
 
         // Parse the script to separate speakers
         const lines = audioOverview.script.split('\n').filter(line => line.trim());
@@ -1357,28 +1373,32 @@ It's now part of my collective wisdom!`
             };
 
             speechSynthesisRef.current = utterance;
-            window.speechSynthesis.speak(utterance);
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                window.speechSynthesis.speak(utterance);
+            }
         };
 
         speakNextLine();
     };
 
     const pauseAudio = () => {
-        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+        if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
             window.speechSynthesis.pause();
             setIsPaused(true);
         }
     };
 
     const resumeAudio = () => {
-        if (window.speechSynthesis.paused) {
+        if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.paused) {
             window.speechSynthesis.resume();
             setIsPaused(false);
         }
     };
 
     const stopAudio = () => {
-        window.speechSynthesis.cancel();
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
         setIsPlaying(false);
         isPlayingRef.current = false;
         setIsPaused(false);
@@ -1682,7 +1702,7 @@ It's now part of my collective wisdom!`
             {/* Source Viewer Modal */}
             {viewingSource && (
                 <div className="absolute inset-0 z-[110] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm transition-all animate-in fade-in">
-                    <div className="relative w-full max-w-4xl h-[80vh] bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200 flex flex-col">
+                    <div className="relative w-full max-w-6xl h-[80vh] bg-card-bg border border-border rounded-3xl shadow-2xl overflow-hidden glass-morphism animate-in zoom-in-95 duration-200 flex flex-col">
                         <header className="p-6 border-b border-border flex items-center justify-between bg-muted/5">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-accent/10 text-accent rounded-lg">
@@ -1698,7 +1718,7 @@ It's now part of my collective wisdom!`
                             </button>
                         </header>
                         <div className="flex-1 overflow-y-auto p-4 md:p-8 leading-relaxed text-foreground select-text custom-scrollbar">
-                            <div className="max-w-3xl mx-auto space-y-4">
+                            <div className="max-w-5xl w-full mx-auto space-y-4">
                                 {viewingSource.name.toLowerCase().endsWith(".mp3") ? (
                                     <div className="p-6 bg-accent/5 rounded-2xl border border-accent/20">
                                         <h4 className="font-bold text-accent mb-2">Simulated Sermon Transcription</h4>
@@ -1828,9 +1848,9 @@ It's now part of my collective wisdom!`
                         <div
                             ref={chatContainerRef}
                             onScroll={handleChatScroll}
-                            className="flex-1 overflow-y-auto px-4 pb-48 md:px-10 pt-14 space-y-6 relative custom-scrollbar"
+                            className="flex-1 overflow-y-auto res-container pb-48 pt-14 space-y-6 relative custom-scrollbar"
                         >
-                            <div className="max-w-3xl mx-auto">
+                            <div className="w-full mx-auto">
                                 <div className="chat-focus-messages space-y-6 pt-2">
                                     {messages.length === 1 && (
                                         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-in fade-in zoom-in-95 duration-1000 ease-out">
@@ -1842,7 +1862,7 @@ It's now part of my collective wisdom!`
                                             <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-foreground">
                                                 What can I help with?
                                             </h1>
-                                            <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
+                                            <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
                                                 {["Explain Romans 8", "John Wesley on Grace", "Study guide for Ephesians", "Sermon summary"].map((hint, idx) => (
                                                     <button
                                                         key={idx}
@@ -1865,7 +1885,7 @@ It's now part of my collective wisdom!`
                                                         </svg>
                                                     )}
                                                 </div>
-                                                <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end max-w-[80%]' : 'items-start max-w-[85%] flex-1'}`}>
+                                                <div className={`flex flex-col gap-3 ${msg.role === 'user' ? 'items-end w-full' : 'items-start w-full flex-1'}`}>
                                                     {msg.role === 'assistant' && (
                                                         <div className={`flex flex-wrap items-center gap-3 md:gap-6 px-4 mb-2 transition-opacity ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
 
@@ -1899,7 +1919,7 @@ It's now part of my collective wisdom!`
                                                             </button>
                                                         </div>
                                                     )}
-                                                    <div className={`${msg.role === 'user' ? 'bg-card-bg border border-gold/30 shadow-sm' : 'bg-card-bg border border-border/60 shadow-md'} rounded-2xl p-6 px-7 text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full text-foreground`}>
+                                                    <div className={`adaptive-bubble ${msg.role === 'user' ? 'bg-card-bg border border-gold/30 shadow-sm' : 'bg-card-bg border border-border/60 shadow-md'} text-[17px] leading-relaxed select-text shadow-xl transition-all hover:border-accent/40 w-fit max-w-full text-foreground`}>
                                                         {msg.role === 'assistant' && (msg.thought || msg.isThinking || (msg.researchSteps && msg.researchSteps.length > 0)) && (
                                                             <div className="mb-4">
                                                                 <details className="group" open={msg.isThinking}>
@@ -1980,7 +2000,7 @@ It's now part of my collective wisdom!`
 
                 {/* 🚀 WORLD-CLASS FLOATING SEARCH BAR (ChatGPT/Antigravity Style) */}
                 <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-8 pt-24 pointer-events-none bg-gradient-to-t from-background via-background to-transparent">
-                    <div className="max-w-3xl mx-auto flex flex-col gap-4 pointer-events-auto">
+                    <div className="max-w-5xl w-full mx-auto flex flex-col gap-4 pointer-events-auto">
                         {/* ChatGPT-Style Simple & Effective Search Bar */}
                         <div className="relative bg-card-bg/95 backdrop-blur-3xl border border-border shadow-2xl focus-within:ring-2 ring-gold/20 transition-all p-3 md:p-4 pb-3 flex flex-col gap-3 group-hover:border-gold/30 rounded-[2rem]">
                             {/* Tool Row Inside Input Area for better organization */}
