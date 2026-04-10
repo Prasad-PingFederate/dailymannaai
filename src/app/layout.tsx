@@ -13,6 +13,7 @@ import StructuredData from "@/components/StructuredData";
 import { ThemeProvider } from "@/context/ThemeContext";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/UserMenu";
+import BackButton from "@/components/BackButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -176,6 +177,7 @@ export default function RootLayout({
             <UserMenu />
             <ThemeToggle variant="pill" />
           </div>
+          <BackButton />
           <StructuredData />
           {children}
         </ThemeProvider>
