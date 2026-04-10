@@ -233,7 +233,7 @@ export default function SermonsTab() {
     setListLoading(true);
     setListError(null);
     try {
-      const res = await fetch("/api/sermons");          // → api-sermons-route.ts
+      const res = await fetch("https://www.dailymannaai.com/api/sermons");          // → api-sermons-route.ts
       if (!res.ok) throw new Error("Failed to load sermons");
       const data = await res.json();
       setSermons(data.sermons || []);
@@ -257,7 +257,7 @@ export default function SermonsTab() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     try {
-      const res = await fetch(`/api/sermons/${sermon.id}`); // → api-sermons-[id]-route.ts
+      const res = await fetch(`https://www.dailymannaai.com/api/sermons/${sermon.id}`); // → api-sermons-[id]-route.ts
       if (!res.ok) throw new Error("Could not load this sermon");
       const data = await res.json();
       // Backend returns the sermon object directly (not wrapped in { sermon: ... })
