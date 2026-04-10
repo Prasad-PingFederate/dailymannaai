@@ -14,7 +14,7 @@ export default function ThemeToggle({ variant = "icon" }: ThemeToggleProps) {
         return (
             <button
                 onClick={toggleTheme}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-navy-3 border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-navy dark:hover:text-white transition-all shadow-sm"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-navy-3 border border-slate-200 dark:border-white/10 text-[11px] sm:text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-navy dark:hover:text-white transition-all shadow-sm"
             >
                 {isDark ? <Sun size={14} className="text-amber-500" /> : <Moon size={14} className="text-sky-600" />}
                 <span>{isDark ? "Light" : "Dark"}</span>
