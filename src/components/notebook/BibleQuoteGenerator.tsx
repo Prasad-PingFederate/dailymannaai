@@ -194,6 +194,10 @@ async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, t
 
     if (targetUrl) {
         await new Promise((resolve) => {
+            if (typeof window === 'undefined') {
+                resolve(null);
+                return;
+            }
             const img = new window.Image();
             img.crossOrigin = "anonymous";
             img.src = targetUrl;
@@ -728,6 +732,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                         const data = await response.json();
 
                                         if (data.url) {
+                                            if (typeof window === 'undefined') return;
                                             const img = new window.Image();
                                             img.crossOrigin = "anonymous";
                                             img.onload = () => {
@@ -779,6 +784,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
                                     // LoremFlickr works reliably with CORS and provides great thematic random images
                                     const fallbackUrl = `https://loremflickr.com/1080/1080/nature,${state.category}?lock=${seed}`;
 
+                                    if (typeof window === 'undefined') return;
                                     const img = new window.Image();
                                     img.crossOrigin = "anonymous";
                                     img.onload = () => {

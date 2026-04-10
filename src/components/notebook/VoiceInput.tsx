@@ -169,7 +169,7 @@ export default function VoiceInput({
         cancelledRef.current = false;
 
         // ── 0. Secure Context & Support Check ────────────────────────────────
-        if (!window.isSecureContext && window.location.hostname !== "localhost") {
+        if (typeof window !== 'undefined' && !window.isSecureContext && window.location && window.location.hostname !== "localhost") {
             setError("Voice input requires a secure (HTTPS) connection.");
             console.error("[Voice] Not a secure context. Mic access will be denied.");
             return;
@@ -260,7 +260,7 @@ export default function VoiceInput({
         recorder.start(200); // chunk every 200ms
 
         // ── 2. Web Speech API: runs silently in parallel as fallback ──────────
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognition = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
