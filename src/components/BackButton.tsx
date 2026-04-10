@@ -2,26 +2,25 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { useState, useEffect } from "react";
 
 export default function BackButton() {
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  // Do not show the back button on the home page
-  if (pathname === "/") return null;
 
   return (
     <button
       onClick={() => router.back()}
-      className="fixed top-3 left-4 z-[9999] p-2 flex items-center justify-center rounded-full bg-white/80 dark:bg-black/80 shadow-md backdrop-blur-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all duration-200 group"
+      className="p-2 flex items-center justify-center rounded-full shadow-md backdrop-blur-md transition-all duration-200 group"
+      style={{
+        display: pathname === "/" ? "none" : "flex",
+        position: "fixed",
+        top: "14px",
+        left: "18px",
+        zIndex: 2147483647,
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        border: "1px solid rgba(0, 0, 0, 0.1)",
+        color: "#1a1a1a",
+      }}
       aria-label="Go back"
     >
       <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform duration-200" />
@@ -29,3 +28,4 @@ export default function BackButton() {
     </button>
   );
 }
+
