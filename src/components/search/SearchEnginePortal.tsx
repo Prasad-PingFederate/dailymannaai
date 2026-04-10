@@ -1033,7 +1033,7 @@ type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai"
 export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
     const { isLoggedIn } = useAuth();
-    const [filter, setFilter] = useState<FilterType>("global");
+    const [filter, setFilter] = useState<FilterType>("ai");
     const [results, setResults] = useState<SearchResult[]>([]);
     const [pagination, setPagination] = useState<{ current: number, total: number, hasMore: boolean } | null>(null);
     const [solution, setSolution] = useState<any>(null);
@@ -1518,7 +1518,6 @@ export default function SearchEnginePortal() {
     };
 
     const FILTERS = [
-        { id: "global", label: "All", icon: <Sparkles size={13} /> },
         { id: "ai", label: "AI Mode", icon: <Zap size={13} /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
@@ -1634,7 +1633,7 @@ export default function SearchEnginePortal() {
             </header>
 
             {/* ── MAIN ── */}
-            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? (filter === 'ai' ? "pt-2" : "pt-6") : "pt-28 md:pt-36"}`}>
+            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? (filter === 'ai' ? "pt-2" : "pt-6") : "pt-8 md:pt-12"}`}>
 
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
@@ -1654,7 +1653,7 @@ export default function SearchEnginePortal() {
                 <div className={`w-full transition-all duration-500 ${hasSearched && filter === 'ai' ? 'mb-0' : 'max-w-4xl px-4 sm:px-0 mx-auto'}`}>
                     <form onSubmit={onSubmit}>
                         {(!hasSearched || (hasSearched && filter !== 'ai')) && (
-                            <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 mb-8 items-center w-full max-w-full no-scrollbar px-2 sm:flex-wrap sm:justify-center">
+                            <div className="flex flex-wrap gap-2 mb-8 items-center justify-center w-full px-2">
                                 {FILTERS.map((f) => (
                                     <button
                                         key={f.id}
@@ -1672,9 +1671,9 @@ export default function SearchEnginePortal() {
                         {/* Search Bar Inner Container */}
                         <div className={`w-full transition-all duration-500 ${hasSearched ? (filter === 'ai' ? 'fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-transparent dark:from-navy dark:via-navy p-4 pb-8 flex justify-center' : 'max-w-4xl px-4 sm:px-0 mx-auto') : 'max-w-2xl px-4 sm:px-0 mx-auto'}`}>
                             <div className={`${hasSearched && filter === 'ai' ? 'w-full max-w-2xl' : 'w-full'}`}>
-                                <div className="search-bar-main group relative shadow-2xl !rounded-[2rem] overflow-hidden min-h-[56px] py-1.5 px-4">
-                                    <div className="flex-shrink-0 pt-3 text-slate-400">
-                                        <Search size={18} />
+                                <div className="search-bar-main group relative shadow-2xl !rounded-[2rem] overflow-hidden min-h-[56px] py-1 px-2.5">
+                                    <div className="flex-shrink-0 pt-3.5 pl-1.5 text-slate-400">
+                                        <Search size={16} />
                                     </div>
                                     
                                     <textarea
@@ -1689,13 +1688,13 @@ export default function SearchEnginePortal() {
                                             }
                                         }}
                                         placeholder={filter === 'ai' ? "Reply to DailyMannaAI..." : "Search the Scriptures..."}
-                                        className="search-input-main flex-1 min-w-0 !text-[15px] sm:!text-base resize-none py-2.5 max-h-48 overflow-y-auto leading-normal"
+                                        className="search-input-main flex-1 min-w-0 !text-[15px] sm:!text-base resize-none py-2.5 max-h-48 overflow-y-auto leading-normal px-1"
                                     />
 
-                                    <div className="flex items-center gap-1 sm:gap-1.5 pl-1 flex-shrink-0">
+                                    <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                                         {query && (
-                                            <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors p-1.5 flex-shrink-0">
-                                                <X size={16} />
+                                            <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors p-1 flex-shrink-0">
+                                                <X size={15} />
                                             </button>
                                         )}
                                         
@@ -1710,9 +1709,9 @@ export default function SearchEnginePortal() {
                                         <button 
                                             type="submit" 
                                             disabled={!query.trim() && !isVoiceActive}
-                                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${query.trim() ? "bg-navy text-white shadow-lg active:scale-90" : "bg-slate-100 text-slate-300 dark:bg-white/5"}`}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${query.trim() ? "bg-navy text-white shadow-lg active:scale-90" : "bg-slate-100 text-slate-300 dark:bg-white/5"}`}
                                         >
-                                            <ArrowUpRight size={18} className="rotate-[270deg]" />
+                                            <ArrowUpRight size={16} className="rotate-[270deg]" />
                                         </button>
                                     </div>
                                 </div>
