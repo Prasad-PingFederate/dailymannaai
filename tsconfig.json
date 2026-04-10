@@ -40,6 +40,7 @@
     "node_modules",
     "spurgeon_data",
     "DailyMannaAI-Mobile",
-    "android"
+    "android",
+    "capacitor.config.ts"
   ]
 }
