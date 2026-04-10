@@ -33,11 +33,15 @@ async function verifyAIProviders() {
             body: { model: "mistral-small-latest", messages: [{ role: "user", content: "Hi" }] }
         },
         {
-            name: "OPENROUTER",
+            name: "CLAUDE",
             url: "https://openrouter.ai/api/v1/chat/completions",
-            headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}` },
+            headers: { 
+                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "HTTP-Referer": "https://dailymannaai.com",
+                "X-Title": "Daily Manna AI"
+            },
             method: "POST",
-            body: { model: "google/gemini-2.0-flash-exp:free", messages: [{ role: "user", content: "Hi" }] }
+            body: { model: "anthropic/claude-3.5-sonnet", messages: [{ role: "user", content: "Hi" }] }
         }
     ];
 
