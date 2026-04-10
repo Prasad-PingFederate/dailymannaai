@@ -54,12 +54,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setTheme((prev) => (prev === "light" ? "dark" : "light"));
     }
 
-    // Prevent flash of wrong theme
-    if (!mounted) return null;
-
+    // Prevent flash of wrong theme by using the 'mounted' state inside the components if needed,
+    // but ALWAYS render the provider to avoid Root Hydration crashes on mobile.
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === "dark" }}>
-            {children}
+            <div style={{ visibility: mounted ? "visible" : "hidden" }}>
+                {children}
+            </div>
         </ThemeContext.Provider>
     );
 }
