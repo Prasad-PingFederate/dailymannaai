@@ -574,7 +574,7 @@ export default function BibleExplorer({
                                 >
                                     <optgroup label="Primary Bible Versions">
                                         {['NIV', 'KJV', 'NKJV'].map(v => (
-                                            <option key={v} value={v}>{v}</option>
+                                            <option key={v} value={v.toLowerCase()}>{v}</option>
                                         ))}
                                         // Local XML Batch
                                         <option value="pck">Paite</option>
