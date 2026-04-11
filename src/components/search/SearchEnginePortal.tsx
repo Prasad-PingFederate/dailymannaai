@@ -1468,10 +1468,9 @@ export default function SearchEnginePortal() {
             togglePropheticAlerts();
             return;
         }
-        // Image Studio no longer requires sign-in
+        // Image Studio now has its own full-fledged URL
         if (f === "studio") {
-            setFilter(f);
-            setHasSearched(true);
+            window.location.href = "/imagestudio";
             return;
         }
         setFilter(f);
@@ -1745,36 +1744,79 @@ export default function SearchEnginePortal() {
                         ) : filter === "ai" ? (
                             <div className="w-full space-y-6">
                                 {aiMessages.length === 0 ? (
-                                    <div className="py-10 flex flex-col items-center text-center space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                                        <div className="relative">
-                                            <div className="absolute inset-0 bg-sky-500/15 blur-[60px] rounded-full scale-150 animate-pulse" />
-                                            <div className="w-24 h-24 rounded-[2.5rem] bg-white border border-slate-200 flex items-center justify-center relative shadow-xl">
-                                                <Sparkles className="text-sky-500 w-10 h-10" />
+                                    <div className="py-8 sm:py-20 flex flex-col items-center text-center space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                                        {/* Icon & Title Group */}
+                                        <div className="space-y-6">
+                                            <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32">
+                                                <div className="absolute inset-0 bg-gold/20 blur-[60px] rounded-full scale-150 animate-pulse" />
+                                                <div className="w-full h-full rounded-[2.5rem] bg-white border border-border flex items-center justify-center relative shadow-2xl">
+                                                    <Sparkles className="text-gold w-12 h-12" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4 max-w-2xl px-4">
+                                                <h2 className="text-4xl sm:text-6xl font-black text-navy tracking-tight font-['Cinzel'] italic">
+                                                    Ask Anything About the Word
+                                                </h2>
+                                                <p className="text-text-2 text-base sm:text-lg leading-relaxed font-serif italic max-w-xl mx-auto opacity-80">
+                                                    "Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you."
+                                                </p>
                                             </div>
                                         </div>
-                                        <div className="space-y-4 max-w-lg">
-                                            <h2 className="text-4xl font-black text-slate-900 tracking-tight font-['Cinzel'] italic">
-                                                Ask Anything About the Word
-                                            </h2>
-                                            <p className="text-slate-500 text-sm leading-relaxed font-serif italic">
-                                                AI Mode provides deep, Scripture-grounded answers to your questions about faith, theology, and the Christian life.
-                                            </p>
+
+                                        {/* Suggestions Grid */}
+                                        <div className="w-full max-w-4xl px-4">
+                                            <div className="flex items-center gap-3 mb-6 px-4">
+                                                <div className="h-px flex-1 bg-border/50" />
+                                                <span className="text-[10px] font-black text-gold uppercase tracking-[0.4em]">Divine Starting Points</span>
+                                                <div className="h-px flex-1 bg-border/50" />
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {aiSuggestions.map((s, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => { setQuery(s); handleAiSendMessage(s); }}
+                                                        className="p-6 text-left rounded-3xl bg-white border border-border hover:border-gold/40 hover:bg-gold/5 transition-all group shadow-sm hover:shadow-md active:scale-95 flex flex-col justify-between h-full min-h-[140px]"
+                                                    >
+                                                        <div className="bg-gold/10 w-8 h-8 rounded-xl flex items-center justify-center mb-4 group-hover:bg-gold group-hover:text-white transition-all">
+                                                            <MessageCircle size={14} className="text-gold group-hover:text-white" />
+                                                        </div>
+                                                        <span className="text-[13px] font-black text-navy group-hover:text-gold block leading-snug">
+                                                            {s}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl px-4">
-                                            {aiSuggestions.map((s, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => { setQuery(s); handleAiSendMessage(s); }}
-                                                    className="p-6 text-left rounded-3xl bg-white border border-slate-200 hover:border-sky-400 hover:bg-sky-50 transition-all group shadow-sm hover:shadow-md active:scale-95"
-                                                >
-                                                    <div className="bg-sky-500/10 w-9 h-9 rounded-xl flex items-center justify-center mb-4 group-hover:bg-sky-500 group-hover:text-white transition-all">
-                                                        <MessageCircle size={14} className="text-sky-600 group-hover:text-white" />
+
+                                        {/* Informative Highlights */}
+                                        <div className="w-full max-w-5xl px-4 pt-12">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                {[
+                                                    { 
+                                                        icon: <BookOpen className="text-gold" size={18} />, 
+                                                        title: "Elite Verification", 
+                                                        desc: "Real-time cross-referencing across 200+ Bible translations and languages."
+                                                    },
+                                                    { 
+                                                        icon: <Zap className="text-gold" size={18} />, 
+                                                        title: "Prophetic Insight", 
+                                                        desc: "Context-aware AI that understands theological nuance and spiritual depth."
+                                                    },
+                                                    { 
+                                                        icon: <Globe className="text-gold" size={18} />, 
+                                                        title: "Global Reach", 
+                                                        desc: "Transcribed and translated devotionals from worldwide Christian perspectives."
+                                                    }
+                                                ].map((feature, idx) => (
+                                                    <div key={idx} className="flex flex-col items-center text-center space-y-3 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 dark:bg-navy-3 dark:border-white/5">
+                                                        <div className="w-10 h-10 rounded-2xl bg-white dark:bg-navy-2 flex items-center justify-center shadow-sm border border-border/50">
+                                                            {feature.icon}
+                                                        </div>
+                                                        <h4 className="text-[11px] font-black text-navy dark:text-gold uppercase tracking-widest">{feature.title}</h4>
+                                                        <p className="text-[12px] text-text-2 leading-relaxed opacity-70">{feature.desc}</p>
                                                     </div>
-                                                    <span className="text-sm font-bold text-slate-700 group-hover:text-sky-700 block line-clamp-2">
-                                                        {s}
-                                                    </span>
-                                                </button>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (() => {
@@ -1879,10 +1921,6 @@ export default function SearchEnginePortal() {
                         ) : filter === "sermons" ? (
                             <div className="w-full">
                                 <SermonsTab />
-                            </div>
-                        ) : filter === "studio" ? (
-                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
-                                <BibleQuoteGenerator />
                             </div>
                         ) : hasContent ? (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
