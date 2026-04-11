@@ -128,7 +128,7 @@ function AuthForm() {
                         fontSize: "10px", letterSpacing: "0.18em",
                         color: "#D4A017", textTransform: "uppercase",
                         fontFamily: "sans-serif", marginBottom: "18px",
-                    }}>✦ Image Studio Access</div>
+                    }}>✦ Divine Insights Access</div>
 
                     <h2 style={{
                         fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 700,
@@ -205,7 +205,7 @@ function AuthForm() {
                             {isSignup ? "Join DailyMannaAI 🙏" : "Welcome back ✦"}
                         </h1>
                         <p style={{ fontSize: "13px", color: "var(--text-muted, #888)", margin: 0, fontStyle: "italic" }}>
-                            {isSignup ? "Free account  No credit card needed" : "Sign in to access Image Studio"}
+                            {isSignup ? "Free account  No credit card needed" : "Sign in to sync your journey"}
                         </p>
                     </div>
 
