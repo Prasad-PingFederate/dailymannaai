@@ -337,7 +337,7 @@ export default function BibleExplorer({
         <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground font-sans">
             {/* Primary Unified Header */}
             <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-md z-40 sticky top-0 shadow-sm">
-                <div className="flex items-center gap-4 shrink-0 pl-10 md:pl-24">
+                <div className="flex items-center gap-4 shrink-0 pl-12 md:pl-24">
                     <div className="site-logo text-brand-navy hidden lg:block !text-[18px]">
                         DAILY <span className="gold">MANNA</span> AI
                     </div>
@@ -560,7 +560,7 @@ export default function BibleExplorer({
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Column 1: Books & Chapters (Combined Side Navigation) */}
                 <aside 
-                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 
+                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0 
                     ${leftSidebarOpen && !isZenMode ? 'w-80' : 'w-11 md:w-11 -translate-x-full md:translate-x-0'} 
                     ${isMobileMenuOpen ? 'w-full translate-x-0' : ''} overflow-hidden`}
                 >
