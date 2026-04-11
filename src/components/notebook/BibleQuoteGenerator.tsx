@@ -587,7 +587,7 @@ export default function BibleQuoteGenerator({ onClose }: { onClose?: () => void 
         >
             {/* ── Header ── */}
             <div
-                className="sticky top-0 z-10 px-8 py-6 flex items-center justify-between flex-wrap gap-4
+                className="sticky top-0 z-10 pl-14 pr-6 sm:px-8 py-6 flex items-center justify-between flex-wrap gap-4
                            bg-white/80 backdrop-blur-xl border-b border-slate-100"
             >
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
