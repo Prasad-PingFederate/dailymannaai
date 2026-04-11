@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${bookName} | Bible Explorer | DailyMannaAI`,
-    description: `Read and study the book of ${bookName} in various translations. AI-powered Bible study, cross-references, and more.`,
+    description: `Read and study the book of ${bookName} in various translations. AI-powered Bible study, and more.`,
     openGraph: {
       title: `${bookName} - DailyMannaAI`,
       description: `Explore the book of ${bookName} at DailyMannaAI.`,
