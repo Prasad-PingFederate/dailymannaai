@@ -337,7 +337,7 @@ export default function BibleExplorer({
         <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground font-sans">
             {/* Primary Unified Header */}
             <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-md z-40 sticky top-0 shadow-sm">
-                <div className="flex items-center gap-4 shrink-0 pl-10 md:pl-24">
+                <div className="flex items-center gap-4 shrink-0 pl-12 md:pl-24">
                     <div className="site-logo text-brand-navy hidden lg:block !text-[18px]">
                         DAILY <span className="gold">MANNA</span> AI
                     </div>
@@ -560,17 +560,18 @@ export default function BibleExplorer({
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Column 1: Books & Chapters (Combined Side Navigation) */}
                 <aside 
-                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 
+                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0 
                     ${leftSidebarOpen && !isZenMode ? 'w-80' : 'w-11 md:w-11 -translate-x-full md:translate-x-0'} 
                     ${isMobileMenuOpen ? 'w-full translate-x-0' : ''} overflow-hidden`}
                 >
                     <div className="flex flex-col h-full w-80">
                         <div className={`transition-all duration-300 ease-in-out ${!leftSidebarOpen ? 'h-0 overflow-hidden opacity-0 p-0' : 'p-4 border-b border-border bg-background/50'}`}>
                             <div className="space-y-1.5">
+                                <div className="mb-2 px-1 text-[9px] font-black text-gold/60 uppercase tracking-widest">Select Translation</div>
                                 <select 
                                     value={translation}
                                     onChange={(e) => setTranslation(e.target.value)}
-                                    className="w-full bg-card-bg border border-border rounded-lg px-3 py-2.5 text-[11px] font-black text-brand-navy focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 shadow-sm custom-select"
+                                    className="w-full bg-white dark:bg-navy-2 border border-border/80 rounded-xl px-4 py-3 text-[12px] font-black text-navy dark:text-gold focus:border-gold outline-none cursor-pointer transition-all hover:shadow-md custom-select shadow-sm"
                                 >
                                     <optgroup label="Primary Bible Versions">
                                         {['NIV', 'KJV', 'NKJV'].map(v => (
@@ -2160,7 +2161,7 @@ export default function BibleExplorer({
                                     <select 
                                         value={translation}
                                         onChange={(e) => setTranslation(e.target.value)}
-                                        className="bg-card-bg border border-border rounded-lg px-3 py-2 text-[11px] font-black text-brand-navy tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans hidden md:block custom-select min-w-[100px]"
+                                        className="bg-card-bg border border-border rounded-lg px-3 py-2 text-[11px] font-black text-navy dark:text-gold tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans custom-select min-w-[100px]"
                                     >
                                         {['NIV', 'KJV', 'NKJV', 'ENGLISH', 'ES', 'FR', 'DE', 'PT', 'IT', 'RU', 'ZH', 'KO', 'JA', 'AR', 'HINDI', 'BENGALI', 'TE', 'TA', 'KANNADA', 'MALAYALAM', 'MARATHI', 'GUJARATI', 'PUNJABI', 'NEPALI', 'ORIYA', 'TL', 'VI', 'TH', 'MY', 'INDONESIAN', 'TR', 'PL', 'RO', 'NL', 'SV', 'FI', 'DA', 'NB', 'CS', 'HR', 'SR', 'UK', 'ET', 'LT', 'LV', 'SQ', 'EL', 'HE', 'SW', 'AFRIKAANS', 'ISL', 'EO', 'CTU', 'KYG', 'DWW', 'KGF', 'SSD', 'PCK', 'GRC', 'HBO', 'LA', 'CU', 'GOT', 'COP', 'SYR', 'HUNGARIAN', 'SEPEDI', 'XHOSA', 'ZULU'].map(t => (
                                             <option key={t} value={t.toLowerCase()}>{t}</option>
