@@ -172,7 +172,7 @@ const faqSchema = {
       name: "Can I use DailyMannaAI for Bible study?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Absolutely. DailyMannaAI is built for deep Bible study. You can search by topic, book, theme, character, or question. It also provides cross-references, context, and Spirit-led insights to help you understand scripture more deeply.",
+        text: "Absolutely. DailyMannaAI is built for deep Bible study. You can search by topic, book, theme, character, or question. It also provides context and Spirit-led insights to help you understand scripture more deeply.",
       },
     },
     {
@@ -188,7 +188,7 @@ const faqSchema = {
       name: "Which Bible books are in the Bible Explorer?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "All 66 books of the Bible — Genesis through Revelation — with AI-powered search, cross-references, and contextual insights for every book.",
+        text: "All 66 books of the Bible — Genesis through Revelation — with AI-powered search and contextual insights for every book.",
       },
     },
     {

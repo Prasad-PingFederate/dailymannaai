@@ -10,7 +10,6 @@ import {
     Download, FileAudio, Clock, Flag, Globe, Info,
     Zap, Newspaper,
     PanelLeftClose, PanelLeftOpen,
-    PanelRightClose, PanelRightOpen,
     Maximize2, Minimize2,
     Type, Home
 } from 'lucide-react';
@@ -194,14 +193,14 @@ export default function BibleExplorer({
     const [loading, setLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [translation, setTranslation] = useState(initialTranslation || 'kjv');
-    const [activeToolTab, setActiveToolTab] = useState('crossref');
+
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
     // New UX State for Space
     const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-    const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+
     const [fontSize, setFontSize] = useState(19);
     const [isZenMode, setIsZenMode] = useState(false);
     
@@ -2109,15 +2108,7 @@ export default function BibleExplorer({
                             <PanelLeftOpen size={18} />
                         </button>
                     )}
-                    {!rightSidebarOpen && !isZenMode && (
-                        <button 
-                            onClick={() => setRightSidebarOpen(true)}
-                            className="hidden md:flex absolute top-1/2 -right-1 -translate-y-1/2 z-30 p-2 bg-background border border-border rounded-l-xl shadow-lg hover:right-0 transition-all text-gold hover:text-gold-2"
-                            title="Expand Tools"
-                        >
-                            <PanelRightOpen size={18} />
-                        </button>
-                    )}
+
 
                     {currentBook && currentChapter ? (
                         <>
@@ -2168,14 +2159,7 @@ export default function BibleExplorer({
                                     </select>
 
                                     <div className="flex items-center gap-1 border-l border-border/40 pl-2 md:pl-3">
-                                        <button 
-                                            onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
-                                            className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${rightSidebarOpen ? 'bg-navy text-white border-navy' : 'bg-card-bg border-border text-text-3 hover:border-gold/30'}`}
-                                            title={rightSidebarOpen ? "Collapse Tools" : "Expand Tools"}
-                                        >
-                                            <PanelRightClose size={16} className={rightSidebarOpen ? "" : "hidden"} />
-                                            <PanelRightOpen size={16} className={rightSidebarOpen ? "hidden" : ""} />
-                                        </button>
+
                                         
                                         <button 
                                             onClick={() => setIsZenMode(!isZenMode)} 
@@ -2302,52 +2286,7 @@ export default function BibleExplorer({
                     )}
                 </section>
 
-                {/* Column 4: Study Tools Panel */}
-                <aside 
-                    className={`border-l border-border bg-card-bg flex flex-col transition-all duration-500 ease-in-out shrink-0
-                    ${rightSidebarOpen && !isZenMode ? 'w-80' : 'w-0 overflow-hidden border-none'}`}
-                >
-                    <div className="flex flex-col h-full w-80">
-                        <div className="flex items-center border-b border-border shrink-0">
-                            <div className="flex flex-1">
-                                {['crossref'].map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setActiveToolTab(tab)}
-                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-brand-navy' : 'border-transparent text-muted-foreground'}`}
-                                    >
-                                        Cross Reference
-                                        {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
-                                    </button>
-                                ))}
-                            </div>
-                            <button 
-                                onClick={() => setRightSidebarOpen(false)}
-                                className="px-4 py-5 text-muted-foreground hover:text-gold transition-colors border-l border-border/50"
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
 
-                    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
-                        {activeToolTab === 'crossref' && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h5 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Parallel Passages</h5>
-                                {[
-                                    { ref: 'John 1:1', text: '"In the beginning was the Word, and the Word was with God..."'},
-                                    { ref: 'Psalm 119:105', text: '"Your word is a lamp to my feet and a light to my path."'},
-                                    { ref: '2 Timothy 3:16', text: '"All Scripture is God-breathed and useful for teaching..."'}
-                                ].map((cr, i) => (
-                                    <div key={i} className="p-4 bg-background border border-border rounded-xl hover:border-gold/40 cursor-pointer transition-all group">
-                                        <div className="font-bold text-[10px] text-brand-navy group-hover:text-gold mb-1">{cr.ref}</div>
-                                        <p className="font-serif text-[11px] italic text-muted-foreground leading-relaxed">{cr.text}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    </div>
-                </aside>
             </main>
 
             {/* Footer */}

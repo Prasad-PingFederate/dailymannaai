@@ -102,7 +102,7 @@ export default function AboutPage() {
                     }}>What We Offer</h2>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
                         {[
-                            { icon: "✦", title: "AI Bible Search", desc: "Find verses, cross-references and context instantly using conversational AI." },
+                            { icon: "✦", title: "AI Bible Search", desc: "Find verses and context instantly using conversational AI." },
                             { icon: "📖", title: "Daily Devotionals", desc: "Curated devotionals to start your day with purpose and scripture." },
                             { icon: "🎙️", title: "Sermon Archive", desc: "Discover sermons from great preachers across Christian history." },
                             { icon: "🖼️", title: "Image Studio", desc: "Create beautiful Bible quote images to share on social media." },
