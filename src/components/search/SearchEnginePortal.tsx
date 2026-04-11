@@ -1468,9 +1468,10 @@ export default function SearchEnginePortal() {
             togglePropheticAlerts();
             return;
         }
-        // Image Studio requires sign-in
-        if (f === "studio" && !isLoggedIn) {
-            window.location.href = "/auth/signin?callbackUrl=/";
+        // Image Studio no longer requires sign-in
+        if (f === "studio") {
+            setFilter(f);
+            setHasSearched(true);
             return;
         }
         setFilter(f);
