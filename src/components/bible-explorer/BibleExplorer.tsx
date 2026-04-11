@@ -337,8 +337,8 @@ export default function BibleExplorer({
         <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground font-sans">
             {/* Primary Unified Header */}
             <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-md z-40 sticky top-0 shadow-sm">
-                <div className="flex items-center gap-4 shrink-0">
-                    <div className="site-logo text-brand-navy hidden lg:block">
+                <div className="flex items-center gap-4 shrink-0 pl-10 md:pl-24">
+                    <div className="site-logo text-brand-navy hidden lg:block !text-[18px]">
                         DAILY <span className="gold">MANNA</span> AI
                     </div>
                     
@@ -572,9 +572,9 @@ export default function BibleExplorer({
                                     onChange={(e) => setTranslation(e.target.value)}
                                     className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-bold text-text-2 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 gold-focus shadow-sm"
                                 >
-                                    <optgroup label="Primary">
+                                    <optgroup label="Primary Bible Versions">
                                         {['NIV', 'KJV', 'NKJV'].map(v => (
-                                            <option key={v} value={v}>{v} Version</option>
+                                            <option key={v} value={v}>{v}</option>
                                         ))}
                                         // Local XML Batch
                                         <option value="pck">Paite</option>
