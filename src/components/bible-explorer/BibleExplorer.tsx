@@ -2028,12 +2028,22 @@ export default function BibleExplorer({
 
                         <div className={`p-3.5 border-b border-border flex items-center justify-between shrink-0 bg-muted/5 transition-opacity duration-200 ${!leftSidebarOpen ? 'opacity-0 h-0 p-0 overflow-hidden' : 'opacity-100'}`}>
                             <h4 className="font-title text-[8px] font-bold uppercase tracking-[0.22em] text-gold">Scripture Index</h4>
-                            <button 
-                                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
-                                className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all"
-                            >
-                                <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                                <button 
+                                    onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
+                                    className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all shadow-sm"
+                                    title="Collapse/Expand Sidebar"
+                                >
+                                    <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <div className="group relative">
+                                    <Info size={12} className="text-gold/40 hover:text-gold cursor-help transition-colors" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-40 p-2 bg-navy text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl border border-gold/20 leading-relaxed z-50">
+                                        <div className="font-black text-gold mb-1 uppercase tracking-widest text-[8px]">Pro Tip</div>
+                                        Click the arrow to collapse the sidebar and maximize your reading space.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {!leftSidebarOpen ? (
@@ -2164,7 +2174,7 @@ export default function BibleExplorer({
                                         <button 
                                             onClick={() => setIsZenMode(!isZenMode)} 
                                             className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'bg-card-bg border border-border text-text-3 hover:border-gold/30'}`}
-                                            title={isZenMode ? "Exit Zen Mode" : "Zen Mode"}
+                                            title={isZenMode ? "Exit Fullscreen/Zen Mode" : "Maximize Reading View (Zen Mode)"}
                                         >
                                             {isZenMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                                         </button>
