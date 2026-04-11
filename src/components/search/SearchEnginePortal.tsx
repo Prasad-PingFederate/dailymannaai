@@ -1468,10 +1468,9 @@ export default function SearchEnginePortal() {
             togglePropheticAlerts();
             return;
         }
-        // Image Studio no longer requires sign-in
+        // Image Studio now has its own full-fledged URL
         if (f === "studio") {
-            setFilter(f);
-            setHasSearched(true);
+            window.location.href = "/imagestudio";
             return;
         }
         setFilter(f);
@@ -1879,10 +1878,6 @@ export default function SearchEnginePortal() {
                         ) : filter === "sermons" ? (
                             <div className="w-full">
                                 <SermonsTab />
-                            </div>
-                        ) : filter === "studio" ? (
-                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
-                                <BibleQuoteGenerator />
                             </div>
                         ) : hasContent ? (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
