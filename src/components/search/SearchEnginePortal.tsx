@@ -1475,7 +1475,7 @@ export default function SearchEnginePortal() {
             return;
         }
         setFilter(f);
-        if (f === "devotionals" || f === "studio" || f === "ai" || f === "sermons") {
+        if (f === "devotionals" || f === "ai" || f === "sermons") {
             setHasSearched(true);
         } else if (query.trim()) {
             setHasSearched(true);
