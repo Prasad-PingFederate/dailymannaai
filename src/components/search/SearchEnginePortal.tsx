@@ -1468,13 +1468,14 @@ export default function SearchEnginePortal() {
             togglePropheticAlerts();
             return;
         }
-        // Image Studio requires sign-in
-        if (f === "studio" && !isLoggedIn) {
-            window.location.href = "/auth/signin?callbackUrl=/";
+        // Image Studio no longer requires sign-in
+        if (f === "studio") {
+            setFilter(f);
+            setHasSearched(true);
             return;
         }
         setFilter(f);
-        if (f === "devotionals" || f === "studio" || f === "ai" || f === "sermons") {
+        if (f === "devotionals" || f === "ai" || f === "sermons") {
             setHasSearched(true);
         } else if (query.trim()) {
             setHasSearched(true);
