@@ -542,7 +542,7 @@ export default function BibleExplorer({
                             />
                             <button 
                                 onClick={() => handleSearch()}
-                                className="px-4 py-1.5 bg-brand-navy-2 text-white rounded-xl text-[10px] font-black hover:bg-gold transition-all shadow-sm active:scale-95 uppercase tracking-wider"
+                                className="px-4 py-1.5 bg-navy dark:bg-gold text-white dark:text-navy rounded-xl text-[10px] font-black hover:bg-gold dark:hover:bg-gold-2 transition-all shadow-sm active:scale-95 uppercase tracking-wider"
                             >
                                 Search
                             </button>
@@ -550,9 +550,9 @@ export default function BibleExplorer({
                     </div>
                 </div>
 
-                {/* Right side placeholder to keep search centered */}
-                <div className="flex items-center gap-3 shrink-0 w-[120px] justify-end">
-                    {/* Handled by global layout */}
+                {/* Right side placeholder to keep search centered and avoid overlapping with fixed items */}
+                <div className="flex items-center gap-3 shrink-0 w-[220px] justify-end">
+                    {/* UserMenu and ThemeToggle are fixed in RootLayout at this position */}
                 </div>
             </header>
 
