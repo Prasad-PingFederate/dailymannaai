@@ -1,0 +1,902 @@
+[
+  {
+    "id": "francl",
+    "lang": "French",
+    "title": "Sainte Bible n\u00e9o-Crampon Libre",
+    "code": "fra",
+    "nt": 7958,
+    "ot": 23487,
+    "total": 31445
+  },
+  {
+    "id": "engDRA",
+    "lang": "English",
+    "title": "Douay-Rheims 1899",
+    "code": "eng",
+    "nt": 7951,
+    "ot": 23487,
+    "total": 31438
+  },
+  {
+    "id": "latVUC",
+    "lang": "Latin",
+    "title": "Bibbia Vulgata Clementina na 1598",
+    "code": "lat",
+    "nt": 7951,
+    "ot": 23483,
+    "total": 31434
+  },
+  {
+    "id": "shr",
+    "lang": "Shi",
+    "title": "BIBLIYA NTAGATIFU OMU MASHI",
+    "code": "shr",
+    "nt": 7957,
+    "ot": 23386,
+    "total": 31343
+  },
+  {
+    "id": "nldnbg",
+    "lang": "Dutch",
+    "title": "NBG-vertaling 1951",
+    "code": "nld",
+    "nt": 7966,
+    "ot": 23210,
+    "total": 31176
+  },
+  {
+    "id": "ces1613",
+    "lang": "Czech",
+    "title": "Bible Kralick\u00e1 1613",
+    "code": "ces",
+    "nt": 7958,
+    "ot": 23214,
+    "total": 31172
+  },
+  {
+    "id": "rifa",
+    "lang": "Tarifit",
+    "title": "\u0623\u064e\u0630\u0652\u0644\u0650\u064a\u0633\u0652 \u0625\u0650\u0642\u062f\u0651\u0652\u0633\u0646\u0652",
+    "code": "rif",
+    "nt": 7958,
+    "ot": 23213,
+    "total": 31171
+  },
+  {
+    "id": "rifl",
+    "lang": "Tarifit",
+    "title": "Adlis Iqeddsen",
+    "code": "rif",
+    "nt": 7958,
+    "ot": 23213,
+    "total": 31171
+  },
+  {
+    "id": "rift",
+    "lang": "Tarifit",
+    "title": "\u2d30\u2d37\u2d4d\u2d49\u2d59 \u2d49\u2d47\u2d3b\u2d37\u2d37\u2d59\u2d3b\u2d4f",
+    "code": "rif",
+    "nt": 7958,
+    "ot": 23213,
+    "total": 31171
+  },
+  {
+    "id": "bel",
+    "lang": "Belarusian",
+    "title": "\u0411\u0456\u0431\u043b\u0456\u044f (\u043f\u0435\u0440\u0430\u043a\u043b\u0430\u0434 \u0410.\u0411\u043e\u043a\u0443\u043d\u0430)",
+    "code": "bel",
+    "nt": 7957,
+    "ot": 23213,
+    "total": 31170
+  },
+  {
+    "id": "frajnd",
+    "lang": "French",
+    "title": "Bible J.N. Darby",
+    "code": "fra",
+    "nt": 7957,
+    "ot": 23213,
+    "total": 31170
+  },
+  {
+    "id": "fraLSG",
+    "lang": "French",
+    "title": "Louis Segond 1910",
+    "code": "fra",
+    "nt": 7959,
+    "ot": 23211,
+    "total": 31170
+  },
+  {
+    "id": "tod",
+    "lang": "Toma",
+    "title": "GALA Daawoo Z\u025b\u028b\u025bi",
+    "code": "tod",
+    "nt": 7957,
+    "ot": 23213,
+    "total": 31170
+  },
+  {
+    "id": "hrv",
+    "lang": "Croatian",
+    "title": "Sveta Biblija",
+    "code": "hrv",
+    "nt": 7957,
+    "ot": 23212,
+    "total": 31169
+  },
+  {
+    "id": "lin",
+    "lang": "Ling\u00e1la",
+    "title": "Biblica\u00ae Salela na bonsomi Mokanda na Bomoi",
+    "code": "lin",
+    "nt": 7957,
+    "ot": 23212,
+    "total": 31169
+  },
+  {
+    "id": "russyn",
+    "lang": "Russian",
+    "title": "\u0421\u0438\u043d\u043e\u0434\u0430\u043b\u044c\u043d\u044b\u0439 \u043f\u0435\u0440\u0435\u0432\u043e\u0434",
+    "code": "rus",
+    "nt": 7955,
+    "ot": 23214,
+    "total": 31169
+  },
+  {
+    "id": "dan1931",
+    "lang": "Danish",
+    "title": "Hellig Bibel",
+    "code": "dan",
+    "nt": 7957,
+    "ot": 23211,
+    "total": 31168
+  },
+  {
+    "id": "yal",
+    "lang": "Yalunka",
+    "title": "Kisin Kiraan Kitabuna",
+    "code": "yal",
+    "nt": 7955,
+    "ot": 23213,
+    "total": 31168
+  },
+  {
+    "id": "deuelbbk",
+    "lang": "German",
+    "title": "Elberfelder \u00dcbersetzung (Version von bibelkommentare.de)",
+    "code": "deu",
+    "nt": 7953,
+    "ot": 23212,
+    "total": 31165
+  },
+  {
+    "id": "engojb",
+    "lang": "English",
+    "title": "The Orthodox Jewish Bible",
+    "code": "eng",
+    "nt": 7959,
+    "ot": 23206,
+    "total": 31165
+  },
+  {
+    "id": "mkw",
+    "lang": "Kituba",
+    "title": "Mambu ya Nzambi",
+    "code": "mkw",
+    "nt": 7952,
+    "ot": 23213,
+    "total": 31165
+  },
+  {
+    "id": "swe",
+    "lang": "Swedish",
+    "title": "Svenska K\u00e4rnbibeln - en expanderad \u00f6vers\u00e4ttning",
+    "code": "swe",
+    "nt": 7949,
+    "ot": 23213,
+    "total": 31162
+  },
+  {
+    "id": "deutkw",
+    "lang": "German, Standard",
+    "title": "Textbibel von Kautzsch und Weizs\u00e4cker",
+    "code": "deu",
+    "nt": 7951,
+    "ot": 23206,
+    "total": 31157
+  },
+  {
+    "id": "sus",
+    "lang": "Susu",
+    "title": "Soso Kitaabuie: Tawureta, Yabura, Inyila",
+    "code": "sus",
+    "nt": 7944,
+    "ot": 23209,
+    "total": 31153
+  },
+  {
+    "id": "susa",
+    "lang": "Susu",
+    "title": "Ala xa Kitaabui Sosoe b\u025b",
+    "code": "sus",
+    "nt": 7944,
+    "ot": 23209,
+    "total": 31153
+  },
+  {
+    "id": "swef",
+    "lang": "Swedish",
+    "title": "Svenska Folkbibeln",
+    "code": "swe",
+    "nt": 7940,
+    "ot": 23213,
+    "total": 31153
+  },
+  {
+    "id": "wolmbs",
+    "lang": "Wolof",
+    "title": "K\u00e0ddug Y\u00e0lla",
+    "code": "wol",
+    "nt": 7944,
+    "ot": 23184,
+    "total": 31128
+  },
+  {
+    "id": "srp1865",
+    "lang": "Serbian",
+    "title": "Sveto Pismo ili Biblija",
+    "code": "srp",
+    "nt": 7958,
+    "ot": 23153,
+    "total": 31111
+  },
+  {
+    "id": "srp1868",
+    "lang": "Serbian",
+    "title": "\u0421\u0432\u0435\u0442\u043e \u043f\u0438\u0441\u043c\u043e \u0438\u043b\u0438 \u0411\u0438\u0431\u043b\u0438\u0458\u0430 \u041f\u0440\u0435\u0432\u043e\u0434 \u0414\u0430\u043d\u0438\u0447\u0438\u045b-\u041a\u0430\u0440\u0430\u045f\u0438\u045b",
+    "code": "srp",
+    "nt": 7958,
+    "ot": 23153,
+    "total": 31111
+  },
+  {
+    "id": "fra_fob",
+    "lang": "French",
+    "title": "La Sainte Bible",
+    "code": "fra",
+    "nt": 7958,
+    "ot": 23149,
+    "total": 31107
+  },
+  {
+    "id": "poronbv",
+    "lang": "Portugu\u00eas",
+    "title": "Biblica\u00ae Open Nova B\u00edblia Viva 2007",
+    "code": "por",
+    "nt": 7958,
+    "ot": 23147,
+    "total": 31105
+  },
+  {
+    "id": "arb-vd",
+    "lang": "Arabic",
+    "title": "\u0627\u0644\u0643\u062a\u0627\u0628 \u0627\u0644\u0645\u0642\u062f\u0633 \u0628\u0627\u0644\u0644\u063a\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629\u060c \u0641\u0627\u0646 \u062f\u0627\u064a\u0643",
+    "code": "arb",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "cth",
+    "lang": "Chin, Thaiphum",
+    "title": "Thai Phum Holy Bible",
+    "code": "cth",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "engfbv",
+    "lang": "English",
+    "title": "Free Bible Version",
+    "code": "eng",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "englsv",
+    "lang": "English",
+    "title": "Literal Standard Version",
+    "code": "eng",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "engwyc2017",
+    "lang": "English",
+    "title": "Wycliffe's Bible with Modern Spelling",
+    "code": "eng",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "engwyc2018",
+    "lang": "English",
+    "title": "Wycliffe's Bible with Modern Spelling (Enhanced)",
+    "code": "eng",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "guj2017",
+    "lang": "Gujarati",
+    "title": "\u0a87\u0aa8\u0acd\u0aa1\u0abf\u0aaf\u0aa8 \u0ab0\u0ac0\u0ab5\u0abe\u0a87\u0a9d\u0acd\u0aa1 \u0ab5\u0ab0\u0acd\u0a9d\u0aa8 \u0a97\u0ac1\u0a9c\u0ab0\u0abe\u0aa4\u0ac0 - 2019",
+    "code": "guj",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "hin2017",
+    "lang": "Hindi",
+    "title": "\u0907\u0902\u0921\u093f\u092f\u0928 \u0930\u093f\u0935\u093e\u0907\u091c\u094d\u0921 \u0935\u0930\u094d\u091c\u0928 (IRV) \u0939\u093f\u0902\u0926\u0940 - 2019",
+    "code": "hin",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "hlt",
+    "lang": "Chin, Matu",
+    "title": "Baibal Olcim",
+    "code": "hlt",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "hltmcsb",
+    "lang": "Chin, Matu",
+    "title": "Baibal Olcim",
+    "code": "hlt",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "lug",
+    "lang": "Luganda",
+    "title": "Biblica\u00ae Bayibuli Entukuvu, Endagaano Enkadde n\u02bcEndagaano Empya ekwatiddwa ku katambi\u2122",
+    "code": "lug",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "nya",
+    "lang": "Chichewa",
+    "title": "Biblica\u00ae Tsekulani Mawu a Mulungu mu Chichewa Chalero",
+    "code": "nya",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "ory",
+    "lang": "Oriya",
+    "title": "\u0b07\u0b23\u0b4d\u0b21\u0b3f\u0b5f\u0b3e\u0b28 \u0b30\u0b3f\u0b71\u0b3e\u0b07\u0b38\u0b4d\u0b21\u0b4d \u0b71\u0b30\u0b38\u0b28\u0b4d \u0b13\u0b21\u0b3f\u0b06",
+    "code": "ory",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "pan",
+    "lang": "Panjabi, Eastern",
+    "title": "\u0a07\u0a70\u0a21\u0a3f\u0a05\u0a28 \u0a30\u0a3f\u0a35\u0a3e\u0a07\u0a5b\u0a21 \u0a35\u0a30\u0a5b\u0a28 (IRV) - \u0a2a\u0a70\u0a1c\u0a3e\u0a2c\u0a40",
+    "code": "pan",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "suzBl",
+    "lang": "Sunwar",
+    "title": "\u092a\u0930\u092e\u092a\u094d\u0930\u092d\u0941 \u092f\u093e\u0935\u0947 \u0906 \u0932\u094b\u0935\u093c",
+    "code": "suz",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "urd",
+    "lang": "Urdu",
+    "title": "\u0907\u0902\u0921\u093f\u092f\u0928 \u0930\u093f\u0935\u093e\u0907\u091c\u094d\u0921 \u0935\u0930\u094d\u091c\u0928 (IRV) \u0909\u0930\u094d\u0926\u0942 - 2019",
+    "code": "urd",
+    "nt": 7959,
+    "ot": 23145,
+    "total": 31104
+  },
+  {
+    "id": "arbnav",
+    "lang": "Arabic, Standard",
+    "title": "Ketab El Hayat Majani/\u0643\u062a\u0627\u0628 \u0627\u0644\u062d\u064a\u0627\u0629 \u0645\u062c\u0627\u0646\u0649",
+    "code": "arb",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "cebulb",
+    "lang": "Cebuano",
+    "title": "Balaan nga Bibliya",
+    "code": "ceb",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "ckb",
+    "lang": "Central Kurdish",
+    "title": "Biblica\u00ae \u0648\u06d5\u0634\u0627\u0646\u06cc \u0628\u06ce\u0628\u06d5\u0631\u0627\u0645\u0628\u06d5\u0631\u06cc \u06a9\u0648\u0631\u062f\u06cc\u06cc \u0633\u06c6\u0631\u0627\u0646\u06cc\u06cc \u0633\u062a\u0627\u0646\u062f\u06d5\u0631",
+    "code": "ckb",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "eng-web",
+    "lang": "English",
+    "title": "World English Bible Classic",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "eng-webbe",
+    "lang": "English",
+    "title": "World English Bible British Edition with Deuterocanon",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "engwebp",
+    "lang": "English",
+    "title": "World English Bible",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "engwebpb",
+    "lang": "English",
+    "title": "World English Bible British Edition",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "engwebu",
+    "lang": "English",
+    "title": "World English Bible Updated",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "engwmb",
+    "lang": "English",
+    "title": "World Messianic Bible",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "engwmbb",
+    "lang": "English",
+    "title": "World Messianic Bible British Edition",
+    "code": "eng",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "ewe",
+    "lang": "e\u028begbe",
+    "title": "Biblica\u00ae Se a\u0256eke mebla Biblia zaza\u0303 o Agbenya La\u2122",
+    "code": "ewe",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "frasbl",
+    "lang": "French",
+    "title": "Sainte Bible libre pour le monde",
+    "code": "fra",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "hatbsa",
+    "lang": "Haitian",
+    "title": "Bib Sen An",
+    "code": "hat",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "hne",
+    "lang": "Chhattisgarhi",
+    "title": "Biblica\u00ae \u0938\u0941\u0924\u0902\u0924\u0930 \u0938\u092e\u0915\u093e\u0932\u0940\u0928 \u091b\u0924\u094d\u0924\u0940\u0938\u0917\u0922\u093c\u0940 \u0905\u0928\u0941\u0935\u093e\u0926",
+    "code": "hne",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "ibo",
+    "lang": "Igbo",
+    "title": "Biblica\u00ae Ba\u1ecbb\u1ee5l\u1ee5 Ns\u1ecd n\u02bcIgbo Nd\u1ecb Ugbu a nke d\u1ecbr\u1ecb onye \u1ecdb\u1ee5la \u1ecbg\u1ee5",
+    "code": "ibo",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "luo",
+    "lang": "Dholuo",
+    "title": "Biblica\u00ae Ochiw Thuolo Moting\u02bco Loko Manyien\u2122",
+    "code": "luo",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "mri2012",
+    "lang": "M\u0101ori",
+    "title": "Paipera Tapu 2012",
+    "code": "mri",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "nde",
+    "lang": "Ndebele",
+    "title": "Biblica\u00ae IBhayibhili Elingcwele LesiNdebele Elifinyelelekayo",
+    "code": "nde",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "porbrbsl",
+    "lang": "Portuguese",
+    "title": "B\u00edblia Portuguesa Mundial",
+    "code": "por",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "sna",
+    "lang": "chiShona",
+    "title": "Biblica\u00ae Bhaibheri Dzvene Rakasununguka MuChiShona Chanhasi 2017",
+    "code": "sna",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "som",
+    "lang": "Somali",
+    "title": "Kitaabka Quduuska Ah",
+    "code": "som",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "swhonen",
+    "lang": "Swahili",
+    "title": "Biblica\u00ae Toleo Wazi Neno: Bibilia Takatifu\u2122",
+    "code": "swh",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "swhonmm",
+    "lang": "Swahili",
+    "title": "Biblica\u00ae Toleo Wazi Neno: Maandiko Matakatifu",
+    "code": "swh",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "tam2017",
+    "lang": "Tamil",
+    "title": "\u0b87\u0ba3\u0bcd\u0b9f\u0bbf\u0baf\u0ba9\u0bcd \u0bb0\u0bbf\u0bb5\u0bc8\u0bb8\u0bcd\u0b9f\u0bc1 \u0bb5\u0bc6\u0bb0\u0bcd\u0bb8\u0ba9\u0bcd (IRV) - \u0ba4\u0bae\u0bbf\u0bb4\u0bcd",
+    "code": "tam",
+    "nt": 7958,
+    "ot": 23145,
+    "total": 31103
+  },
+  {
+    "id": "tglulb",
+    "lang": "Tagalog",
+    "title": "banal na Bibliya",
+    "code": "tgl",
+    "nt": 7959,
+    "ot": 23144,
+    "total": 31103
+  },
+  {
+    "id": "deu1912",
+    "lang": "German, Standard",
+    "title": "Lutherbibel 1912",
+    "code": "deu",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "deu1951",
+    "lang": "German, Standard",
+    "title": "Die Schlachter-Bibel 1951",
+    "code": "deu",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "deuelo",
+    "lang": "German, Standard",
+    "title": "Darby Unrevidierte Elberfelder",
+    "code": "deu",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "eng-asv",
+    "lang": "English",
+    "title": "American Standard Version (1901)",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "engBBE",
+    "lang": "English",
+    "title": "Bible in Basic English",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "eng-kjv",
+    "lang": "English",
+    "title": "King James Version + Apocrypha",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "eng-kjv2006",
+    "lang": "English",
+    "title": "King James (Authorized) Version",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "engkjvcpb",
+    "lang": "English",
+    "title": "KJV Cambridge Paragraph Bible",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "engmsb",
+    "lang": "English",
+    "title": "Majority Standard Bible",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "engnet",
+    "lang": "English",
+    "title": "NET Bible",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "eng-rv",
+    "lang": "English",
+    "title": "Revised Version with Apocrypha (1895)",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "engwebster",
+    "lang": "English",
+    "title": "Noah Webster Bible",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "engylt",
+    "lang": "English",
+    "title": "Young's Literal Translation",
+    "code": "eng",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "epo",
+    "lang": "Esperanto",
+    "title": "Londona Biblio",
+    "code": "epo",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "gaz",
+    "lang": "Oromo, West Central",
+    "title": "Kitaaba Qulqulluu, Biblica\u00ae Hiikkaa Ammayyaa Banamaa Haaraa, Loqoda Dhi\u02bcaa",
+    "code": "gaz",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "gaze",
+    "lang": "Oromo, West Central",
+    "title": "\u12ad\u1273\u1260 \u1241\u120d\u1241\u1209, Biblica\u00ae \u1202\u12ab \u12a0\u1218\u12eb \u1260\u1290\u121b \u1203\u122b, \u120e\u1246\u12f0 \u12fd\u12a3",
+    "code": "gaz",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "hat",
+    "lang": "Haitian",
+    "title": "Bib La",
+    "code": "hat",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "haw1868",
+    "lang": "Hawaiian",
+    "title": "Baibala Hemolele",
+    "code": "haw",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "heb",
+    "lang": "Hebrew",
+    "title": "\u05ea\u05e0 \u05da \u05e2\u05d1\u05e8\u05d9 \u05de\u05d5\u05d3\u05e8\u05e0\u05d9",
+    "code": "heb",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "iloulb",
+    "lang": "Ilocano",
+    "title": "Ti Biblia",
+    "code": "ilo",
+    "nt": 7958,
+    "ot": 23144,
+    "total": 31102
+  },
+  {
+    "id": "indayt",
+    "lang": "Indonesian",
+    "title": "Alkitab Yang Terbuka",
+    "code": "ind",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "ita1927",
+    "lang": "Italian",
+    "title": "Riveduta Bibbia 1927",
+    "code": "ita",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "mal",
+    "lang": "Malayalam",
+    "title": "\u0d07\u0d28\u0d4d\u0d24\u0d4d\u0d2f\u0d7b \u0d31\u0d3f\u0d35\u0d48\u0d38\u0d4d\u0d21\u0d4d \u0d35\u0d47\u0d7c\u0d37\u0d7b (IRV) - \u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02",
+    "code": "mal",
+    "nt": 7958,
+    "ot": 23144,
+    "total": 31102
+  },
+  {
+    "id": "myajvb",
+    "lang": "Burmese",
+    "title": "\u1019\u103c\u1014\u103a\u1019\u102c\u1000\u103b\u1019\u103a\u1038\u1005\u102c",
+    "code": "mya",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "nld",
+    "lang": "Dutch",
+    "title": "De Heilige Schrift 1917",
+    "code": "nld",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "npiulb",
+    "lang": "Nepali",
+    "title": "\u092a\u0935\u093f\u0924\u094d\u0930 \u092c\u093e\u0907\u092c\u0932",
+    "code": "npi",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "polubg",
+    "lang": "Polish",
+    "title": "\u015awi\u0119ta Biblia",
+    "code": "pol",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  },
+  {
+    "id": "porbr2018",
+    "lang": "Portuguese",
+    "title": "B\u00edblia Livre",
+    "code": "por",
+    "nt": 7957,
+    "ot": 23145,
+    "total": 31102
+  }
+]

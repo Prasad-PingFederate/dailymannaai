@@ -1,0 +1,34 @@
+﻿[dotenv@17.2.4] injecting env (31) from .env.local -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+=== TESTING FULL CHAT FLOW ===
+
+1. ENV VARS:
+   GEMINI_API_KEY: SET (AIzaSyA4...)
+   google_aistudio_key: SET (AIzaSyAG...)
+   GROQ_API_KEY: SET (gsk_vycl...)
+   MISTRAL_API_KEY: SET (rS5HqUrl...)
+   together_api: SET (key_CXRo...)
+   X_AI_API: SET (xai-IJsq...)
+   sambanova_api: SET (afcf8082...)
+   cerebras_api: SET (csk-9mkk...)
+   OPENROUTER_API_KEY: SET (sk-or-v1...)
+   deepinfra: SET (lIUzwZhp...)
+   HUGGINGFACE_API_KEY: SET (hf_VvpGO...)
+
+2. TESTING GEMINI STREAMING (main chat path):
+   gemini-2.5-flash STREAM: FAIL - [GoogleGenerativeAI Error]: Error fetching from https://gene
+   gemini-2.0-flash STREAM: FAIL - [GoogleGenerativeAI Error]: Error fetching from https://gene
+   gemini-pro STREAM: FAIL - [GoogleGenerativeAI Error]: Error fetching from https://gene
+
+3. TESTING GROQ STREAMING:
+   Groq STREAM: OK - got chunk: data: {"id":"chatcmpl-35f59637-adf5-4f5a-89ed-8d76c2442576",
+
+4. TESTING MISTRAL STREAMING:
+   Mistral STREAM: OK
+
+5. TESTING SAMBANOVA STREAMING:
+   SambaNova STREAM: OK
+
+6. TESTING CEREBRAS STREAMING:
+   Cerebras STREAM: OK
+
+=== DONE ===

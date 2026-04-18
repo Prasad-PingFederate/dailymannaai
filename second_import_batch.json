@@ -1,0 +1,452 @@
+[
+  {
+    "id": "kbq",
+    "lang": "Kamano",
+    "title": "Anumzamofo Ruotage Avontafere",
+    "code": "kbq",
+    "nt": 7952,
+    "ot": 23140,
+    "total": 31092
+  },
+  {
+    "id": "pesOPV",
+    "lang": "Persian",
+    "title": "\u062a\u0631\u062c\u0645\u0647 \u0642\u062f\u06cc\u0645",
+    "code": "pes",
+    "nt": 7951,
+    "ot": 23139,
+    "total": 31090
+  },
+  {
+    "id": "meu",
+    "lang": "Motu",
+    "title": "Buk Baibel long tokples Motu",
+    "code": "meu",
+    "nt": 7953,
+    "ot": 23136,
+    "total": 31089
+  },
+  {
+    "id": "rmc",
+    "lang": "Romani, Carpathian",
+    "title": "Le Devleskero Lav Andre Roma\u0148i \u010chib, Slovensko 2022",
+    "code": "rmc",
+    "nt": 7955,
+    "ot": 23134,
+    "total": 31089
+  },
+  {
+    "id": "hausa",
+    "lang": "Hausa",
+    "title": "Biblica\u00ae Bu\u0257a\u0257\u0257en Littafi Mai Tsarki, Sabon Rai Don Kowa\u2122",
+    "code": "hau",
+    "nt": 7942,
+    "ot": 23145,
+    "total": 31087
+  },
+  {
+    "id": "yor",
+    "lang": "Yor\u00f9b\u00e1",
+    "title": "Biblica\u00ae n\u00ed oore \u1ecd\u0300f\u1eb9\u0301 l\u00e1ti lo B\u00edb\u00e9l\u00ec M\u00edm\u1ecd\u0301 n\u00ed \u00c8d\u00e8 Yor\u00f9b\u00e1 \u00d2de-\u00d2n\u00ed",
+    "code": "yor",
+    "nt": 7942,
+    "ot": 23145,
+    "total": 31087
+  },
+  {
+    "id": "tdx",
+    "lang": "Malagasy, Tandroy-Mahafaly",
+    "title": "Saontsin\u2019 A\u00f1ahare",
+    "code": "tdx",
+    "nt": 7944,
+    "ot": 23137,
+    "total": 31081
+  },
+  {
+    "id": "marc",
+    "lang": "\u092e\u0930\u093e\u0920\u0940",
+    "title": "Biblica\u00ae \u092e\u0930\u093e\u0920\u0940 \u0938\u092e\u0915\u093e\u0932\u0940\u0928 \u0938\u094d\u0935\u0924\u0902\u0924\u094d\u0930 \u0938\u0902\u0938\u094d\u0915\u0930\u0923",
+    "code": "mar",
+    "nt": 7948,
+    "ot": 23129,
+    "total": 31077
+  },
+  {
+    "id": "cekak",
+    "lang": "Chin, Eastern Khumi",
+    "title": "Asang Khongca Bible (2019)",
+    "code": "cek",
+    "nt": 7948,
+    "ot": 23127,
+    "total": 31075
+  },
+  {
+    "id": "azb",
+    "lang": "Azerbaijani, South",
+    "title": "Az\u0259rbaycan dilind\u0259 M\u00fcq\u0259dd\u0259s Kitab",
+    "code": "azb",
+    "nt": 7927,
+    "ot": 23145,
+    "total": 31072
+  },
+  {
+    "id": "hch",
+    "lang": "Huichol",
+    "title": "KAKA\u0197YARI NIUKIEYA XAPAYARI WIXARIKAK\u0197",
+    "code": "hch",
+    "nt": 7952,
+    "ot": 23120,
+    "total": 31072
+  },
+  {
+    "id": "gax",
+    "lang": "gujii",
+    "title": "Kitaaba Woyyuu",
+    "code": "gax",
+    "nt": 7935,
+    "ot": 23133,
+    "total": 31068
+  },
+  {
+    "id": "tczchongthu",
+    "lang": "Chin, Thado",
+    "title": "PATHEN LEKHABU THENG",
+    "code": "tcz",
+    "nt": 7959,
+    "ot": 23101,
+    "total": 31060
+  },
+  {
+    "id": "bodn",
+    "lang": "Tibetan",
+    "title": "\u0f51\u0f58\u0f0b\u0f54\u0f60\u0f72\u0f0b\u0f42\u0f66\u0f74\u0f44\u0f0b\u0f62\u0f56\u0f0b\u0f56\u0f7c\u0f51\u0f0b\u0f60\u0f42\u0fb1\u0f74\u0f62\u0f0b\u0f42\u0f66\u0f62\u0f0b\u0f58\u0f0d",
+    "code": "bod",
+    "nt": 7933,
+    "ot": 23120,
+    "total": 31053
+  },
+  {
+    "id": "tel2017",
+    "lang": "Telugu",
+    "title": "\u0c07\u0c02\u0c21\u0c3f\u0c2f\u0c28\u0c4d \u0c30\u0c3f\u0c35\u0c48\u0c1c\u0c4d\u0c21\u0c4d \u0c35\u0c46\u0c30\u0c4d\u0c37\u0c28\u0c4d (IRV) - \u0c24\u0c46\u0c32\u0c41\u0c17\u0c41 -2019",
+    "code": "tel",
+    "nt": 7875,
+    "ot": 23129,
+    "total": 31004
+  },
+  {
+    "id": "bqcsim",
+    "lang": "Boko",
+    "title": "Bibeli Luaya\u0303taala\u0301",
+    "code": "bqc",
+    "nt": 7930,
+    "ot": 23054,
+    "total": 30984
+  },
+  {
+    "id": "gofe",
+    "lang": "Goofa",
+    "title": "\u130c\u123b \u121b\u1343\u134b",
+    "code": "gof",
+    "nt": 7932,
+    "ot": 23045,
+    "total": 30977
+  },
+  {
+    "id": "gofl",
+    "lang": "Gofa",
+    "title": "Geeshsha Maxaafa",
+    "code": "gof",
+    "nt": 7932,
+    "ot": 23045,
+    "total": 30977
+  },
+  {
+    "id": "kos",
+    "lang": "Kosraean",
+    "title": "BIBLE MUTAL",
+    "code": "kos",
+    "nt": 7958,
+    "ot": 22988,
+    "total": 30946
+  },
+  {
+    "id": "malc",
+    "lang": "\u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02",
+    "title": "Biblica\u00ae \u0d38\u0d4d\u0d35\u0d24\u0d28\u0d4d\u0d24\u0d4d\u0d30\u0d02\u00a0\u0d38\u0d2e\u0d15\u0d3e\u0d32\u0d3f\u0d15 \u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d35\u0d3f\u0d35\u0d7c\u0d24\u0d4d\u0d24\u0d28\u0d02",
+    "code": "mal",
+    "nt": 7879,
+    "ot": 23061,
+    "total": 30940
+  },
+  {
+    "id": "gmve",
+    "lang": "Gamo",
+    "title": "\u130c\u123b \u121b\u133b\u134b",
+    "code": "gmv",
+    "nt": 7843,
+    "ot": 23063,
+    "total": 30906
+  },
+  {
+    "id": "hmo",
+    "lang": "Motu, Hiri",
+    "title": "Buka Helaga",
+    "code": "hmo",
+    "nt": 7956,
+    "ot": 22921,
+    "total": 30877
+  },
+  {
+    "id": "tbzsim",
+    "lang": "Ditammari",
+    "title": "Bibiri Kuyie Nn\u0251\u0301\u0251\u01f9t\u00ec P\u0251\u0301t\u00edri",
+    "code": "tbz",
+    "nt": 7950,
+    "ot": 22923,
+    "total": 30873
+  },
+  {
+    "id": "qub",
+    "lang": "Quechua, Huallaga Hu\u00e1nuco",
+    "title": "Tayta Diosninchi Isquirbichishan",
+    "code": "qub",
+    "nt": 7933,
+    "ot": 22938,
+    "total": 30871
+  },
+  {
+    "id": "uigara",
+    "lang": "Uyghur",
+    "title": "\u0645\u06c7\u0642\u06d0\u062f\u062f\u06d0\u0633 \u0643\u0627\u0644\u0627\u0645 (\u064a\u06d5\u0646\u06af\u0649 \u064a\u06d0\u0632\u0649\u0642)",
+    "code": "uig",
+    "nt": 7834,
+    "ot": 22992,
+    "total": 30826
+  },
+  {
+    "id": "dwrENT",
+    "lang": "Dawro",
+    "title": "\u130c\u123b \u121b\u133b\u134b",
+    "code": "dwr",
+    "nt": 7806,
+    "ot": 23009,
+    "total": 30815
+  },
+  {
+    "id": "nchBl",
+    "lang": "Nahuatl, Huasteca Central",
+    "title": "Icamanal toteco; Santa Biblia",
+    "code": "nch",
+    "nt": 7952,
+    "ot": 22861,
+    "total": 30813
+  },
+  {
+    "id": "nheBl",
+    "lang": "Nahuatl, Huasteca Oriental",
+    "title": "Itlajtol toteco: Santa Biblia",
+    "code": "nhe",
+    "nt": 7952,
+    "ot": 22861,
+    "total": 30813
+  },
+  {
+    "id": "nhwBl",
+    "lang": "Nahuatl,  Huasteca Occidental",
+    "title": "Icamanal toteco; Santa B\u00edblia",
+    "code": "nhw",
+    "nt": 7952,
+    "ot": 22861,
+    "total": 30813
+  },
+  {
+    "id": "bba",
+    "lang": "Baatonum",
+    "title": "Bibeli Gusun\u0254n Gari",
+    "code": "bba",
+    "nt": 7905,
+    "ot": 22682,
+    "total": 30587
+  },
+  {
+    "id": "kne",
+    "lang": "Kankanaey",
+    "title": "Kankanaey Bible",
+    "code": "kne",
+    "nt": 7858,
+    "ot": 22684,
+    "total": 30542
+  },
+  {
+    "id": "mdyeth",
+    "lang": "Male",
+    "title": "\u130c\u12a4\u12e6 \u121b\u1343\u12a3\u1356",
+    "code": "mdy",
+    "nt": 7944,
+    "ot": 22562,
+    "total": 30506
+  },
+  {
+    "id": "tpi",
+    "lang": "Melanesian Pidgin",
+    "title": "Buk Baibel long Tok Pisin",
+    "code": "tpi",
+    "nt": 7906,
+    "ot": 22456,
+    "total": 30362
+  },
+  {
+    "id": "rug",
+    "lang": "Roviana",
+    "title": "Buka Hope",
+    "code": "rug",
+    "nt": 7925,
+    "ot": 22416,
+    "total": 30341
+  },
+  {
+    "id": "hil",
+    "lang": "Ilonggo",
+    "title": "Biblica\u00ae Libre Ang Pulong Sang Dios",
+    "code": "hil",
+    "nt": 7883,
+    "ot": 22451,
+    "total": 30334
+  },
+  {
+    "id": "yap",
+    "lang": "Yapese",
+    "title": "Bible Ni Thothup",
+    "code": "yap",
+    "nt": 7943,
+    "ot": 22378,
+    "total": 30321
+  },
+  {
+    "id": "mps",
+    "lang": "Dadibi",
+    "title": "Godigo dwagi yai po buku",
+    "code": "mps",
+    "nt": 7867,
+    "ot": 22447,
+    "total": 30314
+  },
+  {
+    "id": "kpg",
+    "lang": "Kapingamarangi",
+    "title": "Beebaa Dabu",
+    "code": "kpg",
+    "nt": 7937,
+    "ot": 22303,
+    "total": 30240
+  },
+  {
+    "id": "gubBl",
+    "lang": "Guajaj\u00e1ra",
+    "title": "Tup\u00e0n ze'eg",
+    "code": "gub",
+    "nt": 7832,
+    "ot": 22354,
+    "total": 30186
+  },
+  {
+    "id": "kij",
+    "lang": "Kilivila",
+    "title": "Buki Pilabumaboma Kabutubogwa Deli Kabutuvau",
+    "code": "kij",
+    "nt": 7919,
+    "ot": 22253,
+    "total": 30172
+  },
+  {
+    "id": "beo",
+    "lang": "Beami",
+    "title": "GODE EA SIA: IDA:IWANE GALA",
+    "code": "beo",
+    "nt": 7925,
+    "ot": 22134,
+    "total": 30059
+  },
+  {
+    "id": "hui",
+    "lang": "Huli",
+    "title": "Habo nalolene bi gahenge lo winigo ogo",
+    "code": "hui",
+    "nt": 7855,
+    "ot": 22137,
+    "total": 29992
+  },
+  {
+    "id": "cac",
+    "lang": "Chuj",
+    "title": "A Ch'an Biblia D'a Chuj San Mateo",
+    "code": "cac",
+    "nt": 7909,
+    "ot": 22081,
+    "total": 29990
+  },
+  {
+    "id": "msy2020",
+    "lang": "Aruamu",
+    "title": "God\u0268n Eghaghanim: Akar Gavgavir D\u0268k\u0268r\u0268zir Ghurim ko Igiam",
+    "code": "msy",
+    "nt": 7729,
+    "ot": 22197,
+    "total": 29926
+  },
+  {
+    "id": "pesopcb",
+    "lang": "Iranian Persian",
+    "title": "Biblica\u00ae Open Persian Contemporary Bible 2022",
+    "code": "pes",
+    "nt": 7922,
+    "ot": 21547,
+    "total": 29469
+  },
+  {
+    "id": "rop",
+    "lang": "Kriol",
+    "title": "Holi Baibul",
+    "code": "rop",
+    "nt": 7661,
+    "ot": 21647,
+    "total": 29308
+  },
+  {
+    "id": "spaonbv",
+    "lang": "Espa\u00f1ol",
+    "title": "Biblica\u00ae Open Nueva Biblia Viva 2008",
+    "code": "spa",
+    "nt": 7880,
+    "ot": 21222,
+    "total": 29102
+  },
+  {
+    "id": "wal",
+    "lang": "Wolaytta",
+    "title": "Wolaytta Bible",
+    "code": "wal",
+    "nt": 6904,
+    "ot": 20040,
+    "total": 26944
+  },
+  {
+    "id": "bqp",
+    "lang": "Busa",
+    "title": "Luda ya\u0303 takada ku\u0303 Bisa\u0303 ya\u0303o",
+    "code": "bqp",
+    "nt": 7930,
+    "ot": 17695,
+    "total": 25625
+  },
+  {
+    "id": "dop",
+    "lang": "Lukpa",
+    "title": "PIIPILI \u0196S\u0186 T\u0186M TAK\u018eLA\u0194A",
+    "code": "dop",
+    "nt": 6604,
+    "ot": 17088,
+    "total": 23692
+  }
+]

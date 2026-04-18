@@ -1,0 +1,62 @@
+{
+    "headers": [
+      {
+        "source": "/((?!_next|api|favicon|icon|manifest|sitemap|robots).*)",
+        "headers": [
+          {
+            "key": "X-Robots-Tag",
+            "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+          },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "X-XSS-Protection", "value": "1; mode=block" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(self), geolocation=()" }
+        ]
+      },
+      {
+        "source": "/_next/static/(.*)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      },
+      {
+        "source": "/sitemap.xml",
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "noindex" },
+          { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+        ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/:path*",
+        "has": [{ "type": "host", "value": "dailymannaai.com" }],
+        "destination": "https://www.dailymannaai.com/:path*",
+        "permanent": true
+      }
+    ],
+    "functions": {
+        "src/app/api/chat/route.ts": {
+            "maxDuration": 30
+        },
+        "src/app/api/grammar/route.ts": {
+            "maxDuration": 30
+        },
+        "src/app/api/refine/route.ts": {
+            "maxDuration": 30
+        },
+        "src/app/api/generate-audio/route.ts": {
+            "maxDuration": 15
+        },
+        "src/app/api/audio-overview/route.ts": {
+            "maxDuration": 30
+        },
+        "src/app/api/sermons/route.ts": {
+            "maxDuration": 30
+        }
+    },
+    "regions": [
+        "iad1"
+    ]
+}

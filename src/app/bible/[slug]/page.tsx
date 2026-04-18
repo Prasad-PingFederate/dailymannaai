@@ -1,0 +1,48 @@
+import BibleExplorer from '@/components/bible-explorer/BibleExplorer';
+import { Metadata } from 'next';
+
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ lang?: string; v?: string; head?: string }>;
+};
+
+// SEO Metadata for the specific book
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = (await params) || {};
+  
+  if (!slug) {
+    return { title: 'Bible Explorer | DailyMannaAI' };
+  }
+
+  const bookName = slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  return {
+    title: `${bookName} | Bible Explorer | DailyMannaAI`,
+    description: `Read and study the book of ${bookName} in various translations. AI-powered Bible study, and more.`,
+    openGraph: {
+      title: `${bookName} - DailyMannaAI`,
+      description: `Explore the book of ${bookName} at DailyMannaAI.`,
+      url: `https://www.dailymannaai.com/bible/${slug}`,
+    }
+  };
+}
+
+export default async function BibleBookPage({ params, searchParams }: Props) {
+  const { slug } = await params;
+  const sParams = await searchParams;
+  const initialTranslation = sParams?.v || sParams?.lang || null;
+  const headVerse = sParams?.head ? parseInt(sParams.head) : 1;
+  
+  return (
+    <main className="h-screen w-screen overflow-hidden">
+      <BibleExplorer 
+        initialBookSlug={slug} 
+        initialTranslation={initialTranslation}
+        initialChapter={1} 
+      />
+    </main>
+  );
+}
