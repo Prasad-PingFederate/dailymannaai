@@ -1776,6 +1776,39 @@ export default function SearchEnginePortal() {
                                             </button>
                                         )}
                                         
+                                        {/* Language Selector */}
+                                        <div className="relative flex items-center group/lang">
+                                            <button
+                                                type="button"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 hover:text-navy dark:hover:text-gold"
+                                                title="Select Language"
+                                            >
+                                                <Globe size={14} className="text-teal" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
+                                                    {vLanguage.split('-')[0].toUpperCase()}
+                                                </span>
+                                            </button>
+                                            
+                                            <select
+                                                value={vLanguage}
+                                                onChange={(e) => setVLanguage(e.target.value)}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                aria-label="Select Voice Language"
+                                            >
+                                                <option value="en-US">English (US)</option>
+                                                <option value="en-IN">English (India)</option>
+                                                <option value="hi-IN">Hindi (हिंदी)</option>
+                                                <option value="te-IN">Telugu (తెలుగు)</option>
+                                                <option value="ta-IN">Tamil (தமிழ்)</option>
+                                                <option value="kn-IN">Kannada (కన్నడ)</option>
+                                                <option value="ml-IN">Malayalam (മലയാളം)</option>
+                                                <option value="es-ES">Spanish</option>
+                                                <option value="fr-FR">French</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
                                         <VoiceInput 
                                             onTranscript={(text) => {
                                                 setQuery(text);
