@@ -16,6 +16,7 @@ import RichAIMessage from "./RichAIMessage";
 import { useAuth } from "@/hooks/useAuth";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
+import VoiceInput from "@/components/notebook/VoiceInput";
 import { useVoice } from "@/hooks/useVoice";
 import { Mic2, Volume2, VolumeX, PlayCircle as PlayIcon, StopCircle } from "lucide-react";
 
