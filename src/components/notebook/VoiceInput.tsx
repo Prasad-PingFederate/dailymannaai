@@ -542,6 +542,12 @@ export default function VoiceInput({
                                         >
                                             <option value="en-US">English (US)</option>
                                             <option value="en-GB">English (UK)</option>
+                                            <option value="en-IN">English (India)</option>
+                                            <option value="hi-IN">Hindi (हिंदी)</option>
+                                            <option value="te-IN">Telugu (తెలుగు)</option>
+                                            <option value="ta-IN">Tamil (தமிழ்)</option>
+                                            <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
+                                            <option value="ml-IN">Malayalam (മലയാളം)</option>
                                             <option value="es-ES">Spanish</option>
                                             <option value="fr-FR">French</option>
                                             <option value="de-DE">German</option>

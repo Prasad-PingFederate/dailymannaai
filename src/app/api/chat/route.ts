@@ -66,7 +66,23 @@ function detectConflictIntent(query: string, articles: RSSArticle[]): boolean {
 
 export async function POST(req: Request) {
     try {
-        const { query, history = [] } = await req.json();
+        const { query, history = [], language = "en-US" } = await req.json();
+
+        const langMap: Record<string, string> = {
+            'en-US': 'English',
+            'en-GB': 'English',
+            'en-IN': 'English',
+            'hi-IN': 'Hindi (हिंदी)',
+            'te-IN': 'Telugu (తెలుగు)',
+            'ta-IN': 'Tamil (தமிழ்)',
+            'kn-IN': 'Kannada (కన్నడ)',
+            'ml-IN': 'Malayalam (മലയാളം)',
+            'es-ES': 'Spanish',
+            'fr-FR': 'French',
+            'de-DE': 'German',
+            'it-IT': 'Italian',
+        };
+        const selectedLangName = langMap[language] || 'English';
 
         // 🧠 Catch-All MongoDB Logging: Entry Audit (NON-BLOCKING)
         const ip = req.headers.get('x-forwarded-for') || 'unknown';
@@ -221,6 +237,11 @@ Provide exactly 3 Bible connections using Ezekiel, Zechariah, Matthew 24, Daniel
             enhancedQuery = `${query}\n\n[USER WANTS NEWS]: Briefly acknowledge the current news happening in the world, then offer a spiritual/biblical perspective on what these events mean for believers. Speak prophetically and with hope.`;
         } else {
             enhancedQuery = query;
+        }
+
+        // Add Language Instruction
+        if (selectedLangName !== 'English') {
+            enhancedQuery = `[SYSTEM INSTRUCTION: You must respond to the user ENTIRELY in ${selectedLangName}. Maintain your biblical assistant persona.]\n\n${enhancedQuery}`;
         }
 
         // 3. Grounded Synthesis with Expert Persona (STREAMING)

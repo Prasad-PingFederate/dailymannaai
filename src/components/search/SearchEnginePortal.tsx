@@ -1246,7 +1246,8 @@ export default function SearchEnginePortal() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     query: textToSend,
-                    history: aiMessages // Note: currentMessages already has userMessage, but /api/chat might expect history EXCLUDING current user query, or INCLUDING. NotebookCore sends history=currentHistory where currentHistory includes userMessage.
+                    history: aiMessages,
+                    language: vLanguage
                 }),
                 signal: controller.signal
             });

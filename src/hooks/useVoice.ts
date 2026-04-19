@@ -17,6 +17,7 @@ interface UseVoiceOptions {
     speechRate?: number;
     speechPitch?: number;
     defaultVoice?: string;
+    onLanguageChange?: (lang: string) => void;
 }
 
 export function useVoice({
@@ -27,6 +28,7 @@ export function useVoice({
     speechRate: initialRate = 1.0,
     speechPitch: initialPitch = 1.0,
     defaultVoice: initialVoice = "",
+    onLanguageChange,
 }: UseVoiceOptions = {}) {
     const [language, setLanguage] = useState(initialLanguage);
     const [rate, setRate] = useState(initialRate);
@@ -399,7 +401,10 @@ export function useVoice({
         speak,
         cancelSpeech,
         language,
-        setLanguage,
+        setLanguage: (lang: string) => {
+            setLanguage(lang);
+            onLanguageChange?.(lang);
+        },
         rate,
         setRate,
         pitch,
