@@ -1305,8 +1305,8 @@ export default function SearchEnginePortal() {
             let fullText = "";
             const decoder = new TextDecoder();
             
-            // If this was started by voice, prepare to speak
-            const willSpeak = isVoiceOutputEnabled && (shouldSpeakNextResponse || isVoiceActive);
+            // If the Voice Mode button is ON, or if this specific query came from the mic, we speak.
+            const willSpeak = isVoiceOutputEnabled || shouldSpeakNextResponse;
             setShouldSpeakNextResponse(false);
 
             while (true) {
