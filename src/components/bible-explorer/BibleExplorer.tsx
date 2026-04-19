@@ -10,7 +10,6 @@ import {
     Download, FileAudio, Clock, Flag, Globe, Info,
     Zap, Newspaper,
     PanelLeftClose, PanelLeftOpen,
-    PanelRightClose, PanelRightOpen,
     Maximize2, Minimize2,
     Type, Home
 } from 'lucide-react';
@@ -194,14 +193,14 @@ export default function BibleExplorer({
     const [loading, setLoading] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [translation, setTranslation] = useState(initialTranslation || 'kjv');
-    const [activeToolTab, setActiveToolTab] = useState('crossref');
+
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
     // New UX State for Space
     const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-    const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+
     const [fontSize, setFontSize] = useState(19);
     const [isZenMode, setIsZenMode] = useState(false);
     
@@ -338,8 +337,8 @@ export default function BibleExplorer({
         <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground font-sans">
             {/* Primary Unified Header */}
             <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur-md z-40 sticky top-0 shadow-sm">
-                <div className="flex items-center gap-4 shrink-0">
-                    <div className="site-logo text-brand-navy hidden lg:block">
+                <div className="flex items-center gap-4 shrink-0 pl-12 md:pl-24">
+                    <div className="site-logo text-brand-navy hidden lg:block !text-[18px]">
                         DAILY <span className="gold">MANNA</span> AI
                     </div>
                     
@@ -364,7 +363,7 @@ export default function BibleExplorer({
                         <select 
                             value={translation}
                             onChange={(e) => setTranslation(e.target.value)}
-                            className="bg-transparent text-[10px] font-black text-gold-2 uppercase tracking-tight outline-none cursor-pointer hover:text-gold transition-colors min-w-[50px] pl-1"
+                            className="bg-navy/5 dark:bg-white/5 border border-border/60 rounded-xl px-3 py-1.5 text-[10px] font-black text-navy dark:text-gold tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all custom-select min-w-[85px] h-8"
                         >
                             {['NIV', 'KJV', 'NKJV', 'ES', 'ZH', 'FR', 'PT', 'DE', 'AR', 'RU', 'KO', 'TE', 'TA', 'AFRIKAANS', 'BENGALI', 'ENGLISH', 'GUJARATI', 'HINDI', 'HUNGARIAN', 'INDONESIAN', 'KANNADA', 'KASHMIRI', 'MALAYALAM', 'MARATHI', 'NEPALI', 'ORIYA', 'PUNJABI', 'SEPEDI', 'XHOSA', 'ZULU', 'GREEK', 'HEBREW', 'URDU', 'DOGRI', 'ASSAMESE', 'MANIPURI', 'SANSKRIT', 'MAITHILI', 'JAPANESE', 'VIETNAMESE', 'TAGALOG', 'THAI', 'BURMESE', 'ITALIAN', 'POLISH', 'TURKISH', 'ROMANIAN', 'SWAHILI', 'DUTCH', 'UKRAINIAN', 'SWEDISH', 'FINNISH', 'DANISH', 'CZECH', 'CROATIAN', 'SERBIAN', 'MAORI', 'LATIN', 'ALBANIAN', 'NORWEGIAN BOKMAL', 'NORWEGIAN NYNORSK', 'ESTONIAN', 'LATVIAN', 'LITHUANIAN', 'BASQUE', 'ESPERANTO', 'SCOTTISH GAELIC', 'MANX GAELIC', 'BRETON', 'CALO', 'CHAMORRO', 'CHEROKEE', 'COPTIC', 'CHURCH SLAVONIC', 'DARI', 'EASTERN ARMENIAN', 'GOTHIC', 'KLINGON', 'KOINE GREEK', 'MALAGASY', 'MONGOLIAN', 'NORTHERN NDEBELE', 'SYRIAC', 'POHNPEIAN', 'POTAWATOMI', 'SHONA', 'TAUSUG', 'TOK PISIN', 'UMA', 'ANCIENT HEBREW', 'ICELANDIC', "CH'OL", 'KEYAGANA', 'DAWAWA', 'KUBE', 'SIROI', 'PAITE'].map(v => {
                                 let val = v.toLowerCase();
@@ -543,7 +542,7 @@ export default function BibleExplorer({
                             />
                             <button 
                                 onClick={() => handleSearch()}
-                                className="px-4 py-1.5 bg-brand-navy-2 text-white rounded-xl text-[10px] font-black hover:bg-gold transition-all shadow-sm active:scale-95 uppercase tracking-wider"
+                                className="px-4 py-1.5 bg-navy dark:bg-gold text-white dark:text-navy rounded-xl text-[10px] font-black hover:bg-gold dark:hover:bg-gold-2 transition-all shadow-sm active:scale-95 uppercase tracking-wider"
                             >
                                 Search
                             </button>
@@ -551,9 +550,9 @@ export default function BibleExplorer({
                     </div>
                 </div>
 
-                {/* Right side placeholder to keep search centered */}
-                <div className="flex items-center gap-3 shrink-0 w-[120px] justify-end">
-                    {/* Handled by global layout */}
+                {/* Right side placeholder to keep search centered and avoid overlapping with fixed items */}
+                <div className="flex items-center gap-3 shrink-0 w-[220px] justify-end">
+                    {/* UserMenu and ThemeToggle are fixed in RootLayout at this position */}
                 </div>
             </header>
 
@@ -561,21 +560,22 @@ export default function BibleExplorer({
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Column 1: Books & Chapters (Combined Side Navigation) */}
                 <aside 
-                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 
+                    className={`border-r border-border bg-card-bg flex flex-col shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0 
                     ${leftSidebarOpen && !isZenMode ? 'w-80' : 'w-11 md:w-11 -translate-x-full md:translate-x-0'} 
                     ${isMobileMenuOpen ? 'w-full translate-x-0' : ''} overflow-hidden`}
                 >
                     <div className="flex flex-col h-full w-80">
                         <div className={`transition-all duration-300 ease-in-out ${!leftSidebarOpen ? 'h-0 overflow-hidden opacity-0 p-0' : 'p-4 border-b border-border bg-background/50'}`}>
                             <div className="space-y-1.5">
+                                <div className="mb-2 px-1 text-[9px] font-black text-gold/60 uppercase tracking-widest">Select Translation</div>
                                 <select 
                                     value={translation}
                                     onChange={(e) => setTranslation(e.target.value)}
-                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-[11px] font-bold text-text-2 focus:border-gold/50 outline-none cursor-pointer transition-all hover:border-gold/30 gold-focus shadow-sm"
+                                    className="w-full bg-white dark:bg-navy-2 border border-border/80 rounded-xl px-4 py-3 text-[12px] font-black text-navy dark:text-gold focus:border-gold outline-none cursor-pointer transition-all hover:shadow-md custom-select shadow-sm"
                                 >
-                                    <optgroup label="Primary">
+                                    <optgroup label="Primary Bible Versions">
                                         {['NIV', 'KJV', 'NKJV'].map(v => (
-                                            <option key={v} value={v}>{v} Version</option>
+                                            <option key={v} value={v.toLowerCase()}>{v}</option>
                                         ))}
                                         // Local XML Batch
                                         <option value="pck">Paite</option>
@@ -2029,12 +2029,22 @@ export default function BibleExplorer({
 
                         <div className={`p-3.5 border-b border-border flex items-center justify-between shrink-0 bg-muted/5 transition-opacity duration-200 ${!leftSidebarOpen ? 'opacity-0 h-0 p-0 overflow-hidden' : 'opacity-100'}`}>
                             <h4 className="font-title text-[8px] font-bold uppercase tracking-[0.22em] text-gold">Scripture Index</h4>
-                            <button 
-                                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
-                                className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all"
-                            >
-                                <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                                <button 
+                                    onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} 
+                                    className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center text-text-3 hover:text-text-1 hover:bg-muted/10 transition-all shadow-sm"
+                                    title="Collapse/Expand Sidebar"
+                                >
+                                    <ChevronLeft size={14} className={`transition-transform duration-300 ${!leftSidebarOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <div className="group relative">
+                                    <Info size={12} className="text-gold/40 hover:text-gold cursor-help transition-colors" />
+                                    <div className="absolute bottom-full right-0 mb-2 w-40 p-2 bg-navy text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl border border-gold/20 leading-relaxed z-50">
+                                        <div className="font-black text-gold mb-1 uppercase tracking-widest text-[8px]">Pro Tip</div>
+                                        Click the arrow to collapse the sidebar and maximize your reading space.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {!leftSidebarOpen ? (
@@ -2109,15 +2119,7 @@ export default function BibleExplorer({
                             <PanelLeftOpen size={18} />
                         </button>
                     )}
-                    {!rightSidebarOpen && !isZenMode && (
-                        <button 
-                            onClick={() => setRightSidebarOpen(true)}
-                            className="hidden md:flex absolute top-1/2 -right-1 -translate-y-1/2 z-30 p-2 bg-background border border-border rounded-l-xl shadow-lg hover:right-0 transition-all text-gold hover:text-gold-2"
-                            title="Expand Tools"
-                        >
-                            <PanelRightOpen size={18} />
-                        </button>
-                    )}
+
 
                     {currentBook && currentChapter ? (
                         <>
@@ -2159,7 +2161,7 @@ export default function BibleExplorer({
                                     <select 
                                         value={translation}
                                         onChange={(e) => setTranslation(e.target.value)}
-                                        className="bg-card-bg border border-border rounded-lg px-2 py-1.5 text-[10px] font-bold text-text-2 tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans hidden md:block"
+                                        className="bg-card-bg border border-border rounded-lg px-3 py-2 text-[11px] font-black text-navy dark:text-gold tracking-tight outline-none cursor-pointer hover:border-gold/30 transition-all font-sans custom-select min-w-[100px]"
                                     >
                                         {['NIV', 'KJV', 'NKJV', 'ENGLISH', 'ES', 'FR', 'DE', 'PT', 'IT', 'RU', 'ZH', 'KO', 'JA', 'AR', 'HINDI', 'BENGALI', 'TE', 'TA', 'KANNADA', 'MALAYALAM', 'MARATHI', 'GUJARATI', 'PUNJABI', 'NEPALI', 'ORIYA', 'TL', 'VI', 'TH', 'MY', 'INDONESIAN', 'TR', 'PL', 'RO', 'NL', 'SV', 'FI', 'DA', 'NB', 'CS', 'HR', 'SR', 'UK', 'ET', 'LT', 'LV', 'SQ', 'EL', 'HE', 'SW', 'AFRIKAANS', 'ISL', 'EO', 'CTU', 'KYG', 'DWW', 'KGF', 'SSD', 'PCK', 'GRC', 'HBO', 'LA', 'CU', 'GOT', 'COP', 'SYR', 'HUNGARIAN', 'SEPEDI', 'XHOSA', 'ZULU'].map(t => (
                                             <option key={t} value={t.toLowerCase()}>{t}</option>
@@ -2168,19 +2170,12 @@ export default function BibleExplorer({
                                     </select>
 
                                     <div className="flex items-center gap-1 border-l border-border/40 pl-2 md:pl-3">
-                                        <button 
-                                            onClick={() => setRightSidebarOpen(!rightSidebarOpen)} 
-                                            className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${rightSidebarOpen ? 'bg-navy text-white border-navy' : 'bg-card-bg border-border text-text-3 hover:border-gold/30'}`}
-                                            title={rightSidebarOpen ? "Collapse Tools" : "Expand Tools"}
-                                        >
-                                            <PanelRightClose size={16} className={rightSidebarOpen ? "" : "hidden"} />
-                                            <PanelRightOpen size={16} className={rightSidebarOpen ? "hidden" : ""} />
-                                        </button>
+
                                         
                                         <button 
                                             onClick={() => setIsZenMode(!isZenMode)} 
                                             className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isZenMode ? 'bg-gold text-white shadow-lg' : 'bg-card-bg border border-border text-text-3 hover:border-gold/30'}`}
-                                            title={isZenMode ? "Exit Zen Mode" : "Zen Mode"}
+                                            title={isZenMode ? "Exit Fullscreen/Zen Mode" : "Maximize Reading View (Zen Mode)"}
                                         >
                                             {isZenMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                                         </button>
@@ -2302,52 +2297,7 @@ export default function BibleExplorer({
                     )}
                 </section>
 
-                {/* Column 4: Study Tools Panel */}
-                <aside 
-                    className={`border-l border-border bg-card-bg flex flex-col transition-all duration-500 ease-in-out shrink-0
-                    ${rightSidebarOpen && !isZenMode ? 'w-80' : 'w-0 overflow-hidden border-none'}`}
-                >
-                    <div className="flex flex-col h-full w-80">
-                        <div className="flex items-center border-b border-border shrink-0">
-                            <div className="flex flex-1">
-                                {['crossref'].map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setActiveToolTab(tab)}
-                                        className={`flex-1 py-5 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 relative ${activeToolTab === tab ? 'border-gold text-brand-navy' : 'border-transparent text-muted-foreground'}`}
-                                    >
-                                        Cross Reference
-                                        {activeToolTab === tab && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />}
-                                    </button>
-                                ))}
-                            </div>
-                            <button 
-                                onClick={() => setRightSidebarOpen(false)}
-                                className="px-4 py-5 text-muted-foreground hover:text-gold transition-colors border-l border-border/50"
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
 
-                    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
-                        {activeToolTab === 'crossref' && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h5 className="font-title text-[9px] font-bold uppercase tracking-[0.2em] text-gold">Parallel Passages</h5>
-                                {[
-                                    { ref: 'John 1:1', text: '"In the beginning was the Word, and the Word was with God..."'},
-                                    { ref: 'Psalm 119:105', text: '"Your word is a lamp to my feet and a light to my path."'},
-                                    { ref: '2 Timothy 3:16', text: '"All Scripture is God-breathed and useful for teaching..."'}
-                                ].map((cr, i) => (
-                                    <div key={i} className="p-4 bg-background border border-border rounded-xl hover:border-gold/40 cursor-pointer transition-all group">
-                                        <div className="font-bold text-[10px] text-brand-navy group-hover:text-gold mb-1">{cr.ref}</div>
-                                        <p className="font-serif text-[11px] italic text-muted-foreground leading-relaxed">{cr.text}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    </div>
-                </aside>
             </main>
 
             {/* Footer */}

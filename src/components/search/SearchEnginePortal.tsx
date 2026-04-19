@@ -17,7 +17,8 @@ import { useAuth } from "@/hooks/useAuth";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
 import VoiceInput from "@/components/notebook/VoiceInput";
-import { Mic2 } from "lucide-react";
+import { useVoice } from "@/hooks/useVoice";
+import { Mic2, Volume2, VolumeX, PlayCircle as PlayIcon, StopCircle, AudioLines } from "lucide-react";
 
 // â”€â”€â”€ TYPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1033,7 +1034,7 @@ type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai"
 export default function SearchEnginePortal() {
     const [query, setQuery] = useState("");
     const { isLoggedIn } = useAuth();
-    const [filter, setFilter] = useState<FilterType>("global");
+    const [filter, setFilter] = useState<FilterType>("ai");
     const [results, setResults] = useState<SearchResult[]>([]);
     const [pagination, setPagination] = useState<{ current: number, total: number, hasMore: boolean } | null>(null);
     const [solution, setSolution] = useState<any>(null);
@@ -1041,10 +1042,13 @@ export default function SearchEnginePortal() {
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [preview, setPreview] = useState<PreviewPanel | null>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const studioRef = useRef<HTMLDivElement>(null);
     const [isVoiceActive, setIsVoiceActive] = useState(false);
+    const { speak, cancelSpeech, status: voiceStatus } = useVoice();
+    const [isVoiceOutputEnabled, setIsVoiceOutputEnabled] = useState(true); // Default to on for voice convenience
+    const [shouldSpeakNextResponse, setShouldSpeakNextResponse] = useState(false);
 
     // AI Mode States
     const [aiMessages, setAiMessages] = useState<any[]>([]);
@@ -1063,6 +1067,14 @@ export default function SearchEnginePortal() {
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [isSentinelScanning, setIsSentinelScanning] = useState(false);
     const [inAppAlert, setInAppAlert] = useState<{ title: string; body: string; link: string; source: string } | null>(null);
+
+    // Auto-resize textarea based on content
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [query]);
 
     // Load saved preference on mount seamlessly
     useEffect(() => {
@@ -1292,6 +1304,10 @@ export default function SearchEnginePortal() {
 
             let fullText = "";
             const decoder = new TextDecoder();
+            
+            // If this was started by voice, prepare to speak
+            const willSpeak = isVoiceOutputEnabled && (shouldSpeakNextResponse || isVoiceActive);
+            setShouldSpeakNextResponse(false);
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -1420,6 +1436,22 @@ export default function SearchEnginePortal() {
                 setAiSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
             }
 
+            // â”€â”€ AUTO-SPEAK REVELATION â”€â”€
+            if (willSpeak && fullText) {
+                // Clean fullText of tags before speaking
+                const speechText = fullText
+                    .replace(/<(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>[\s\S]*?<\/(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/gi, "")
+                    .replace(/### RESPONSE START ###/gi, "")
+                    .replace(/---SUGGESTIONS?---[\s\S]*/i, "")
+                    .replace(/\[METADATA:[\s\S]*?\]/gi, "")
+                    .replace(/<[^>]*>?/gm, '') // final HTML/tag strip
+                    .trim();
+                
+                if (speechText) {
+                    speak(speechText);
+                }
+            }
+
         } catch (error: any) {
             console.error("AI Mode Error:", error);
             setAiMessages(prev => {
@@ -1460,13 +1492,13 @@ export default function SearchEnginePortal() {
             togglePropheticAlerts();
             return;
         }
-        // Image Studio requires sign-in
-        if (f === "studio" && !isLoggedIn) {
-            window.location.href = "/auth/signin?callbackUrl=/";
+        // Image Studio now has its own full-fledged URL
+        if (f === "studio") {
+            window.location.href = "/imagestudio";
             return;
         }
         setFilter(f);
-        if (f === "devotionals" || f === "studio" || f === "ai" || f === "sermons") {
+        if (f === "devotionals" || f === "ai" || f === "sermons") {
             setHasSearched(true);
         } else if (query.trim()) {
             setHasSearched(true);
@@ -1506,11 +1538,10 @@ export default function SearchEnginePortal() {
         setInstantAnswer(null);
         setAiMessages([]);
         setAiSuggestions([]);
-        setTimeout(() => inputRef.current?.focus(), 300);
+        setTimeout(() => textareaRef.current?.focus(), 300);
     };
 
     const FILTERS = [
-        { id: "global", label: "All", icon: <Sparkles size={13} /> },
         { id: "ai", label: "AI Mode", icon: <Zap size={13} /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
         { id: "news", label: "News", icon: <Newspaper size={13} /> },
@@ -1576,8 +1607,17 @@ export default function SearchEnginePortal() {
             )}
 
             {/* ── HEADER ── */}
-            <header className={`w-full px-8 py-5 flex items-center justify-between z-50 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/90 dark:bg-navy/90 backdrop-blur-xl border-b border-border/50 shadow-sm" : ""}`}>
-                <div className="flex items-center gap-10">
+            <header className={`w-full px-4 sm:px-8 py-4 flex items-center justify-between z-50 transition-all duration-300 ${hasSearched ? "sticky top-0 bg-white/90 dark:bg-navy/90 backdrop-blur-xl border-b border-border/50 shadow-sm" : ""}`}>
+                <div className="flex items-center gap-3 md:gap-10">
+                    {hasSearched && (
+                        <button onClick={resetSearch} className="flex items-center gap-2 text-slate-500 hover:text-navy dark:text-slate-400 dark:hover:text-gold transition-colors pr-2 border-r border-slate-200 dark:border-slate-800">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <ChevronLeft size={18} />
+                            </div>
+                            <span className="text-sm font-bold uppercase tracking-wider hidden sm:inline">Back</span>
+                        </button>
+                    )}
+
                     <button
                         onClick={resetSearch}
                         className="site-logo"
@@ -1596,14 +1636,20 @@ export default function SearchEnginePortal() {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Search the Scriptures..."
-                                    className="flex-1 bg-transparent border-none outline-none text-sm text-text-1"
+                                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-text-1"
                                 />
-                                {query && <X size={14} className="text-slate-300 cursor-pointer" onClick={() => setQuery("")} />}
-                                <div className="h-4 w-px bg-slate-200" />
-                                <VoiceInput 
-                                    onTranscript={(text) => { setQuery(text); handleSearch(text, filter); }}
-                                    variant="minimal"
-                                />
+                                {query && <X size={14} className="text-slate-300 cursor-pointer flex-shrink-0" onClick={() => setQuery("")} />}
+                                <div className="h-4 w-px bg-slate-200 flex-shrink-0" />
+                                <div className="flex-shrink-0">
+                                    <VoiceInput 
+                                        onTranscript={(text) => { 
+                                            setQuery(text); 
+                                            setShouldSpeakNextResponse(true);
+                                            handleSearch(text, filter); 
+                                        }}
+                                        variant="minimal"
+                                    />
+                                </div>
                             </form>
                         </div>
                     )}
@@ -1615,16 +1661,36 @@ export default function SearchEnginePortal() {
             </header>
 
             {/* ── MAIN ── */}
-            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? "pt-6" : "pt-28 md:pt-36"}`}>
+            <main className={`flex-1 w-full flex flex-col items-center z-10 px-4 transition-all duration-700 ${hasSearched ? (filter === 'ai' ? "pt-2" : "pt-6") : "pt-8 md:pt-12"}`}>
 
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <h1 className="site-logo text-fluid-h1 !gap-2 md:!gap-4 justify-center">
-                            <span>DAILY</span>
-                            <span className="gold drop-shadow-[0_0_25px_rgba(200,146,42,0.3)]">MANNA</span>
-                            <span>AI</span>
-                        </h1>
+                        <div className="flex flex-col items-center gap-6 mb-10">
+                            {/* Official Icon: Navy Book + Golden Cross */}
+                            <div className="w-28 h-28 relative group transition-transform duration-500 hover:scale-110">
+                                <div className="absolute inset-0 bg-navy dark:bg-navy/80 rounded-[28px] shadow-2xl transform -rotate-3 transition-transform group-hover:rotate-0"></div>
+                                <div className="absolute inset-0 bg-navy-2 rounded-[28px] shadow-xl flex items-center justify-center border border-white/10">
+                                    <div className="relative">
+                                        <Book size={56} className="text-white/10" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            {/* Golden Cross */}
+                                            <div className="w-1.5 h-14 bg-gradient-to-b from-gold via-gold-2 to-gold rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)]"></div>
+                                            <div className="absolute w-10 h-1.5 bg-gold rounded-full top-4 shadow-[0_0_15px_rgba(212,175,55,0.4)]"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center gap-0">
+                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-navy dark:text-white leading-none">
+                                    DAILY MANNA
+                                </h1>
+                                <div className="text-xl md:text-2xl font-light tracking-[0.5em] text-gold mt-1 pl-[0.5em]">
+                                    AI
+                                </div>
+                            </div>
+                        </div>
                         <p className="f-display text-text-2 max-w-lg mx-auto text-xl md:text-2xl italic">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
                         </p>
@@ -1632,56 +1698,106 @@ export default function SearchEnginePortal() {
                 )}
 
                 {/* ── SEARCH BOX & MODES ── */}
-                <div className={`w-full transition-all duration-500 ${hasSearched ? "max-w-4xl" : "max-w-2xl"}`}>
+                <div className={`w-full transition-all duration-500 ${hasSearched && filter === 'ai' ? 'mb-0' : 'max-w-4xl px-4 sm:px-0 mx-auto'}`}>
                     <form onSubmit={onSubmit}>
-                        <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 mb-8 items-center w-full max-w-full no-scrollbar px-2 sm:flex-wrap sm:justify-center">
-                            {FILTERS.map((f) => (
-                                <button
-                                    key={f.id}
-                                    type="button"
-                                    onClick={() => onFilterChange(f.id as FilterType)}
-                                    className={`mode-tab flex-shrink-0 ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
-                                >
-                                    {f.icon}
-                                    <span>{f.label}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="search-bar-main group relative">
-                            <div className="flex-shrink-0 opacity-40 group-focus-within:opacity-100 transition-opacity">
-                                <Search size={20} />
+                        {(!hasSearched || (hasSearched && filter !== 'ai')) && (
+                            <div className="flex flex-wrap gap-2 mb-8 items-center justify-center w-full px-2">
+                                {FILTERS.map((f) => (
+                                    <button
+                                        key={f.id}
+                                        type="button"
+                                        onClick={() => onFilterChange(f.id as FilterType)}
+                                        className={`mode-tab flex-shrink-0 ${filter === f.id ? 'active' : ''} ${f.id === 'alerts' && alertsEnabled ? 'border-orange bg-orange/5 text-orange' : ''}`}
+                                    >
+                                        {f.icon}
+                                        <span>{f.label}</span>
+                                    </button>
+                                ))}
                             </div>
-                            
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search..."
-                                className="search-input-main !text-sm sm:!text-base"
-                            />
+                        )}
 
-                            {query && (
-                                <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors">
-                                    <X size={18} />
-                                </button>
-                            )}
-                            
-                            {/* Integrated Voice Input */}
-                            <VoiceInput 
-                                onTranscript={(text) => {
-                                    setQuery(text);
-                                    handleSearch(text, filter);
-                                }} 
-                                onListeningChange={setIsVoiceActive}
-                                className="flex-shrink-0"
-                            />
+                        {/* Search Bar Inner Container */}
+                        <div className={`w-full transition-all duration-500 ${hasSearched ? (filter === 'ai' ? 'fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-transparent dark:from-navy dark:via-navy p-4 pb-8 flex justify-center' : 'max-w-4xl px-4 sm:px-0 mx-auto') : 'max-w-2xl px-4 sm:px-0 mx-auto'}`}>
+                            <div className={`${hasSearched && filter === 'ai' ? 'w-full max-w-2xl' : 'w-full'}`}>
+                                <div className="search-bar-main group relative shadow-2xl !rounded-[2rem] overflow-hidden min-h-[56px] py-1 px-2.5">
+                                    <div className="flex-shrink-0 pt-3.5 pl-1.5 text-slate-400">
+                                        <Search size={16} />
+                                    </div>
+                                    
+                                    <textarea
+                                        ref={textareaRef}
+                                        rows={1}
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" && !e.shiftKey) {
+                                                e.preventDefault();
+                                                onSubmit(e as any);
+                                            }
+                                        }}
+                                        placeholder={filter === 'ai' ? "Reply to DailyMannaAI..." : "Search the Scriptures..."}
+                                        className="search-input-main flex-1 min-w-0 !text-[15px] sm:!text-base resize-none py-2.5 max-h-48 overflow-y-auto leading-normal px-1"
+                                    />
 
-                            <button type="submit" className="bg-[#0C1A2E] text-white px-4 sm:px-8 py-2.5 rounded-full font-bold text-sm hover:bg-[#142238] transition-all shadow-md active:scale-95 ml-2">
-                                <span className="hidden sm:inline">Search</span>
-                                <Search size={16} className="sm:hidden" />
-                            </button>
+                                    <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                                        {query && (
+                                            <button type="button" onClick={() => setQuery("")} className="text-text-3 hover:text-navy transition-colors p-1 flex-shrink-0">
+                                                <X size={15} />
+                                            </button>
+                                        )}
+                                        
+                                        <VoiceInput 
+                                            onTranscript={(text) => {
+                                                setQuery(text);
+                                                setShouldSpeakNextResponse(true);
+                                                handleSearch(text, filter);
+                                            }} 
+                                            onListeningChange={setIsVoiceActive}
+                                        />
+
+                                        <button 
+                                            type="submit" 
+                                            disabled={!query.trim() && !isVoiceActive}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${query.trim() ? "bg-navy text-white shadow-lg active:scale-90" : "bg-slate-100 text-slate-300 dark:bg-white/5"}`}
+                                        >
+                                            <ArrowUpRight size={16} className="rotate-[270deg]" />
+                                        </button>
+
+                                        <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (voiceStatus === "speaking") {
+                                                    cancelSpeech();
+                                                } else {
+                                                    setIsVoiceOutputEnabled(!isVoiceOutputEnabled);
+                                                }
+                                            }}
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative ${
+                                                isVoiceOutputEnabled 
+                                                ? "bg-gold/15 text-gold shadow-[0_0_15px_rgba(212,175,55,0.3)]" 
+                                                : "bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-white/5 dark:text-white/40"
+                                            }`}
+                                            title={isVoiceOutputEnabled ? "Voice Output Active" : "Enable Voice Output"}
+                                        >
+                                            {voiceStatus === "speaking" ? (
+                                                <>
+                                                    <StopCircle size={18} className="text-red-500 z-10" />
+                                                    <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <AudioLines size={18} className={isVoiceOutputEnabled ? "animate-pulse" : ""} />
+                                                    {isVoiceOutputEnabled && (
+                                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white dark:border-navy" />
+                                                    )}
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {!hasSearched && (
@@ -1704,42 +1820,85 @@ export default function SearchEnginePortal() {
 
                 {/* ── RESULTS AREA ── */}
                 {(hasSearched || filter === "studio" || filter === "devotionals") && (
-                    <div className="res-container mt-14 pb-32" ref={chatContainerRef}>
+                    <div className={`w-full px-2 sm:px-6 md:px-10 ${filter === 'ai' ? 'mt-4' : 'mt-14'} pb-32`} ref={chatContainerRef}>
                         {isSearching && filter !== "ai" ? (
                             <LoadingState />
                         ) : filter === "ai" ? (
-                            <div className="max-w-5xl mx-auto space-y-16">
+                            <div className="w-full space-y-6">
                                 {aiMessages.length === 0 ? (
-                                    <div className="py-10 flex flex-col items-center text-center space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                                        <div className="relative">
-                                            <div className="absolute inset-0 bg-sky-500/15 blur-[60px] rounded-full scale-150 animate-pulse" />
-                                            <div className="w-24 h-24 rounded-[2.5rem] bg-white border border-slate-200 flex items-center justify-center relative shadow-xl">
-                                                <Sparkles className="text-sky-500 w-10 h-10" />
+                                    <div className="py-8 sm:py-20 flex flex-col items-center text-center space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                                        {/* Icon & Title Group */}
+                                        <div className="space-y-6">
+                                            <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32">
+                                                <div className="absolute inset-0 bg-gold/20 blur-[60px] rounded-full scale-150 animate-pulse" />
+                                                <div className="w-full h-full rounded-[2.5rem] bg-white border border-border flex items-center justify-center relative shadow-2xl">
+                                                    <Sparkles className="text-gold w-12 h-12" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4 max-w-2xl px-4">
+                                                <h2 className="text-4xl sm:text-6xl font-black text-navy tracking-tight font-['Cinzel'] italic">
+                                                    Ask Anything About the Word
+                                                </h2>
+                                                <p className="text-text-2 text-base sm:text-lg leading-relaxed font-serif italic max-w-xl mx-auto opacity-80">
+                                                    "Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you."
+                                                </p>
                                             </div>
                                         </div>
-                                        <div className="space-y-4 max-w-lg">
-                                            <h2 className="text-4xl font-black text-slate-900 tracking-tight font-['Cinzel'] italic">
-                                                Ask Anything About the Word
-                                            </h2>
-                                            <p className="text-slate-500 text-sm leading-relaxed font-serif italic">
-                                                AI Mode provides deep, Scripture-grounded answers to your questions about faith, theology, and the Christian life.
-                                            </p>
+
+                                        {/* Suggestions Grid */}
+                                        <div className="w-full max-w-4xl px-4">
+                                            <div className="flex items-center gap-3 mb-6 px-4">
+                                                <div className="h-px flex-1 bg-border/50" />
+                                                <span className="text-[10px] font-black text-gold uppercase tracking-[0.4em]">Divine Starting Points</span>
+                                                <div className="h-px flex-1 bg-border/50" />
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {aiSuggestions.map((s, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => { setQuery(s); handleAiSendMessage(s); }}
+                                                        className="p-6 text-left rounded-3xl bg-white border border-border hover:border-gold/40 hover:bg-gold/5 transition-all group shadow-sm hover:shadow-md active:scale-95 flex flex-col justify-between h-full min-h-[140px]"
+                                                    >
+                                                        <div className="bg-gold/10 w-8 h-8 rounded-xl flex items-center justify-center mb-4 group-hover:bg-gold group-hover:text-white transition-all">
+                                                            <MessageCircle size={14} className="text-gold group-hover:text-white" />
+                                                        </div>
+                                                        <span className="text-[13px] font-black text-navy group-hover:text-gold block leading-snug">
+                                                            {s}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl px-4">
-                                            {aiSuggestions.map((s, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => { setQuery(s); handleAiSendMessage(s); }}
-                                                    className="p-6 text-left rounded-3xl bg-white border border-slate-200 hover:border-sky-400 hover:bg-sky-50 transition-all group shadow-sm hover:shadow-md active:scale-95"
-                                                >
-                                                    <div className="bg-sky-500/10 w-9 h-9 rounded-xl flex items-center justify-center mb-4 group-hover:bg-sky-500 group-hover:text-white transition-all">
-                                                        <MessageCircle size={14} className="text-sky-600 group-hover:text-white" />
+
+                                        {/* Informative Highlights */}
+                                        <div className="w-full max-w-5xl px-4 pt-12">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                {[
+                                                    { 
+                                                        icon: <BookOpen className="text-gold" size={18} />, 
+                                                        title: "Elite Verification", 
+                                                        desc: "Real-time cross-referencing across 200+ Bible translations and languages."
+                                                    },
+                                                    { 
+                                                        icon: <Zap className="text-gold" size={18} />, 
+                                                        title: "Prophetic Insight", 
+                                                        desc: "Context-aware AI that understands theological nuance and spiritual depth."
+                                                    },
+                                                    { 
+                                                        icon: <Globe className="text-gold" size={18} />, 
+                                                        title: "Global Reach", 
+                                                        desc: "Transcribed and translated devotionals from worldwide Christian perspectives."
+                                                    }
+                                                ].map((feature, idx) => (
+                                                    <div key={idx} className="flex flex-col items-center text-center space-y-3 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 dark:bg-navy-3 dark:border-white/5">
+                                                        <div className="w-10 h-10 rounded-2xl bg-white dark:bg-navy-2 flex items-center justify-center shadow-sm border border-border/50">
+                                                            {feature.icon}
+                                                        </div>
+                                                        <h4 className="text-[11px] font-black text-navy dark:text-gold uppercase tracking-widest">{feature.title}</h4>
+                                                        <p className="text-[12px] text-text-2 leading-relaxed opacity-70">{feature.desc}</p>
                                                     </div>
-                                                    <span className="text-sm font-bold text-slate-700 group-hover:text-sky-700 block line-clamp-2">
-                                                        {s}
-                                                    </span>
-                                                </button>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (() => {
@@ -1753,17 +1912,26 @@ export default function SearchEnginePortal() {
                                     }
                                     const displayMessages = groups.reverse().flat();
                                     return displayMessages.map((msg, i) => (
-                                        <div key={i} className={`flex gap-2 sm:gap-8 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
-                                            <div className={`w-8 h-8 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-2xl transition-all hover:scale-105 ${msg.role === 'user' ? 'bg-sky-500 text-white shadow-sky-500/20' : 'bg-slate-50 border border-slate-200 text-sky-600 shadow-xl'}`}>
-                                                {msg.role === 'user' ? (
-                                                    <div className="font-['Cinzel'] font-black text-lg sm:text-xl">U</div>
-                                                ) : (
-                                                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-                                                )}
+                                        <div key={i} className={`flex items-start gap-2 sm:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-8 fade-in duration-700`}>
+                                            {/* Tiny dot — replaces large avatar */}
+                                            <div className="flex-shrink-0 pt-4">
+                                                <div className={`w-2.5 h-2.5 rounded-full ${msg.role === 'user' ? 'bg-sky-400' : 'bg-red-500'}`} />
                                             </div>
 
-                                            <div className={`flex flex-col gap-2 min-w-0 max-w-full ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
-                                                <div className={`relative p-3 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl md:rounded-[3.5rem] transition-all duration-500 shadow-xl ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 w-full sm:max-w-[85%] sm:p-6 p-4 rounded-xl' : 'bg-slate-50 border border-slate-200 text-slate-900 w-full'}`}>
+                                            {/* Full-width message */}
+                                            <div className="flex flex-col gap-2 flex-1 min-w-0">
+
+                                                <div className={`relative w-full p-4 sm:p-8 transition-all duration-500 text-[15px] sm:text-lg leading-relaxed ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 rounded-2xl shadow-md' : 'bg-transparent text-slate-900 border-none px-0'}`}>
+
+                                                    {msg.role === 'assistant' && !msg.isThinking && msg.content && (
+                                                        <button 
+                                                            onClick={() => speak(msg.content)}
+                                                            className="absolute top-2 right-2 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 hover:text-gold transition-all z-20"
+                                                            title="Listen to Revelation"
+                                                        >
+                                                            <PlayIcon size={18} />
+                                                        </button>
+                                                    )}
 
                                                     {msg.role === 'assistant' && (
                                                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />
@@ -1776,12 +1944,6 @@ export default function SearchEnginePortal() {
                                                             phase={msg.thinkingPhase}
                                                             startTime={msg.thinkStartTime}
                                                         />
-                                                    )}
-
-                                                    {msg.role === 'assistant' && (
-                                                        <div className="text-sky-400 text-[10px] font-black uppercase tracking-[0.6em] mb-6 opacity-60">
-                                                            {msg.isConflictMode ? "Prophetic Analysis" : "Divine Perspective"}
-                                                        </div>
                                                     )}
 
                                                     <div className={`leading-relaxed ${msg.role === 'user' ? 'text-xl font-medium' : ''}`}>
@@ -1852,10 +2014,6 @@ export default function SearchEnginePortal() {
                             <div className="w-full">
                                 <SermonsTab />
                             </div>
-                        ) : filter === "studio" ? (
-                            <div ref={studioRef} className="max-w-6xl mx-auto rounded-[3rem] overflow-hidden border border-slate-200 shadow-2xl bg-white min-h-[800px] scroll-mt-6">
-                                <BibleQuoteGenerator />
-                            </div>
                         ) : hasContent ? (
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
@@ -1896,12 +2054,11 @@ export default function SearchEnginePortal() {
                 )}
             </main>
 
-            {/* Site Footer */}
-            <footer style={{ width: "100%", borderTop: "1px solid var(--border-secondary, #ebebeb)", background: "var(--nav-bg, #fff)", padding: "22px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, }}>
-                <span style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-muted, #888)" }}>&copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer &#10022;</span>
-                <nav style={{ display: "flex", gap: 20 }}>
-                    {[{ label: "Daily Manna", href: "/daily-manna" }, { label: "Bible Explorer", href: "/bible-explorer" }, { label: "Notebook", href: "/notebook" }, { label: "About Us", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy Policy", href: "/privacy-policy" }].map((link) => (<a key={link.href} href={link.href} style={{ fontFamily: "sans-serif", fontSize: 12, color: "var(--text-secondary, #666)", textDecoration: "none" }}>{link.label}</a>))}
-                </nav>
+            {/* Site Footer - Simplified */}
+            <footer className="w-full py-8 text-center border-t border-slate-100 dark:border-white/5 opacity-50">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+                    &copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer
+                </p>
             </footer>
         </div>
     );

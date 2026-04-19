@@ -30,7 +30,11 @@ interface Section {
 }
 
 function parseIntoSections(raw: string): Section[] {
-    const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+    // 🛡️ PRE-PROCESSING: Strip any leftover tags that might have leaked through
+    // This handles cases like <THOUGHT> or stray symbols like <>
+    const processedRaw = raw.replace(/<[^>]*>?/gm, "").replace(/<>/g, "").trim();
+    
+    const lines = processedRaw.split("\n").map((l) => l.trim()).filter(Boolean);
     const sections: Section[] = [];
     let bulletBuffer: string[] = [];
 
@@ -196,11 +200,10 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 @keyframes fadeUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
                 .rich-ai-card { animation: fadeUp 0.4s ease both; }
                 .rich-sec-block { animation: fadeUp 0.4s ease both; }
-                .rich-pad-x { padding-left: 32px; padding-right: 32px; }
-                .rich-margin-x { margin-left: 32px; margin-right: 32px; }
+                .rich-pad-x { padding-left: 24px; padding-right: 24px; }
+                .rich-margin-x { margin-left: 0; margin-right: 0; }
                 @media (max-width: 640px) {
-                    .rich-pad-x { padding-left: 16px !important; padding-right: 16px !important; }
-                    .rich-margin-x { margin-left: 16px !important; margin-right: 16px !important; }
+                    .rich-pad-x { padding-left: 12px !important; padding-right: 12px !important; }
                 }
             `}</style>
 
@@ -214,7 +217,7 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 {/* Header */}
                 <div className="rich-pad-x" style={{
                     paddingTop: 28, paddingBottom: 20,
-                    borderLeft: "4px solid " + color,
+
                     borderBottom: "1px solid var(--border-secondary, #ebebeb)",
                     background: "var(--bg-secondary, #f9f9f7)",
                 }}>
@@ -241,12 +244,11 @@ export default function RichAIMessage({ content, isThinking }: Props) {
 
                 {/* Featured verse */}
                 {firstVerse && firstVerse.text && (
-                    <div className="rich-margin-x" style={{
+                    <div className="rich-pad-x" style={{
                         marginTop: 24, marginBottom: 0,
-                        borderLeft: "4px solid " + color,
                         background: color + "0a",
-                        borderRadius: "0 12px 12px 0",
-                        padding: "18px 24px",
+                        borderRadius: "12px",
+                        paddingTop: "16px", paddingBottom: "16px",
                     }}>
                         <div style={{
                             fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase",
@@ -296,8 +298,7 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                             return (
                                 <div key={i} style={{
                                     display: "flex", alignItems: "flex-start", gap: 12,
-                                    borderLeft: "3px solid " + color,
-                                    padding: "12px 16px", borderRadius: "0 10px 10px 0",
+                                    padding: "12px", borderRadius: "10px",
                                     background: "var(--bg-secondary, #f9f9f7)",
                                 }}>
                                     <span style={{ fontSize: 16, flexShrink: 0 }}>&#128220;</span>
@@ -330,8 +331,8 @@ export default function RichAIMessage({ content, isThinking }: Props) {
                 </div>
 
                 {/* Closing */}
-                <div className="rich-margin-x" style={{
-                    marginTop: 20, marginBottom: 20, padding: "16px 22px", borderRadius: 12,
+                <div className="rich-pad-x" style={{
+                    marginTop: 20, marginBottom: 20, paddingTop: "16px", paddingBottom: "16px", borderRadius: 12,
                     border: "1px solid " + color + "30", background: color + "0d",
                     fontSize: 14, fontStyle: "italic",
                     color: "var(--text-secondary, #444)", lineHeight: 1.7, textAlign: "center",

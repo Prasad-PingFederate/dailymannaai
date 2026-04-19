@@ -253,19 +253,88 @@ export function useVoice({
     const speak = useCallback(async (text: string): Promise<void> => {
         if (!text.trim()) return;
         syncStatus("speaking");
-        const res = await fetch("/api/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
-        if (res.ok) {
-            const audioBlob = await res.blob();
-            const url = URL.createObjectURL(audioBlob);
-            const audio = new Audio(url);
-            audioRef.current = audio;
-            return new Promise((resolve) => {
-                audio.onended = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
-                audio.onerror = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
-                audio.play();
+
+        const cleanText = text
+            .replace(/<(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>[\s\S]*?<\/(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/gi, "")
+            .replace(/### RESPONSE START ###/gi, "")
+            .replace(/---SUGGESTIONS?---[\s\S]*/i, "")
+            .replace(/\[METADATA:[\s\S]*?\]/gi, "")
+            .trim();
+
+        // --- PLAN A: OpenAI TTS (Premium) ---
+        try {
+            console.log("[Voice] Attempting Plan A (OpenAI)...");
+            const res = await fetch("/api/synthesize", { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ text: cleanText }) 
             });
+            
+            if (res.ok) {
+                const audioBlob = await res.blob();
+                const url = URL.createObjectURL(audioBlob);
+                const audio = new Audio(url);
+                audioRef.current = audio;
+                return new Promise((resolve) => {
+                    audio.onended = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
+                    audio.onerror = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
+                    audio.play();
+                });
+            }
+        } catch (e) {
+            console.warn("[Voice] Plan A Failed:", e);
         }
-    }, []);
+
+        // --- PLAN B: Google TTS (Reliable Server-side) ---
+        try {
+            console.log("[Voice] Attempting Plan B (Google)...");
+            const res = await fetch("/api/generate-audio", { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ text: cleanText }) 
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                if (data.audio_base64) {
+                    const binaryString = window.atob(data.audio_base64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                    const audioBlob = new Blob([bytes], { type: "audio/mpeg" });
+                    const url = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(url);
+                    audioRef.current = audio;
+                    return new Promise((resolve) => {
+                        audio.onended = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
+                        audio.onerror = () => { URL.revokeObjectURL(url); audioRef.current = null; syncStatus("idle"); resolve(); };
+                        audio.play();
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn("[Voice] Plan B Failed:", e);
+        }
+
+        // --- PLAN C: Browser Native Speech (The Ultimate Fallback) ---
+        try {
+            console.log("[Voice] Attempting Plan C (Native)...");
+            if (!window.speechSynthesis) throw new Error("SpeechSynthesis not supported");
+            
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = language;
+            utterance.rate = 1.0;
+            
+            return new Promise((resolve) => {
+                utterance.onend = () => { syncStatus("idle"); resolve(); };
+                utterance.onerror = () => { syncStatus("error"); resolve(); };
+                window.speechSynthesis.speak(utterance);
+            });
+        } catch (e) {
+            console.error("[Voice] Plan C Failed:", e);
+            syncStatus("error");
+            setError("All voice output plans failed.");
+        }
+    }, [language]);
 
     const cancelSpeech = useCallback(() => {
         if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
