@@ -134,7 +134,7 @@ export async function POST(req: Request) {
         // Handle Greetings
         if (intentResult.type === "GREETING" && query.split(" ").length <= 4) {
             const greetingPrompt = `The user said: "${query}". Reply with a warm Christian greeting. Keep it short.`;
-            const { answer: greeting, thought: greetingThought } = await generateGroundedResponse(greetingPrompt, [], "", history);
+            const { answer: greeting, thought: greetingThought } = await generateGroundedResponse(greetingPrompt, [], "", history, "", "", selectedLangName);
             return NextResponse.json({
                 role: "assistant",
                 content: greeting,
@@ -247,7 +247,7 @@ Provide exactly 3 Bible connections using Ezekiel, Zechariah, Matthew 24, Daniel
         // 3. Grounded Synthesis with Expert Persona (STREAMING)
         const combinedSources = [...groundingSources, ...sourcesText];
 
-        const { stream, provider } = await generateGroundedStream(enhancedQuery, combinedSources, webContext + newsContext, history, standaloneQuery, "");
+        const { stream, provider } = await generateGroundedStream(enhancedQuery, combinedSources, webContext + newsContext, history, standaloneQuery, "", selectedLangName);
 
         // Prepare metadata and research steps for the frontend
         const researchSteps = [

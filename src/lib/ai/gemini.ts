@@ -83,7 +83,7 @@ async function rewriteQuery(query: string, history: any[]): Promise<string> {
     return res.standaloneQuery;
 }
 
-export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string) {
+export async function generateGroundedResponse(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string, targetLanguage: string = "English") {
     // Truncate and limit history
     const recentHistory = truncateHistory(history.slice(-5));
 
@@ -105,6 +105,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
     - Write as a "Born-Again Scholar": Authoritative, precise, and encouraging.
     - Avoid "I think" or "Maybe". Use "The Scriptures record..." or "Historical records indicate...".
     - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
+    - 🛡️ **LANGUAGE RULE**: You MUST provide your entire visible response (Title, Answer, Application, etc.) in **${targetLanguage}**.
 
     STEP 4: INTERNAL REASONING (The "Thinking" Process)
     - YOU MUST START YOUR RESPONSE WITH YOUR INTERNAL REASONING WRAPPED IN \`<THOUGHT>\` tags.
@@ -332,7 +333,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
     }
 }
 
-export async function generateGroundedStream(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string) {
+export async function generateGroundedStream(query: string, sources: string[], webContext: string = "", history: any[] = [], standaloneFocusedQuery?: string, truthSummary?: string, targetLanguage: string = "English") {
     const recentHistory = truncateHistory(history.slice(-5));
 
     const prompt = `
@@ -353,6 +354,7 @@ export async function generateGroundedStream(query: string, sources: string[], w
     - Write as a "Born-Again Scholar": Authoritative, precise, and encouraging.
     - Avoid "I think" or "Maybe". Use "The Scriptures record..." or "Historical records indicate...".
     - If the user asks for a specific verse (e.g. Genesis 1:1), and it is provided in the sources, quote it EXACTLY.
+    - 🛡️ **LANGUAGE RULE**: You MUST provide your entire visible response (Title, Answer, Application, etc.) in **${targetLanguage}**.
 
     STEP 4: INTERNAL REASONING (The "Thinking" Process)
     - YOU MUST START YOUR RESPONSE WITH YOUR INTERNAL REASONING WRAPPED IN \`<THOUGHT>\` tags.
