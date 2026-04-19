@@ -191,7 +191,7 @@ export async function generateGroundedResponse(query: string, sources: string[],
         let thought = "";
 
         // Strategy 1: XML-style tags (Standard + Broad Fallbacks)
-        const thoughtMatch = finalResponse.match(/<([\\/ ]?(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH))[\s\S]*?>([\s\S]*?)<\/\1>|<\/?(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|THT|THO|THU|TH)[\s\S]*?>/i);
+        const thoughtMatch = finalResponse.match(/<([\\/ ]?(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT))[\s\S]*?>([\s\S]*?)<\/\1>|<\/?(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT)[\s\S]*?>/i);
         if (thoughtMatch) {
             // If it matched a full block <TAG>content</TAG>
             if (thoughtMatch[2]) {
