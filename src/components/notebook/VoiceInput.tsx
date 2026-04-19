@@ -299,6 +299,7 @@ export default function VoiceInput({
         recorder.start(200); // chunk every 200ms
 
         // ── 2. Web Speech API: runs silently in parallel as fallback ──────────
+        const SpeechRecognition = typeof window !== 'undefined' ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
