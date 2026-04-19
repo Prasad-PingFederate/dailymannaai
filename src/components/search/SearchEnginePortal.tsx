@@ -6,7 +6,7 @@ import {
     ExternalLink, Clock, Calculator, Calendar, PlayCircle, Quote,
     ChevronLeft, Globe, Share2, BookOpen, ChevronRight, Zap,
     ArrowUpRight, Filter, CheckCircle, Star, Hash, Copy, Check,
-    Bell
+    Bell, Download, Trash2
 } from "lucide-react";
 import Link from "next/link";
 import BibleQuoteGenerator from "@/components/notebook/BibleQuoteGenerator";
