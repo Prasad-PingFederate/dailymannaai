@@ -1067,6 +1067,32 @@ export default function SearchEnginePortal() {
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [isSentinelScanning, setIsSentinelScanning] = useState(false);
     const [inAppAlert, setInAppAlert] = useState<{ title: string; body: string; link: string; source: string } | null>(null);
+    const [lastLanguage, setLastLanguage] = useState(vLanguage);
+
+    const placeholders: Record<string, string> = {
+        'en-US': 'Reply to DailyMannaAI...',
+        'en-IN': 'Reply to DailyMannaAI...',
+        'hi-IN': 'DailyMannaAI को उत्तर दें...',
+        'te-IN': 'DailyMannaAIకి సమాధానం ఇవ్వండి...',
+        'ta-IN': 'DailyMannaAI-க்கு பதிலளிக்கவும்...',
+        'kn-IN': 'DailyMannaAI ಗೆ ಉತ್ತರಿಸಿ...',
+        'ml-IN': 'DailyMannaAI-ന് മറുപടി നൽകുക...',
+        'es-ES': 'Responder a DailyMannaAI...',
+        'fr-FR': 'Répondre à DailyMannaAI...',
+        'de-DE': 'Antworten an DailyMannaAI...',
+        'it-IT': 'Rispondi a DailyMannaAI...',
+    };
+
+    const currentPlaceholder = placeholders[vLanguage] || placeholders['en-US'];
+
+    // Auto-detect language change and reset state if needed
+    useEffect(() => {
+        if (vLanguage !== lastLanguage) {
+            setLastLanguage(vLanguage);
+            // Optional: You could clear AI messages here if you want a fresh start
+            // setAiMessages([]); 
+        }
+    }, [vLanguage, lastLanguage]);
 
     // Auto-resize textarea based on content
     useEffect(() => {
@@ -1198,9 +1224,9 @@ export default function SearchEnginePortal() {
         } finally {
             setIsSearching(false);
         }
-    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching, setPagination, isVoiceOutputEnabled, shouldSpeakNextResponse, speak]);
+    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching, setPagination, isVoiceOutputEnabled, shouldSpeakNextResponse, speak, vLanguage]);
 
-    const handleAiSendMessage = async (textToSend: string): Promise<string> => {
+    const handleAiSendMessage = useCallback(async (textToSend: string): Promise<string> => {
         if (!textToSend.trim()) return "";
 
         let finalResponse = "";
@@ -1484,7 +1510,7 @@ export default function SearchEnginePortal() {
             abortAiControllerRef.current = null;
         }
         return finalResponse;
-    };
+    }, [aiMessages, vLanguage, isVoiceOutputEnabled, speak]);
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -1765,7 +1791,7 @@ export default function SearchEnginePortal() {
                                                 onSubmit(e as any);
                                             }
                                         }}
-                                        placeholder={filter === 'ai' ? "Reply to DailyMannaAI..." : "Search the Scriptures..."}
+                                        placeholder={filter === 'ai' ? currentPlaceholder : "Search the Scriptures..."}
                                         className="search-input-main flex-1 min-w-0 !text-[15px] sm:!text-base resize-none py-2.5 max-h-48 overflow-y-auto leading-normal px-1"
                                     />
 

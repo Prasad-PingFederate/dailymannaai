@@ -38,6 +38,18 @@ export function useVoice({
 
     const [isFirefox, setIsFirefox] = useState(false);
 
+    // Initial load from localStorage
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const savedLang = localStorage.getItem("voice-language");
+            const savedRate = localStorage.getItem("voice-rate");
+            const savedPitch = localStorage.getItem("voice-pitch");
+            if (savedLang) setLanguage(savedLang);
+            if (savedRate) setRate(parseFloat(savedRate));
+            if (savedPitch) setPitch(parseFloat(savedPitch));
+        }
+    }, []);
+
     useEffect(() => {
         const ua = navigator.userAgent;
         setIsFirefox(ua.toLowerCase().includes("firefox"));
@@ -380,7 +392,7 @@ export function useVoice({
             syncStatus("error");
             setError("All voice output plans failed.");
         }
-    }, [language]);
+    }, [language, rate, pitch, selectedVoice, availableVoices]);
 
     const cancelSpeech = useCallback(() => {
         if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -403,12 +415,19 @@ export function useVoice({
         language,
         setLanguage: (lang: string) => {
             setLanguage(lang);
+            localStorage.setItem("voice-language", lang);
             onLanguageChange?.(lang);
         },
         rate,
-        setRate,
+        setRate: (r: number) => {
+            setRate(r);
+            localStorage.setItem("voice-rate", r.toString());
+        },
         pitch,
-        setPitch,
+        setPitch: (p: number) => {
+            setPitch(p);
+            localStorage.setItem("voice-pitch", p.toString());
+        },
         availableVoices,
         selectedVoice,
         setSelectedVoice,
