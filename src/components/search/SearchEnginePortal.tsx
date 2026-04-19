@@ -16,8 +16,8 @@ import RichAIMessage from "./RichAIMessage";
 import { useAuth } from "@/hooks/useAuth";
 import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
-import VoiceInput from "@/components/notebook/VoiceInput";
-import { Mic2 } from "lucide-react";
+import { useVoice } from "@/hooks/useVoice";
+import { Mic2, Volume2, VolumeX, PlayCircle as PlayIcon, StopCircle } from "lucide-react";
 
 // â”€â”€â”€ TYPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1045,6 +1045,9 @@ export default function SearchEnginePortal() {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const studioRef = useRef<HTMLDivElement>(null);
     const [isVoiceActive, setIsVoiceActive] = useState(false);
+    const { speak, cancelSpeech, status: voiceStatus } = useVoice();
+    const [isVoiceOutputEnabled, setIsVoiceOutputEnabled] = useState(true); // Default to on for voice convenience
+    const [shouldSpeakNextResponse, setShouldSpeakNextResponse] = useState(false);
 
     // AI Mode States
     const [aiMessages, setAiMessages] = useState<any[]>([]);
@@ -1300,6 +1303,10 @@ export default function SearchEnginePortal() {
 
             let fullText = "";
             const decoder = new TextDecoder();
+            
+            // If this was started by voice, prepare to speak
+            const willSpeak = isVoiceOutputEnabled && (shouldSpeakNextResponse || isVoiceActive);
+            setShouldSpeakNextResponse(false);
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -1426,6 +1433,22 @@ export default function SearchEnginePortal() {
             if (suggestionMatch) {
                 const s = suggestionMatch[1].split("\n").map(line => line.trim().replace(/^\d+\.\s*|-\s*|\?\s*$/, "") + "?").filter(l => l.length > 5).slice(0, 3);
                 setAiSuggestions(s.length > 0 ? s : ["Tell me more.", "Show me verses.", "Apply this."]);
+            }
+
+            // â”€â”€ AUTO-SPEAK REVELATION â”€â”€
+            if (willSpeak && fullText) {
+                // Clean fullText of tags before speaking
+                const speechText = fullText
+                    .replace(/<(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>[\s\S]*?<\/(?:THOUGHT|THUGHT|THOHT|THGHT|OUGHT|TH|O)[A-Z]*>/gi, "")
+                    .replace(/### RESPONSE START ###/gi, "")
+                    .replace(/---SUGGESTIONS?---[\s\S]*/i, "")
+                    .replace(/\[METADATA:[\s\S]*?\]/gi, "")
+                    .replace(/<[^>]*>?/gm, '') // final HTML/tag strip
+                    .trim();
+                
+                if (speechText) {
+                    speak(speechText);
+                }
             }
 
         } catch (error: any) {
@@ -1618,7 +1641,11 @@ export default function SearchEnginePortal() {
                                 <div className="h-4 w-px bg-slate-200 flex-shrink-0" />
                                 <div className="flex-shrink-0">
                                     <VoiceInput 
-                                        onTranscript={(text) => { setQuery(text); handleSearch(text, filter); }}
+                                        onTranscript={(text) => { 
+                                            setQuery(text); 
+                                            setShouldSpeakNextResponse(true);
+                                            handleSearch(text, filter); 
+                                        }}
                                         variant="minimal"
                                     />
                                 </div>
@@ -1638,11 +1665,31 @@ export default function SearchEnginePortal() {
                 {/* Hero (pre-search) */}
                 {!hasSearched && (
                     <div className="text-center space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <h1 className="site-logo text-fluid-h1 !gap-2 md:!gap-4 justify-center">
-                            <span>DAILY</span>
-                            <span className="gold drop-shadow-[0_0_25px_rgba(200,146,42,0.3)]">MANNA</span>
-                            <span>AI</span>
-                        </h1>
+                        <div className="flex flex-col items-center gap-6 mb-10">
+                            {/* Official Icon: Navy Book + Golden Cross */}
+                            <div className="w-28 h-28 relative group transition-transform duration-500 hover:scale-110">
+                                <div className="absolute inset-0 bg-navy dark:bg-navy/80 rounded-[28px] shadow-2xl transform -rotate-3 transition-transform group-hover:rotate-0"></div>
+                                <div className="absolute inset-0 bg-navy-2 rounded-[28px] shadow-xl flex items-center justify-center border border-white/10">
+                                    <div className="relative">
+                                        <Book size={56} className="text-white/10" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            {/* Golden Cross */}
+                                            <div className="w-1.5 h-14 bg-gradient-to-b from-gold via-gold-2 to-gold rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)]"></div>
+                                            <div className="absolute w-10 h-1.5 bg-gold rounded-full top-4 shadow-[0_0_15px_rgba(212,175,55,0.4)]"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center gap-0">
+                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-navy dark:text-white leading-none">
+                                    DAILY MANNA
+                                </h1>
+                                <div className="text-xl md:text-2xl font-light tracking-[0.5em] text-gold mt-1 pl-[0.5em]">
+                                    AI
+                                </div>
+                            </div>
+                        </div>
                         <p className="f-display text-text-2 max-w-lg mx-auto text-xl md:text-2xl italic">
                             "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God."
                         </p>
@@ -1701,6 +1748,7 @@ export default function SearchEnginePortal() {
                                         <VoiceInput 
                                             onTranscript={(text) => {
                                                 setQuery(text);
+                                                setShouldSpeakNextResponse(true);
                                                 handleSearch(text, filter);
                                             }} 
                                             onListeningChange={setIsVoiceActive}
@@ -1712,6 +1760,26 @@ export default function SearchEnginePortal() {
                                             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${query.trim() ? "bg-navy text-white shadow-lg active:scale-90" : "bg-slate-100 text-slate-300 dark:bg-white/5"}`}
                                         >
                                             <ArrowUpRight size={16} className="rotate-[270deg]" />
+                                        </button>
+
+                                        <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (voiceStatus === "speaking") cancelSpeech();
+                                                else setIsVoiceOutputEnabled(!isVoiceOutputEnabled);
+                                            }}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isVoiceOutputEnabled ? "text-gold bg-gold/10" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"}`}
+                                            title={isVoiceOutputEnabled ? "Voice Output Enabled" : "Voice Output Disabled"}
+                                        >
+                                            {voiceStatus === "speaking" ? (
+                                                <StopCircle size={16} className="animate-pulse text-red-500" />
+                                            ) : isVoiceOutputEnabled ? (
+                                                <Volume2 size={16} />
+                                            ) : (
+                                                <VolumeX size={16} />
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -1840,6 +1908,16 @@ export default function SearchEnginePortal() {
                                             <div className="flex flex-col gap-2 flex-1 min-w-0">
 
                                                 <div className={`relative w-full p-4 sm:p-8 transition-all duration-500 text-[15px] sm:text-lg leading-relaxed ${msg.role === 'user' ? 'bg-sky-500/10 border border-sky-400/20 text-slate-800 rounded-2xl shadow-md' : 'bg-transparent text-slate-900 border-none px-0'}`}>
+
+                                                    {msg.role === 'assistant' && !msg.isThinking && msg.content && (
+                                                        <button 
+                                                            onClick={() => speak(msg.content)}
+                                                            className="absolute top-2 right-2 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 hover:text-gold transition-all z-20"
+                                                            title="Listen to Revelation"
+                                                        >
+                                                            <PlayIcon size={18} />
+                                                        </button>
+                                                    )}
 
                                                     {msg.role === 'assistant' && (
                                                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-500/5 rounded-full blur-[80px] pointer-events-none" />

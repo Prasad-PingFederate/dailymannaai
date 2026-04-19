@@ -30,7 +30,11 @@ interface Section {
 }
 
 function parseIntoSections(raw: string): Section[] {
-    const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+    // 🛡️ PRE-PROCESSING: Strip any leftover tags that might have leaked through
+    // This handles cases like <THOUGHT> or stray symbols like <>
+    const processedRaw = raw.replace(/<[^>]*>?/gm, "").replace(/<>/g, "").trim();
+    
+    const lines = processedRaw.split("\n").map((l) => l.trim()).filter(Boolean);
     const sections: Section[] = [];
     let bulletBuffer: string[] = [];
 
