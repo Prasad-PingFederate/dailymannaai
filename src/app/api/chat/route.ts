@@ -75,7 +75,7 @@ export async function POST(req: Request) {
             'hi-IN': 'Hindi (हिंदी)',
             'te-IN': 'Telugu (తెలుగు)',
             'ta-IN': 'Tamil (தமிழ்)',
-            'kn-IN': 'Kannada (కన్నడ)',
+            'kn-IN': 'Kannada (ಕನ್ನಡ)',
             'ml-IN': 'Malayalam (മലയാളം)',
             'es-ES': 'Spanish',
             'fr-FR': 'French',
@@ -239,9 +239,9 @@ Provide exactly 3 Bible connections using Ezekiel, Zechariah, Matthew 24, Daniel
             enhancedQuery = query;
         }
 
-        // Add Language Instruction
+        // Add Language Instruction (High Priority)
         if (selectedLangName !== 'English') {
-            enhancedQuery = `[SYSTEM INSTRUCTION: You must respond to the user ENTIRELY in ${selectedLangName}. Maintain your biblical assistant persona.]\n\n${enhancedQuery}`;
+            enhancedQuery = `[CRITICAL LANGUAGE OVERRIDE: Respond ONLY in ${selectedLangName}. Ignore the language of the previous history.]\n\n${enhancedQuery}\n\n[REMINDER: Reply in ${selectedLangName}]`;
         }
 
         // 3. Grounded Synthesis with Expert Persona (STREAMING)
