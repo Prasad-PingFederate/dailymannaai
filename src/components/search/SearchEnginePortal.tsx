@@ -18,7 +18,7 @@ import DevotionalsTab from "./DevotionalsTab";
 import SermonsTab from "./SermonsTab";
 import VoiceInput from "@/components/notebook/VoiceInput";
 import { useVoice } from "@/hooks/useVoice";
-import { Mic2, Volume2, VolumeX, PlayCircle as PlayIcon, StopCircle } from "lucide-react";
+import { Mic2, Volume2, VolumeX, PlayCircle as PlayIcon, StopCircle, AudioLines } from "lucide-react";
 
 // â”€â”€â”€ TYPES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1768,18 +1768,31 @@ export default function SearchEnginePortal() {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (voiceStatus === "speaking") cancelSpeech();
-                                                else setIsVoiceOutputEnabled(!isVoiceOutputEnabled);
+                                                if (voiceStatus === "speaking") {
+                                                    cancelSpeech();
+                                                } else {
+                                                    setIsVoiceOutputEnabled(!isVoiceOutputEnabled);
+                                                }
                                             }}
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isVoiceOutputEnabled ? "text-gold bg-gold/10" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"}`}
-                                            title={isVoiceOutputEnabled ? "Voice Output Enabled" : "Voice Output Disabled"}
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative ${
+                                                isVoiceOutputEnabled 
+                                                ? "bg-gold/15 text-gold shadow-[0_0_15px_rgba(212,175,55,0.3)]" 
+                                                : "bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-white/5 dark:text-white/40"
+                                            }`}
+                                            title={isVoiceOutputEnabled ? "Voice Output Active" : "Enable Voice Output"}
                                         >
                                             {voiceStatus === "speaking" ? (
-                                                <StopCircle size={16} className="animate-pulse text-red-500" />
-                                            ) : isVoiceOutputEnabled ? (
-                                                <Volume2 size={16} />
+                                                <>
+                                                    <StopCircle size={18} className="text-red-500 z-10" />
+                                                    <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
+                                                </>
                                             ) : (
-                                                <VolumeX size={16} />
+                                                <>
+                                                    <AudioLines size={18} className={isVoiceOutputEnabled ? "animate-pulse" : ""} />
+                                                    {isVoiceOutputEnabled && (
+                                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gold rounded-full border-2 border-white dark:border-navy" />
+                                                    )}
+                                                </>
                                             )}
                                         </button>
                                     </div>
