@@ -1046,7 +1046,7 @@ export default function SearchEnginePortal() {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const studioRef = useRef<HTMLDivElement>(null);
     const [isVoiceActive, setIsVoiceActive] = useState(false);
-    const { speak, cancelSpeech, status: voiceStatus } = useVoice();
+    const { speak, cancelSpeech, status: voiceStatus, language: vLanguage, setLanguage: setVLanguage, rate: vRate, setRate: setVRate, pitch: vPitch, setPitch: setVPitch } = useVoice();
     const [isVoiceOutputEnabled, setIsVoiceOutputEnabled] = useState(true); // Default to on for voice convenience
     const [shouldSpeakNextResponse, setShouldSpeakNextResponse] = useState(false);
 
@@ -1177,6 +1177,17 @@ export default function SearchEnginePortal() {
                 setSolution(data?.solution || null);
                 setPagination(data?.pagination || null);
                 setHasSearched(true);
+                
+                // AUTO-SPEAK FOR STANDARD SEARCH (Solution Dashboard / Insights)
+                const willSpeak = isVoiceOutputEnabled || shouldSpeakNextResponse;
+                setShouldSpeakNextResponse(false);
+                
+                if (willSpeak && data?.solution?.insight) {
+                    // Slight delay to allow UI to render first
+                    setTimeout(() => speak(data.solution.insight), 500);
+                } else if (willSpeak && data?.instantAnswer?.text) {
+                    setTimeout(() => speak(data.instantAnswer.text), 500);
+                }
             } else {
                 console.error("Search failed:", res.status);
                 setResults([]);
@@ -1187,7 +1198,7 @@ export default function SearchEnginePortal() {
         } finally {
             setIsSearching(false);
         }
-    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching, setPagination]);
+    }, [aiMessages, query, filter, setResults, setInstantAnswer, setSolution, setHasSearched, setIsSearching, setPagination, isVoiceOutputEnabled, shouldSpeakNextResponse, speak]);
 
     const handleAiSendMessage = async (textToSend: string): Promise<string> => {
         if (!textToSend.trim()) return "";
@@ -1541,6 +1552,18 @@ export default function SearchEnginePortal() {
         setTimeout(() => textareaRef.current?.focus(), 300);
     };
 
+    const downloadConversation = () => {
+        if (aiMessages.length === 0) return;
+        const text = aiMessages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n");
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `daily-manna-revelation-${new Date().toISOString().slice(0, 10)}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     const FILTERS = [
         { id: "ai", label: "AI Mode", icon: <Zap size={13} /> },
         { id: "bible", label: "Bible", icon: <Book size={13} /> },
@@ -1648,6 +1671,12 @@ export default function SearchEnginePortal() {
                                             handleSearch(text, filter); 
                                         }}
                                         variant="minimal"
+                                        language={vLanguage}
+                                        onLanguageChange={setVLanguage}
+                                        rate={vRate}
+                                        onRateChange={setVRate}
+                                        pitch={vPitch}
+                                        onPitchChange={setVPitch}
                                     />
                                 </div>
                             </form>
@@ -1753,6 +1782,12 @@ export default function SearchEnginePortal() {
                                                 handleSearch(text, filter);
                                             }} 
                                             onListeningChange={setIsVoiceActive}
+                                            language={vLanguage}
+                                            onLanguageChange={setVLanguage}
+                                            rate={vRate}
+                                            onRateChange={setVRate}
+                                            pitch={vPitch}
+                                            onPitchChange={setVPitch}
                                         />
 
                                         <button 
@@ -1795,6 +1830,28 @@ export default function SearchEnginePortal() {
                                                 </>
                                             )}
                                         </button>
+
+                                        {hasSearched && aiMessages.length > 0 && (
+                                            <>
+                                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                                <button
+                                                    type="button"
+                                                    onClick={downloadConversation}
+                                                    className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-white/5 dark:text-white/40 transition-all"
+                                                    title="Download Revelation"
+                                                >
+                                                    <Download size={18} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={resetSearch}
+                                                    className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-white/5 dark:text-white/40 transition-all"
+                                                    title="Clear Revelation"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
