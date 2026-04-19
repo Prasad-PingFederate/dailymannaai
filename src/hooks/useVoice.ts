@@ -14,19 +14,42 @@ interface UseVoiceOptions {
     useServerTranscribe?: boolean;
     silenceTimeout?: number;
     onTranscriptionComplete?: (text: string) => void;
+    speechRate?: number;
+    speechPitch?: number;
+    defaultVoice?: string;
+    onLanguageChange?: (lang: string) => void;
 }
 
 export function useVoice({
-    language = "en-US",
+    language: initialLanguage = "en-US",
     silenceTimeout = 3000,
     useServerTranscribe = true,
     onTranscriptionComplete,
+    speechRate: initialRate = 1.0,
+    speechPitch: initialPitch = 1.0,
+    defaultVoice: initialVoice = "",
+    onLanguageChange,
 }: UseVoiceOptions = {}) {
+    const [language, setLanguage] = useState(initialLanguage);
+    const [rate, setRate] = useState(initialRate);
+    const [pitch, setPitch] = useState(initialPitch);
+    const [selectedVoice, setSelectedVoice] = useState(initialVoice);
+    const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
     const [isFirefox, setIsFirefox] = useState(false);
 
     useEffect(() => {
         const ua = navigator.userAgent;
         setIsFirefox(ua.toLowerCase().includes("firefox"));
+
+        const loadVoices = () => {
+            const voices = window.speechSynthesis?.getVoices() || [];
+            setAvailableVoices(voices);
+        };
+        loadVoices();
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
     }, []);
 
     const [status, setStatus] = useState<VoiceStatus>("idle");
@@ -41,6 +64,7 @@ export function useVoice({
     const [error, setError] = useState<string | null>(null);
     const isTranscribingRef = useRef(false);
     const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
+    const [audioLevel, setAudioLevel] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const accumulatedTranscriptRef = useRef("");
     const lastSessionFinalTextRef = useRef("");
@@ -74,10 +98,26 @@ export function useVoice({
             audioCtxRef.current = ctx;
             const src = ctx.createMediaStreamSource(stream);
             const analyser = ctx.createAnalyser();
-            analyser.fftSize = 1024;
-            analyser.smoothingTimeConstant = 0.8;
+            analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.5;
             src.connect(analyser);
             setAnalyserNode(analyser);
+
+            // New: Audio level tracking
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            const updateLevel = () => {
+                if (statusRef.current === "listening" && analyser) {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                    const avg = sum / dataArray.length;
+                    setAudioLevel(avg);
+                    requestAnimationFrame(updateLevel);
+                } else {
+                    setAudioLevel(0);
+                }
+            };
+            updateLevel();
         } catch (e) {
             console.warn("[Voice] Analyser setup failed:", e);
         }
@@ -322,7 +362,13 @@ export function useVoice({
             
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = language;
-            utterance.rate = 1.0;
+            utterance.rate = rate;
+            utterance.pitch = pitch;
+            
+            if (selectedVoice) {
+                const voice = availableVoices.find(v => v.name === selectedVoice || v.voiceURI === selectedVoice);
+                if (voice) utterance.voice = voice;
+            }
             
             return new Promise((resolve) => {
                 utterance.onend = () => { syncStatus("idle"); resolve(); };
@@ -348,10 +394,23 @@ export function useVoice({
         isLive,
         error,
         analyserNode,
+        audioLevel,
         isPaused,
         startListening,
         stopListening,
         speak,
         cancelSpeech,
+        language,
+        setLanguage: (lang: string) => {
+            setLanguage(lang);
+            onLanguageChange?.(lang);
+        },
+        rate,
+        setRate,
+        pitch,
+        setPitch,
+        availableVoices,
+        selectedVoice,
+        setSelectedVoice,
     };
 }

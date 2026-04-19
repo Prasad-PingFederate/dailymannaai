@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Mic, Square, X, Sparkles, Loader2 } from "lucide-react";
+import { Mic, Square, X, Sparkles, Loader2, Settings2, RotateCcw, Download, Trash2, Globe, Volume2 } from "lucide-react";
 
 interface VoiceInputProps {
     onTranscript: (text: string) => void;
@@ -10,6 +10,12 @@ interface VoiceInputProps {
     disabled?: boolean;
     className?: string;
     variant?: "default" | "minimal";
+    language?: string;
+    onLanguageChange?: (lang: string) => void;
+    rate?: number;
+    onRateChange?: (rate: number) => void;
+    pitch?: number;
+    onPitchChange?: (pitch: number) => void;
 }
 
 declare global {
@@ -30,26 +36,43 @@ export default function VoiceInput({
     disabled = false,
     className = "",
     variant = "default",
+    language = "en-US",
+    onLanguageChange,
+    rate = 1.0,
+    onRateChange,
+    pitch = 1.0,
+    onPitchChange,
 }: VoiceInputProps) {
-
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState<string | null>(null);
     const [interimText, setInterimText] = useState("");
     const [finalText, setFinalText] = useState("");
-    const [phase, setPhase] = useState(0);
-    const pulseRef = useRef<any>(null);
+    const [audioLevel, setAudioLevel] = useState(0);
+    const [showSettings, setShowSettings] = useState(false);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const audioCtxRef = useRef<AudioContext | null>(null);
 
-    // Pulse animation during listening
+    // Audio analysis for waveform
     useEffect(() => {
+        let animationFrame: number;
+        const dataArray = new Uint8Array(128);
+
+        const updateLevel = () => {
+            if (status === "recording" && analyserRef.current) {
+                analyserRef.current.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                setAudioLevel(sum / dataArray.length);
+                animationFrame = requestAnimationFrame(updateLevel);
+            } else {
+                setAudioLevel(0);
+            }
+        };
+
         if (status === "recording") {
-            pulseRef.current = setInterval(() => {
-                setPhase((p) => (p + 1) % 160);
-            }, 45);
-        } else {
-            clearInterval(pulseRef.current);
-            setPhase(0);
+            updateLevel();
         }
-        return () => clearInterval(pulseRef.current);
+        return () => cancelAnimationFrame(animationFrame);
     }, [status]);
 
     const statusRef = useRef<Status>("idle");
@@ -83,6 +106,11 @@ export default function VoiceInput({
     const stopTracks = () => {
         streamRef.current?.getTracks().forEach(t => t.stop());
         streamRef.current = null;
+        if (audioCtxRef.current?.state !== "closed") {
+            audioCtxRef.current?.close();
+        }
+        audioCtxRef.current = null;
+        analyserRef.current = null;
     };
 
     const killRecognition = () => {
@@ -187,6 +215,17 @@ export default function VoiceInput({
             audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             streamRef.current = audioStream;
             console.log("[Voice] Microphone access granted.");
+
+            // Setup Analyser
+            const AC = window.AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AC();
+            audioCtxRef.current = ctx;
+            const src = ctx.createMediaStreamSource(audioStream);
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            src.connect(analyser);
+            analyserRef.current = analyser;
+
         } catch (err: any) {
             console.error("[Voice] Microhone Error:", err);
             if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
@@ -260,12 +299,12 @@ export default function VoiceInput({
         recorder.start(200); // chunk every 200ms
 
         // ── 2. Web Speech API: runs silently in parallel as fallback ──────────
-        const SpeechRecognition = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
+        const SpeechRecognition = typeof window !== 'undefined' ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.lang = "en-US";
+            recognition.lang = language;
 
             recognition.onresult = (event: any) => {
                 let interim = "";
@@ -410,22 +449,23 @@ export default function VoiceInput({
                             )}
                         </div>
 
-                        {/* Animated waveform text - World-class HSL animation */}
+                        {/* Animated waveform text - World-class reactive animation */}
                         <div className="flex items-center gap-[5px] h-[52px]" aria-hidden="true">
-                            {Array.from({ length: 22 }).map((_, i) => {
+                            {Array.from({ length: 24 }).map((_, i) => {
+                                // Real volume reactiveness + some variation
                                 const h = isRecording 
-                                    ? 6 + Math.abs(Math.sin((phase / 80) * Math.PI * 2 + i * 0.55)) * 36
+                                    ? 6 + (audioLevel * 0.8) + (Math.sin(i * 0.8) * 12 * (audioLevel / 20))
                                     : 4;
                                 return (
                                     <div
                                         key={i}
-                                        className="w-1 rounded-full transition-all duration-[70ms]"
+                                        className="w-1 rounded-full transition-all duration-[40ms]"
                                         style={{
-                                            height: `${h}px`,
+                                            height: `${Math.min(48, Math.max(4, h))}px`,
                                             background: isRecording
-                                                ? `hsl(${38 + i * 4}, 92%, ${52 + Math.sin(i) * 10}%)`
+                                                ? `hsl(${38 + i * 4}, 92%, ${52 + Math.min(20, audioLevel/5)}%)`
                                                 : "rgba(255,255,255,0.2)",
-                                            boxShadow: isRecording ? `0 0 10px hsl(${38 + i * 4}, 92%, 52%, 0.3)` : "none"
+                                            boxShadow: isRecording && audioLevel > 10 ? `0 0 15px hsl(${38 + i * 4}, 92%, 52%, 0.4)` : "none"
                                         }}
                                     />
                                 );
@@ -454,6 +494,20 @@ export default function VoiceInput({
                                 </span>
                             </button>
 
+                            {/* Settings Toggle */}
+                            <button
+                                onClick={() => setShowSettings(!showSettings)}
+                                className="flex flex-col items-center gap-1.5 group"
+                                aria-label="Voice settings"
+                            >
+                                <div className={`p-3.5 rounded-full border transition-all duration-200 ${showSettings ? 'bg-accent/20 border-accent/40' : 'border-accent/15 bg-accent/5 hover:bg-accent/10'}`}>
+                                    <Settings2 className={`w-5 h-5 ${showSettings ? 'text-accent' : 'text-foreground/40 group-hover:text-accent'} transition-colors`} />
+                                </div>
+                                <span className={`text-[9px] uppercase tracking-[0.2em] font-bold transition-colors ${showSettings ? 'text-accent' : 'text-foreground/30 group-hover:text-accent'}`}>
+                                    Settings
+                                </span>
+                            </button>
+
                             {/* Done */}
                             <button
                                 onClick={() => stopRecording(false)}
@@ -472,6 +526,64 @@ export default function VoiceInput({
                                 </span>
                             </button>
                         </div>
+
+                        {/* Settings Overlay - Slide down */}
+                        {showSettings && (
+                            <div className="w-full max-w-sm mt-4 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md animate-in slide-in-from-top-2 duration-200">
+                                <div className="grid grid-cols-1 gap-5">
+                                    {/* Language */}
+                                    <div className="flex flex-col gap-2">
+                                        <label className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-accent">
+                                            <Globe className="w-3 h-3" /> Language
+                                        </label>
+                                        <select 
+                                            value={language}
+                                            onChange={(e) => onLanguageChange?.(e.target.value)}
+                                            className="bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-accent"
+                                        >
+                                            <option value="en-US">English (US)</option>
+                                            <option value="en-GB">English (UK)</option>
+                                            <option value="en-IN">English (India)</option>
+                                            <option value="hi-IN">Hindi (हिंदी)</option>
+                                            <option value="te-IN">Telugu (తెలుగు)</option>
+                                            <option value="ta-IN">Tamil (தமிழ்)</option>
+                                            <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
+                                            <option value="ml-IN">Malayalam (മലയാളം)</option>
+                                            <option value="es-ES">Spanish</option>
+                                            <option value="fr-FR">French</option>
+                                            <option value="de-DE">German</option>
+                                            <option value="it-IT">Italian</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Rate */}
+                                    <div className="flex flex-col gap-2">
+                                        <label className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-accent">
+                                            <span className="flex items-center gap-2"><Volume2 className="w-3 h-3" /> Speech Rate</span>
+                                            <span>{rate.toFixed(1)}x</span>
+                                        </label>
+                                        <input 
+                                            type="range" min="0.5" max="2.0" step="0.1" value={rate}
+                                            onChange={(e) => onRateChange?.(parseFloat(e.target.value))}
+                                            className="accent-accent"
+                                        />
+                                    </div>
+                                    
+                                    {/* Pitch */}
+                                    <div className="flex flex-col gap-2">
+                                        <label className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-accent">
+                                            <span className="flex items-center gap-2"><Sparkles className="w-3 h-3" /> Pitch</span>
+                                            <span>{pitch.toFixed(1)}</span>
+                                        </label>
+                                        <input 
+                                            type="range" min="0.5" max="2.0" step="0.1" value={pitch}
+                                            onChange={(e) => onPitchChange?.(parseFloat(e.target.value))}
+                                            className="accent-accent"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
