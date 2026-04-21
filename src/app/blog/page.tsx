@@ -70,6 +70,18 @@ export default function BlogPage() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-navy" style={{ fontFamily: "Inter, sans-serif" }}>
+            {/* Minimal Nav */}
+            <nav className="h-16 px-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between sticky top-0 bg-white/80 dark:bg-navy/80 backdrop-blur-md z-50">
+                <Link href="/" className="font-black text-lg tracking-tighter text-navy dark:text-white">
+                    DAILY<span className="text-gold">MANNA</span>AI
+                </Link>
+                <div className="flex items-center gap-6">
+                    <Link href="/" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">Search</Link>
+                    <Link href="/bible-explorer" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">Bible</Link>
+                    <Link href="/notebook" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">Notebook</Link>
+                    <Link href="/about" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">About</Link>
+                </div>
+            </nav>
             {/* Hero Header */}
             <div className="relative overflow-hidden bg-gradient-to-br from-navy via-navy-2 to-[#0d0a21] py-20 px-6 text-center">
                 <div className="absolute inset-0 pointer-events-none">

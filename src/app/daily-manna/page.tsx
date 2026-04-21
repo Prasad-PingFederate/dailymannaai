@@ -167,6 +167,7 @@ export default function DailyMannaPage() {
                     <Link href="/" style={{ color: "#555", textDecoration: "none" }}>Search</Link>
                     <Link href="/bible-explorer" style={{ color: "#555", textDecoration: "none" }}>Bible Explorer</Link>
                     <Link href="/notebook" style={{ color: "#555", textDecoration: "none" }}>Notebook</Link>
+                    <Link href="/blog" style={{ color: "#555", textDecoration: "none", fontWeight: "bold" }}>Blog</Link>
                     <Link href="/about" style={{ color: "#555", textDecoration: "none" }}>About</Link>
                     <Link href="/contact" style={{ color: "#555", textDecoration: "none" }}>Contact</Link>
                 </div>
@@ -575,6 +576,11 @@ export default function DailyMannaPage() {
                             desc: "Our AI is trained on Scripture to give you prophetic, faith-building answers.",
                         },
                         {
+                            icon: "✨",
+                            title: "Spiritual Q&A Library (Blog)",
+                            desc: "A massive library of biblical answers to life's deepest questions, categorized and grounded in the Word of God.",
+                        },
+                        {
                             icon: "⚡",
                             title: "Free & Fast",
                             desc: "No subscriptions, no ads. Just the pure Word of God — beautifully presented, instantly available.",
@@ -642,6 +648,7 @@ export default function DailyMannaPage() {
                         { label: "Home", href: "/" },
                         { label: "Bible Explorer", href: "/bible-explorer" },
                         { label: "Notebook", href: "/notebook" },
+                        { label: "Blog", href: "/blog" },
                         { label: "About", href: "/about" },
                         { label: "Contact", href: "/contact" },
                         { label: "Privacy", href: "/privacy-policy" },

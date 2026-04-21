@@ -51,6 +51,7 @@ export default function ContactPageClient() {
                 </Link>
                 <div style={{ display: "flex", gap: 24, fontSize: 14 }}>
                     <Link href="/" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>Home</Link>
+                    <Link href="/blog" style={{ color: "var(--text-secondary, #555)", textDecoration: "none", fontWeight: "bold" }}>Blog</Link>
                     <Link href="/about" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>About</Link>
                     <Link href="/notebook" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>Notebook</Link>
                     <Link href="/privacy-policy" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>Privacy</Link>

@@ -1760,6 +1760,11 @@ It's now part of my collective wisdom!`
                                 DailyMannaAI <ChevronRight size={14} className="opacity-50" />
                             </span>
                         </Link>
+                        <Link href="/blog" className="flex items-center gap-1.5 md:gap-2 group cursor-pointer hover:opacity-80 transition-opacity ml-2">
+                             <span className="font-bold text-sm text-accent flex items-center gap-1">
+                                Blog
+                            </span>
+                        </Link>
                     </div>
 
                     {/* Daily Manna Mini-Message (Header Right) */}
