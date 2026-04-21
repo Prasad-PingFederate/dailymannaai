@@ -24,5 +24,6 @@ export const CATEGORY_META: Record<string, { label: string; color: string; emoji
     "holy-spirit": { label: "Holy Spirit",   color: "#06b6d4", emoji: "🕊️" },
     church:        { label: "Church",        color: "#10b981", emoji: "⛪" },
     bible:         { label: "Bible",         color: "#f97316", emoji: "📖" },
+    jesus:         { label: "Jesus",         color: "#B8860B", emoji: "👑" },
     all:           { label: "General",       color: "#D4AF37", emoji: "✨" },
 };

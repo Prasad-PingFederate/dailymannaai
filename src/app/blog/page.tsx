@@ -89,6 +89,25 @@ export default function BlogPage() {
 
             <div className="max-w-5xl mx-auto px-6 py-16 space-y-16">
                 
+                {/* Topic Navigation */}
+                <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                        { id: 'jesus', label: 'Jesus', icon: '👑', color: '#B8860B' },
+                        { id: 'bible', label: 'Bible', icon: '📖', color: '#f97316' },
+                        { id: 'salvation', label: 'Salvation', icon: '🕊️', color: '#6366f1' },
+                        { id: 'healing', label: 'Healing', icon: '💚', color: '#22c55e' },
+                    ].map((topic) => (
+                        <Link
+                            key={topic.id}
+                            href={`#cat-${topic.id}`}
+                            className="bg-slate-50 dark:bg-navy-2 border border-slate-100 dark:border-white/5 rounded-2xl p-6 text-center hover:border-gold/30 hover:shadow-xl hover:shadow-gold/5 transition-all group no-underline"
+                        >
+                            <div className="text-3xl mb-3 group-hover:scale-125 transition-transform duration-300">{topic.icon}</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-gold transition-colors">{topic.label}</div>
+                        </Link>
+                    ))}
+                </section>
+
                 {/* Main Q&A Section */}
                 <section className="space-y-10">
                     <div className="flex items-center gap-3">

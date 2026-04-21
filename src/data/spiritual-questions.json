@@ -251,5 +251,60 @@
     "metaDescription": "Finding peace and stability in God's character during life's storms.",
     "shortAnswer": "Trusting God in trials means choosing to believe His promises over your circumstances. It involves crying out to Him in honesty, remembering His past faithfulness, and resting in the fact that He is sovereign and loves you perfectly.",
     "keyVerse": "\"God is our refuge and strength, a very present help in trouble.\" — Psalm 46:1"
+  },
+  {
+    "slug": "was-jesus-a-real-person",
+    "question": "Was Jesus a real historical person?",
+    "category": "jesus",
+    "keywords": ["historical jesus", "real person", "evidence of jesus"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T22:00:00Z",
+    "metaDescription": "Examine the historical evidence for the life and existence of Jesus Christ.",
+    "shortAnswer": "Yes, Jesus of Nazareth is one of the most well-documented figures of antiquity. Beyond the Bible, multiple non-Christian historians from the first and second centuries—such as Josephus, Tacitus, and Pliny the Younger—recorded His existence, His crucifixion under Pontius Pilate, and the rapid spread of His followers.",
+    "keyVerse": "\"And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth.\" — John 1:14"
+  },
+  {
+    "slug": "why-did-jesus-have-to-die",
+    "question": "Why did Jesus have to die on the cross?",
+    "category": "jesus",
+    "keywords": ["sacrifice", "cross", "atonement"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T22:00:01Z",
+    "metaDescription": "Understanding the necessity of the crucifixion for the forgiveness of sins.",
+    "shortAnswer": "Jesus died on the cross as the perfect, sinless sacrifice required to satisfy God's holy justice and pay the penalty for human sin. Because God is holy and just, sin must be punished; because He is love, He provided His own Son to take our place, allowing us to be forgiven and reconciled to Him.",
+    "keyVerse": "\"But he was wounded for our transgressions, he was bruised for our iniquities: the chastisement of our peace was upon him; and with his stripes we are healed.\" — Isaiah 53:5"
+  },
+  {
+    "slug": "did-jesus-claim-to-be-god",
+    "question": "Did Jesus ever explicitly claim to be God?",
+    "category": "jesus",
+    "keywords": ["deity of christ", "divinity", "i am"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T22:00:02Z",
+    "metaDescription": "Scriptural evidence of Jesus Christ's claims to deity and equality with the Father.",
+    "shortAnswer": "Yes, Jesus claimed deity in numerous ways. He used the divine name 'I AM' for Himself, claimed to be one with the Father, accepted worship, and claimed the authority to forgive sins—a power belonging to God alone. His contemporaries clearly understood His claims, as they often accused Him of blasphemy for 'making himself God.'",
+    "keyVerse": "\"Jesus said unto them, Verily, verily, I say unto you, Before Abraham was, I am.\" — John 8:58"
+  },
+  {
+    "slug": "what-language-was-bible-written",
+    "question": "What languages was the Bible originally written in?",
+    "category": "bible",
+    "keywords": ["original languages", "hebrew", "greek", "aramaic"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T22:00:03Z",
+    "metaDescription": "Learn about the original Hebrew, Aramaic, and Greek texts of the Holy Scriptures.",
+    "shortAnswer": "The Old Testament was written primarily in Hebrew, with a few small sections in Aramaic (found in Ezra and Daniel). The New Testament was written entirely in Koine Greek, which was the common international language of the Roman world at that time.",
+    "keyVerse": "\"But he answered and said, It is written, Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God.\" — Matthew 4:4"
+  },
+  {
+    "slug": "how-was-the-bible-canon-formed",
+    "question": "How was the Bible canon put together?",
+    "category": "bible",
+    "keywords": ["canon", "scripture formation", "church fathers"],
+    "searchVolume": "medium",
+    "createdAt": "2026-04-21T22:00:04Z",
+    "metaDescription": "The process by which the 66 books of the Bible were recognized as inspired scripture.",
+    "shortAnswer": "The 'canon' refers to the list of books recognized as inspired by God. The Old Testament was already established by the time of Jesus. The New Testament books were recognized by the early church based on apostolic authority, doctrinal consistency with the Old Testament and Jesus' teachings, and their universal acceptance among believers.",
+    "keyVerse": "\"Knowing this first, that no prophecy of the scripture is of any private interpretation. For the prophecy came not in old time by the will of man: but holy men of God spake as they were moved by the Holy Ghost.\" — 2 Peter 1:20-21"
   }
 ]
