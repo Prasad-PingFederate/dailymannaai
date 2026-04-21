@@ -11,6 +11,8 @@ import { lookupBibleReference } from "@/lib/bible/lookup";
 import { searchBible } from "@/lib/search/bible-search";
 import { searchDocuments } from "@/lib/search/document-search";
 import { searchRSSFeeds, getLatestChristianNews, RSSArticle } from "@/lib/rss-fetcher";
+import fs from "fs";
+import path from "path";
 
 // ── NEWS INTENT DETECTION ──────────────────────────────────────────────────────
 const NEWS_KEYWORDS = [

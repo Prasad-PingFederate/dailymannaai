@@ -5,21 +5,8 @@ import { notFound } from "next/navigation";
 import fs from "fs";
 import path from "path";
 import { ArrowLeft, Sparkles, BookOpen, Share2, MessageCircle } from "lucide-react";
-import { CATEGORY_META } from "../../page";
+import { CATEGORY_META, Question } from "../../types";
 import { getProviderManager } from "@/lib/ai/gemini";
-
-interface Question {
-    slug: string;
-    question: string;
-    category: string;
-    keywords: string[];
-    searchVolume: "high" | "medium";
-    createdAt: string;
-    metaDescription: string;
-    answer?: string;
-    shortAnswer?: string;
-    keyVerse?: string;
-}
 
 const DATA_FILE = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
 
@@ -67,7 +54,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
 
     const meta = CATEGORY_META[q.category] || CATEGORY_META.all;
 
-    // If full answer is missing, generate it on the fly (and save it for future visitors)
     let fullAnswer = q.answer;
     if (!fullAnswer) {
         const prompt = `You are a Christian theologian and pastor. Write a comprehensive, deeply spiritual, and biblical answer to this question: "${q.question}".
@@ -87,7 +73,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
         try {
             const { response } = await getProviderManager().generateResponse(prompt);
             fullAnswer = response;
-            // Persist the answer so we don't generate it again
             updateQuestion({ ...q, answer: fullAnswer });
         } catch (e) {
             fullAnswer = "We are currently seeking the Spirit's guidance for a full answer to this question. In the meantime, please refer to the short answer on the main blog page.";
@@ -96,7 +81,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
 
     return (
         <div className="min-h-screen bg-white dark:bg-navy selection:bg-gold/30">
-            {/* Header / Nav */}
             <nav className="sticky top-0 bg-white/80 dark:bg-navy/80 backdrop-blur-md border-b border-slate-100 dark:border-white/5 z-50 px-6 py-4">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <Link href="/blog" className="group flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-gold transition-colors">
@@ -110,7 +94,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
             </nav>
 
             <article className="max-w-4xl mx-auto px-6 py-16 md:py-24 space-y-12">
-                {/* Hero / Question Intro */}
                 <header className="space-y-6 text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[0.2em]">
                         <span className="opacity-70">{meta.emoji}</span> {meta.label}
@@ -125,7 +108,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
                     </div>
                 </header>
 
-                {/* Quick Summary / Short Answer Box */}
                 <div className="rounded-[2.5rem] bg-slate-50 dark:bg-navy-2 border border-slate-100 dark:border-white/5 p-8 md:p-12 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Sparkles size={100} className="text-gold" />
@@ -149,7 +131,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
                     </div>
                 </div>
 
-                {/* Main Content Area */}
                 <div className="prose prose-slate dark:prose-invert prose-lg max-w-none pt-8
                     prose-headings:font-black prose-headings:text-navy dark:prose-headings:text-white prose-headings:tracking-tight
                     prose-p:text-slate-600 dark:prose-p:text-white/70 prose-p:leading-[1.8]
@@ -160,7 +141,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
                     <div dangerouslySetInnerHTML={{ __html: formatMarkdown(fullAnswer || "") }} />
                 </div>
 
-                {/* Share / Footer CTA */}
                 <footer className="pt-16 border-t border-slate-100 dark:border-white/5 space-y-12">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div className="space-y-1">
@@ -196,7 +176,6 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
     );
 }
 
-// Simple markdown formatter helper
 function formatMarkdown(text: string): string {
     return text
         .replace(/^### (.*$)/gim, '<h3 class="text-xl font-black mt-10 mb-4 text-gold/80">$1</h3>')
