@@ -165,7 +165,7 @@ export default function QuestionsAccordion({ questions, grouped, categories, cat
 
                         {/* Accordion questions */}
                         <div className="space-y-2">
-                            {catQuestions.map((q) => {
+                            {catQuestions.map((q, qIndex) => {
                                 const state = accordion[q.slug] || { open: false, loading: false, shortAnswer: null, keyVerse: null, error: null };
 
                                 return (
@@ -180,33 +180,40 @@ export default function QuestionsAccordion({ questions, grouped, categories, cat
                                         {/* Question row */}
                                         <button
                                             onClick={() => toggleQuestion(q)}
-                                            className="w-full flex items-center gap-4 p-5 text-left group"
+                                            className="w-full flex items-center justify-between gap-4 p-6 text-left group"
                                         >
-                                            {/* Toggle icon */}
-                                            <div
-                                                className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-300 ${
-                                                    state.open
-                                                        ? "border-gold bg-gold text-white"
-                                                        : "border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/30 group-hover:border-gold/50 group-hover:text-gold"
-                                                }`}
-                                            >
-                                                {state.loading
-                                                    ? <Loader2 size={13} className="animate-spin text-gold" />
-                                                    : state.open
-                                                        ? <Minus size={13} />
-                                                        : <Plus size={13} />
-                                                }
+                                            <div className="flex items-start gap-4 flex-1">
+                                                {/* Numbering */}
+                                                <span className="text-gold font-black text-sm pt-0.5 min-w-[20px]">
+                                                    {qIndex + 1}.
+                                                </span>
+                                                
+                                                {/* Question text with prefix */}
+                                                <span className={`font-bold text-base leading-snug transition-colors ${
+                                                    state.open ? "text-gold" : "text-navy dark:text-white group-hover:text-gold"
+                                                }`}>
+                                                    Q: {q.question}
+                                                </span>
+
+                                                {/* Toggle icon AFTER the text */}
+                                                <div
+                                                    className={`inline-flex items-center justify-center w-6 h-6 rounded-lg border ml-2 transition-all duration-300 ${
+                                                        state.open
+                                                            ? "border-gold bg-gold text-white rotate-180"
+                                                            : "border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/30 group-hover:border-gold/50 group-hover:text-gold"
+                                                    }`}
+                                                >
+                                                    {state.loading
+                                                        ? <Loader2 size={12} className="animate-spin text-gold" />
+                                                        : state.open
+                                                            ? <Minus size={12} />
+                                                            : <Plus size={12} />
+                                                    }
+                                                </div>
                                             </div>
 
-                                            {/* Question text */}
-                                            <span className={`flex-1 font-semibold text-sm leading-snug transition-colors ${
-                                                state.open ? "text-gold" : "text-navy dark:text-white group-hover:text-gold"
-                                            }`}>
-                                                {q.question}
-                                            </span>
-
-                                            {/* Badges */}
-                                            <div className="flex-shrink-0 flex items-center gap-2 hidden sm:flex">
+                                            {/* Badges (hidden on small mobile to keep it clean) */}
+                                            <div className="flex-shrink-0 hidden md:flex items-center gap-2">
                                                 <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                                                     q.searchVolume === "high"
                                                         ? "bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400"
@@ -224,58 +231,46 @@ export default function QuestionsAccordion({ questions, grouped, categories, cat
 
                                         {/* Expanded answer */}
                                         {state.open && (
-                                            <div className="px-6 pb-6 space-y-4 animate-in slide-in-from-top-2 fade-in duration-300">
-                                                <div className="h-px bg-gold/20" />
+                                            <div className="px-6 pb-6 pl-14 space-y-4 animate-in slide-in-from-top-2 fade-in duration-300">
+                                                <div className="h-px bg-gold/10" />
 
                                                 {state.loading && (
                                                     <div className="flex items-center gap-3 py-4">
                                                         <Loader2 size={16} className="animate-spin text-gold flex-shrink-0" />
-                                                        <div className="space-y-1">
-                                                            <p className="text-navy dark:text-white text-sm font-semibold">Consulting Scripture...</p>
-                                                            <p className="text-slate-400 dark:text-white/30 text-xs">Generating a Spirit-led answer</p>
-                                                        </div>
+                                                        <p className="text-slate-400 dark:text-white/30 text-xs italic tracking-wide">Seeking the Word of God...</p>
                                                     </div>
                                                 )}
 
                                                 {state.error && (
-                                                    <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-4">
+                                                    <div className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 p-4">
                                                         <p className="text-red-600 dark:text-red-400 text-xs font-medium">{state.error}</p>
-                                                        <button
-                                                            onClick={() => {
-                                                                setAccordion(prev => ({
-                                                                    ...prev,
-                                                                    [q.slug]: { ...prev[q.slug], error: null }
-                                                                }));
-                                                                toggleQuestion(q);
-                                                            }}
-                                                            className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 mt-2 block"
-                                                        >
-                                                            Try Again
-                                                        </button>
                                                     </div>
                                                 )}
 
                                                 {!state.loading && !state.error && state.shortAnswer && (
                                                     <div className="space-y-4">
                                                         {/* Short Answer */}
-                                                        <p className="text-slate-700 dark:text-white/80 text-[15px] leading-[1.8]">
-                                                            {state.shortAnswer}
-                                                        </p>
+                                                        <div className="flex gap-3">
+                                                            <span className="text-gold font-black text-sm pt-0.5">A:</span>
+                                                            <p className="text-slate-700 dark:text-white/80 text-base leading-[1.7] font-medium">
+                                                                {state.shortAnswer}
+                                                            </p>
+                                                        </div>
 
                                                         {/* Key Verse */}
                                                         {state.keyVerse && (
                                                             <div
-                                                                className="rounded-xl p-4 space-y-1.5"
-                                                                style={{ background: `${meta.color}08`, border: `1px solid ${meta.color}20` }}
+                                                                className="rounded-2xl p-5 space-y-2 border-l-4 border-gold shadow-sm"
+                                                                style={{ background: `${meta.color}05`, borderColor: meta.color }}
                                                             >
                                                                 <div
-                                                                    className="text-[9px] font-black uppercase tracking-[0.3em] flex items-center gap-1.5"
+                                                                    className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-1.5"
                                                                     style={{ color: meta.color }}
                                                                 >
-                                                                    <BookOpen size={10} />
-                                                                    Key Scripture (KJV)
+                                                                    <BookOpen size={12} />
+                                                                    Key Scripture
                                                                 </div>
-                                                                <p className="text-navy dark:text-white text-sm font-serif italic leading-relaxed">
+                                                                <p className="text-navy dark:text-white text-[15px] font-serif italic leading-relaxed">
                                                                     {state.keyVerse}
                                                                 </p>
                                                             </div>
