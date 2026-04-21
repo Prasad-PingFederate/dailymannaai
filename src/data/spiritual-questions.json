@@ -1,1 +1,277 @@
-[]
+[
+  {
+    "slug": "who-is-jesus-christ",
+    "question": "Who is Jesus Christ?",
+    "category": "salvation",
+    "keywords": ["jesus christ", "son of god", "savior"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:00Z",
+    "metaDescription": "Learn about the life, divinity, and mission of Jesus Christ from a biblical perspective.",
+    "shortAnswer": "Jesus Christ is the Son of God, the second person of the Holy Trinity, who came to earth as fully man and fully God to redeem humanity. Through His sinless life, sacrificial death on the cross, and victorious resurrection, He provided the only way for us to be reconciled to God.",
+    "keyVerse": "\"Jesus saith unto him, I am the way, the truth, and the life: no man cometh unto the Father, but by me.\" — John 14:6"
+  },
+  {
+    "slug": "how-to-be-saved-biblically",
+    "question": "How can I be saved and go to heaven?",
+    "category": "salvation",
+    "keywords": ["salvation", "born again", "heaven"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:01Z",
+    "metaDescription": "Discover the biblical path to salvation and what it means to be born again in Christ.",
+    "shortAnswer": "Biblical salvation is a gift of God's grace received through faith in Jesus Christ. To be saved, one must repent of their sins, believe in their heart that God raised Jesus from the dead, and confess Him as Lord.",
+    "keyVerse": "\"That if thou shalt confess with thy mouth the Lord Jesus, and shalt believe in thine heart that God hath raised him from the dead, thou shalt be saved.\" — Romans 10:9"
+  },
+  {
+    "slug": "is-the-bible-true",
+    "question": "Is the Bible truly the Word of God?",
+    "category": "bible",
+    "keywords": ["bible truth", "word of god", "scripture"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:02Z",
+    "metaDescription": "Explore why Christians believe the Bible is the inspired, inerrant Word of God.",
+    "shortAnswer": "Yes, the Bible is the divinely inspired, inerrant Word of God, written by human authors under the supernatural guidance of the Holy Spirit. It remains the ultimate authority for faith and practice, proven by fulfilled prophecy and its life-transforming power.",
+    "keyVerse": "\"All scripture is given by inspiration of God, and is profitable for doctrine, for reproof, for correction, for instruction in righteousness.\" — 2 Timothy 3:16"
+  },
+  {
+    "slug": "what-is-the-trinity",
+    "question": "What is the Holy Trinity?",
+    "category": "bible",
+    "keywords": ["trinity", "godhead", "father son holy spirit"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:03Z",
+    "metaDescription": "Understanding the biblical concept of one God in three co-eternal persons.",
+    "shortAnswer": "The Trinity is the biblical revelation that there is one God who eternally exists in three co-equal, co-eternal Persons: God the Father, God the Son (Jesus Christ), and God the Holy Spirit. Though they are distinct persons, they are one in essence and nature.",
+    "keyVerse": "\"For there are three that bear record in heaven, the Father, the Word, and the Holy Ghost: and these three are one.\" — 1 John 5:7"
+  },
+  {
+    "slug": "how-to-pray-effectively",
+    "question": "How do I pray effectively according to the Bible?",
+    "category": "prayer",
+    "keywords": ["effective prayer", "how to pray", "prayer life"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:04Z",
+    "metaDescription": "Practical biblical guidance on developing a powerful and consistent prayer life.",
+    "shortAnswer": "Effective prayer begins with a humble heart, seeking God's will above our own, and praying in the name of Jesus Christ with faith. It involves confession of sin, thanksgiving, and persistent intercession based on the promises of God's Word.",
+    "keyVerse": "\"The effectual fervent prayer of a righteous man availeth much.\" — James 5:16"
+  },
+  {
+    "slug": "why-does-god-allow-suffering",
+    "question": "Why does a loving God allow suffering?",
+    "category": "suffering",
+    "keywords": ["suffering", "trials", "gods love"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:05Z",
+    "metaDescription": "A biblical perspective on pain, trials, and why God permits suffering in the world.",
+    "shortAnswer": "While suffering entered the world through sin, God uses it to refine our character, draw us closer to Him, and display His glory. He promises to be with us in our pain and eventually wipe away every tear in the new heaven and earth.",
+    "keyVerse": "\"And we know that all things work together for good to them that love God, to them who are the the called according to his purpose.\" — Romans 8:28"
+  },
+  {
+    "slug": "what-are-spiritual-gifts",
+    "question": "What are spiritual gifts and how do I find mine?",
+    "category": "holy-spirit",
+    "keywords": ["spiritual gifts", "holy spirit gifts", "ministry"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:06Z",
+    "metaDescription": "Learn about the gifts of the Spirit and how God empowers believers for service.",
+    "shortAnswer": "Spiritual gifts are supernatural empowerments given by the Holy Spirit to every believer for the building up of the Church. You discover yours through prayer, serving in your local church, and noticing where God produces fruit through your life.",
+    "keyVerse": "\"Now there are diversities of gifts, but the same Spirit.\" — 1 Corinthians 12:4"
+  },
+  {
+    "slug": "does-god-still-heal-today",
+    "question": "Does God still perform healing miracles today?",
+    "category": "healing",
+    "keywords": ["divine healing", "miracles", "healing power"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:07Z",
+    "metaDescription": "Biblical evidence for God's continuing power to heal physical and emotional wounds.",
+    "shortAnswer": "Yes, Jesus Christ is the same yesterday, today, and forever. God still performs healing miracles through the prayer of faith, the laying on of hands, and the sovereign work of the Holy Spirit, as a sign of His mercy and the power of the Gospel.",
+    "keyVerse": "\"Heal me, O Lord, and I shall be healed; save me, and I shall be saved: for thou art my praise.\" — Jeremiah 17:14"
+  },
+  {
+    "slug": "meaning-of-the-rapture",
+    "question": "What is the Rapture and when will it happen?",
+    "category": "prophecy",
+    "keywords": ["rapture", "end times", "second coming"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:08Z",
+    "metaDescription": "A biblical overview of the rapture of the Church and end-times prophecy.",
+    "shortAnswer": "The Rapture is the future event when Jesus Christ will appear in the clouds to catch up His Church (both dead and living) to meet Him in the air. While no man knows the exact day or hour, we are called to be ready and watching for His return.",
+    "keyVerse": "\"For the Lord himself shall descend from heaven with a shout... and the dead in Christ shall rise first: Then we which are alive and remain shall be caught up together with them in the clouds.\" — 1 Thessalonians 4:16-17"
+  },
+  {
+    "slug": "how-to-overcome-temptation",
+    "question": "How can I overcome recurring temptation and sin?",
+    "category": "faith",
+    "keywords": ["overcome temptation", "victory over sin", "holiness"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:09Z",
+    "metaDescription": "Scriptural strategies for resisting temptation and walking in spiritual victory.",
+    "shortAnswer": "Victory over temptation comes through submitting to God, resisting the devil, and hiding God's Word in your heart. We must depend on the Holy Spirit's power and remember that God always provides a way of escape.",
+    "keyVerse": "\"There hath no temptation taken you but such as is common to man: but God is faithful, who will not suffer you to be tempted above that ye are able.\" — 1 Corinthians 10:13"
+  },
+  {
+    "slug": "what-is-gods-will-for-my-life",
+    "question": "How do I know God's will for my life?",
+    "category": "faith",
+    "keywords": ["gods will", "guidance", "purpose"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:10Z",
+    "metaDescription": "Steps to discerning God's plan and purpose for your future.",
+    "shortAnswer": "Knowing God's will involves renewing your mind through Scripture, seeking Him in prayer, and walking in obedience to what He has already revealed. As you trust Him, He promises to direct your paths through the Holy Spirit's guidance and godly counsel.",
+    "keyVerse": "\"Trust in the Lord with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.\" — Proverbs 3:5-6"
+  },
+  {
+    "slug": "is-forgiveness-always-necessary",
+    "question": "Does the Bible require me to forgive everyone?",
+    "category": "relationships",
+    "keywords": ["forgiveness", "mercy", "bitterness"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:11Z",
+    "metaDescription": "The biblical mandate for forgiveness and its role in spiritual freedom.",
+    "shortAnswer": "Yes, biblical forgiveness is mandatory because Christ has forgiven us of a far greater debt. Forgiveness is a choice to release bitterness and the desire for revenge, though reconciliation may depend on the other person's repentance and safety.",
+    "keyVerse": "\"And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ's sake hath forgiven you.\" — Ephesians 4:32"
+  },
+  {
+    "slug": "what-is-the-baptism-of-the-spirit",
+    "question": "What is the baptism with the Holy Spirit?",
+    "category": "holy-spirit",
+    "keywords": ["spirit baptism", "holy ghost", "power"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:12Z",
+    "metaDescription": "Understanding the empowering experience of Spirit baptism for service.",
+    "shortAnswer": "The baptism with the Holy Spirit is an empowering experience subsequent to salvation, where the believer is filled with supernatural power for witnessing and spiritual ministry. It is often accompanied by the manifestation of spiritual gifts.",
+    "keyVerse": "\"But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me...\" — Acts 1:8"
+  },
+  {
+    "slug": "can-christians-lose-their-salvation",
+    "question": "Can a born-again Christian lose their salvation?",
+    "category": "salvation",
+    "keywords": ["eternal security", "assurance", "apostasy"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:13Z",
+    "metaDescription": "Assurance of salvation and the biblical perspective on eternal security.",
+    "shortAnswer": "The Bible teaches that those truly born of God are kept by His power and nothing can pluck them from His hand. While we are called to persevere and bear fruit as evidence of true faith, our security rests in God's faithfulness and the finished work of Christ.",
+    "keyVerse": "\"And I give unto them eternal life; and they shall never perish, neither shall any man pluck them out of my hand.\" — John 10:28"
+  },
+  {
+    "slug": "what-is-the-difference-between-grace-and-mercy",
+    "question": "What is the difference between Grace and Mercy?",
+    "category": "faith",
+    "keywords": ["grace", "mercy", "gods love"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:14Z",
+    "metaDescription": "Defining the two pillars of God's character in the salvation of man.",
+    "shortAnswer": "Mercy is God *not* giving us the punishment we deserve (judgment for sin). Grace is God giving us the blessing we *don't* deserve (forgiveness, eternal life, and His presence). Both are flows of His infinite love.",
+    "keyVerse": "\"For by grace are ye saved through faith; and that not of yourselves: it is the gift of God.\" — Ephesians 2:8"
+  },
+  {
+    "slug": "why-is-church-attendance-important",
+    "question": "Why should I go to church if I can pray at home?",
+    "category": "church",
+    "keywords": ["church", "fellowship", "community"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:15Z",
+    "metaDescription": "The biblical importance of corporate worship and Christian fellowship.",
+    "shortAnswer": "While you should pray at home, the local church is God's design for accountability, corporate worship, using your spiritual gifts, and being equipped by pastors. Fellowship with other believers is essential for spiritual growth and strength.",
+    "keyVerse": "\"Not forsaking the assembling of ourselves together, as the manner of some is; but exhorting one another: and so much the more, as ye see the day approaching.\" — Hebrews 10:25"
+  },
+  {
+    "slug": "what-does-it-mean-to-be-born-again",
+    "question": "What does it mean to be 'born again'?",
+    "category": "salvation",
+    "keywords": ["born again", "new creation", "regeneration"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:16Z",
+    "metaDescription": "Jesus' teaching on the necessity of a spiritual second birth.",
+    "shortAnswer": "To be born again is to experience spiritual regeneration by the Holy Spirit. Just as we have a physical birth, we need a spiritual birth to enter the Kingdom of God, where our spirit is made alive and we become a new creation in Christ.",
+    "keyVerse": "\"Jesus answered and said unto him, Verily, verily, I say unto thee, Except a man be born again, he cannot see the kingdom of God.\" — John 3:3"
+  },
+  {
+    "slug": "is-tithing-still-required",
+    "question": "Is tithing 10% required for Christians today?",
+    "category": "church",
+    "keywords": ["tithing", "giving", "stewardship"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:17Z",
+    "metaDescription": "A biblical look at giving, tithing, and financial stewardship in the New Covenant.",
+    "shortAnswer": "While the 10% tithe was a law in the Old Testament, the New Testament emphasizes generous, cheerful, and sacrificial giving. Most believers use the 10% as a baseline for giving to their local church as an act of worship and trust in God's provision.",
+    "keyVerse": "\"Every man according as he purposeth in his heart, so let him give; not grudgingly, or of necessity: for God loveth a cheerful giver.\" — 2 Corinthians 9:7"
+  },
+  {
+    "slug": "what-is-biblical-fasting",
+    "question": "What is the purpose of fasting in the Christian life?",
+    "category": "prayer",
+    "keywords": ["fasting", "denying self", "spiritual focus"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:18Z",
+    "metaDescription": "How fasting helps believers focus on God and seek spiritual breakthroughs.",
+    "shortAnswer": "Fasting is voluntarily abstaining from food to focus on prayer and seeking God. It humbles the soul, heightens spiritual awareness, and expresses our deep dependence on God for breakthroughs and spiritual strength.",
+    "keyVerse": "\"But thou, when thou fastest, anoint thine head, and wash thy face; That thou appear not unto men to fast, but unto thy Father which is in secret...\" — Matthew 6:17-18"
+  },
+  {
+    "slug": "what-is-the-unpardonable-sin",
+    "question": "What is the 'unpardonable sin'?",
+    "category": "bible",
+    "keywords": ["blasphemy against holy spirit", "unpardonable sin"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:19Z",
+    "metaDescription": "Understanding what Jesus meant by blasphemy against the Holy Spirit.",
+    "shortAnswer": "The unpardonable sin is blasphemy against the Holy Spirit—a persistent, hard-hearted rejection of the Spirit's testimony of Jesus Christ. If you are worried you have committed it, that concern itself is proof you haven't, as your heart is not yet hardened to the Spirit's conviction.",
+    "keyVerse": "\"Wherefore I say unto you, All manner of sin and blasphemy shall be forgiven unto men: but the blasphemy against the Holy Ghost shall not be forgiven unto men.\" — Matthew 12:31"
+  },
+  {
+    "slug": "how-to-discover-gods-purpose",
+    "question": "How do I find my specific calling in life?",
+    "category": "faith",
+    "keywords": ["calling", "vocation", "purpose"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:20Z",
+    "metaDescription": "Finding your unique place in God's kingdom and the world.",
+    "shortAnswer": "Your specific calling is usually found at the intersection of your God-given talents, your deep passions, and the needs of the Church and world. As you serve faithfully where you are, God will open doors and refine your sense of purpose.",
+    "keyVerse": "\"For we are his workmanship, created in Christ Jesus unto good works, which God hath before ordained that we should walk in them.\" — Ephesians 2:10"
+  },
+  {
+    "slug": "importance-of-holy-communion",
+    "question": "What is the significance of Holy Communion?",
+    "category": "church",
+    "keywords": ["communion", "lords supper", "remembrance"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:21Z",
+    "metaDescription": "The meaning behind the Lord's Supper and why we partake.",
+    "shortAnswer": "Communion is a solemn act of remembrance of Jesus' sacrifice. The bread represents His broken body and the cup represents His poured-out blood for the forgiveness of our sins. It is an act of fellowship with Christ and the body of believers.",
+    "keyVerse": "\"And he took bread, and gave thanks, and brake it, and gave unto them, saying, This is my body which is given for you: this do in remembrance of me.\" — Luke 22:19"
+  },
+  {
+    "slug": "why-does-god-wait-to-answer-prayer",
+    "question": "Why does it sometimes feel like God isn't answering my prayers?",
+    "category": "prayer",
+    "keywords": ["unanswered prayer", "gods timing", "patience"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:22Z",
+    "metaDescription": "Understanding 'No', 'Wait', and 'Grow' in the life of a praying Christian.",
+    "shortAnswer": "God always hears, but His answers are 'Yes', 'No', or 'Wait'. Delays are often seasons of growth meant to strengthen our trust and prepare us for the answer. Sometimes 'No' is God's protection from something we don't realize is harmful.",
+    "keyVerse": "\"Wait on the Lord: be of good courage, and he shall strengthen thine heart: wait, I say, on the Lord.\" — Psalm 27:14"
+  },
+  {
+    "slug": "what-is-biblical-marriage",
+    "question": "What is the biblical definition of marriage?",
+    "category": "relationships",
+    "keywords": ["marriage", "family", "covenant"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:23Z",
+    "metaDescription": "Understanding God's design for marriage as a lifelong covenant.",
+    "shortAnswer": "Biblical marriage is a sacred covenant between one man and one woman, ordained by God in creation to be a lifelong union. It is intended to reflect the relationship between Christ and His Church, characterized by sacrificial love and mutual respect.",
+    "keyVerse": "\"Therefore shall a man leave his father and his mother, and shall cleave unto his wife: and they shall be one flesh.\" — Genesis 2:24"
+  },
+  {
+    "slug": "who-is-the-holy-spirit-exactly",
+    "question": "Who exactly is the Holy Spirit?",
+    "category": "holy-spirit",
+    "keywords": ["holy spirit", "god", "comforter"],
+    "searchVolume": "high",
+    "createdAt": "2026-04-21T21:40:24Z",
+    "metaDescription": "Meeting the third Person of the Trinity—our Comforter and Guide.",
+    "shortAnswer": "The Holy Spirit is not a force, but a Divine Person—the third Person of the Trinity. He is our Comforter, Helper, and Teacher who lives within every believer, empowers us for service, and guides us into all truth.",
+    "keyVerse": "\"But the Comforter, which is the Holy Ghost, whom the Father will send in my name, he shall teach you all things, and bring all things to your remembrance...\" — John 14:26"
+  }
+]

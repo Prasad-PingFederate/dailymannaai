@@ -56,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/blog`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/blog/how-to-hear-from-god`, lastModified: NOW, changeFrequency: "monthly", priority: 0.75 },
     { url: `${BASE_URL}/blog/bible-verses-about-healing`, lastModified: NOW, changeFrequency: "monthly", priority: 0.75 },
-    { url: `${BASE_URL}/blog/questions`, lastModified: NOW, changeFrequency: "daily", priority: 0.9 },
   ];
 
   const bibleRoutes: MetadataRoute.Sitemap = [];
