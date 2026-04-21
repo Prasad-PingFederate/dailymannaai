@@ -143,7 +143,7 @@ export default function QuestionsAccordion({ questions, grouped, categories, cat
                 const catQuestions = grouped[cat];
 
                 return (
-                    <section key={cat} className="space-y-4">
+                    <section key={cat} id={`cat-${cat}`} className="space-y-4 scroll-mt-24">
                         {/* Category header */}
                         <div className="flex items-center gap-4 mb-6">
                             <div

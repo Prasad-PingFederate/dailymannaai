@@ -21,6 +21,7 @@ const CATEGORIES = [
     { id: "holy-spirit", label: "Holy Spirit", emoji: "🕊️", color: "#06b6d4", desc: "Spiritual gifts, fruits, baptism" },
     { id: "church", label: "Church", emoji: "⛪", color: "#10b981", desc: "Worship, communion, baptism" },
     { id: "bible", label: "Bible", emoji: "📖", color: "#f97316", desc: "Bible study, interpretation" },
+    { id: "jesus", label: "Jesus", emoji: "👑", color: "#B8860B", desc: "Life, deity, and work of Christ" },
 ] as const;
 
 const COUNT_OPTIONS = [10, 20, 30, 50];
