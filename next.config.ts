@@ -13,11 +13,6 @@ const nextConfig: NextConfig = {
         destination: '/daily-manna',
         permanent: true, // 301 Redirect for SEO
       },
-      {
-        source: '/blog/:path*',
-        destination: '/daily-manna',
-        permanent: true,
-      },
     ];
   },
 
