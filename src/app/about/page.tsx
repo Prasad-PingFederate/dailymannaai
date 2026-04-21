@@ -37,6 +37,7 @@ export default function AboutPage() {
                 </Link>
                 <div style={{ display: "flex", gap: 24, fontSize: 14 }}>
                     <Link href="/" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>Home</Link>
+                    <Link href="/blog" style={{ color: "var(--text-secondary, #555)", textDecoration: "none", fontWeight: "bold" }}>Blog</Link>
                     <Link href="/contact" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>Contact</Link>
                     <Link href="/privacy-policy" style={{ color: "var(--text-secondary, #555)", textDecoration: "none" }}>Privacy</Link>
                 </div>

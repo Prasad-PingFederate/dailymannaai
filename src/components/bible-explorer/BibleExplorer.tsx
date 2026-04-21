@@ -350,6 +350,13 @@ export default function BibleExplorer({
                             <Home size={12} className="group-hover:scale-110 transition-transform" />
                             <span className="hidden sm:inline">Home</span>
                         </a>
+                        <a 
+                            href="https://www.dailymannaai.com/blog" 
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-navy/5 text-navy text-[10px] font-bold hover:bg-navy/10 transition-all shadow-sm group border border-navy/10"
+                        >
+                            <Newspaper size={12} className="text-gold group-hover:scale-110 transition-transform" />
+                            <span className="hidden sm:inline">Blog</span>
+                        </a>
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gold/30 bg-gold-pale/10 text-gold text-[10px] font-bold shadow-inner">
                             <BookOpen size={12} className="opacity-70" />
                             <span className="hidden sm:inline">Explorer</span>

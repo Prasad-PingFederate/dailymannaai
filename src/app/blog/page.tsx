@@ -15,32 +15,7 @@ export const metadata: Metadata = {
     alternates: { canonical: "https://www.dailymannaai.com/blog" },
 };
 
-export interface Question {
-    slug: string;
-    question: string;
-    category: string;
-    keywords: string[];
-    searchVolume: "high" | "medium";
-    createdAt: string;
-    metaDescription: string;
-    answer?: string;
-    shortAnswer?: string;
-    keyVerse?: string;
-}
-
-export const CATEGORY_META: Record<string, { label: string; color: string; emoji: string }> = {
-    salvation:     { label: "Salvation",     color: "#6366f1", emoji: "🕊️" },
-    prayer:        { label: "Prayer",        color: "#0ea5e9", emoji: "🙏" },
-    healing:       { label: "Healing",       color: "#22c55e", emoji: "💚" },
-    faith:         { label: "Faith",         color: "#f59e0b", emoji: "🌿" },
-    prophecy:      { label: "Prophecy",      color: "#ef4444", emoji: "🔥" },
-    relationships: { label: "Relationships", color: "#ec4899", emoji: "💛" },
-    suffering:     { label: "Suffering",     color: "#8b5cf6", emoji: "🌧️" },
-    "holy-spirit": { label: "Holy Spirit",   color: "#06b6d4", emoji: "🕊️" },
-    church:        { label: "Church",        color: "#10b981", emoji: "⛪" },
-    bible:         { label: "Bible",         color: "#f97316", emoji: "📖" },
-    all:           { label: "General",       color: "#D4AF37", emoji: "✨" },
-};
+import { Question, CATEGORY_META } from "./types";
 
 function readQuestions(): Question[] {
     try {
@@ -70,6 +45,18 @@ export default function BlogPage() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-navy" style={{ fontFamily: "Inter, sans-serif" }}>
+            {/* Minimal Nav */}
+            <nav className="h-16 px-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between sticky top-0 bg-white/80 dark:bg-navy/80 backdrop-blur-md z-50">
+                <Link href="/" className="font-black text-lg tracking-tighter text-navy dark:text-white">
+                    DAILY<span className="text-gold">MANNA</span>AI
+                </Link>
+                <div className="flex items-center gap-6">
+                    <Link href="/" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">Search</Link>
+                    <Link href="/bible-explorer" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">Bible</Link>
+                    <Link href="/notebook" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">Notebook</Link>
+                    <Link href="/about" className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-gold transition-colors">About</Link>
+                </div>
+            </nav>
             {/* Hero Header */}
             <div className="relative overflow-hidden bg-gradient-to-br from-navy via-navy-2 to-[#0d0a21] py-20 px-6 text-center">
                 <div className="absolute inset-0 pointer-events-none">

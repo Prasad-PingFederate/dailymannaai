@@ -11,6 +11,8 @@ import { lookupBibleReference } from "@/lib/bible/lookup";
 import { searchBible } from "@/lib/search/bible-search";
 import { searchDocuments } from "@/lib/search/document-search";
 import { searchRSSFeeds, getLatestChristianNews, RSSArticle } from "@/lib/rss-fetcher";
+import fs from "fs";
+import path from "path";
 
 // ── NEWS INTENT DETECTION ──────────────────────────────────────────────────────
 const NEWS_KEYWORDS = [
@@ -148,7 +150,7 @@ export async function POST(req: Request) {
         const isNewsMode = detectNewsIntent(query);
 
         // 🚀 PARALLEL PHASE 2: Deep Research (Everything at once)
-        const [bibleResults, documentResults, webResults, relevantChunks, newsArticles] = await Promise.all([
+        const [bibleResults, documentResults, webResults, relevantChunks, newsArticles, blogResults] = await Promise.all([
             searchBible(intentResult.primaryKeywords),
             searchDocuments(intentResult.standaloneQuery || query),
             performWebSearch(standaloneQuery),
@@ -157,12 +159,26 @@ export async function POST(req: Request) {
                 ? searchRSSFeeds(query, { limit: 6 }).then(arts =>
                     arts.length > 0 ? arts : getLatestChristianNews(6)
                 ).catch(() => [] as RSSArticle[])
-                : Promise.resolve([] as RSSArticle[])
+                : Promise.resolve([] as RSSArticle[]),
+            // Search local blog posts
+            Promise.resolve().then(() => {
+                try {
+                    const dataFile = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
+                    if (!fs.existsSync(dataFile)) return [];
+                    const questions = JSON.parse(fs.readFileSync(dataFile, "utf-8"));
+                    const qLower = query.toLowerCase();
+                    return questions.filter((q: any) => 
+                        q.question.toLowerCase().includes(qLower) || 
+                        q.keywords.some((k: string) => qLower.includes(k.toLowerCase()))
+                    ).slice(0, 3);
+                } catch { return []; }
+            })
         ]);
 
         let groundingSources: string[] = [];
         bibleResults.forEach((res: any) => groundingSources.push(`[KJV Bible]: (${res.reference}) ${res.text}`));
         documentResults.forEach((res: any) => groundingSources.push(`[Expert Knowledge]: (${res.title}) ${res.snippet}`));
+        blogResults.forEach((res: any) => groundingSources.push(`[Blog Post Available]: Title: "${res.question}". Link: /blog/questions/${res.slug}. Short Answer: ${res.shortAnswer}`));
 
         console.log(`[ChatAPI-DNA] Research complete. Local: ${relevantChunks.length} | Web: ${webResults.length} | Bible: ${bibleResults.length}`);
 
