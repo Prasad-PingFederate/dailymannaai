@@ -1,7 +1,19 @@
 import type { MetadataRoute } from "next";
+import fs from "fs";
+import path from "path";
 
 const BASE_URL = "https://www.dailymannaai.com";
 const NOW = new Date().toISOString();
+
+function readSpiritualQuestions() {
+  try {
+    const dataFile = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
+    if (!fs.existsSync(dataFile)) return [];
+    return JSON.parse(fs.readFileSync(dataFile, "utf-8")) as { slug: string; createdAt: string }[];
+  } catch {
+    return [];
+  }
+}
 
 const BIBLE_BOOKS = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", 
@@ -40,6 +52,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/notebook`, lastModified: NOW, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/about`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/contact`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
+    // Blog routes
+    { url: `${BASE_URL}/blog`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/blog/how-to-hear-from-god`, lastModified: NOW, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE_URL}/blog/bible-verses-about-healing`, lastModified: NOW, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${BASE_URL}/blog/questions`, lastModified: NOW, changeFrequency: "daily", priority: 0.9 },
   ];
 
   const bibleRoutes: MetadataRoute.Sitemap = [];
@@ -67,5 +84,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   });
 
-  return [...staticRoutes, ...bibleRoutes];
+  // Dynamic blog question routes
+  const questionData = readSpiritualQuestions();
+  const questionRoutes: MetadataRoute.Sitemap = questionData.map((q) => ({
+    url: `${BASE_URL}/blog/questions/${q.slug}`,
+    lastModified: q.createdAt || NOW,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...bibleRoutes, ...questionRoutes];
 }
