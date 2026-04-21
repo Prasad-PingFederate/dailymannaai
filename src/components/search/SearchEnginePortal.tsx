@@ -1028,7 +1028,7 @@ function ThoughtPanel({
 
 // â”€â”€â”€ MAIN COMPONENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio" | "notebook" | "alerts";
+type FilterType = "global" | "bible" | "news" | "devotionals" | "sermons" | "ai" | "studio" | "notebook" | "alerts" | "blog";
 
 
 export default function SearchEnginePortal() {
@@ -1535,6 +1535,10 @@ export default function SearchEnginePortal() {
             window.location.href = "/imagestudio";
             return;
         }
+        if (f === "blog") {
+            window.location.href = "/blog";
+            return;
+        }
         setFilter(f);
         if (f === "devotionals" || f === "ai" || f === "sermons") {
             setHasSearched(true);
@@ -1598,6 +1602,7 @@ export default function SearchEnginePortal() {
         { id: "notebook", label: "Notebook", icon: <BookOpen size={13} /> },
         { id: "devotionals", label: "Devotionals", icon: <Quote size={13} /> },
         { id: "sermons", label: "Sermons", icon: <MessageCircle size={13} /> },
+        { id: "blog", label: "Blog", icon: <Sparkles size={13} /> },
         { id: "studio", label: "Image Studio", icon: <ImageIcon size={13} /> },
         { id: "alerts", label: "Prophetic Alerts", icon: <Bell size={13} /> },
     ] as const;
