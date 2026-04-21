@@ -2171,11 +2171,15 @@ export default function SearchEnginePortal() {
                 )}
             </main>
 
-            {/* Site Footer - Simplified */}
-            <footer className="w-full py-8 text-center border-t border-slate-100 dark:border-white/5 opacity-50">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
-                    &copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer
-                </p>
+            {/* Site Footer */}
+            <footer className="w-full py-8 border-t border-slate-100 dark:border-white/5">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                    <p>&copy; {new Date().getFullYear()} DailyMannaAI &mdash; Built with Prayer</p>
+                    <div className="hidden sm:block w-px h-3 bg-slate-200 dark:bg-white/10" />
+                    <Link href="/blog" className="hover:text-gold transition-colors">Blog</Link>
+                    <Link href="/blog/questions" className="hover:text-gold transition-colors">Spiritual Q&amp;A</Link>
+                    <Link href="/blog/generate" className="hover:text-gold transition-colors">Generate Questions</Link>
+                </div>
             </footer>
         </div>
     );
