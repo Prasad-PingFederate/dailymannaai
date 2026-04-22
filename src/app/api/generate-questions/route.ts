@@ -8,19 +8,7 @@ import {
     getQuestionBySlug
 } from "@/lib/questions-service";
 
-export interface SpiritualQuestion {
-    slug: string;
-    question: string;
-    category: string;
-    keywords: string[];
-    searchVolume: string;
-    createdAt: string;
-    metaDescription: string;
-    answer?: string;
-    shortAnswer?: string;
-    keyVerse?: string;
-    verseRefs?: string[];
-}
+import { Question } from "@/app/blog/types";
 
 function slugify(text: string) {
     return text
@@ -116,7 +104,7 @@ Rules:
             const existing = await getQuestionBySlug(slug);
             if (existing) continue;
 
-            const newQ: SpiritualQuestion = {
+            const newQ: Question = {
                 slug,
                 question: q.question,
                 category: q.category,
@@ -124,7 +112,7 @@ Rules:
                 searchVolume: q.searchVolume,
                 metaDescription: q.metaDescription,
                 createdAt: new Date().toISOString(),
-            };
+            } as Question;
             
             await createQuestion(newQ);
             newQuestions.push(newQ);
