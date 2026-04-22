@@ -1,5 +1,5 @@
 import { getCosmosContainer } from "./cosmos";
-import { SpiritualQuestion } from "@/app/blog/types";
+import { Question } from "@/app/blog/types";
 import fs from "fs";
 import path from "path";
 
@@ -16,7 +16,7 @@ async function ensureContainer() {
     return container;
 }
 
-export async function getQuestions(category?: string): Promise<SpiritualQuestion[]> {
+export async function getQuestions(category?: string): Promise<Question[]> {
     const container = await ensureContainer();
     
     let querySpec;
@@ -34,10 +34,10 @@ export async function getQuestions(category?: string): Promise<SpiritualQuestion
     const { resources } = await container.items.query(querySpec).fetchAll();
     // Cosmos returns 'id' for the unique identifier, but our code uses 'slug' as the key usually.
     // We should ensure the mapping is correct.
-    return resources as SpiritualQuestion[];
+    return resources as Question[];
 }
 
-export async function getQuestionBySlug(slug: string): Promise<SpiritualQuestion | null> {
+export async function getQuestionBySlug(slug: string): Promise<Question | null> {
     const container = await ensureContainer();
     const { resources } = await container.items
         .query({
@@ -46,17 +46,17 @@ export async function getQuestionBySlug(slug: string): Promise<SpiritualQuestion
         })
         .fetchAll();
     
-    return resources.length > 0 ? (resources[0] as SpiritualQuestion) : null;
+    return resources.length > 0 ? (resources[0] as Question) : null;
 }
 
-export async function createQuestion(question: SpiritualQuestion) {
+export async function createQuestion(question: Question) {
     const container = await ensureContainer();
     // Add an 'id' field for Cosmos if it doesn't exist, using slug as id is common
     const item = { ...question, id: question.slug };
     await container.items.create(item);
 }
 
-export async function updateQuestion(slug: string, updates: Partial<SpiritualQuestion>) {
+export async function updateQuestion(slug: string, updates: Partial<Question>) {
     const container = await ensureContainer();
     const existing = await getQuestionBySlug(slug);
     if (!existing) throw new Error("Question not found");
