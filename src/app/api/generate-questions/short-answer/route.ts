@@ -45,7 +45,7 @@ Rules:
         const keyVerse = verseMatch ? verseMatch[1].trim() : null;
 
         // Save back to DB
-        await updateQuestion(slug, { shortAnswer, keyVerse });
+        await updateQuestion(slug, { shortAnswer, keyVerse: keyVerse ?? undefined });
 
         return NextResponse.json({ success: true, shortAnswer, keyVerse, cached: false });
     } catch (error: any) {
