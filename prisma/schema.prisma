@@ -28,3 +28,5 @@ model ErrorLog {
   stack     String?
   createdAt DateTime @default(now())
 }
+
+

@@ -1,32 +1,14 @@
-// src/app/api/generate-questions/answer/route.ts
-// Generate a full blog-quality answer for a single spiritual question
-
 import { NextRequest, NextResponse } from "next/server";
 import { getProviderManager } from "@/lib/ai/gemini";
-import fs from "fs";
-import path from "path";
-
-const DATA_FILE = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-
-function readQuestions() {
-    if (!fs.existsSync(DATA_FILE)) return [];
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-}
-
-function writeQuestions(questions: any[]) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(questions, null, 2));
-}
+import { getQuestionBySlug, updateQuestion } from "@/lib/questions-service";
 
 export async function POST(req: NextRequest) {
     try {
         const { slug } = await req.json();
         if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
-        const questions = readQuestions();
-        const idx = questions.findIndex((q: any) => q.slug === slug);
-        if (idx === -1) return NextResponse.json({ error: "Question not found" }, { status: 404 });
-
-        const q = questions[idx];
+        const q = await getQuestionBySlug(slug);
+        if (!q) return NextResponse.json({ error: "Question not found" }, { status: 404 });
 
         const prompt = `You are a Spirit-filled Christian theologian writing a comprehensive, SEO-optimized blog post.
 
@@ -85,8 +67,7 @@ Rules:
                   .filter((r: string) => r.length > 2)
             : [];
 
-        questions[idx] = { ...q, answer, verseRefs };
-        writeQuestions(questions);
+        await updateQuestion(slug, { answer, verseRefs });
 
         return NextResponse.json({ success: true, slug, answer, verseRefs });
     } catch (error: any) {

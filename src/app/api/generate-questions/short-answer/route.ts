@@ -3,30 +3,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getProviderManager } from "@/lib/ai/gemini";
-import fs from "fs";
-import path from "path";
-
-const DATA_FILE = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-
-function readQuestions() {
-    if (!fs.existsSync(DATA_FILE)) return [];
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-}
-
-function writeQuestions(questions: any[]) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(questions, null, 2));
-}
+import { getQuestionBySlug, updateQuestion } from "@/lib/questions-service";
 
 export async function POST(req: NextRequest) {
     try {
         const { slug } = await req.json();
         if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
-        const questions = readQuestions();
-        const idx = questions.findIndex((q: any) => q.slug === slug);
-        if (idx === -1) return NextResponse.json({ error: "Question not found" }, { status: 404 });
-
-        const q = questions[idx];
+        const q = await getQuestionBySlug(slug);
+        if (!q) return NextResponse.json({ error: "Question not found" }, { status: 404 });
 
         // If already generated, return it immediately
         if (q.shortAnswer) {
@@ -59,9 +44,8 @@ Rules:
         const shortAnswer = answerMatch ? answerMatch[1].trim() : response.trim().substring(0, 300);
         const keyVerse = verseMatch ? verseMatch[1].trim() : null;
 
-        // Save back to JSON
-        questions[idx] = { ...q, shortAnswer, keyVerse };
-        writeQuestions(questions);
+        // Save back to DB
+        await updateQuestion(slug, { shortAnswer, keyVerse });
 
         return NextResponse.json({ success: true, shortAnswer, keyVerse, cached: false });
     } catch (error: any) {
