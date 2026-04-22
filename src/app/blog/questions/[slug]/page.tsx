@@ -2,37 +2,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import fs from "fs";
-import path from "path";
+import { getQuestionBySlug, updateQuestion } from "@/lib/questions-service";
 import { ArrowLeft, Sparkles, BookOpen, Share2, MessageCircle } from "lucide-react";
-import { CATEGORY_META, Question } from "../../types";
+import { CATEGORY_META } from "../../types";
 import { getProviderManager } from "@/lib/ai/gemini";
 
-const DATA_FILE = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-
-function getQuestion(slug: string): Question | null {
-    try {
-        if (!fs.existsSync(DATA_FILE)) return null;
-        const questions: Question[] = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-        return questions.find(q => q.slug === slug) || null;
-    } catch { return null; }
-}
-
-function updateQuestion(updated: Question) {
-    try {
-        const questions: Question[] = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-        const idx = questions.findIndex(q => q.slug === updated.slug);
-        if (idx !== -1) {
-            questions[idx] = updated;
-            fs.writeFileSync(DATA_FILE, JSON.stringify(questions, null, 2));
-        }
-    } catch (e) {
-        console.error("Failed to update question", e);
-    }
-}
-
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-    const q = getQuestion(params.slug);
+    const q = await getQuestionBySlug(params.slug);
     if (!q) return { title: "Question Not Found" };
 
     return {
@@ -49,10 +25,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function QuestionDetailPage({ params }: { params: { slug: string } }) {
-    const q = getQuestion(params.slug);
+    const q = await getQuestionBySlug(params.slug);
     if (!q) notFound();
 
-    const meta = CATEGORY_META[q.category] || CATEGORY_META.all;
+    const meta = CATEGORY_META[q.category as keyof typeof CATEGORY_META] || CATEGORY_META.all;
 
     let fullAnswer = q.answer;
     if (!fullAnswer) {
@@ -73,7 +49,7 @@ export default async function QuestionDetailPage({ params }: { params: { slug: s
         try {
             const { response } = await getProviderManager().generateResponse(prompt);
             fullAnswer = response;
-            updateQuestion({ ...q, answer: fullAnswer });
+            await updateQuestion(q.slug, { answer: fullAnswer });
         } catch (e) {
             fullAnswer = "We are currently seeking the Spirit's guidance for a full answer to this question. In the meantime, please refer to the short answer on the main blog page.";
         }

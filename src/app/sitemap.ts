@@ -1,15 +1,12 @@
 import type { MetadataRoute } from "next";
-import fs from "fs";
-import path from "path";
+import { getQuestions } from "@/lib/questions-service";
 
 const BASE_URL = "https://www.dailymannaai.com";
 const NOW = new Date().toISOString();
 
-function readSpiritualQuestions() {
+async function readSpiritualQuestions() {
   try {
-    const dataFile = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-    if (!fs.existsSync(dataFile)) return [];
-    return JSON.parse(fs.readFileSync(dataFile, "utf-8")) as { slug: string; createdAt: string }[];
+    return await getQuestions();
   } catch {
     return [];
   }
@@ -84,7 +81,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // Dynamic blog question routes
-  const questionData = readSpiritualQuestions();
+  const questionData = await readSpiritualQuestions();
   const questionRoutes: MetadataRoute.Sitemap = questionData.map((q) => ({
     url: `${BASE_URL}/blog/questions/${q.slug}`,
     lastModified: q.createdAt || NOW,

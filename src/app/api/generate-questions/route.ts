@@ -1,45 +1,14 @@
-// src/app/api/generate-questions/route.ts
-// Generates high-volume Christian spiritual questions using AI
-
 import { NextRequest, NextResponse } from "next/server";
 import { getProviderManager } from "@/lib/ai/gemini";
-import fs from "fs";
-import path from "path";
+import { 
+    getQuestions, 
+    createQuestion, 
+    deleteAllQuestions, 
+    syncLegacyData,
+    getQuestionBySlug
+} from "@/lib/questions-service";
 
-// ── Path to our flat-file JSON store ──────────────────────────────────────────
-const DATA_FILE = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-
-function ensureDataFile() {
-    const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify([]));
-}
-
-function readQuestions(): SpiritualQuestion[] {
-    ensureDataFile();
-    try {
-        return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-    } catch {
-        return [];
-    }
-}
-
-function writeQuestions(questions: SpiritualQuestion[]) {
-    ensureDataFile();
-    fs.writeFileSync(DATA_FILE, JSON.stringify(questions, null, 2));
-}
-
-export interface SpiritualQuestion {
-    slug: string;
-    question: string;
-    category: string;
-    keywords: string[];
-    searchVolume: "high" | "medium";
-    createdAt: string;
-    metaDescription: string;
-    answer?: string;
-    verseRefs?: string[];
-}
+import { Question } from "@/app/blog/types";
 
 function slugify(text: string) {
     return text
@@ -50,15 +19,18 @@ function slugify(text: string) {
         .substring(0, 80);
 }
 
-// ── GET  — return existing questions ──────────────────────────────────────────
+// ── GET  — return existing questions from Cosmos DB ───────────────────────────
 export async function GET(req: NextRequest) {
-    const questions = readQuestions();
+    await syncLegacyData();
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
-    const filtered = category
-        ? questions.filter((q) => q.category === category)
-        : questions;
-    return NextResponse.json({ questions: filtered, total: filtered.length });
+    const category = searchParams.get("category") || undefined;
+
+    const questions = await getQuestions(category);
+
+    return NextResponse.json({ 
+        questions, 
+        total: questions.length 
+    });
 }
 
 // ── POST — generate new questions via AI ──────────────────────────────────────
@@ -113,9 +85,7 @@ Rules:
         const { response } = await getProviderManager().generateResponse(prompt);
 
         // Parse the JSON response
-        let cleanJson = response
-            .replace(/```json|```/g, "")
-            .trim();
+        let cleanJson = response.replace(/```json|```/g, "").trim();
 
         // Find the JSON array
         const jsonStart = cleanJson.indexOf("[");
@@ -125,31 +95,35 @@ Rules:
         }
         cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
 
-        const rawQuestions: Omit<SpiritualQuestion, "slug" | "createdAt">[] = JSON.parse(cleanJson);
+        const rawQuestions: any[] = JSON.parse(cleanJson);
 
-        // Merge with existing, avoid duplicates
-        const existing = readQuestions();
-        const existingSlugs = new Set(existing.map((q) => q.slug));
-        const existingQuestions = new Set(existing.map((q) => q.question.toLowerCase()));
-
-        const newQuestions: SpiritualQuestion[] = [];
+        const newQuestions = [];
         for (const q of rawQuestions) {
             const slug = slugify(q.question);
-            if (existingSlugs.has(slug) || existingQuestions.has(q.question.toLowerCase())) continue;
-            newQuestions.push({
-                ...q,
+            
+            const existing = await getQuestionBySlug(slug);
+            if (existing) continue;
+
+            const newQ: Question = {
                 slug,
+                question: q.question,
+                category: q.category,
+                keywords: q.keywords,
+                searchVolume: q.searchVolume,
+                metaDescription: q.metaDescription,
                 createdAt: new Date().toISOString(),
-            });
+            } as Question;
+            
+            await createQuestion(newQ);
+            newQuestions.push(newQ);
         }
 
-        const allQuestions = [...existing, ...newQuestions];
-        writeQuestions(allQuestions);
+        const questionsAcrossAll = await getQuestions();
 
         return NextResponse.json({
             success: true,
             generated: newQuestions.length,
-            total: allQuestions.length,
+            total: questionsAcrossAll.length,
             questions: newQuestions,
         });
     } catch (error: any) {
@@ -163,6 +137,6 @@ Rules:
 
 // ── DELETE — clear all questions ───────────────────────────────────────────────
 export async function DELETE() {
-    writeQuestions([]);
-    return NextResponse.json({ success: true, message: "All questions cleared" });
+    await deleteAllQuestions();
+    return NextResponse.json({ success: true, message: "All questions cleared from Cosmos DB" });
 }

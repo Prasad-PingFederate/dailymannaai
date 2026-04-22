@@ -16,13 +16,16 @@ export const metadata: Metadata = {
 };
 
 import { Question, CATEGORY_META } from "./types";
+import { getQuestions } from "@/lib/questions-service";
 
-function readQuestions(): Question[] {
+async function getBlogQuestions(): Promise<Question[]> {
     try {
-        const dataFile = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-        if (!fs.existsSync(dataFile)) return [];
-        return JSON.parse(fs.readFileSync(dataFile, "utf-8"));
-    } catch { return []; }
+        const questions = await getQuestions();
+        return questions as Question[];
+    } catch (e) {
+        console.error("Failed to fetch questions:", e);
+        return [];
+    }
 }
 
 function groupByCategory(questions: Question[]): Record<string, Question[]> {
@@ -38,8 +41,8 @@ function groupByCategory(questions: Question[]): Record<string, Question[]> {
 // Revalidate every 60 seconds
 export const revalidate = 60;
 
-export default function BlogPage() {
-    const questions = readQuestions();
+export default async function BlogPage() {
+    const questions = await getBlogQuestions();
     const grouped = groupByCategory(questions);
     const categories = Object.keys(grouped).sort();
 

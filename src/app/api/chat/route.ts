@@ -11,8 +11,7 @@ import { lookupBibleReference } from "@/lib/bible/lookup";
 import { searchBible } from "@/lib/search/bible-search";
 import { searchDocuments } from "@/lib/search/document-search";
 import { searchRSSFeeds, getLatestChristianNews, RSSArticle } from "@/lib/rss-fetcher";
-import fs from "fs";
-import path from "path";
+import { getQuestions } from "@/lib/questions-service";
 
 // ── NEWS INTENT DETECTION ──────────────────────────────────────────────────────
 const NEWS_KEYWORDS = [
@@ -160,19 +159,13 @@ export async function POST(req: Request) {
                     arts.length > 0 ? arts : getLatestChristianNews(6)
                 ).catch(() => [] as RSSArticle[])
                 : Promise.resolve([] as RSSArticle[]),
-            // Search local blog posts
-            Promise.resolve().then(() => {
-                try {
-                    const dataFile = path.join(process.cwd(), "src", "data", "spiritual-questions.json");
-                    if (!fs.existsSync(dataFile)) return [];
-                    const questions = JSON.parse(fs.readFileSync(dataFile, "utf-8"));
-                    const qLower = query.toLowerCase();
-                    return questions.filter((q: any) => 
-                        q.question.toLowerCase().includes(qLower) || 
-                        q.keywords.some((k: string) => qLower.includes(k.toLowerCase()))
-                    ).slice(0, 3);
-                } catch { return []; }
-            })
+            // Search local blog posts from Cosmos DB
+            getQuestions().then(qs => 
+                qs.filter(q => 
+                    q.question.toLowerCase().includes(query.toLowerCase()) || 
+                    q.keywords.some((k: string) => query.toLowerCase().includes(k.toLowerCase()))
+                ).slice(0, 3)
+            ).catch(() => [])
         ]);
 
         let groundingSources: string[] = [];
