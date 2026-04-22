@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "promote": "node scripts/reach_booster.js",
-    "postinstall": "prisma generate"
+    "postinstall": "echo Skipping prisma - using Azure Cosmos DB"
   },
   "dependencies": {
     "@azure/cosmos": "^4.9.2",
@@ -19,7 +19,7 @@
     "@huggingface/inference": "^4.13.10",
     "@langchain/core": "^1.1.19",
     "@langchain/openai": "^1.2.5",
-    "@prisma/client": "^6.19.2",
+
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
@@ -47,7 +47,7 @@
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "3.11.174",
     "playwright": "^1.58.1",
-    "prisma": "^6.19.2",
+
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "robots-parser": "^3.0.1",
