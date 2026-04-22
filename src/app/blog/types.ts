@@ -11,6 +11,7 @@ export interface Question {
     answer?: string;
     shortAnswer?: string;
     keyVerse?: string;
+    verseRefs?: string[];
 }
 
 export const CATEGORY_META: Record<string, { label: string; color: string; emoji: string }> = {
