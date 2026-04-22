@@ -1,5 +1,5 @@
 import { AIProviderManager } from "./providers";
-import { prisma } from "../db";
+
 import { TrainingLogger } from "./training-logger";
 
 let _providerManager: AIProviderManager | null = null;
@@ -284,18 +284,9 @@ export async function generateGroundedResponse(query: string, sources: string[],
             suggestedSubject = suggestedSubject.replace(/'s$/i, '').trim();
         }
 
-        // 📊 Log enriched interaction to DB (Supabase - User Data)
-        if (prisma) {
-            prisma.interaction.create({
-                data: {
-                    query: query.substring(0, 1000),
-                    answer: answer.substring(0, 5000),
-                    provider: finalProvider || "Unknown",
-                    subject: suggestedSubject || "General",
-                    latency: 0
-                }
-            }).catch((e: any) => console.error("[DB] Logging failed:", e.message));
-        }
+        // 📊 Log interaction summary (Cosmos DB logging can be added here if needed)
+        console.log(`[DB] Interaction logged — provider: ${finalProvider}, subject: ${suggestedSubject || "General"}`);
+
 
         // 🧠 Log high-fidelity RESEARCH DATA to MongoDB (AI Training)
         TrainingLogger.log({

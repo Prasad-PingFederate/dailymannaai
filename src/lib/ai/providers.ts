@@ -6,7 +6,7 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { HfInference } from "@huggingface/inference";
-import { prisma } from "../db";
+
 import { TrainingLogger } from "./training-logger";
 
 // 🛡️ PERMISSIVE SAFETY CONFIG FOR RELIGIOUS DIALOGUE
@@ -851,16 +851,8 @@ export class AIProviderManager {
                     metadata: { status: "error", error_stack: error.stack }
                 }).catch(e => console.error("[MongoDB] Logging failed:", e.message));
 
-                // Log error to DB (Supabase)
-                if (prisma) {
-                    prisma.errorLog.create({
-                        data: {
-                            provider: provider.name,
-                            error: error.message,
-                            stack: error.stack
-                        }
-                    }).catch((e: any) => console.error("[DB] Error logging failed:", e.message));
-                }
+                // Log error summary (Cosmos DB error logging can be added here if needed)
+                console.error(`[DB] Provider error — ${provider.name}: ${error.message}`);
             }
         }
 
