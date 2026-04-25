@@ -1,61 +1,69 @@
+// src/app/api/sermons/route.ts
+// Fetches all sermon summaries from AstraDB using REST API
+// Called ONCE on page load — returns lightweight list (no full text)
+
 import { NextResponse } from "next/server";
-import { getAstraDatabase } from "@/lib/astra-db";
 
-function getInitials(name: string): string {
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
-}
+// Fallback logic to support both Data API env vars and REST API env vars
+const ASTRA_DB_ID     = process.env.ASTRA_DB_ID || (process.env.ASTRA_DB_API_ENDPOINT?.match(/https:\/\/(.*?)-/)?.[1]);
+const ASTRA_DB_REGION = process.env.ASTRA_DB_REGION || (process.env.ASTRA_DB_API_ENDPOINT?.match(/-(.*?)\.apps/)?.[1]);
+const ASTRA_KEYSPACE  = process.env.ASTRA_KEYSPACE || process.env.ASTRA_DB_NAMESPACE || process.env.ASTRA_DB_KEYSPACE || "dailymanna";
+const ASTRA_TABLE     = process.env.ASTRA_TABLE_SERMONS || "sermons";
+const ASTRA_TOKEN     = process.env.ASTRA_DB_TOKEN || process.env.ASTRA_DB_APPLICATION_TOKEN!;
 
-function mapSermonSummary(doc: Record<string, any>) {
-  const author = doc.preacher ?? doc.speaker ?? "Unknown Speaker";
-  const fullText = doc.content ?? doc.full_text ?? "";
-  const audioUrl = doc.audio_url ?? doc.audioUrl ?? "";
+const BASE_URL = `https://${ASTRA_DB_ID}-${ASTRA_DB_REGION}.apps.astra.datastax.com`;
 
-  return {
-    id: String(doc._id ?? ""),
-    title: doc.title ?? doc.sermon_title ?? "Untitled Message",
-    author,
-    initials: getInitials(author),
-    category: doc.series ?? doc.category ?? "General",
-    duration: doc.duration ?? null,
-    hasAudio: !!audioUrl,
-    preview: doc.preview ?? fullText.substring(0, 120) ?? "Sermon details...",
-  };
-}
-
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const speaker = searchParams.get("speaker");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 100);
+    if (!ASTRA_DB_ID || !ASTRA_DB_REGION || !ASTRA_TOKEN) {
+        return NextResponse.json({ error: "Missing Astra credentials in env" }, { status: 500 });
+    }
 
-    const db = await getAstraDatabase().catch((err) => {
-      console.error("[Sermons API] DB connection error:", err.message);
-      return null;
+    // ── Fetch all sermon rows from AstraDB REST API ──────────────────────────
+    const url = `${BASE_URL}/api/rest/v2/keyspaces/${ASTRA_KEYSPACE}/${ASTRA_TABLE}/rows`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-Cassandra-Token": ASTRA_TOKEN,
+        "Content-Type": "application/json",
+      },
+      // Next.js cache: revalidate every 5 minutes
+      next: { revalidate: 300 },
     });
 
-    if (!db) {
-      return NextResponse.json({ error: "DB_CONNECTION_FAILED" }, { status: 500 });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("AstraDB error (list):", err);
+      return NextResponse.json({ error: "Failed to fetch sermons" }, { status: 500 });
     }
 
-    const collection = db.collection("sermons_archive");
+    const data = await res.json();
 
-    const query: Record<string, any> = {};
-    if (speaker && speaker !== "ALL") {
-      query["$or"] = [{ preacher: speaker }, { speaker: speaker }];
-    }
-
-    // Fetch without the heavy content string
-    const raw = await collection.find(query, {
-      limit,
-      projection: { content: 0, full_text: 0 }
-    }).toArray();
-
-    const sermons = raw.map(mapSermonSummary);
+    // ── Shape the response — only send what the card UI needs ────────────────
+    const sermons = (data.data || []).map((row: any) => ({
+      id:       row.id,
+      title:    row.title,
+      author:   row.author,
+      initials: row.initials || getInitials(row.author || "Unknown Speaker"),
+      category: row.category || "General",
+      duration: row.duration || null,
+      hasAudio: !!row.audio_url,
+      preview:  row.preview || (row.full_text ? row.full_text.substring(0, 120) + "..." : "Sermon details..."),
+    }));
 
     return NextResponse.json({ sermons });
-
-  } catch (error: any) {
-    console.error("[Sermons API Error]", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error("Sermons list error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
 }
