@@ -56,6 +56,12 @@ class NaukriScraper:
         self.seen_ids_file = Path("data/seen_job_ids.json")
         self.seen_ids_file.parent.mkdir(exist_ok=True)
         self._seen_ids = self._load_seen_ids()
+        
+        # Credentials from Environment
+        import os
+        self.username = os.environ.get("NAUKRI_USERNAME")
+        self.password = os.environ.get("NAUKRI_PASSWORD")
+        self.is_logged_in = False
 
     def _load_seen_ids(self) -> set:
         if self.seen_ids_file.exists():
@@ -76,22 +82,66 @@ class NaukriScraper:
         self._seen_ids.add(job_id)
 
     def _build_search_url(self, query: dict, page_num: int = 1) -> str:
-        keyword = query.get("keyword", "").replace(" ", "-").lower()
-        location = query.get("location", "").replace(" ", "-").lower()
+        keyword = query.get("keyword", "")
+        keyword_slug = keyword.replace(" ", "-").lower()
+        location = query.get("location", "")
+        location_slug = location.replace(" ", "-").lower()
         experience = query.get("experience_years", "")
 
-        if location:
-            base = f"{self.BASE_URL}/{keyword}-jobs-in-{location}"
+        # Pattern: naukri.com/keyword-jobs-in-location
+        if location_slug:
+            base = f"{self.BASE_URL}/{keyword_slug}-jobs-in-{location_slug}"
         else:
-            base = f"{self.BASE_URL}/{keyword}-jobs"
+            base = f"{self.BASE_URL}/{keyword_slug}-jobs"
 
         params = []
+        # Add explicit search parameters for robustness
+        params.append(f"k={keyword}")
+        if location:
+            params.append(f"l={location}")
         if experience:
             params.append(f"experience={experience}")
         if page_num > 1:
             params.append(f"pageNo={page_num}")
 
-        return f"{base}?{'&'.join(params)}" if params else base
+        return f"{base}?{'&'.join(params)}"
+
+    async def _login(self, page):
+        """Attempts to login to Naukri if credentials are provided."""
+        if not self.username or not self.password:
+            logger.info("ℹ️  No Naukri credentials provided. Proceeding as guest.")
+            return False
+
+        if self.is_logged_in:
+            return True
+
+        logger.info(f"🔐 Attempting Naukri login for: {self.username}")
+        try:
+            await page.goto(f"{self.BASE_URL}/nlogin/login", wait_until="networkidle", timeout=self.timeout)
+            
+            # Fill username/password
+            await page.fill("#usernameField", self.username)
+            await page.fill("#passwordField", self.password)
+            
+            # Click Login
+            await page.click("button[type='submit']")
+            
+            # Wait for redirection to dashboard or home
+            await page.wait_for_load_state("networkidle")
+            
+            # Verify login by checking for user profile or logout button
+            try:
+                await page.wait_for_selector(".nI-g_profile, a[href*='logout']", timeout=15000)
+                logger.info("✅ Naukri Login SUCCESSFUL!")
+                self.is_logged_in = True
+                return True
+            except Exception:
+                logger.warning("⚠️  Login might have failed or encountered a captcha. Proceeding as guest.")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Login Error: {e}")
+            return False
 
     async def _dismiss_popups(self, page):
         popup_selectors = [
@@ -223,11 +273,15 @@ class NaukriScraper:
 
             try:
                 await page.wait_for_selector(
-                    ".jobTupleHeader, .cust-job-tuple, article.jobTuple, [class*='job-tuple']",
-                    timeout=15000,
+                    ".jobTupleHeader, .cust-job-tuple, article.jobTuple, [class*='job-tuple'], .srp-jobtuple-wrapper",
+                    timeout=20000,
                 )
             except Exception:
-                logger.warning(f"No job cards found on: {url}")
+                title = await page.title()
+                logger.warning(f"No job cards found on: {url} (Page Title: '{title}')")
+                # Diagnostic: check if we are blocked
+                if "Access Denied" in title or "Cloudflare" in title:
+                    logger.error("🛑 Bot detection triggered (Access Denied / Cloudflare)")
                 return []
 
             for _ in range(4):
@@ -279,35 +333,53 @@ class NaukriScraper:
     async def scrape_query(self, query: dict) -> list:
         all_jobs = []
         new_jobs = []
-
-        browser = await launch_async(
-            headless=self.headless,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--window-size=1920,1080",
-            ],
-        )
-
-        try:
-            context = await browser.new_context(
-                viewport={"width": 1920, "height": 1080},
-                locale="en-IN",
-                timezone_id="Asia/Kolkata",
+        max_retries = 3
+        
+        for attempt in range(1, max_retries + 1):
+            logger.info(f"Scrape attempt {attempt}/{max_retries} for query '{query.get('keyword')}'")
+            
+            browser = await launch_async(
+                headless=self.headless,
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--window-size=1920,1080",
+                ],
             )
-            page = await context.new_page()
 
-            for page_num in range(1, self.max_pages + 1):
-                url = self._build_search_url(query, page_num)
-                jobs = await self._scrape_search_page(page, url)
-                if not jobs:
+            try:
+                context = await browser.new_context(
+                    viewport={"width": 1920, "height": 1080},
+                    locale="en-IN",
+                    timezone_id="Asia/Kolkata",
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+                )
+                page = await context.new_page()
+
+                # Attempt Login Once per launch
+                if attempt == 1 and not self.is_logged_in:
+                    await self._login(page)
+
+                for page_num in range(1, self.max_pages + 1):
+                    url = self._build_search_url(query, page_num)
+                    jobs = await self._scrape_search_page(page, url)
+                    if not jobs:
+                        break
+                    all_jobs.extend(jobs)
+                    if page_num < self.max_pages:
+                        await asyncio.sleep(self.delay_between_pages)
+                
+                # If we found jobs on any attempt, we can stop retrying for this query
+                if all_jobs:
                     break
-                all_jobs.extend(jobs)
-                if page_num < self.max_pages:
-                    await asyncio.sleep(self.delay_between_pages)
-
-        finally:
-            await browser.close()
+                    
+            finally:
+                await browser.close()
+            
+            if attempt < max_retries:
+                wait_time = random.randint(5, 15)
+                logger.info(f"No jobs found on attempt {attempt}. Retrying in {wait_time}s...")
+                await asyncio.sleep(wait_time)
 
         filtered = self._apply_filters(all_jobs, query)
 

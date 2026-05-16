@@ -16,58 +16,72 @@ profile:
 # Each runs independently and results are merged + deduplicated.
 search_queries:
 
-  - keyword: "automation"
+  - keyword: "automation playwright"
     location: "bangalore"
     experience_years: 3
     enabled: true
     filters:
-      title_include:
-        - "automation"
-        - "qa"
-        - "test"
-        - "sdet"
-      title_exclude:
-        - "sales"
+      title_include: ["playwright", "automation", "sdet", "test"]
+      title_exclude: ["sales", "manager"]
       company_exclude: []
       min_salary_lpa: 0
 
-  - keyword: "playwright"
-    location: "remote"
-    experience_years: 2
+  - keyword: "automation playwright"
+    location: "chennai"
+    experience_years: 3
     enabled: true
     filters:
-      title_include:
-        - "playwright"
-        - "automation"
-        - "typescript"
+      title_include: ["playwright", "automation", "sdet", "test"]
+      title_exclude: ["sales"]
+      company_exclude: []
+      min_salary_lpa: 0
+
+  - keyword: "automation playwright"
+    location: "hyderabad"
+    experience_years: 3
+    enabled: true
+    filters:
+      title_include: ["playwright", "automation", "sdet", "test"]
+      title_exclude: ["sales"]
+      company_exclude: []
+      min_salary_lpa: 0
+
+  - keyword: "selenium automation"
+    location: "bangalore"
+    experience_years: 3
+    enabled: true
+    filters:
+      title_include: ["selenium", "automation", "java", "python", "test"]
       title_exclude: []
       company_exclude: []
       min_salary_lpa: 0
 
-  - keyword: "ai automation"
-    location: "india"
-    experience_years: 2
+  - keyword: "selenium automation"
+    location: "hyderabad"
+    experience_years: 3
     enabled: true
     filters:
-      title_include:
-        - "ai"
-        - "automation"
-        - "llm"
-        - "agent"
+      title_include: ["selenium", "automation", "sdet"]
       title_exclude: []
       company_exclude: []
       min_salary_lpa: 0
 
-  - keyword: "ai agents"
+  - keyword: "manual testing"
+    location: "bangalore"
+    experience_years: 3
+    enabled: true
+    filters:
+      title_include: ["manual", "functional", "qa", "test"]
+      title_exclude: ["automation"]
+      company_exclude: []
+      min_salary_lpa: 0
+
+  - keyword: "typescript automation"
     location: "remote"
     experience_years: 2
     enabled: true
     filters:
-      title_include:
-        - "agent"
-        - "ai"
-        - "autonomous"
-        - "langchain"
+      title_include: ["typescript", "automation", "playwright", "cypress"]
       title_exclude: []
       company_exclude: []
       min_salary_lpa: 0
