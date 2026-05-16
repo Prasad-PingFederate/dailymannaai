@@ -290,35 +290,49 @@ class NaukriScraper:
     async def scrape_query(self, query: dict) -> list:
         all_jobs = []
         new_jobs = []
-
-        browser = await launch_async(
-            headless=self.headless,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--window-size=1920,1080",
-            ],
-        )
-
-        try:
-            context = await browser.new_context(
-                viewport={"width": 1920, "height": 1080},
-                locale="en-IN",
-                timezone_id="Asia/Kolkata",
+        max_retries = 3
+        
+        for attempt in range(1, max_retries + 1):
+            logger.info(f"Scrape attempt {attempt}/{max_retries} for query '{query.get('keyword')}'")
+            
+            browser = await launch_async(
+                headless=self.headless,
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--window-size=1920,1080",
+                ],
             )
-            page = await context.new_page()
 
-            for page_num in range(1, self.max_pages + 1):
-                url = self._build_search_url(query, page_num)
-                jobs = await self._scrape_search_page(page, url)
-                if not jobs:
+            try:
+                context = await browser.new_context(
+                    viewport={"width": 1920, "height": 1080},
+                    locale="en-IN",
+                    timezone_id="Asia/Kolkata",
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+                )
+                page = await context.new_page()
+
+                for page_num in range(1, self.max_pages + 1):
+                    url = self._build_search_url(query, page_num)
+                    jobs = await self._scrape_search_page(page, url)
+                    if not jobs:
+                        break
+                    all_jobs.extend(jobs)
+                    if page_num < self.max_pages:
+                        await asyncio.sleep(self.delay_between_pages)
+                
+                # If we found jobs on any attempt, we can stop retrying for this query
+                if all_jobs:
                     break
-                all_jobs.extend(jobs)
-                if page_num < self.max_pages:
-                    await asyncio.sleep(self.delay_between_pages)
-
-        finally:
-            await browser.close()
+                    
+            finally:
+                await browser.close()
+            
+            if attempt < max_retries:
+                wait_time = random.randint(5, 15)
+                logger.info(f"No jobs found on attempt {attempt}. Retrying in {wait_time}s...")
+                await asyncio.sleep(wait_time)
 
         filtered = self._apply_filters(all_jobs, query)
 
