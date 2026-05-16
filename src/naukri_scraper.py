@@ -1,0 +1,343 @@
+"""
+Naukri Job Scraper using CloakBrowser (Stealth Chromium)
+Passes all bot detection tests including Cloudflare, reCAPTCHA v3
+Drop-in Playwright replacement — same API, stealth C++ patches
+"""
+
+import asyncio
+import json
+import logging
+import re
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+from cloakbrowser import launch_async
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Job:
+    title: str
+    company: str
+    location: str
+    experience: str
+    salary: str
+    skills: list
+    posted_date: str
+    job_url: str
+    description_snippet: str
+    job_id: str
+    source: str = "Naukri"
+    fetched_at: str = ""
+
+    def __post_init__(self):
+        if not self.fetched_at:
+            self.fetched_at = datetime.now().isoformat()
+
+    def to_dict(self):
+        return asdict(self)
+
+
+class NaukriScraper:
+    BASE_URL = "https://www.naukri.com"
+
+    def __init__(self, config: dict):
+        self.config = config
+        self.scraper_cfg = config.get("scraper", {})
+        self.headless = self.scraper_cfg.get("headless", True)
+        self.timeout = self.scraper_cfg.get("timeout", 45000)
+        self.max_pages = self.scraper_cfg.get("max_pages", 3)
+        self.delay_between_pages = self.scraper_cfg.get("delay_between_pages", 3)
+        self.seen_ids_file = Path("data/seen_job_ids.json")
+        self.seen_ids_file.parent.mkdir(exist_ok=True)
+        self._seen_ids = self._load_seen_ids()
+
+    def _load_seen_ids(self) -> set:
+        if self.seen_ids_file.exists():
+            try:
+                return set(json.loads(self.seen_ids_file.read_text()))
+            except Exception:
+                return set()
+        return set()
+
+    def _save_seen_ids(self):
+        ids_list = list(self._seen_ids)[-5000:]
+        self.seen_ids_file.write_text(json.dumps(ids_list, indent=2))
+
+    def _is_new_job(self, job_id: str) -> bool:
+        return job_id not in self._seen_ids
+
+    def _mark_seen(self, job_id: str):
+        self._seen_ids.add(job_id)
+
+    def _build_search_url(self, query: dict, page_num: int = 1) -> str:
+        keyword = query.get("keyword", "").replace(" ", "-").lower()
+        location = query.get("location", "").replace(" ", "-").lower()
+        experience = query.get("experience_years", "")
+
+        if location:
+            base = f"{self.BASE_URL}/{keyword}-jobs-in-{location}"
+        else:
+            base = f"{self.BASE_URL}/{keyword}-jobs"
+
+        params = []
+        if experience:
+            params.append(f"experience={experience}")
+        if page_num > 1:
+            params.append(f"pageNo={page_num}")
+
+        return f"{base}?{'&'.join(params)}" if params else base
+
+    async def _dismiss_popups(self, page):
+        popup_selectors = [
+            "button[data-dismiss='modal']",
+            ".modal-close",
+            "[aria-label='Close']",
+            ".close-btn",
+            "#login-layer .login-close",
+            ".popupContainer .close",
+        ]
+        for sel in popup_selectors:
+            try:
+                btn = await page.query_selector(sel)
+                if btn and await btn.is_visible():
+                    await btn.click()
+                    await page.wait_for_timeout(500)
+            except Exception:
+                pass
+
+    async def _parse_job_card(self, card) -> Optional[Job]:
+        try:
+            title_el = await card.query_selector("a.title")
+            if not title_el:
+                title_el = await card.query_selector(".jobTuple-title a")
+            if not title_el:
+                title_el = await card.query_selector("[class*='title'] a")
+
+            title = (await title_el.inner_text()).strip() if title_el else ""
+            job_url = await title_el.get_attribute("href") if title_el else ""
+            if not title:
+                return None
+
+            job_id = ""
+            if job_url:
+                match = re.search(r"(\d{8,})", job_url)
+                if match:
+                    job_id = match.group(1)
+            if not job_id:
+                job_id = await card.get_attribute("data-job-id") or ""
+            if not job_id:
+                job_id = f"{title[:20]}_{int(time.time())}"
+
+            company = ""
+            for sel in [".comp-name", "a.comp-name", "[class*='company'] a"]:
+                el = await card.query_selector(sel)
+                if el:
+                    company = (await el.inner_text()).strip()
+                    if company:
+                        break
+
+            experience = ""
+            for sel in [".expwdth", "[class*='experience']", ".exp span"]:
+                el = await card.query_selector(sel)
+                if el:
+                    experience = (await el.inner_text()).strip()
+                    if experience:
+                        break
+
+            salary = ""
+            for sel in [".salary", "[class*='salary']", ".sal span"]:
+                el = await card.query_selector(sel)
+                if el:
+                    salary = (await el.inner_text()).strip()
+                    if salary:
+                        break
+            if not salary:
+                salary = "Not Disclosed"
+
+            location = ""
+            for sel in [".locWdth", "[class*='location']", ".location span"]:
+                el = await card.query_selector(sel)
+                if el:
+                    location = (await el.inner_text()).strip()
+                    if location:
+                        break
+
+            skills = []
+            skill_els = await card.query_selector_all(
+                ".tags li, [class*='skill'] li, .skillsList li"
+            )
+            for sk in skill_els[:8]:
+                txt = (await sk.inner_text()).strip()
+                if txt:
+                    skills.append(txt)
+
+            snippet = ""
+            for sel in [".job-description", ".jobDesc", "[class*='description']"]:
+                el = await card.query_selector(sel)
+                if el:
+                    snippet = (await el.inner_text()).strip()[:300]
+                    if snippet:
+                        break
+
+            posted = ""
+            for sel in [".job-post-day", "[class*='date']", ".freshness"]:
+                el = await card.query_selector(sel)
+                if el:
+                    posted = (await el.inner_text()).strip()
+                    if posted:
+                        break
+
+            if job_url and not job_url.startswith("http"):
+                job_url = self.BASE_URL + job_url
+
+            return Job(
+                title=title,
+                company=company,
+                location=location,
+                experience=experience,
+                salary=salary,
+                skills=skills,
+                posted_date=posted,
+                job_url=job_url,
+                description_snippet=snippet,
+                job_id=job_id,
+            )
+
+        except Exception as e:
+            logger.debug(f"Error parsing card: {e}")
+            return None
+
+    async def _scrape_search_page(self, page, url: str) -> list:
+        jobs = []
+        try:
+            logger.info(f"Fetching: {url}")
+            await page.goto(url, wait_until="domcontentloaded", timeout=self.timeout)
+            await page.wait_for_timeout(2000)
+            await self._dismiss_popups(page)
+
+            try:
+                await page.wait_for_selector(
+                    ".jobTupleHeader, .cust-job-tuple, article.jobTuple, [class*='job-tuple']",
+                    timeout=15000,
+                )
+            except Exception:
+                logger.warning(f"No job cards found on: {url}")
+                return []
+
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
+            await page.wait_for_timeout(1000)
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(1000)
+
+            cards = []
+            for sel in [
+                "article.jobTuple",
+                ".cust-job-tuple",
+                ".jobTupleHeader",
+                "[class*='job-tuple']",
+                ".srp-jobtuple-wrapper",
+            ]:
+                cards = await page.query_selector_all(sel)
+                if cards:
+                    break
+
+            logger.info(f"Found {len(cards)} job cards")
+            for card in cards:
+                job = await self._parse_job_card(card)
+                if job:
+                    jobs.append(job)
+
+        except Exception as e:
+            logger.error(f"Error scraping {url}: {e}")
+
+        return jobs
+
+    def _apply_filters(self, jobs: list, query: dict) -> list:
+        filters = query.get("filters", {})
+        title_include = [k.lower() for k in filters.get("title_include", [])]
+        title_exclude = [k.lower() for k in filters.get("title_exclude", [])]
+        company_exclude = [c.lower() for c in filters.get("company_exclude", [])]
+
+        filtered = []
+        for job in jobs:
+            title_lower = job.title.lower()
+            if title_include and not any(k in title_lower for k in title_include):
+                continue
+            if any(k in title_lower for k in title_exclude):
+                continue
+            if any(c in job.company.lower() for c in company_exclude):
+                continue
+            filtered.append(job)
+
+        return filtered
+
+    async def scrape_query(self, query: dict) -> list:
+        all_jobs = []
+        new_jobs = []
+
+        browser = await launch_async(
+            headless=self.headless,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--window-size=1920,1080",
+            ],
+        )
+
+        try:
+            context = await browser.new_context(
+                viewport={"width": 1920, "height": 1080},
+                locale="en-IN",
+                timezone_id="Asia/Kolkata",
+            )
+            page = await context.new_page()
+
+            for page_num in range(1, self.max_pages + 1):
+                url = self._build_search_url(query, page_num)
+                jobs = await self._scrape_search_page(page, url)
+                if not jobs:
+                    break
+                all_jobs.extend(jobs)
+                if page_num < self.max_pages:
+                    await asyncio.sleep(self.delay_between_pages)
+
+        finally:
+            await browser.close()
+
+        filtered = self._apply_filters(all_jobs, query)
+
+        for job in filtered:
+            if self._is_new_job(job.job_id):
+                new_jobs.append(job)
+                self._mark_seen(job.job_id)
+
+        self._save_seen_ids()
+        logger.info(
+            f"Query '{query.get('keyword')}': {len(all_jobs)} found, "
+            f"{len(filtered)} after filter, {len(new_jobs)} new"
+        )
+        return new_jobs
+
+    async def scrape_all(self) -> list:
+        queries = self.config.get("search_queries", [])
+        all_new_jobs = []
+
+        for query in queries:
+            if not query.get("enabled", True):
+                continue
+            jobs = await self.scrape_query(query)
+            all_new_jobs.extend(jobs)
+
+        seen = set()
+        deduped = []
+        for job in all_new_jobs:
+            if job.job_id not in seen:
+                seen.add(job.job_id)
+                deduped.append(job)
+
+        return deduped
