@@ -80,6 +80,6 @@ jobs:
         with:
           name: job-results-${{ github.run_number }}
           path: |
-            data/results/
-            logs/
+            naukri-job-scheduler/data/results/
+            naukri-job-scheduler/logs/
           retention-days: 7
