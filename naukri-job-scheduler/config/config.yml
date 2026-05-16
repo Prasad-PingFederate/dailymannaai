@@ -1,0 +1,112 @@
+# ══════════════════════════════════════════════════════════════
+# Naukri Job Scheduler — Configuration
+# ══════════════════════════════════════════════════════════════
+# Copy this to config/config.yml and customize for your search.
+# Sensitive values (email passwords) should be set as GitHub
+# Secrets, not hardcoded here.
+# ══════════════════════════════════════════════════════════════
+
+# ── Your Profile ──────────────────────────────────────────────
+profile:
+  name: "Your Name"                    # Used in email greeting
+  target_role: "Software Engineer"     # Shown in email header
+
+# ── Search Queries ────────────────────────────────────────────
+# Add multiple queries for different roles/locations.
+# Each runs independently and results are merged + deduplicated.
+search_queries:
+
+  - keyword: "python developer"
+    location: "bangalore"              # City name as used by Naukri
+    experience_years: 3               # Minimum years (0 for fresher)
+    enabled: true
+    filters:
+      title_include:                   # Job title MUST contain one of these
+        - "python"
+        - "backend"
+        - "software"
+        - "developer"
+        - "engineer"
+      title_exclude:                   # Skip if title contains these
+        - "sales"
+        - "non-technical"
+        - "intern"                     # Remove if you want internships
+      company_exclude:                 # Skip listings from these companies
+        - "Infosys BPM"
+        - "Wipro BPM"
+      min_salary_lpa: 0               # 0 = no filter; 10 = minimum 10 LPA
+
+  - keyword: "data engineer"
+    location: "bangalore"
+    experience_years: 3
+    enabled: true
+    filters:
+      title_include:
+        - "data"
+        - "engineer"
+        - "analytics"
+      title_exclude:
+        - "sales"
+        - "support"
+      company_exclude: []
+      min_salary_lpa: 0
+
+  - keyword: "software engineer"
+    location: "hyderabad"
+    experience_years: 3
+    enabled: true
+    filters:
+      title_include:
+        - "software"
+        - "backend"
+        - "fullstack"
+        - "full stack"
+      title_exclude:
+        - "sales"
+        - "hr"
+      company_exclude: []
+      min_salary_lpa: 0
+
+  - keyword: "machine learning engineer"
+    location: "remote"
+    experience_years: 2
+    enabled: false                     # Set true when you want this query
+    filters:
+      title_include:
+        - "machine learning"
+        - "ml"
+        - "ai"
+        - "data scientist"
+      title_exclude:
+        - "sales"
+      company_exclude: []
+      min_salary_lpa: 0
+
+# ── Scraper Settings ──────────────────────────────────────────
+scraper:
+  headless: true                       # Always true for GitHub Actions
+  slow_mo: 800                         # ms delay between actions (polite scraping)
+  timeout: 45000                       # Page load timeout in ms
+  max_pages: 3                         # Pages per query (25 jobs/page on Naukri)
+  delay_between_pages: 3              # Seconds between page fetches
+
+# ── Email / Notifications ─────────────────────────────────────
+email:
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+
+  # ⚠️  DO NOT put real credentials here.
+  # Leave as null — they are read from GitHub Secrets:
+  #   EMAIL_SENDER   → your Gmail address
+  #   EMAIL_PASSWORD → Gmail App Password (not your Gmail password!)
+  sender_email: null
+  sender_password: null
+
+  # Who receives the digest (comma-separated in EMAIL_RECIPIENTS secret,
+  # or list them here for non-sensitive addresses)
+  recipients:
+    - "your-email@gmail.com"           # Replace with your email
+
+notifications:
+  email_enabled: true
+  send_empty_digest: false             # Set true to email even when no new jobs
