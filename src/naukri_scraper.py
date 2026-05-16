@@ -9,6 +9,7 @@ import json
 import logging
 import re
 import time
+import random
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -125,7 +126,7 @@ class NaukriScraper:
 
             job_id = ""
             if job_url:
-                match = re.search(r"(\d{8,})", job_url)
+                match = re.search(r"(\d{10,})", job_url)
                 if match:
                     job_id = match.group(1)
             if not job_id:
@@ -229,10 +230,9 @@ class NaukriScraper:
                 logger.warning(f"No job cards found on: {url}")
                 return []
 
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
-            await page.wait_for_timeout(1000)
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await page.wait_for_timeout(1000)
+            for _ in range(4):
+    await page.mouse.wheel(0, random.randint(400, 900))
+    await page.wait_for_timeout(random.randint(700, 1500))
 
             cards = []
             for sel in [
