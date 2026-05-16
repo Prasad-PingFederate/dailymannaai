@@ -76,22 +76,29 @@ class NaukriScraper:
         self._seen_ids.add(job_id)
 
     def _build_search_url(self, query: dict, page_num: int = 1) -> str:
-        keyword = query.get("keyword", "").replace(" ", "-").lower()
-        location = query.get("location", "").replace(" ", "-").lower()
+        keyword = query.get("keyword", "")
+        keyword_slug = keyword.replace(" ", "-").lower()
+        location = query.get("location", "")
+        location_slug = location.replace(" ", "-").lower()
         experience = query.get("experience_years", "")
 
-        if location:
-            base = f"{self.BASE_URL}/{keyword}-jobs-in-{location}"
+        # Pattern: naukri.com/keyword-jobs-in-location
+        if location_slug:
+            base = f"{self.BASE_URL}/{keyword_slug}-jobs-in-{location_slug}"
         else:
-            base = f"{self.BASE_URL}/{keyword}-jobs"
+            base = f"{self.BASE_URL}/{keyword_slug}-jobs"
 
         params = []
+        # Add explicit search parameters for robustness
+        params.append(f"k={keyword}")
+        if location:
+            params.append(f"l={location}")
         if experience:
             params.append(f"experience={experience}")
         if page_num > 1:
             params.append(f"pageNo={page_num}")
 
-        return f"{base}?{'&'.join(params)}" if params else base
+        return f"{base}?{'&'.join(params)}"
 
     async def _dismiss_popups(self, page):
         popup_selectors = [
@@ -223,11 +230,15 @@ class NaukriScraper:
 
             try:
                 await page.wait_for_selector(
-                    ".jobTupleHeader, .cust-job-tuple, article.jobTuple, [class*='job-tuple']",
-                    timeout=15000,
+                    ".jobTupleHeader, .cust-job-tuple, article.jobTuple, [class*='job-tuple'], .srp-jobtuple-wrapper",
+                    timeout=20000,
                 )
             except Exception:
-                logger.warning(f"No job cards found on: {url}")
+                title = await page.title()
+                logger.warning(f"No job cards found on: {url} (Page Title: '{title}')")
+                # Diagnostic: check if we are blocked
+                if "Access Denied" in title or "Cloudflare" in title:
+                    logger.error("🛑 Bot detection triggered (Access Denied / Cloudflare)")
                 return []
 
             for _ in range(4):
