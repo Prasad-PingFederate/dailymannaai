@@ -16,6 +16,7 @@ async function ensureContainer() {
     return container;
 }
 
+export async function getQuestions(category?: string): Promise<Question[]> {
     try {
         const container = await ensureContainer();
         
@@ -44,6 +45,7 @@ async function ensureContainer() {
         }
         return [];
     }
+}
 
 export async function getQuestionBySlug(slug: string): Promise<Question | null> {
     const container = await ensureContainer();
