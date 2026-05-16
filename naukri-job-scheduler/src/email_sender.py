@@ -4,6 +4,7 @@ Sends formatted HTML email with all new jobs found
 """
 
 import logging
+import os
 import smtplib
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart

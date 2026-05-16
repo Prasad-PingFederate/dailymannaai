@@ -45,7 +45,10 @@ interface SolutionItem {
     title?: string;
     link?: string;
     source?: string;
+    description?: string;
     excerpt?: string;
+    speaker?: string;
+    length?: string;
 }
 
 interface Solution {
@@ -61,7 +64,15 @@ interface AIMessage {
     role: string;
     content: string;
     source?: string;
-    newsArticles?: SearchResult[];
+    newsArticles?: any[];
+    bibleConnections?: any[];
+    thought?: string;
+    isThinking?: boolean;
+    thinkingPhase?: string;
+    thinkStartTime?: number;
+    researchSteps?: string[];
+    isNewsMode?: boolean;
+    isConflictMode?: boolean;
 }
 
 interface PreviewPanel {
@@ -279,7 +290,7 @@ function ResultCard({
     const cleanUrl = sanitizeUrl(result.link);
     const host = getHostname(cleanUrl);
     const isBible = !cleanUrl || result.type === "bible";
-    const finalUrl = isBible ? bibleGatewayLink(result.title) : cleanUrl!;
+    const finalUrl = isBible ? bibleGatewayLink(result.title) : (cleanUrl ?? "");
 
     return (
         <div
@@ -502,7 +513,7 @@ function InstantAnswerWidget({ data }: { data: InstantAnswerData }) {
                   animate-in fade-in slide-in-from-bottom-4 duration-500`}
         >
             <div className="absolute top-6 right-8 pointer-events-none select-none">
-{data.type !== undefined ? iconMap[data.type] : null}
+                {data.type ? (iconMap[data.type] || null) : null}
             </div>
 
             <div className="flex items-center gap-2 mb-5">
@@ -523,7 +534,7 @@ function InstantAnswerWidget({ data }: { data: InstantAnswerData }) {
             {/* Bible ref â€” open on BibleGateway */}
             {data.type === "bible" && data.title && (
                 <button
-onClick={() => openLink(bibleGatewayLink(data.title!))}
+                onClick={() => openLink(bibleGatewayLink(data.title || "")) }
                     className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500/15
                      border border-amber-500/25 text-amber-400 text-xs font-black uppercase
                      tracking-wider hover:bg-amber-500/25 transition-all"
@@ -684,7 +695,18 @@ function SolutionDashboard({
                             const cleanUrl = sanitizeUrl(n.link);
                             if (!cleanUrl) return null;
                             return (
-                                <NewsCard key={i} item={{ ...n, link: cleanUrl }} index={i} onPreview={onPreview} />
+                                <NewsCard 
+                                    key={i} 
+                                    item={{ 
+                                        title: n.title || "Untitled",
+                                        description: n.excerpt || "", 
+                                        link: cleanUrl,
+                                        source: n.source || "News Source",
+                                        type: "news"
+                                    }} 
+                                    index={i} 
+                                    onPreview={onPreview} 
+                                />
                             );
                         })}
                     </div>
@@ -710,7 +732,7 @@ function SolutionDashboard({
                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                                     <h4 className="text-slate-900 text-sm font-bold">{d.title}</h4>
                                 </div>
-                                <p className="text-slate-600 text-xs leading-relaxed">{d.description}</p>
+                                <p className="text-slate-600 text-xs leading-relaxed">{d.description || d.excerpt || "No description available."}</p>
                             </div>
                         ))}
                     </div>
@@ -733,7 +755,7 @@ function SolutionDashboard({
                                 </div>
                                 <div className="min-w-0">
                                     <h4 className="text-slate-900 text-sm font-bold truncate group-hover:text-pink-600 transition-colors">{s.title}</h4>
-                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">{s.speaker} Â· {s.length}</p>
+                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">{s.speaker || "Divine Voice"} · {s.length || "Standard"}</p>
                                 </div>
                                 <ArrowUpRight size={14} className="text-slate-600 group-hover:text-pink-400 ml-auto flex-shrink-0 transition-colors" />
                             </button>
@@ -756,7 +778,7 @@ function NewsCard({
     index: number;
     onPreview: (r: SearchResult) => void;
 }) {
-    const cleanUrl = sanitizeUrl(item.link)!;
+    const cleanUrl = sanitizeUrl(item.link) ?? "";
     const host = getHostname(cleanUrl);
 
     return (

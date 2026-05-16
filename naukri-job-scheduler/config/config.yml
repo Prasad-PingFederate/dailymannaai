@@ -16,69 +16,59 @@ profile:
 # Each runs independently and results are merged + deduplicated.
 search_queries:
 
-  - keyword: "python developer"
-    location: "bangalore"              # City name as used by Naukri
-    experience_years: 3               # Minimum years (0 for fresher)
-    enabled: true
-    filters:
-      title_include:                   # Job title MUST contain one of these
-        - "python"
-        - "backend"
-        - "software"
-        - "developer"
-        - "engineer"
-      title_exclude:                   # Skip if title contains these
-        - "sales"
-        - "non-technical"
-        - "intern"                     # Remove if you want internships
-      company_exclude:                 # Skip listings from these companies
-        - "Infosys BPM"
-        - "Wipro BPM"
-      min_salary_lpa: 0               # 0 = no filter; 10 = minimum 10 LPA
-
-  - keyword: "data engineer"
+  - keyword: "automation"
     location: "bangalore"
     experience_years: 3
     enabled: true
     filters:
       title_include:
-        - "data"
-        - "engineer"
-        - "analytics"
+        - "automation"
+        - "qa"
+        - "test"
+        - "sdet"
       title_exclude:
         - "sales"
-        - "support"
       company_exclude: []
       min_salary_lpa: 0
 
-  - keyword: "software engineer"
-    location: "hyderabad"
-    experience_years: 3
+  - keyword: "playwright"
+    location: "remote"
+    experience_years: 2
     enabled: true
     filters:
       title_include:
-        - "software"
-        - "backend"
-        - "fullstack"
-        - "full stack"
-      title_exclude:
-        - "sales"
-        - "hr"
+        - "playwright"
+        - "automation"
+        - "typescript"
+      title_exclude: []
       company_exclude: []
       min_salary_lpa: 0
 
-  - keyword: "machine learning engineer"
-    location: "remote"
+  - keyword: "ai automation"
+    location: "india"
     experience_years: 2
-    enabled: false                     # Set true when you want this query
+    enabled: true
     filters:
       title_include:
-        - "machine learning"
-        - "ml"
         - "ai"
-        - "data scientist"
-      title_exclude:
-        - "sales"
+        - "automation"
+        - "llm"
+        - "agent"
+      title_exclude: []
+      company_exclude: []
+      min_salary_lpa: 0
+
+  - keyword: "ai agents"
+    location: "remote"
+    experience_years: 2
+    enabled: true
+    filters:
+      title_include:
+        - "agent"
+        - "ai"
+        - "autonomous"
+        - "langchain"
+      title_exclude: []
       company_exclude: []
       min_salary_lpa: 0
 
@@ -105,7 +95,8 @@ email:
   # Who receives the digest (comma-separated in EMAIL_RECIPIENTS secret,
   # or list them here for non-sensitive addresses)
   recipients:
-    - "your-email@gmail.com"           # Replace with your email
+    - "prasad.dammai94@gmail.com"
+    - "prasaddammai1@gmail.com"
 
 notifications:
   email_enabled: true

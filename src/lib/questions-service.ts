@@ -17,24 +17,34 @@ async function ensureContainer() {
 }
 
 export async function getQuestions(category?: string): Promise<Question[]> {
-    const container = await ensureContainer();
-    
-    let querySpec;
-    if (category && category !== "all") {
-        querySpec = {
-            query: "SELECT * FROM c WHERE c.category = @category ORDER BY c.createdAt DESC",
-            parameters: [{ name: "@category", value: category }]
-        };
-    } else {
-        querySpec = {
-            query: "SELECT * FROM c ORDER BY c.createdAt DESC"
-        };
-    }
+    try {
+        const container = await ensureContainer();
+        
+        let querySpec;
+        if (category && category !== "all") {
+            querySpec = {
+                query: "SELECT * FROM c WHERE c.category = @category ORDER BY c.createdAt DESC",
+                parameters: [{ name: "@category", value: category }]
+            };
+        } else {
+            querySpec = {
+                query: "SELECT * FROM c ORDER BY c.createdAt DESC"
+            };
+        }
 
-    const { resources } = await container.items.query(querySpec).fetchAll();
-    // Cosmos returns 'id' for the unique identifier, but our code uses 'slug' as the key usually.
-    // We should ensure the mapping is correct.
-    return resources as Question[];
+        const { resources } = await container.items.query(querySpec).fetchAll();
+        return resources as Question[];
+    } catch (err) {
+        console.warn("[Questions Service] Cosmos DB failed, falling back to local JSON:", err);
+        if (fs.existsSync(DATA_FILE)) {
+            const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
+            if (category && category !== "all") {
+                return data.filter((q: any) => q.category === category) as Question[];
+            }
+            return data as Question[];
+        }
+        return [];
+    }
 }
 
 export async function getQuestionBySlug(slug: string): Promise<Question | null> {
