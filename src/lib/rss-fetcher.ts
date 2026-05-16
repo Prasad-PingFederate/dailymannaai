@@ -231,7 +231,7 @@ export async function searchRSSFeeds(query: string, options: {
 } = {}): Promise<RSSArticle[]> {
     const { limit = 80 } = options;
 
-    let targetFeeds = options.category && options.category !== "news"
+    const targetFeeds = options.category && options.category !== "news"
         ? RSS_FEEDS.filter(f => f.cat === options.category || f.cat === "world")
         : [...BREAKING_FEEDS, ...CORE_FEEDS];
 

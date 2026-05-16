@@ -182,9 +182,9 @@ export default function ForgotPasswordPage() {
                             <div>
                                 <label style={{ display: "block", fontSize: "11px", color: "var(--text-muted,#888)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "sans-serif", fontWeight: 600, marginBottom: "6px" }}>Email Address</label>
                                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" style={inputStyle(!!fieldError)}
-                                    // eslint-disable-next-line
+                                     
                                     onFocus={(e) => e.target.style.borderColor = "#D4A017"}
-                                    // eslint-disable-next-line
+                                     
                                     onBlur={(e) => e.target.style.borderColor = fieldError ? "#e53e3e" : "var(--border-primary,#e8e8e8)"} />
                                 {fieldError && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>⚠ {fieldError}</p>}
                             </div>
@@ -208,9 +208,9 @@ export default function ForgotPasswordPage() {
                                 <label style={{ display: "block", fontSize: "11px", color: "var(--text-muted,#888)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "sans-serif", fontWeight: 600, marginBottom: "6px" }}>6-Digit Verification Code</label>
                                 <input type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} placeholder="123456"
                                     style={{ ...inputStyle(!!fieldError), letterSpacing: "0.3em", textAlign: "center", fontSize: "18px", fontWeight: "bold" }}
-                                    // eslint-disable-next-line
+                                     
                                     onFocus={(e) => e.target.style.borderColor = "#D4A017"}
-                                    // eslint-disable-next-line
+                                     
                                     onBlur={(e) => e.target.style.borderColor = fieldError ? "#e53e3e" : "var(--border-primary,#e8e8e8)"} />
                                 {fieldError && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif", textAlign: "center" }}>⚠ {fieldError}</p>}
                             </div>
@@ -244,9 +244,9 @@ export default function ForgotPasswordPage() {
                                 </div>
                                 <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter minimum 8 characters" style={inputStyle(!!fieldError)}
-                                    // eslint-disable-next-line
+                                     
                                     onFocus={(e) => e.target.style.borderColor = "#D4A017"}
-                                    // eslint-disable-next-line
+                                     
                                     onBlur={(e) => e.target.style.borderColor = fieldError ? "#e53e3e" : "var(--border-primary,#e8e8e8)"} />
                                 {fieldError && <p style={{ fontSize: "12px", color: "#e53e3e", marginTop: "5px", fontFamily: "sans-serif" }}>⚠ {fieldError}</p>}
                             </div>

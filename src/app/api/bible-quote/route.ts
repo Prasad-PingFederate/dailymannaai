@@ -52,7 +52,7 @@ export async function POST(req: Request) {
                     if (randomSermon.content && randomSermon.content.length > 100) {
                         const words = randomSermon.content.split(/\s+/);
                         const startWordIdx = Math.floor(Math.random() * Math.max(1, words.length - 80));
-                        let rawSnippet = words.slice(Math.max(0, startWordIdx), startWordIdx + 80).join(" ");
+                        const rawSnippet = words.slice(Math.max(0, startWordIdx), startWordIdx + 80).join(" ");
 
                         const preacherName = randomSermon.preacher || "Classic Sermon";
 
