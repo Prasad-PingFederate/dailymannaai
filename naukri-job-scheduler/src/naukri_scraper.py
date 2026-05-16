@@ -56,6 +56,12 @@ class NaukriScraper:
         self.seen_ids_file = Path("data/seen_job_ids.json")
         self.seen_ids_file.parent.mkdir(exist_ok=True)
         self._seen_ids = self._load_seen_ids()
+        
+        # Credentials from Environment
+        import os
+        self.username = os.environ.get("NAUKRI_USERNAME")
+        self.password = os.environ.get("NAUKRI_PASSWORD")
+        self.is_logged_in = False
 
     def _load_seen_ids(self) -> set:
         if self.seen_ids_file.exists():
@@ -99,6 +105,43 @@ class NaukriScraper:
             params.append(f"pageNo={page_num}")
 
         return f"{base}?{'&'.join(params)}"
+
+    async def _login(self, page):
+        """Attempts to login to Naukri if credentials are provided."""
+        if not self.username or not self.password:
+            logger.info("ℹ️  No Naukri credentials provided. Proceeding as guest.")
+            return False
+
+        if self.is_logged_in:
+            return True
+
+        logger.info(f"🔐 Attempting Naukri login for: {self.username}")
+        try:
+            await page.goto(f"{self.BASE_URL}/nlogin/login", wait_until="networkidle", timeout=self.timeout)
+            
+            # Fill username/password
+            await page.fill("#usernameField", self.username)
+            await page.fill("#passwordField", self.password)
+            
+            # Click Login
+            await page.click("button[type='submit']")
+            
+            # Wait for redirection to dashboard or home
+            await page.wait_for_load_state("networkidle")
+            
+            # Verify login by checking for user profile or logout button
+            try:
+                await page.wait_for_selector(".nI-g_profile, a[href*='logout']", timeout=15000)
+                logger.info("✅ Naukri Login SUCCESSFUL!")
+                self.is_logged_in = True
+                return True
+            except Exception:
+                logger.warning("⚠️  Login might have failed or encountered a captcha. Proceeding as guest.")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Login Error: {e}")
+            return False
 
     async def _dismiss_popups(self, page):
         popup_selectors = [
@@ -312,6 +355,10 @@ class NaukriScraper:
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
                 )
                 page = await context.new_page()
+
+                # Attempt Login Once per launch
+                if attempt == 1 and not self.is_logged_in:
+                    await self._login(page)
 
                 for page_num in range(1, self.max_pages + 1):
                     url = self._build_search_url(query, page_num)

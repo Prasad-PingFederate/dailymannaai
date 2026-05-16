@@ -67,6 +67,8 @@ jobs:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+          NAUKRI_USERNAME: ${{ secrets.NAUKRI_USERNAME }}
+          NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
           PYTHONUNBUFFERED: "1"
         run: |
           cd naukri-job-scheduler
