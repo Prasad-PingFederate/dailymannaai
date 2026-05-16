@@ -502,7 +502,7 @@ function InstantAnswerWidget({ data }: { data: InstantAnswerData }) {
                   animate-in fade-in slide-in-from-bottom-4 duration-500`}
         >
             <div className="absolute top-6 right-8 pointer-events-none select-none">
-                {iconMap[data.type]}
+{data.type !== undefined ? iconMap[data.type] : null}
             </div>
 
             <div className="flex items-center gap-2 mb-5">
