@@ -635,12 +635,12 @@ function SolutionDashboard({
                 </div>
             </div>
 
-            {/* â”€â”€ 5 BIBLE VERSES â”€â”€ */}
-            {solution.bible?.length > 0 && (
+            {/* ── 5 BIBLE VERSES ── */}
+            {(solution.bible?.length ?? 0) > 0 && (
                 <section className="space-y-6">
                     <SectionHeader icon={<Book size={16} />} label="5 Scriptural Foundations" color="text-amber-500" />
                     <div className="space-y-4">
-                        {solution.bible!.map((b, i) => {
+                        {solution.bible?.map((b, i) => {
                             const bgLink = bibleGatewayLink(b.title);
                             return (
                                 <div
@@ -678,9 +678,9 @@ function SolutionDashboard({
             {/* â”€â”€ 4 NEWS â”€â”€ */}
             <section className="space-y-6">
                 <SectionHeader icon={<Newspaper size={16} />} label="4 World Perspectives" color="text-sky-400" />
-                {solution.news?.length > 0 ? (
+                {(solution.news?.length ?? 0) > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {solution.news.map((n, i) => {
+                        {solution.news?.map((n, i) => {
                             const cleanUrl = sanitizeUrl(n.link);
                             if (!cleanUrl) return null;
                             return (
@@ -701,7 +701,7 @@ function SolutionDashboard({
                 <section className="space-y-6">
                     <SectionHeader icon={<Quote size={16} />} label="3 Daily Mannas" color="text-indigo-400" />
                     <div className="space-y-3">
-                        {solution.devotionals.map((d, i) => (
+                        {solution.devotionals?.map((d, i) => (
                             <div
                                 key={i}
                                 className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 hover:border-indigo-500/20 transition-all shadow-sm"
@@ -720,7 +720,7 @@ function SolutionDashboard({
                 <section className="space-y-6">
                     <SectionHeader icon={<MessageCircle size={16} />} label="2 Divine Lectures" color="text-pink-400" />
                     <div className="space-y-3">
-                        {solution.sermons.map((s, i) => (
+                        {solution.sermons?.map((s, i) => (
                             <button
                                 key={i}
                                 onClick={() => openLink(`https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + " sermon")}`)}
@@ -1252,11 +1252,14 @@ export default function SearchEnginePortal() {
                 const willSpeak = isVoiceOutputEnabled || shouldSpeakNextResponse;
                 setShouldSpeakNextResponse(false);
                 
-                if (willSpeak && data?.solution?.insight) {
+                const insight = data?.solution?.insight;
+                const instantText = data?.instantAnswer?.text;
+
+                if (willSpeak && insight) {
                     // Slight delay to allow UI to render first
-                    setTimeout(() => speak(data.solution.insight), 500);
-                } else if (willSpeak && data?.instantAnswer?.text) {
-                    setTimeout(() => speak(data.instantAnswer.text), 500);
+                    setTimeout(() => speak(insight), 500);
+                } else if (willSpeak && instantText) {
+                    setTimeout(() => speak(instantText), 500);
                 }
             } else {
                 console.error("Search failed:", res.status);
