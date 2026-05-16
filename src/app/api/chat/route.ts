@@ -168,7 +168,7 @@ export async function POST(req: Request) {
             ).catch(() => [])
         ]);
 
-        let groundingSources: string[] = [];
+        const groundingSources: string[] = [];
         bibleResults.forEach((res: any) => groundingSources.push(`[KJV Bible]: (${res.reference}) ${res.text}`));
         documentResults.forEach((res: any) => groundingSources.push(`[Expert Knowledge]: (${res.title}) ${res.snippet}`));
         blogResults.forEach((res: any) => groundingSources.push(`[Blog Post Available]: Title: "${res.question}". Link: /blog/questions/${res.slug}. Short Answer: ${res.shortAnswer}`));

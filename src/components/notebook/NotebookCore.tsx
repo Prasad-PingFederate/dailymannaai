@@ -1040,7 +1040,7 @@ It's now part of my collective wisdom!`
             if (res.ok && data.reflection) {
                 // Parse out suggestions if they exist at the end (looking for section 6)
                 let mainContent = data.reflection;
-                let parsedSuggestions: string[] = [];
+                const parsedSuggestions: string[] = [];
 
                 if (mainContent.includes("6. ✨ DIVINE SUGGESTIONS")) {
                     const parts = mainContent.split("6. ✨ DIVINE SUGGESTIONS");

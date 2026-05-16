@@ -115,7 +115,7 @@ function safeMath(expr: string): number | null {
         // Replace ^ with ** for power
         const clean = expr.replace(/\^/g, "**").replace(/,/g, "");
         // Use Function constructor (safer than eval in Next.js edge)
-        // eslint-disable-next-line no-new-func
+         
         const result = new Function(`"use strict"; return (${clean})`)();
         return typeof result === "number" && isFinite(result) ? result : null;
     } catch {

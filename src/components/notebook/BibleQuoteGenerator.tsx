@@ -347,7 +347,7 @@ async function renderBibleImage(canvas: HTMLCanvasElement, { quote, reference, t
     const lines = wrapText(ctx, `"${quote}"`, textMaxW);
     const lineH = fontSize * 1.55;
     const totalH = lines.length * lineH;
-    let qY = textStartY + fontSize * 0.5;
+    const qY = textStartY + fontSize * 0.5;
 
     ctx.shadowColor = "rgba(0,0,0,0.6)";
     ctx.shadowBlur = 12;
