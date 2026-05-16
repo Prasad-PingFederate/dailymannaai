@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+
+# Data & logs (seen IDs are cached by GitHub Actions, not committed)
+data/results/
+logs/
+
+# Keep the seen_job_ids.json structure but not its content
+# (it's managed by GH Actions cache)
+data/seen_job_ids.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
