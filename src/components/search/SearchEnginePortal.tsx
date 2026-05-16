@@ -33,6 +33,37 @@ interface SearchResult {
     type?: string;
 }
 
+type InstantAnswerData = {
+    type?: "calculator" | "time" | "date" | "bible" | "age" | string;
+    title?: string;
+    result?: string;
+    description?: string;
+    subtitle?: string;
+};
+
+interface SolutionItem {
+    title?: string;
+    link?: string;
+    source?: string;
+    excerpt?: string;
+}
+
+interface Solution {
+    insight?: string;
+    deepCrawlAvailable?: boolean;
+    bible?: SearchResult[];
+    news?: SolutionItem[];
+    devotionals?: SolutionItem[];
+    sermons?: SolutionItem[];
+}
+
+interface AIMessage {
+    role: string;
+    content: string;
+    source?: string;
+    newsArticles?: SearchResult[];
+}
+
 interface PreviewPanel {
     title: string;
     description: string;
@@ -108,17 +139,25 @@ interface AiNewsArticle {
     pubDate?: string | null;
     imageUrl?: string | null;
     category?: string;
+    favicon?: string | null;
 }
 
 function AiNewsCard({ article, index }: { article: AiNewsArticle; index: number }) {
     const host = (() => { try { return new URL(article.link).hostname.replace(/^www\./, ""); } catch { return ""; } })();
-    const faviconSrc = (article as any).favicon || faviconUrl(article.link);
-    const timeAgo = article.pubDate ? (() => {
+    const faviconSrc = article.favicon || faviconUrl(article.link);
+    const [timeAgo, setTimeAgo] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        if (!article.pubDate) {
+            setTimeAgo(null);
+            return;
+        }
+
         const diff = Date.now() - new Date(article.pubDate).getTime();
         const h = Math.floor(diff / 3_600_000);
         const d = Math.floor(diff / 86_400_000);
-        return h < 1 ? "Just now" : h < 24 ? `${h}h ago` : `${d}d ago`;
-    })() : null;
+        setTimeAgo(h < 1 ? "Just now" : h < 24 ? `${h}h ago` : `${d}d ago`);
+    }, [article.pubDate]);
 
     return (
         <div
@@ -440,7 +479,7 @@ function PreviewPanel({
 
 // â”€â”€â”€ INSTANT ANSWER WIDGET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function InstantAnswerWidget({ data }: { data: any }) {
+function InstantAnswerWidget({ data }: { data: InstantAnswerData }) {
     const iconMap: Record<string, React.ReactNode> = {
         calculator: <Calculator size={72} className="text-sky-300/20" />,
         time: <Clock size={72} className="text-indigo-300/20" />,
@@ -559,7 +598,7 @@ function SolutionDashboard({
     query,
     onPreview,
 }: {
-    solution: any;
+    solution: Solution;
     query: string;
     onPreview: (r: SearchResult) => void;
 }) {
@@ -572,11 +611,11 @@ function SolutionDashboard({
                 <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
                     <div className="text-gold text-[10px] font-black uppercase tracking-[0.6em]">Holy Spirit Perspective</div>
                     <h2 className="f-title text-3xl md:text-5xl font-black text-navy leading-tight italic">
-                        "{query}"
+                        &quot;{query}&quot;
                     </h2>
                     <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto" />
                     <p className="f-display text-navy text-xl md:text-2xl leading-relaxed italic opacity-90">
-                        "{solution.insight}"
+                        &quot;{solution.insight}&quot;
                     </p>
 
                     {/* Deep Crawl Suggestion */}
@@ -601,7 +640,7 @@ function SolutionDashboard({
                 <section className="space-y-6">
                     <SectionHeader icon={<Book size={16} />} label="5 Scriptural Foundations" color="text-amber-500" />
                     <div className="space-y-4">
-                        {(solution.bible as SearchResult[]).map((b, i) => {
+                        {solution.bible!.map((b, i) => {
                             const bgLink = bibleGatewayLink(b.title);
                             return (
                                 <div
@@ -621,7 +660,7 @@ function SolutionDashboard({
                                         </button>
                                     </div>
                                     <p className="text-slate-200 text-base font-serif italic leading-relaxed group-hover:text-white transition-colors">
-                                        "{b.description}"
+                                        &quot;{b.description}&quot;
                                     </p>
                                     <button
                                         onClick={() => onPreview({ ...b, link: bgLink, type: "bible", source: "Holy Bible Â· KJV" })}
@@ -641,7 +680,7 @@ function SolutionDashboard({
                 <SectionHeader icon={<Newspaper size={16} />} label="4 World Perspectives" color="text-sky-400" />
                 {solution.news?.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {(solution.news || []).map((n: any, i: number) => {
+                        {solution.news.map((n, i) => {
                             const cleanUrl = sanitizeUrl(n.link);
                             if (!cleanUrl) return null;
                             return (
@@ -662,7 +701,7 @@ function SolutionDashboard({
                 <section className="space-y-6">
                     <SectionHeader icon={<Quote size={16} />} label="3 Daily Mannas" color="text-indigo-400" />
                     <div className="space-y-3">
-                        {(solution.devotionals || []).map((d: any, i: number) => (
+                        {solution.devotionals.map((d, i) => (
                             <div
                                 key={i}
                                 className="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 hover:border-indigo-500/20 transition-all shadow-sm"
@@ -681,7 +720,7 @@ function SolutionDashboard({
                 <section className="space-y-6">
                     <SectionHeader icon={<MessageCircle size={16} />} label="2 Divine Lectures" color="text-pink-400" />
                     <div className="space-y-3">
-                        {(solution.sermons || []).map((s: any, i: number) => (
+                        {solution.sermons.map((s, i) => (
                             <button
                                 key={i}
                                 onClick={() => openLink(`https://www.youtube.com/results?search_query=${encodeURIComponent(s.title + " sermon")}`)}
@@ -827,7 +866,7 @@ function EmptyState({ query }: { query: string }) {
                     "Seek and ye shall find..."
                 </div>
                 <p className="text-slate-500 text-xs font-black uppercase tracking-[0.3em] leading-loose">
-                    No results for "{query}"<br />Try a broader query or switch the filter above.
+                    No results for &quot;{query}&quot;<br />Try a broader query or switch the filter above.
                 </p>
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
@@ -948,6 +987,7 @@ function ThoughtPanel({
 }) {
     const [open, setOpen] = React.useState(true);
     const [elapsed, setElapsed] = React.useState(0);
+    const [finalElapsed, setFinalElapsed] = React.useState(0);
 
     // Tick elapsed seconds while thinking
     React.useEffect(() => {
@@ -956,9 +996,13 @@ function ThoughtPanel({
         return () => clearInterval(id);
     }, [isThinking, startTime]);
 
-    const finalElapsed = !isThinking && startTime
-        ? Math.floor((Date.now() - startTime) / 1000)
-        : elapsed;
+    React.useEffect(() => {
+        if (!isThinking && startTime) {
+            setFinalElapsed(Math.floor((Date.now() - startTime) / 1000));
+        }
+    }, [isThinking, startTime]);
+
+    const displayElapsed = !isThinking && startTime ? finalElapsed : elapsed;
 
     return (
         <div className="mb-8">
@@ -992,14 +1036,14 @@ function ThoughtPanel({
                             </svg>
                         </div>
                         <span className="text-[12px] font-semibold text-slate-600">
-                            Thought for {finalElapsed}s
+                            Thought for {displayElapsed}s
                         </span>
                     </div>
                 )}
 
                 <div className="ml-auto flex items-center gap-2.5">
                     {isThinking && (
-                        <span className="text-[10px] tabular-nums text-slate-400 font-mono">{elapsed}s</span>
+                        <span className="text-[10px] tabular-nums text-slate-400 font-mono">{displayElapsed}s</span>
                     )}
                     <ChevronRight
                         size={14}
@@ -1037,8 +1081,8 @@ export default function SearchEnginePortal() {
     const [filter, setFilter] = useState<FilterType>("ai");
     const [results, setResults] = useState<SearchResult[]>([]);
     const [pagination, setPagination] = useState<{ current: number, total: number, hasMore: boolean } | null>(null);
-    const [solution, setSolution] = useState<any>(null);
-    const [instantAnswer, setInstantAnswer] = useState<any>(null);
+    const [solution, setSolution] = useState<Solution | null>(null);
+    const [instantAnswer, setInstantAnswer] = useState<InstantAnswerData | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [preview, setPreview] = useState<PreviewPanel | null>(null);
@@ -1051,7 +1095,7 @@ export default function SearchEnginePortal() {
     const [shouldSpeakNextResponse, setShouldSpeakNextResponse] = useState(false);
 
     // AI Mode States
-    const [aiMessages, setAiMessages] = useState<any[]>([]);
+    const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
     const [isAiChatting, setIsAiChatting] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([
         "Who is Jesus Christ according to the Bible?",
