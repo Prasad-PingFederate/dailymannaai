@@ -211,77 +211,76 @@ export async function GET(req: Request) {
 
         const versionTries = [PRIMARY_VERSION, ...(FALLBACK_STRATEGY[PRIMARY_VERSION] || [])];
         
-        // Connect to Cosmos DB
-        const container = getCosmosContainer("BibleDatabase", "verses");
         let result: any[] = [];
         let finalResolvedVersion = PRIMARY_VERSION;
+        let dataSource = "AstraDB";
 
-        // Try primary then fallbacks until success
-        for (const targetVer of versionTries) {
-            console.log(`[BIBLE_API] Querying Cosmos: ${book} ${chapter} (Version: ${targetVer})`);
+        // 1. PRIMARY SOURCE: ASTRA DB (80GB Data Source)
+        console.log(`[BIBLE_API] Querying Astra DB: ${book} ${chapter} (Version: ${PRIMARY_VERSION})`);
+        try {
+            const astraDb = getAstraDb();
+            const astraColl = astraDb.collection('bible_verses');
+            
+            const astraRes = await astraColl.find({
+                book: book.toUpperCase(),
+                chapter: chapter,
+                version: PRIMARY_VERSION.toUpperCase()
+            }).toArray();
 
-            try {
-                const querySpec = {
-                    query: "SELECT * FROM c WHERE UPPER(c.book) = @book AND c.chapter = @chapter AND c.version = @version",
-                    parameters: [
-                        { name: "@book", value: book.toUpperCase() },
-                        { name: "@chapter", value: chapter },
-                        { name: "@version", value: targetVer }
-                    ]
-                };
-
-                const { resources: currentResult } = await container.items.query(querySpec, { 
-                    partitionKey: targetVer,
-                    maxItemCount: 200 
-                }).fetchAll();
-
-                if (currentResult && currentResult.length > 0) {
-                    result = currentResult;
-                    finalResolvedVersion = targetVer;
-                    break; // Found it!
-                }
-            } catch (cosmosError) {
-                console.warn(`[BIBLE_API] Cosmos Query Failed for ${targetVer}:`, cosmosError);
-                // Continue to fallback
+            if (astraRes && astraRes.length > 0) {
+                result = astraRes;
+                console.log(`[BIBLE_API] Astra DB SUCCESS! Found ${result.length} verses.`);
             }
-        }
-        
-        let dataSource = "CosmosDB";
-        
-        // ASTRA DB FALLBACK: If Cosmos failed or returned nothing, check Astra (80GB Data Source)
-        if (result.length === 0) {
-            console.log(`[BIBLE_API] No results from Cosmos. Attempting Astra DB Fallback for ${book} ${chapter} (Version: ${PRIMARY_VERSION})`);
-            try {
-                const astraDb = getAstraDb();
-                const astraColl = astraDb.collection('bible_verses');
-                
-                // Astra find query matching Cosmos structure
-                const astraRes = await astraColl.find({
-                    book: book.toUpperCase(),
-                    chapter: chapter,
-                    version: PRIMARY_VERSION.toUpperCase()
-                }).toArray();
-
-                if (astraRes && astraRes.length > 0) {
-                    result = astraRes;
-                    finalResolvedVersion = PRIMARY_VERSION;
-                    dataSource = "AstraDB";
-                    console.log(`[BIBLE_API] Astra DB Fallback SUCCESS! Found ${result.length} verses.`);
-                }
-            } catch (err) {
-                console.warn("[BIBLE_API] Astra DB Fallback error:", err);
-            }
+        } catch (err) {
+            console.warn("[BIBLE_API] Astra DB Primary query failed:", err);
         }
 
-        // JSON FALLBACK: If Cosmos returned nothing or failed, check local storage
+        // 2. SECONDARY SOURCE: COSMOS DB (Fallback)
         if (result.length === 0) {
-            console.log(`[BIBLE_API] No results from Cosmos. Attempting JSON Fallback for ${book} ${chapter} (Version: ${PRIMARY_VERSION})`);
+            console.log(`[BIBLE_API] Astra empty/failed. Attempting Cosmos DB Fallback...`);
+            try {
+                const container = getCosmosContainer("BibleDatabase", "verses");
+                for (const targetVer of versionTries) {
+                    console.log(`[BIBLE_API] Querying Cosmos Fallback: ${book} ${chapter} (Version: ${targetVer})`);
+                    try {
+                        const querySpec = {
+                            query: "SELECT * FROM c WHERE UPPER(c.book) = @book AND c.chapter = @chapter AND c.version = @version",
+                            parameters: [
+                                { name: "@book", value: book.toUpperCase() },
+                                { name: "@chapter", value: chapter },
+                                { name: "@version", value: targetVer }
+                            ]
+                        };
+
+                        const { resources: currentResult } = await container.items.query(querySpec, { 
+                            partitionKey: targetVer,
+                            maxItemCount: 200 
+                        }).fetchAll();
+
+                        if (currentResult && currentResult.length > 0) {
+                            result = currentResult;
+                            finalResolvedVersion = targetVer;
+                            dataSource = "CosmosDB";
+                            break; 
+                        }
+                    } catch (cosmosError) {
+                        console.warn(`[BIBLE_API] Cosmos Fallback Failed for ${targetVer}:`, cosmosError);
+                    }
+                }
+            } catch (e) {
+                console.error("[BIBLE_API] Cosmos Client Initialization Failed:", e);
+            }
+        }
+
+        // 3. TERTIARY SOURCE: JSON FALLBACK
+        if (result.length === 0) {
+            console.log(`[BIBLE_API] No DB results. Attempting JSON Fallback for ${book} ${chapter}`);
             const localVerses = getVersesFromLocalJson(PRIMARY_VERSION, book, chapter);
             if (localVerses) {
                 result = localVerses;
                 finalResolvedVersion = PRIMARY_VERSION;
                 dataSource = "LocalJSON";
-                console.log(`[BIBLE_API] JSON Fallback SUCCESS! Found ${result.length} verses.`);
+                console.log(`[BIBLE_API] JSON Fallback SUCCESS!`);
             }
         }
 
