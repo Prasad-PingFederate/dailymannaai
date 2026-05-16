@@ -75,7 +75,7 @@ jobs:
           libxfixes3 \
           libxrandr2 \
           libgbm1 \
-          libasound2
+          libasound2 || sudo apt-get install -y libasound2t64
       # ─────────────────────────────────────────────
       # Install Chromium ONLY
       # IMPORTANT:
@@ -121,6 +121,7 @@ jobs:
           FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
           PYTHONUNBUFFERED: "1"
         run: |
+          cd naukri-job-scheduler
           python main.py
 
       # ─────────────────────────────────────────────
