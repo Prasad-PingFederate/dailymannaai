@@ -523,7 +523,7 @@ function InstantAnswerWidget({ data }: { data: InstantAnswerData }) {
             {/* Bible ref â€” open on BibleGateway */}
             {data.type === "bible" && data.title && (
                 <button
-                    onClick={() => openLink(bibleGatewayLink(data.title))}
+onClick={() => openLink(bibleGatewayLink(data.title!))}
                     className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500/15
                      border border-amber-500/25 text-amber-400 text-xs font-black uppercase
                      tracking-wider hover:bg-amber-500/25 transition-all"
