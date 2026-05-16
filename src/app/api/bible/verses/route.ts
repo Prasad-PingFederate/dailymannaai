@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCosmosContainer } from "@/lib/cosmos";
+import { getAstraDb } from "@/lib/astra";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -246,6 +247,31 @@ export async function GET(req: Request) {
         }
         
         let dataSource = "CosmosDB";
+        
+        // ASTRA DB FALLBACK: If Cosmos failed or returned nothing, check Astra (80GB Data Source)
+        if (result.length === 0) {
+            console.log(`[BIBLE_API] No results from Cosmos. Attempting Astra DB Fallback for ${book} ${chapter} (Version: ${PRIMARY_VERSION})`);
+            try {
+                const astraDb = getAstraDb();
+                const astraColl = astraDb.collection('bible_verses');
+                
+                // Astra find query matching Cosmos structure
+                const astraRes = await astraColl.find({
+                    book: book.toUpperCase(),
+                    chapter: chapter,
+                    version: PRIMARY_VERSION.toUpperCase()
+                }).toArray();
+
+                if (astraRes && astraRes.length > 0) {
+                    result = astraRes;
+                    finalResolvedVersion = PRIMARY_VERSION;
+                    dataSource = "AstraDB";
+                    console.log(`[BIBLE_API] Astra DB Fallback SUCCESS! Found ${result.length} verses.`);
+                }
+            } catch (err) {
+                console.warn("[BIBLE_API] Astra DB Fallback error:", err);
+            }
+        }
 
         // JSON FALLBACK: If Cosmos returned nothing or failed, check local storage
         if (result.length === 0) {
