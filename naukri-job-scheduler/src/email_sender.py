@@ -209,16 +209,31 @@ class EmailSender:
 
         self.smtp_host = email_cfg.get("smtp_host", "smtp.gmail.com")
         self.smtp_port = email_cfg.get("smtp_port", 587)
-        self.sender_email = email_cfg.get("sender_email") or os.environ.get("EMAIL_SENDER")
-        self.sender_password = email_cfg.get("sender_password") or os.environ.get("EMAIL_PASSWORD")
+        
+        sender_raw = email_cfg.get("sender_email") or os.environ.get("EMAIL_SENDER")
+        self.sender_email = sender_raw.strip().replace("\n", "").replace("\r", "") if sender_raw else None
+        
+        password_raw = email_cfg.get("sender_password") or os.environ.get("EMAIL_PASSWORD")
+        self.sender_password = password_raw.strip().replace("\n", "").replace("\r", "") if password_raw else None
+
         self.recipients = email_cfg.get("recipients", [])
         if isinstance(self.recipients, str):
-            self.recipients = [self.recipients]
+            # Normalize newlines and semicolons to commas, then split
+            normalized = self.recipients.replace("\r", "").replace("\n", ",").replace(";", ",")
+            self.recipients = [r.strip() for r in normalized.split(",") if r.strip()]
+        elif isinstance(self.recipients, list):
+            cleaned = []
+            for item in self.recipients:
+                if isinstance(item, str):
+                    normalized = item.replace("\r", "").replace("\n", ",").replace(";", ",")
+                    cleaned.extend([r.strip() for r in normalized.split(",") if r.strip()])
+            self.recipients = cleaned
 
         # Allow env override for recipients
         env_recipients = os.environ.get("EMAIL_RECIPIENTS", "")
         if env_recipients:
-            self.recipients = [r.strip() for r in env_recipients.split(",") if r.strip()]
+            normalized = env_recipients.replace("\r", "").replace("\n", ",").replace(";", ",")
+            self.recipients = [r.strip() for r in normalized.split(",") if r.strip()]
 
         if not self.sender_email:
             raise ValueError("sender_email not configured (set EMAIL_SENDER env var or config)")
@@ -239,10 +254,15 @@ class EmailSender:
             f"🚀 {count} New Job{'s' if count != 1 else ''} on Naukri — {now_str}"
         )
 
+        # Clean header values of any possible newlines to prevent SMTP injection and folding errors
+        clean_sender = str(self.sender_email).replace("\n", "").replace("\r", "").strip()
+        clean_recipients = ", ".join(self.recipients).replace("\n", "").replace("\r", "").strip()
+        clean_subject = str(subject).replace("\n", "").replace("\r", "").strip()
+
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"Naukri Job Scheduler <{self.sender_email}>"
-        msg["To"] = ", ".join(self.recipients)
+        msg["Subject"] = clean_subject
+        msg["From"] = f"Naukri Job Scheduler <{clean_sender}>"
+        msg["To"] = clean_recipients
 
         plain = build_plain_text(jobs, self.config)
         html = build_email_html(jobs, self.config)
