@@ -31,7 +31,17 @@ This document acts as a persistent record of all suggestions, user requirements,
 * **Status:** **Implemented & Fully Pushed ✅**
 * **Technical Detail:** Created [direct_profile_update.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/direct_profile_update.py) and [test_login.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/test_login.py) which boot up a headed browser, authenticate securely, and save session parameters back to `data/naukri_session.json` to keep headless runs running smoothly.
 
+### 6. GitHub Actions CI Session Restoration (Seamless Login Bypass)
+* **Suggestion:** Resolve headless login failures on GitHub Actions where Google SSO and direct forms are aggressively blocked by captchas / anti-bot challenge screens.
+* **Status:** **Implemented & Fully Pushed ✅**
+* **Technical Detail:** Added automatic restoration of session cookies from a `NAUKRI_SESSION_COOKIES` environment variable inside [main.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/main.py). In your local machine, run `python test_login.py` to refresh your session, copy the text inside [naukri_session.json](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/data/naukri_session.json), and add it as a GitHub Repository Secret named `NAUKRI_SESSION_COOKIES`. The CI runner will restore it automatically, completely bypassing the login page and captchas!
+
+### 7. OpenRouter Empty API Key Protection
+* **Suggestion:** Fix the crash triggered when `OPENROUTER_API_KEY` is missing/empty, causing `Illegal header value b'Bearer '` in HTTP requests.
+* **Status:** **Implemented & Fully Pushed ✅**
+* **Technical Detail:** Implemented an active assertion in [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py) to raise a ValueError early if the key is empty, immediately prompting a safe fallback to 9Router or standard resume compilers instead of crashing with bad HTTP headers.
+
 ---
 
 ## 📈 Next Steps & System Health
-All parameters and behaviors are fully customizable inside [config/config.yml](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/config/config.yml). The GitHub Actions CI pipeline is now completely protected from Google OAuth Bad Request errors, ensuring your scheduled runs remain robust and error-free!
+All parameters and behaviors are fully customizable inside [config/config.yml](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/config/config.yml). The GitHub Actions CI pipeline is now completely protected from Google OAuth Bad Request errors and Captcha blocks, ensuring your scheduled runs remain robust and error-free!
