@@ -19,6 +19,18 @@ from src.email_sender import EmailSender
 # ─────────────────────── Logging Setup ───────────────────────────
 
 def setup_logging(level: str = "INFO"):
+    # Reconfigure stdout/stderr to use UTF-8 encoding to prevent UnicodeEncodeError on Windows terminals
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
 

@@ -127,9 +127,12 @@ class NaukriScraper:
                 logger.info("🍪 Session cookies loaded from cache for scraper.")
                 
                 await page.goto(self.BASE_URL, wait_until="domcontentloaded", timeout=self.timeout)
-                await page.wait_for_timeout(2000)
-                profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
-                if profile:
+                await page.wait_for_timeout(4000)
+                
+                # Highly reliable session confirmation: check if routed to mnjuser/dashboard or logged-in class
+                current_url = page.url
+                profile = await page.query_selector(".nI-g_profile, a[href*='logout'], .complete-profile")
+                if "mnjuser" in current_url or profile:
                     logger.info("✅ Login restored from cached session cookies!")
                     self.is_logged_in = True
                     return True
