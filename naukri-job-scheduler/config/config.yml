@@ -115,3 +115,9 @@ email:
 notifications:
   email_enabled: true
   send_empty_digest: false             # Set true to email even when no new jobs
+
+# ── Auto Apply Settings ───────────────────────────────────────
+auto_apply:
+  enabled: true                        # Set true to automatically generate tailored resumes and apply
+  headless: false                      # Headless false to see CloakBrowser and support manual login if cookies expire
+  update_profile_resume: true          # Set true to automatically upload and update the main Naukri profile resume with the generated one

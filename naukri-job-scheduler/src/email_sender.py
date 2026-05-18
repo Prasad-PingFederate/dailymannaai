@@ -244,7 +244,9 @@ class EmailSender:
 
     def send(self, jobs: List[Job]) -> bool:
         """Build and send the job digest email."""
-        if not jobs:
+        send_empty_digest = self.config.get("notifications", {}).get("send_empty_digest", False)
+        force_send = os.environ.get("FORCE_SEND", "false").lower() == "true"
+        if not jobs and not (send_empty_digest or force_send):
             logger.info("No new jobs to send.")
             return True
 

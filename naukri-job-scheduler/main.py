@@ -6,6 +6,7 @@ Orchestrates scraping and email delivery
 import asyncio
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -94,14 +95,39 @@ async def main():
             logger.info(f"  [{i}] {job.title} @ {job.company} ({job.location})")
         if len(jobs) > 10:
             logger.info(f"  ... and {len(jobs) - 10} more")
+
+        # Auto Apply Integration
+        apply_cfg = config.get("auto_apply", {})
+        if apply_cfg.get("enabled", False):
+            logger.info("🤖 Auto-apply is enabled. Starting resume tailoring and portal applications...")
+            from src.apply_automation import process_and_apply_job, load_env_keys, load_profile_config
+            
+            keys = load_env_keys()
+            api_key = keys.get("OPENROUTER_API_KEY")
+            profile = load_profile_config()
+            
+            if not api_key:
+                logger.warning("⚠️ Skipping auto-apply: OPENROUTER_API_KEY is missing from environment variables and .env.local")
+            else:
+                is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
+                headless = True if is_ci else apply_cfg.get("headless", False)
+                update_profile_resume = apply_cfg.get("update_profile_resume", True)
+                for idx, job in enumerate(jobs, 1):
+                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
+                    try:
+                        job_dict = job.to_dict()
+                        await process_and_apply_job(job_dict, api_key, profile, headless=headless, update_profile_resume=update_profile_resume)
+                    except Exception as ex:
+                        logger.error(f"❌ Failed applying to {job.title} @ {job.company}: {ex}")
     else:
         logger.info("ℹ️  No new jobs found in this run (all already seen or filtered)")
 
     # Send email
     notify_cfg = config.get("notifications", {})
+    force_send = os.environ.get("FORCE_SEND", "false").lower() == "true"
     if notify_cfg.get("email_enabled", True):
-        if not jobs and not notify_cfg.get("send_empty_digest", False):
-            logger.info("📧 Skipping email — no new jobs and send_empty_digest=false")
+        if not jobs and not (notify_cfg.get("send_empty_digest", False) or force_send):
+            logger.info("📧 Skipping email — no new jobs and send_empty_digest/FORCE_SEND is false")
         else:
             logger.info("📧 Sending email digest...")
             try:
@@ -113,8 +139,7 @@ async def main():
                     logger.error("❌ Email sending failed")
                     sys.exit(1)
             except ValueError as e:
-                logger.error(f"Email config error: {e}")
-                sys.exit(1)
+                logger.warning(f"⚠️ Email notification skipped: {e} (This is normal during local manual testing if email environment secrets are not configured.)")
     else:
         logger.info("📧 Email notifications disabled in config")
 

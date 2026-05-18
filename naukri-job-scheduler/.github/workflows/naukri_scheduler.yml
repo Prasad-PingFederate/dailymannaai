@@ -7,13 +7,13 @@ name: 🔍 Naukri Job Scheduler
 on:
   schedule:
     # 9:00 AM IST
-    - cron: "30 3 * * 1-5"
+    - cron: "30 3 * * *"
 
     # 1:00 PM IST
-    - cron: "30 7 * * 1-5"
+    - cron: "30 7 * * *"
 
     # 6:00 PM IST
-    - cron: "30 12 * * 1-5"
+    - cron: "30 12 * * *"
 
   workflow_dispatch:
     inputs:
@@ -41,6 +41,21 @@ jobs:
       # ─────────────────────────────────────────────
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────────
+      # Clone & Setup Sibling Career-Ops
+      # ─────────────────────────────────────────────
+      - name: 🚀 Clone & Setup Sibling Career-Ops
+        run: |
+          git clone https://github.com/santifer/career-ops ../career-ops
+          mkdir -p ../career-ops/config ../career-ops/templates ../career-ops/output ../career-ops/data
+          # Copy our customized templates and profile configs from local backup
+          cp config/career-ops/cv.md ../career-ops/cv.md
+          cp config/career-ops/profile.yml ../career-ops/config/profile.yml
+          # Seed empty applications tracker file
+          echo "# Applications Tracker" > ../career-ops/data/applications.md
+          # Seed default cv-template
+          cp ../career-ops/examples/templates/cv-template.html ../career-ops/templates/cv-template.html || true
 
       # ─────────────────────────────────────────────
       # Setup Python
@@ -118,10 +133,10 @@ jobs:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
           PYTHONUNBUFFERED: "1"
         run: |
-          cd naukri-job-scheduler
           python main.py
 
       # ─────────────────────────────────────────────
