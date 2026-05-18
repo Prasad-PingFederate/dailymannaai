@@ -43,6 +43,21 @@ jobs:
         uses: actions/checkout@v4
 
       # ─────────────────────────────────────────────
+      # Clone & Setup Sibling Career-Ops
+      # ─────────────────────────────────────────────
+      - name: 🚀 Clone & Setup Sibling Career-Ops
+        run: |
+          git clone https://github.com/santifer/career-ops ../career-ops
+          mkdir -p ../career-ops/config ../career-ops/templates ../career-ops/output ../career-ops/data
+          # Copy our customized templates and profile configs from local backup
+          cp config/career-ops/cv.md ../career-ops/cv.md
+          cp config/career-ops/profile.yml ../career-ops/config/profile.yml
+          # Seed empty applications tracker file
+          echo "# Applications Tracker" > ../career-ops/data/applications.md
+          # Seed default cv-template
+          cp ../career-ops/examples/templates/cv-template.html ../career-ops/templates/cv-template.html || true
+
+      # ─────────────────────────────────────────────
       # Setup Python
       # ─────────────────────────────────────────────
       - name: 🐍 Set up Python 3.11
