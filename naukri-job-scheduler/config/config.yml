@@ -121,3 +121,4 @@ auto_apply:
   enabled: true                        # Set true to automatically generate tailored resumes and apply
   headless: false                      # Headless false to see CloakBrowser and support manual login if cookies expire
   update_profile_resume: true          # Set true to automatically upload and update the main Naukri profile resume with the generated one
+  delay_between_applies: 45            # Seconds to wait between applying to each job (polite delay to simulate human and bypass bot detection)

@@ -716,18 +716,21 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
 
 # ─────────────────────── Integration Runner ────────────────────────
 
-async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless: bool = False, update_profile_resume: bool = True):
-    """Orchestrates tailoring the resume and applying to the job on Naukri."""
+async def generate_and_upload_single_resume(base_job: dict, api_key: str, profile: dict, headless: bool = False, update_profile_resume: bool = True) -> tuple:
+    """
+    Generates a single tailored resume based on a base job description, compiles it to PDF,
+    and uploads it once to the candidate's main Naukri profile to keep it active and fresh.
+    """
     print("=" * 60)
-    print(f"[JOB] Processing: {job['title']} at {job['company']}")
+    print(f"[RESUME GENERATION] Tailoring resume for role: {base_job['title']} @ {base_job['company']}")
     print("=" * 60)
     
     cv_content = CV_MD.read_text(encoding="utf-8") if CV_MD.exists() else ""
     
     # 1. AI CV tailoring content
     tailored_data = await tailor_cv_content_ai(
-        job_title=job["title"],
-        job_desc=job.get("description_snippet", "") or job["title"],
+        job_title=base_job["title"],
+        job_desc=base_job.get("description_snippet", "") or base_job["title"],
         cv_content=cv_content,
         profile=profile,
         api_key=api_key
@@ -735,16 +738,36 @@ async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless
     
     # 2. PDF compilation
     pdf_path = await compile_tailored_pdf(
-        job_company=job["company"],
+        job_company=base_job["company"],
         tailored_data=tailored_data,
         profile=profile
     )
     
-    # 3. Auto-Apply
+    # 3. Profile Resume Update (Update default Naukri profile CV with generated PDF)
+    if update_profile_resume:
+        try:
+            await upload_resume_to_naukri_profile(pdf_path, headless=headless)
+        except Exception as p_ex:
+            logger.error(f"❌ Failed to upload resume to Naukri main profile: {p_ex}")
+            
+    return pdf_path, tailored_data
+
+
+async def apply_job_with_precompiled_resume(job: dict, pdf_path: Path, tailored_data: dict, headless: bool = False) -> bool:
+    """
+    Applies to a specific job using an already compiled/tailored PDF resume,
+    avoiding redundant AI calls and multiple profile uploads.
+    """
+    print("=" * 60)
+    print(f"[JOB APPLY] Applying to: {job['title']} at {job['company']}")
+    print("=" * 60)
+    
+    answers = tailored_data.get("questionnaire_answers", {})
+    
     success = await automate_naukri_application(
         job_url=job["job_url"],
         pdf_path=pdf_path,
-        answers=tailored_data.get("questionnaire_answers", {}),
+        answers=answers,
         headless=headless
     )
     
@@ -767,17 +790,27 @@ async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless
         with open(tracker_file, "a", encoding="utf-8") as f:
             f.write(entry)
         logger.info(f"Saved entry to applications.md tracker.")
-        
-        # 4. Profile Resume Update (Update default Naukri profile CV with generated PDF)
-        if update_profile_resume:
-            try:
-                await upload_resume_to_naukri_profile(pdf_path, headless=headless)
-            except Exception as p_ex:
-                logger.error(f"❌ Failed to upload resume to Naukri main profile: {p_ex}")
     else:
         print(f"[FAILED] Could not complete application for {job['title']} @ {job['company']}.")
-    
+        
     return success
+
+
+async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless: bool = False, update_profile_resume: bool = True):
+    """Orchestrates tailoring the resume and applying to the job on Naukri (traditional backward compatible function)."""
+    pdf_path, tailored_data = await generate_and_upload_single_resume(
+        base_job=job,
+        api_key=api_key,
+        profile=profile,
+        headless=headless,
+        update_profile_resume=update_profile_resume
+    )
+    return await apply_job_with_precompiled_resume(
+        job=job,
+        pdf_path=pdf_path,
+        tailored_data=tailored_data,
+        headless=headless
+    )
 
 # Support standard script execution
 if __name__ == "__main__":
