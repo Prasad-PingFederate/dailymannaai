@@ -60,8 +60,8 @@ async def main():
             logger.warning("⚠️ Automated SSO flow skipped/incomplete. You can manually interact with the browser now.")
             
     # Wait for manual check or logout button
-    logger.info("⏳ Browser will remain open for 60 seconds. You can type your password now to complete the login...")
-    for i in range(30):
+    logger.info("⏳ Browser will remain open for 120 seconds. Please manually complete the login and 2FA now...")
+    for i in range(60):
         await page.wait_for_timeout(2000)
         profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
         if profile:
