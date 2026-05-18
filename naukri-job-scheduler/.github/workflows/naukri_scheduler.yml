@@ -104,6 +104,7 @@ jobs:
       # Download CloakBrowser stealth binary
       # ─────────────────────────────────────────────
       - name: 🥷 Pre-download CloakBrowser stealth binary
+        continue-on-error: true
         run: |
           python -c "from cloakbrowser import ensure_binary; ensure_binary()"
 

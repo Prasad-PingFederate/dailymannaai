@@ -10,14 +10,46 @@ import logging
 import re
 import time
 import random
+import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from cloakbrowser import launch_async
-
 logger = logging.getLogger(__name__)
+
+async def launch_stealth_browser(headless=True, args=None):
+    """
+    Launches browser. Bypasses CloakBrowser in CI environments (GitHub Actions)
+    to prevent OS-level segmentation faults, falling back to standard Playwright Chromium.
+    """
+    is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
+    
+    if not is_ci:
+        try:
+            from cloakbrowser import launch_async as cloak_launch
+            logger.info("🚀 Launching stealth browser with CloakBrowser...")
+            return await cloak_launch(headless=headless, args=args)
+        except Exception as e:
+            logger.warning(f"⚠️ CloakBrowser launch failed ({e}). Falling back to standard Playwright Chromium...")
+
+    logger.info("🎭 Launching standard Playwright Chromium (CI/Fallback mode)...")
+    from playwright.async_api import async_playwright
+    playwright = await async_playwright().start()
+    browser = await playwright.chromium.launch(
+        headless=headless,
+        args=args or ["--no-sandbox", "--disable-setuid-sandbox"]
+    )
+    
+    # Monkey patch browser.close to also stop the playwright driver cleanly
+    original_close = browser.close
+    async def close_with_playwright():
+        try:
+            await original_close()
+        finally:
+            await playwright.stop()
+    browser.close = close_with_playwright
+    return browser
 
 
 @dataclass
@@ -379,7 +411,7 @@ class NaukriScraper:
         for attempt in range(1, max_retries + 1):
             logger.info(f"Scrape attempt {attempt}/{max_retries} for query '{query.get('keyword')}'")
             
-            browser = await launch_async(
+            browser = await launch_stealth_browser(
                 headless=self.headless,
                 args=[
                     "--no-sandbox",

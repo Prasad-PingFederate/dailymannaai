@@ -13,9 +13,41 @@ from datetime import datetime
 from pathlib import Path
 import yaml
 import httpx
-from cloakbrowser import launch_async
 
 logger = logging.getLogger("apply_automation")
+
+async def launch_stealth_browser(headless=True, args=None):
+    """
+    Launches browser. Bypasses CloakBrowser in CI environments (GitHub Actions)
+    to prevent OS-level segmentation faults, falling back to standard Playwright Chromium.
+    """
+    is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
+    
+    if not is_ci:
+        try:
+            from cloakbrowser import launch_async as cloak_launch
+            logger.info("🚀 Launching stealth browser with CloakBrowser...")
+            return await cloak_launch(headless=headless, args=args)
+        except Exception as e:
+            logger.warning(f"⚠️ CloakBrowser launch failed ({e}). Falling back to standard Playwright Chromium...")
+
+    logger.info("🎭 Launching standard Playwright Chromium (CI/Fallback mode)...")
+    from playwright.async_api import async_playwright
+    playwright = await async_playwright().start()
+    browser = await playwright.chromium.launch(
+        headless=headless,
+        args=args or ["--no-sandbox", "--disable-setuid-sandbox"]
+    )
+    
+    # Monkey patch browser.close to also stop the playwright driver cleanly
+    original_close = browser.close
+    async def close_with_playwright():
+        try:
+            await original_close()
+        finally:
+            await playwright.stop()
+    browser.close = close_with_playwright
+    return browser
 
 # ─────────────────────── Path Setup ─────────────────────────────
 SCHEDULER_DIR = Path(__file__).resolve().parent.parent
@@ -366,8 +398,8 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
     """
     logger.info(f"⚡ Navigating to Naukri application portal: {job_url}")
     
-    # Launch CloakBrowser headed so we bypass captcha/Cloudflare reliably
-    browser = await launch_async(
+    # Launch stealth-patched or standard Playwright Chromium based on env
+    browser = await launch_stealth_browser(
         headless=headless,
         args=[
             "--no-sandbox",
@@ -593,7 +625,7 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
     """
     logger.info("📄 Initiating upload of the latest generated resume to Naukri profile...")
     
-    browser = await launch_async(
+    browser = await launch_stealth_browser(
         headless=headless,
         args=[
             "--no-sandbox",
