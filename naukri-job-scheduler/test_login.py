@@ -63,8 +63,9 @@ async def main():
     logger.info("⏳ Browser will remain open for 120 seconds. Please manually complete the login and 2FA now...")
     for i in range(60):
         await page.wait_for_timeout(2000)
-        profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
-        if profile:
+        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+        profile = await page.query_selector(".nI-g_profile, a[href*='logout'], [class*='profile'], [href*='logout']")
+        if (login_btn and not await login_btn.is_visible()) or not login_btn or profile:
             logger.info("✅ Login detected! Saving cookies session...")
             cookies = await context.cookies()
             session_file.parent.mkdir(exist_ok=True)
