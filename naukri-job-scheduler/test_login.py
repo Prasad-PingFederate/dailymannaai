@@ -29,7 +29,7 @@ async def main():
     
     env_keys = load_env_keys()
     username = env_keys.get("EMAIL_SENDER", "prasaddammai1@gmail.com")
-    password = env_keys.get("NAUKRI_PASSWORD") or env_keys.get("EMAIL_PASSWORD") or ""
+    password = env_keys.get("NAUKRI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or env_keys.get("EMAIL_PASSWORD") or ""
     
     logger.info(f"🔑 Target email: {username}")
     logger.info(f"🔑 Target password length: {len(password) if password else 0}")
@@ -60,11 +60,12 @@ async def main():
             logger.warning("⚠️ Automated SSO flow skipped/incomplete. You can manually interact with the browser now.")
             
     # Wait for manual check or logout button
-    logger.info("⏳ Browser will remain open for 60 seconds. You can type your password now to complete the login...")
-    for i in range(30):
+    logger.info("⏳ Browser will remain open for 120 seconds. Please manually complete the login and 2FA now...")
+    for i in range(60):
         await page.wait_for_timeout(2000)
-        profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
-        if profile:
+        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+        profile = await page.query_selector(".nI-g_profile, a[href*='logout'], [class*='profile'], [href*='logout']")
+        if (login_btn and not await login_btn.is_visible()) or not login_btn or profile:
             logger.info("✅ Login detected! Saving cookies session...")
             cookies = await context.cookies()
             session_file.parent.mkdir(exist_ok=True)

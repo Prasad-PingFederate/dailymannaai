@@ -100,7 +100,13 @@ async def main():
         apply_cfg = config.get("auto_apply", {})
         if apply_cfg.get("enabled", False):
             logger.info("🤖 Auto-apply is enabled. Starting resume tailoring and portal applications...")
-            from src.apply_automation import process_and_apply_job, load_env_keys, load_profile_config
+            from src.apply_automation import (
+                process_and_apply_job,
+                generate_and_upload_single_resume,
+                apply_job_with_precompiled_resume,
+                load_env_keys,
+                load_profile_config
+            )
             
             keys = load_env_keys()
             api_key = keys.get("OPENROUTER_API_KEY")
@@ -113,13 +119,43 @@ async def main():
             is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
             headless = True if is_ci else apply_cfg.get("headless", False)
             update_profile_resume = apply_cfg.get("update_profile_resume", True)
-            for idx, job in enumerate(jobs, 1):
-                logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
-                try:
-                    job_dict = job.to_dict()
-                    await process_and_apply_job(job_dict, api_key, profile, headless=headless, update_profile_resume=update_profile_resume)
-                except Exception as ex:
-                    logger.error(f"❌ Failed applying to {job.title} @ {job.company}: {ex}")
+            delay_between_applies = apply_cfg.get("delay_between_applies", 15)
+            
+            # 1. Generate one tailored resume based on the top/first job and upload to profile once
+            base_job = jobs[0].to_dict()
+            logger.info(f"📄 Generating single tailored resume for the run based on job: {base_job['title']} @ {base_job['company']}...")
+            try:
+                pdf_path, tailored_data = await generate_and_upload_single_resume(
+                    base_job=base_job,
+                    api_key=api_key,
+                    profile=profile,
+                    headless=headless,
+                    update_profile_resume=update_profile_resume
+                )
+                logger.info("✅ Single resume generated and uploaded to profile successfully!")
+                
+                # 2. Apply to all found jobs using this precompiled resume
+                for idx, job in enumerate(jobs, 1):
+                    if idx > 1:
+                        # Introduce a polite, randomized delay to simulate natural human activity
+                        import random
+                        wait_sec = random.randint(max(5, int(delay_between_applies * 0.8)), max(10, int(delay_between_applies * 1.2)))
+                        logger.info(f"⏳ Waiting for {wait_sec} seconds before applying to the next job to behave politely and bypass bot blocks...")
+                        await asyncio.sleep(wait_sec)
+                        
+                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
+                    try:
+                        job_dict = job.to_dict()
+                        await apply_job_with_precompiled_resume(
+                            job=job_dict,
+                            pdf_path=pdf_path,
+                            tailored_data=tailored_data,
+                            headless=headless
+                        )
+                    except Exception as ex:
+                        logger.error(f"❌ Failed applying to {job.title} @ {job.company}: {ex}")
+            except Exception as ex:
+                logger.error(f"❌ Failed to generate and upload single resume: {ex}")
     else:
         logger.info("ℹ️  No new jobs found in this run (all already seen or filtered)")
 

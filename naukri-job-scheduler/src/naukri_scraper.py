@@ -62,7 +62,7 @@ class NaukriScraper:
         from src.apply_automation import load_env_keys
         env_keys = load_env_keys()
         self.username = os.environ.get("NAUKRI_USERNAME") or env_keys.get("NAUKRI_USERNAME") or os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
-        self.password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+        self.password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("NAUKARI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
         self.is_logged_in = False
 
     def _load_seen_ids(self) -> set:
