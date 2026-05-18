@@ -44,6 +44,13 @@ async def main():
         await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
         await page.wait_for_timeout(3000)
         
+        # Check if we landed on the homepage and have the 'Complete profile' button visible
+        complete_btn = await page.query_selector("a:has-text('Complete profile'), button:has-text('Complete profile'), .complete-profile")
+        if complete_btn and await complete_btn.is_visible():
+            logger.info("🖱️ Found 'Complete profile' button on home page! Clicking to navigate to profile page...")
+            await complete_btn.click()
+            await page.wait_for_timeout(4000)
+        
         # Upload resume
         logger.info("🔍 Searching for resume file input (#attachCV)...")
         file_input = await page.wait_for_selector("input[type='file']#attachCV, input[type='file'][id*='attach']", timeout=15000)

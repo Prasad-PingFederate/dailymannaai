@@ -626,6 +626,13 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
         await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
         await page.wait_for_timeout(3000)
         
+        # Check if we landed on the homepage and have the 'Complete profile' button visible
+        complete_btn = await page.query_selector("a:has-text('Complete profile'), button:has-text('Complete profile'), .complete-profile")
+        if complete_btn and await complete_btn.is_visible():
+            logger.info("🖱️ Found 'Complete profile' button on home page! Clicking to navigate to profile page...")
+            await complete_btn.click()
+            await page.wait_for_timeout(4000)
+            
         # Check if login is needed
         login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
         if login_btn and await login_btn.is_visible():
