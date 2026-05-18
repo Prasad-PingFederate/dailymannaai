@@ -95,6 +95,28 @@ async def main():
             logger.info(f"  [{i}] {job.title} @ {job.company} ({job.location})")
         if len(jobs) > 10:
             logger.info(f"  ... and {len(jobs) - 10} more")
+
+        # Auto Apply Integration
+        apply_cfg = config.get("auto_apply", {})
+        if apply_cfg.get("enabled", False):
+            logger.info("🤖 Auto-apply is enabled. Starting resume tailoring and portal applications...")
+            from src.apply_automation import process_and_apply_job, load_env_keys, load_profile_config
+            
+            keys = load_env_keys()
+            api_key = keys.get("OPENROUTER_API_KEY")
+            profile = load_profile_config()
+            
+            if not api_key:
+                logger.warning("⚠️ Skipping auto-apply: OPENROUTER_API_KEY is missing from .env.local")
+            else:
+                headless = apply_cfg.get("headless", False)
+                for idx, job in enumerate(jobs, 1):
+                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
+                    try:
+                        job_dict = job.to_dict()
+                        await process_and_apply_job(job_dict, api_key, profile, headless=headless)
+                    except Exception as ex:
+                        logger.error(f"❌ Failed applying to {job.title} @ {job.company}: {ex}")
     else:
         logger.info("ℹ️  No new jobs found in this run (all already seen or filtered)")
 
