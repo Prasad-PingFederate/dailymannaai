@@ -27,8 +27,16 @@ TEMPLATE_HTML = CAREER_OPS_DIR / "templates" / "cv-template.html"
 # ─────────────────────── Load Environment & Config ─────────────────
 
 def load_env_keys() -> dict:
-    """Manually reads .env.local to extract api keys and credentials."""
+    """Manually reads .env.local and system environment variables to extract api keys and credentials."""
     keys = {}
+    
+    # 1. First load from system environment variables
+    for key in ["OPENROUTER_API_KEY", "EMAIL_SENDER", "EMAIL_PASSWORD"]:
+        val = os.environ.get(key)
+        if val:
+            keys[key] = val
+            
+    # 2. Then override / supplement with .env.local
     env_path = BASE_DIR / ".env.local"
     if env_path.exists():
         for line in env_path.read_text().splitlines():
@@ -280,26 +288,69 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
         # Check if login is needed
         login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
         if login_btn and await login_btn.is_visible():
-            logger.warning("🔐 active Naukri session not found. Please log in in the browser window.")
-            if headless:
-                logger.error("❌ Headless execution blocked by login. Rerun with headless=False to authenticate.")
-                return False
-            # Wait for user to login manually
-            logger.info("⏳ Waiting for you to complete manual login. Once done, cookies will be saved.")
-            for _ in range(60):
-                await page.wait_for_timeout(2000)
-                # Check for profile icon or sign out link to confirm successful login
-                profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
-                if profile:
-                    # Save cookies
-                    cookies = await context.cookies()
-                    session_file.parent.mkdir(exist_ok=True)
-                    session_file.write_text(json.dumps(cookies, indent=2))
-                    logger.info("✅ Login detected! Cookies saved for subsequent runs.")
-                    break
-            else:
-                logger.error("❌ Login timeout reached.")
-                return False
+            logger.info("🔐 Active Naukri session not found. Attempting automated login...")
+            
+            env_keys = load_env_keys()
+            username = os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
+            password = os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+            
+            login_success = False
+            if username and password:
+                try:
+                    logger.info(f"🔑 Navigating to login page to authenticate with {username}...")
+                    await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded", timeout=60000)
+                    await page.wait_for_timeout(2000)
+                    
+                    # Fill username and password
+                    await page.fill("#usernameField", username)
+                    await page.wait_for_timeout(1000)
+                    await page.fill("#passwordField", password)
+                    await page.wait_for_timeout(1000)
+                    
+                    # Click login button
+                    submit_selector = "button.blue-btn, button[type='submit'], button:has-text('Login')"
+                    await page.click(submit_selector)
+                    await page.wait_for_timeout(5000)
+                    
+                    # Go back to job page and verify if login session is active
+                    await page.goto(job_url, wait_until="domcontentloaded", timeout=60000)
+                    await page.wait_for_timeout(3000)
+                    
+                    login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+                    if not login_btn or not await login_btn.is_visible():
+                        logger.info("✅ Automated login successful!")
+                        login_success = True
+                        
+                        # Save cookies
+                        cookies = await context.cookies()
+                        session_file.parent.mkdir(exist_ok=True)
+                        session_file.write_text(json.dumps(cookies, indent=2))
+                    else:
+                        logger.warning("⚠️ Automated login completed, but login buttons are still visible.")
+                except Exception as ex:
+                    logger.error(f"❌ Error during automated login: {ex}")
+                    
+            if not login_success:
+                if headless:
+                    logger.error("❌ Headless execution blocked by login. Rerun with headless=False to authenticate manually or verify credentials.")
+                    return False
+                
+                # Wait for user to login manually
+                logger.info("⏳ Waiting for you to complete manual login. Once done, cookies will be saved.")
+                for _ in range(60):
+                    await page.wait_for_timeout(2000)
+                    # Check for profile icon or sign out link to confirm successful login
+                    profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
+                    if profile:
+                        # Save cookies
+                        cookies = await context.cookies()
+                        session_file.parent.mkdir(exist_ok=True)
+                        session_file.write_text(json.dumps(cookies, indent=2))
+                        logger.info("✅ Login detected! Cookies saved for subsequent runs.")
+                        break
+                else:
+                    logger.error("❌ Login timeout reached.")
+                    return False
 
         # Attempt to click "Apply" button
         apply_btn = await page.query_selector(".apply-button, .applyBtn, button:has-text('Apply')")

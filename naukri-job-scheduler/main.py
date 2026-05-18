@@ -107,7 +107,7 @@ async def main():
             profile = load_profile_config()
             
             if not api_key:
-                logger.warning("⚠️ Skipping auto-apply: OPENROUTER_API_KEY is missing from .env.local")
+                logger.warning("⚠️ Skipping auto-apply: OPENROUTER_API_KEY is missing from environment variables and .env.local")
             else:
                 is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
                 headless = True if is_ci else apply_cfg.get("headless", False)
