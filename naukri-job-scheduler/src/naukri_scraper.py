@@ -151,7 +151,7 @@ class NaukriScraper:
         # 3. Fallback to standard email/password login
         logger.info(f"🔐 Attempting direct Naukri login for: {self.username}")
         try:
-            await page.goto(f"{self.BASE_URL}/nlogin/login", wait_until="networkidle", timeout=self.timeout)
+            await page.goto(f"{self.BASE_URL}/nlogin/login", wait_until="domcontentloaded", timeout=self.timeout)
             await page.wait_for_timeout(2000)
             
             # Fill username/password
