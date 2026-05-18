@@ -117,6 +117,26 @@ class NaukriScraper:
         if self.is_logged_in:
             return True
 
+        # 1. Attempt to load from cached session file
+        session_file = Path("data/naukri_session.json")
+        if session_file.exists():
+            try:
+                cookies = json.loads(session_file.read_text())
+                context = page.context
+                await context.add_cookies(cookies)
+                logger.info("🍪 Session cookies loaded from cache for scraper.")
+                
+                await page.goto(self.BASE_URL, wait_until="domcontentloaded", timeout=self.timeout)
+                await page.wait_for_timeout(2000)
+                profile = await page.query_selector(".nI-g_profile, a[href*='logout']")
+                if profile:
+                    logger.info("✅ Login restored from cached session cookies!")
+                    self.is_logged_in = True
+                    return True
+            except Exception as e:
+                logger.warning(f"⚠️ Failed loading session cookies in scraper: {e}")
+
+        # 2. Fallback to standard login
         logger.info(f"🔐 Attempting Naukri login for: {self.username}")
         try:
             await page.goto(f"{self.BASE_URL}/nlogin/login", wait_until="networkidle", timeout=self.timeout)
@@ -127,15 +147,18 @@ class NaukriScraper:
             
             # Click Login
             await page.click("button[type='submit']")
-            
-            # Wait for redirection to dashboard or home
-            await page.wait_for_load_state("networkidle")
+            await page.wait_for_timeout(4000)
             
             # Verify login by checking for user profile or logout button
             try:
                 await page.wait_for_selector(".nI-g_profile, a[href*='logout']", timeout=15000)
                 logger.info("✅ Naukri Login SUCCESSFUL!")
                 self.is_logged_in = True
+                
+                # Save cookies
+                cookies = await page.context.cookies()
+                session_file.parent.mkdir(exist_ok=True)
+                session_file.write_text(json.dumps(cookies, indent=2))
                 return True
             except Exception:
                 logger.warning("⚠️  Login might have failed or encountered a captcha. Proceeding as guest.")
