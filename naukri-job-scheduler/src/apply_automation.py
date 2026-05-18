@@ -709,8 +709,25 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
                 logger.error("❌ Authentication failed. Cannot update Naukri profile resume.")
                 return False
         
-        # Look for the file input element (#attachCV) on the profile page
-        logger.info("🔍 Searching for resume upload input (#attachCV) on profile page...")
+        # Strategy A: Check for the dummy 'Update resume' button layout
+        logger.info("🔍 Checking for dummy 'Update resume' button layout...")
+        dummy_upload = await page.query_selector("input[type='button'][value='Update resume'], input.dummyUpload, .dummyUpload")
+        if dummy_upload and await dummy_upload.is_visible():
+            try:
+                logger.info("🖱️ Found dummy 'Update resume' button! Initiating file chooser listener...")
+                async with page.expect_file_chooser(timeout=10000) as fc_info:
+                    await dummy_upload.click()
+                file_chooser = await fc_info.value
+                logger.info(f"📤 Uploading resume: {pdf_path.name} via file chooser dialog...")
+                await file_chooser.set_files(str(pdf_path))
+                await page.wait_for_timeout(5000)
+                logger.info("✅ Successfully uploaded and updated resume via dummy upload dialog!")
+                return True
+            except Exception as fc_err:
+                logger.warning(f"⚠️ File chooser strategy failed ({fc_err}). Falling back to direct input field...")
+
+        # Strategy B: Fallback to direct hidden file input element (#attachCV)
+        logger.info("🔍 Searching for direct resume upload input (#attachCV) on profile page...")
         file_input = await page.wait_for_selector("input[type='file']#attachCV, input[type='file'][id*='attach']", timeout=15000)
         if file_input:
             logger.info(f"📤 Uploading resume: {pdf_path.name} directly to Naukri profile...")
@@ -719,7 +736,7 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             logger.info("✅ Successfully uploaded and updated resume on your Naukri profile!")
             return True
         else:
-            logger.error("❌ Could not find the resume upload input field (#attachCV) on Naukri profile page.")
+            logger.error("❌ Could not find any resume upload elements on Naukri profile page.")
             return False
             
     except Exception as e:
