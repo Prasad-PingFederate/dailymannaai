@@ -136,10 +136,23 @@ class NaukriScraper:
             except Exception as e:
                 logger.warning(f"⚠️ Failed loading session cookies in scraper: {e}")
 
-        # 2. Fallback to standard login
-        logger.info(f"🔐 Attempting Naukri login for: {self.username}")
+        # 2. Try Google SSO login fallback
+        logger.info(f"🔐 Attempting Google SSO login fallback for: {self.username}")
+        try:
+            from src.apply_automation import perform_google_login
+            login_success = await perform_google_login(page, page.context, self.username, self.password, session_file, self.BASE_URL, inside_modal=False)
+            if login_success:
+                logger.info("✅ Google SSO login successful in scraper!")
+                self.is_logged_in = True
+                return True
+        except Exception as e:
+            logger.warning(f"⚠️ Google SSO login failed in scraper: {e}")
+
+        # 3. Fallback to standard email/password login
+        logger.info(f"🔐 Attempting direct Naukri login for: {self.username}")
         try:
             await page.goto(f"{self.BASE_URL}/nlogin/login", wait_until="networkidle", timeout=self.timeout)
+            await page.wait_for_timeout(2000)
             
             # Fill username/password
             await page.fill("#usernameField", self.username)
