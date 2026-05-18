@@ -18,11 +18,22 @@ from cloakbrowser import launch_async
 logger = logging.getLogger("apply_automation")
 
 # ─────────────────────── Path Setup ─────────────────────────────
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-CAREER_OPS_DIR = BASE_DIR / "career-ops"
-CONFIG_YML = CAREER_OPS_DIR / "config" / "profile.yml"
+SCHEDULER_DIR = Path(__file__).resolve().parent.parent
+
+# 1. Primary path: repository-internal config/career-ops folder (checked into git)
+CAREER_OPS_DIR = SCHEDULER_DIR / "config" / "career-ops"
+CONFIG_YML = CAREER_OPS_DIR / "profile.yml"
 CV_MD = CAREER_OPS_DIR / "cv.md"
 TEMPLATE_HTML = CAREER_OPS_DIR / "templates" / "cv-template.html"
+
+# 2. Fallback path: check for external career-ops directory if internal files are missing
+if not CONFIG_YML.exists():
+    EXT_CAREER_OPS_DIR = SCHEDULER_DIR.parent / "career-ops"
+    if EXT_CAREER_OPS_DIR.exists():
+        CAREER_OPS_DIR = EXT_CAREER_OPS_DIR
+        CONFIG_YML = CAREER_OPS_DIR / "config" / "profile.yml"
+        CV_MD = CAREER_OPS_DIR / "cv.md"
+        TEMPLATE_HTML = CAREER_OPS_DIR / "templates" / "cv-template.html"
 
 # ─────────────────────── Load Environment & Config ─────────────────
 
