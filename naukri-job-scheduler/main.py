@@ -6,6 +6,7 @@ Orchestrates scraping and email delivery
 import asyncio
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -99,9 +100,10 @@ async def main():
 
     # Send email
     notify_cfg = config.get("notifications", {})
+    force_send = os.environ.get("FORCE_SEND", "false").lower() == "true"
     if notify_cfg.get("email_enabled", True):
-        if not jobs and not notify_cfg.get("send_empty_digest", False):
-            logger.info("📧 Skipping email — no new jobs and send_empty_digest=false")
+        if not jobs and not (notify_cfg.get("send_empty_digest", False) or force_send):
+            logger.info("📧 Skipping email — no new jobs and send_empty_digest/FORCE_SEND is false")
         else:
             logger.info("📧 Sending email digest...")
             try:
