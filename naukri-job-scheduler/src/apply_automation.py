@@ -297,28 +297,73 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
             login_success = False
             if username and password:
                 try:
-                    logger.info(f"🔑 Navigating to login page to authenticate with {username}...")
+                    logger.info("🔑 Navigating to Naukri login page to authenticate with Google...")
                     await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded", timeout=60000)
-                    await page.wait_for_timeout(2000)
+                    await page.wait_for_timeout(3000)
                     
-                    # Fill username and password
-                    await page.fill("#usernameField", username)
-                    await page.wait_for_timeout(1000)
-                    await page.fill("#passwordField", password)
-                    await page.wait_for_timeout(1000)
+                    # Click Continue with Google button
+                    google_btn = await page.query_selector("a.socialbtn.google, a.google, [class*='google'], [id*='google']")
+                    if google_btn:
+                        logger.info("🖱️ Clicking 'Continue with Google' button...")
+                        await google_btn.click()
+                    else:
+                        logger.warning("⚠️ Google login button not found via standard selectors. Navigating directly to Google SSO URL...")
+                        google_oauth_url = "https://accounts.google.com/v3/signin/accountchooser?URL=https%3A%2F%2Fwww.naukri.com%2Fnlogin%2Flogin&access_type=online&approval_prompt=auto&client_id=495978633425-tvscej95bp780ok4qb58r90gsfeua30d.apps.googleusercontent.com"
+                        await page.goto(google_oauth_url, wait_until="domcontentloaded", timeout=60000)
                     
-                    # Click login button
-                    submit_selector = "button.blue-btn, button[type='submit'], button:has-text('Login')"
-                    await page.click(submit_selector)
-                    await page.wait_for_timeout(5000)
+                    await page.wait_for_timeout(4000)
                     
-                    # Go back to job page and verify if login session is active
+                    # Automating Google SSO fields
+                    # 1. Handle Google Account Chooser list if visible
+                    account_item = await page.query_selector(f"[data-email='{username}'], div:has-text('{username}')")
+                    if account_item:
+                        logger.info(f"🖱️ Clicking existing account chooser option for {username}...")
+                        await account_item.click()
+                        await page.wait_for_timeout(3000)
+                    else:
+                        # Standard Google Email Input
+                        email_input = await page.wait_for_selector("input[type='email'], #identifierId", timeout=15000)
+                        if email_input:
+                            logger.info(f"✍️ Entering Gmail username: {username}")
+                            await email_input.fill(username)
+                            await page.wait_for_timeout(1000)
+                            
+                            next_btn = await page.query_selector("#identifierNext, button:has-text('Next')")
+                            if next_btn:
+                                await next_btn.click()
+                            else:
+                                await page.keyboard.press("Enter")
+                            await page.wait_for_timeout(3000)
+                    
+                    # Detect potential "This browser or app may not be secure" block
+                    page_content = await page.content()
+                    if "may not be secure" in page_content or "secure browser" in page_content:
+                        logger.warning("⚠️ Google bot detection screen triggered. Attempting to proceed or await user interaction...")
+                        if headless:
+                            logger.error("❌ Headless execution blocked by Google bot detection. Run in headed mode (headless=False) once to authenticate.")
+                            return False
+                    
+                    # 2. Handle Google Password Input
+                    logger.info("✍️ Entering password...")
+                    password_input = await page.wait_for_selector("input[type='password'], name='password'", timeout=15000)
+                    if password_input:
+                        await password_input.fill(password)
+                        await page.wait_for_timeout(1000)
+                        
+                        pass_next_btn = await page.query_selector("#passwordNext, button:has-text('Next'), button:has-text('Sign in')")
+                        if pass_next_btn:
+                            await pass_next_btn.click()
+                        else:
+                            await page.keyboard.press("Enter")
+                        await page.wait_for_timeout(5000)
+                    
+                    # Go back to original job URL and check if login session is active
                     await page.goto(job_url, wait_until="domcontentloaded", timeout=60000)
                     await page.wait_for_timeout(3000)
                     
                     login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
                     if not login_btn or not await login_btn.is_visible():
-                        logger.info("✅ Automated login successful!")
+                        logger.info("✅ Automated Google SSO login successful!")
                         login_success = True
                         
                         # Save cookies
@@ -326,9 +371,31 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
                         session_file.parent.mkdir(exist_ok=True)
                         session_file.write_text(json.dumps(cookies, indent=2))
                     else:
-                        logger.warning("⚠️ Automated login completed, but login buttons are still visible.")
+                        logger.warning("⚠️ Google SSO finished, but login button is still visible. Trying direct Naukri login fallback...")
+                        
+                        # Standard Login Fallback
+                        await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded", timeout=60000)
+                        await page.wait_for_timeout(2000)
+                        await page.fill("#usernameField", username)
+                        await page.wait_for_timeout(1000)
+                        await page.fill("#passwordField", password)
+                        await page.wait_for_timeout(1000)
+                        await page.click("button.blue-btn, button[type='submit'], button:has-text('Login')")
+                        await page.wait_for_timeout(5000)
+                        
+                        await page.goto(job_url, wait_until="domcontentloaded", timeout=60000)
+                        await page.wait_for_timeout(3000)
+                        
+                        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+                        if not login_btn or not await login_btn.is_visible():
+                            logger.info("✅ Direct login fallback successful!")
+                            login_success = True
+                            
+                            cookies = await context.cookies()
+                            session_file.parent.mkdir(exist_ok=True)
+                            session_file.write_text(json.dumps(cookies, indent=2))
                 except Exception as ex:
-                    logger.error(f"❌ Error during automated login: {ex}")
+                    logger.error(f"❌ Error during Google / Direct login automated attempt: {ex}")
                     
             if not login_success:
                 if headless:
