@@ -19,6 +19,18 @@ from src.email_sender import EmailSender
 # ─────────────────────── Logging Setup ───────────────────────────
 
 def setup_logging(level: str = "INFO"):
+    # Reconfigure stdout/stderr to use UTF-8 encoding to prevent UnicodeEncodeError on Windows terminals
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
 
@@ -70,6 +82,18 @@ async def main():
     logger.info(f"⏰ Run time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S IST')}")
     logger.info("=" * 60)
 
+    # Restore session cookies from GitHub Secrets / Env if available (highly robust for CI workflows)
+    session_env = os.environ.get("NAUKRI_SESSION_COOKIES")
+    if session_env:
+        try:
+            from pathlib import Path
+            session_file = Path("data/naukri_session.json")
+            session_file.parent.mkdir(exist_ok=True, parents=True)
+            session_file.write_text(session_env.strip(), encoding="utf-8")
+            logger.info("🔑 Successfully restored active session cookies from NAUKRI_SESSION_COOKIES environment variable.")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to write session cookies from environment secret: {e}")
+
     # Load config
     try:
         config = load_config()
@@ -120,6 +144,7 @@ async def main():
             headless = True if is_ci else apply_cfg.get("headless", False)
             update_profile_resume = apply_cfg.get("update_profile_resume", True)
             delay_between_applies = apply_cfg.get("delay_between_applies", 15)
+            max_applications_per_run = apply_cfg.get("max_applications_per_run", 5)
             
             # 1. Generate one tailored resume based on the top/first job and upload to profile once
             base_job = jobs[0].to_dict()
@@ -134,8 +159,11 @@ async def main():
                 )
                 logger.info("✅ Single resume generated and uploaded to profile successfully!")
                 
-                # 2. Apply to all found jobs using this precompiled resume
-                for idx, job in enumerate(jobs, 1):
+                # 2. Apply to target jobs using this precompiled resume (limited to top N)
+                jobs_to_apply = jobs[:max_applications_per_run]
+                logger.info(f"🎯 Limiting applications to the top {len(jobs_to_apply)} jobs for this run (Max: {max_applications_per_run}).")
+                
+                for idx, job in enumerate(jobs_to_apply, 1):
                     if idx > 1:
                         # Introduce a polite, randomized delay to simulate natural human activity
                         import random
@@ -143,7 +171,7 @@ async def main():
                         logger.info(f"⏳ Waiting for {wait_sec} seconds before applying to the next job to behave politely and bypass bot blocks...")
                         await asyncio.sleep(wait_sec)
                         
-                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
+                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs_to_apply)}]: {job.title} @ {job.company}")
                     try:
                         job_dict = job.to_dict()
                         await apply_job_with_precompiled_resume(

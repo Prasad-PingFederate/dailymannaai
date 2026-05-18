@@ -110,9 +110,12 @@ async def tailor_cv_content_ai(job_title: str, job_desc: str, cv_content: str, p
         f"Candidate Base CV:\n{cv_content}\n"
     )
 
+    if not api_key or not api_key.strip():
+        raise ValueError("Missing or empty OpenRouter API Key")
+
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {api_key.strip()}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/santifer/career-ops",
         "X-Title": "Naukri Apply Automation Bridge"
@@ -326,10 +329,8 @@ async def perform_google_login(page, context, username, password, session_file, 
                     logger.info("ℹ️ No popup window detected. Assuming same-window redirect.")
                     sso_page = page
             else:
-                logger.warning("⚠️ Google login button not found via standard selectors. Navigating directly to Google SSO URL...")
-                google_oauth_url = "https://accounts.google.com/v3/signin/accountchooser?URL=https%3A%2F%2Fwww.naukri.com%2Fnlogin%2Flogin&access_type=online&approval_prompt=auto&client_id=495978633425-tvscej95bp780ok4qb58r90gsfeua30d.apps.googleusercontent.com"
-                await page.goto(google_oauth_url, wait_until="domcontentloaded", timeout=60000)
-                sso_page = page
+                logger.warning("⚠️ Google login button not found. Aborting Google SSO fallback.")
+                return False
         
         # Execute the automated credentials entry on the resolved sso_page (same window or popup)
         sso_success = await perform_google_sso_flow(sso_page, username, password)
@@ -625,6 +626,13 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
         await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
         await page.wait_for_timeout(3000)
         
+        # Check if we landed on the homepage and have the 'Complete profile' button visible
+        complete_btn = await page.query_selector("a:has-text('Complete profile'), button:has-text('Complete profile'), .complete-profile")
+        if complete_btn and await complete_btn.is_visible():
+            logger.info("🖱️ Found 'Complete profile' button on home page! Clicking to navigate to profile page...")
+            await complete_btn.click()
+            await page.wait_for_timeout(4000)
+            
         # Check if login is needed
         login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
         if login_btn and await login_btn.is_visible():
@@ -637,57 +645,31 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             login_success = False
             if username and password:
                 try:
-                    await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded", timeout=60000)
-                    await page.wait_for_timeout(3000)
+                    logger.info("🔑 Attempting Google SSO Login fallback...")
+                    login_success = await perform_google_login(page, context, username, password, session_file, "https://www.naukri.com/mnjuser/profile", inside_modal=False)
                     
-                    # Click Google login
-                    google_btn = await page.query_selector("a.socialbtn.google, a.google, [class*='google'], [id*='google']")
-                    if google_btn:
-                        await google_btn.click()
-                    else:
-                        google_oauth_url = "https://accounts.google.com/v3/signin/accountchooser?URL=https%3A%2F%2Fwww.naukri.com%2Fnlogin%2Flogin&access_type=online&approval_prompt=auto&client_id=495978633425-tvscej95bp780ok4qb58r90gsfeua30d.apps.googleusercontent.com"
-                        await page.goto(google_oauth_url, wait_until="domcontentloaded", timeout=60000)
-                    
-                    await page.wait_for_timeout(4000)
-                    
-                    account_item = await page.query_selector(f"[data-email='{username}'], div:has-text('{username}')")
-                    if account_item:
-                        await account_item.click()
+                    if not login_success:
+                        # Fallback to direct Naukri login
+                        logger.info("🔐 Google SSO login failed or button missing. Falling back to direct Naukri email/password login...")
+                        await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded", timeout=60000)
                         await page.wait_for_timeout(3000)
-                    else:
-                        email_input = await page.wait_for_selector("input[type='email'], #identifierId", timeout=15000)
-                        if email_input:
-                            await email_input.fill(username)
-                            await page.wait_for_timeout(1000)
-                            next_btn = await page.query_selector("#identifierNext, button:has-text('Next')")
-                            if next_btn:
-                                await next_btn.click()
-                            else:
-                                await page.keyboard.press("Enter")
-                            await page.wait_for_timeout(3000)
-                            
-                    password_input = await page.wait_for_selector("input[type='password'], name='password'", timeout=15000)
-                    if password_input:
-                        await password_input.fill(password)
-                        await page.wait_for_timeout(1000)
-                        pass_next_btn = await page.query_selector("#passwordNext, button:has-text('Next'), button:has-text('Sign in')")
-                        if pass_next_btn:
-                            await pass_next_btn.click()
-                        else:
-                            await page.keyboard.press("Enter")
+                        
+                        await page.fill("#usernameField", username)
+                        await page.fill("#passwordField", password)
+                        await page.click("button[type='submit']")
                         await page.wait_for_timeout(5000)
-                    
-                    # Return to profile page
-                    await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
-                    await page.wait_for_timeout(3000)
-                    
-                    login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
-                    if not login_btn or not await login_btn.is_visible():
-                        logger.info("✅ Automated login successful!")
-                        login_success = True
-                        cookies = await context.cookies()
-                        session_file.parent.mkdir(exist_ok=True)
-                        session_file.write_text(json.dumps(cookies, indent=2))
+                        
+                        # Return to profile page and verify login status
+                        await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
+                        await page.wait_for_timeout(3000)
+                        
+                        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+                        if not login_btn or not await login_btn.is_visible():
+                            logger.info("✅ Direct Naukri login successful!")
+                            login_success = True
+                            cookies = await context.cookies()
+                            session_file.parent.mkdir(exist_ok=True)
+                            session_file.write_text(json.dumps(cookies, indent=2))
                 except Exception as ex:
                     logger.error(f"❌ Error during login for profile update: {ex}")
             
