@@ -61,6 +61,14 @@ This document acts as a persistent record of all suggestions, user requirements,
   1. **Strategy A (Dialog Listener):** Looks for the dummy `Update resume` button using your exact HTML criteria. If found, it establishes a native Playwright `page.expect_file_chooser()` event listener, triggers the click, intercepts the file chooser popup asynchronously, and cleanly sets the tailored PDF resume.
   2. **Strategy B (Fallback Direct Input):** If the dummy button is not found or fails, the script seamlessly falls back to querying the hidden direct file input element (`input[type='file']#attachCV`) and updates the resume directly.
 
+### 11. Robust Session Cookie-Based Login Bypass & Maximized Window Layouts
+* **Suggestion:** Resolve the false-positive login trigger loops where the scraper successfully restored cookies but the application flow detected `#login_Layer` elements (which are present but hidden in the DOM even when logged in) and forced a redirect to the login page which crashed on `#usernameField` timeouts.
+* **Status:** **Implemented & Fully Pushed ✅**
+* **Technical Detail:** 
+  1. **Precise Session Checks:** Replaced DOM-selector-based login checks with cookie-based verification in [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py). The script now checks for the active, native `is_login` cookie (value `"1"`) alongside URL redirection checking (detecting if routed to `nlogin`/`login` paths). This completely bypasses false-positive redirects when cookies are active.
+  2. **Maximized Browser Viewport:** Integrated `--start-maximized` launch parameters and `no_viewport=True` context settings across all browser automation scripts (including [direct_profile_update.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/direct_profile_update.py) and [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py)) to strictly satisfy global viewport visibility rules.
+  3. **Resilient Parameter Checks:** Guarded `automate_naukri_application` against `None` or missing job URLs to prevent framework TypeError crashes.
+
 ---
 
 ## 📈 Next Steps & System Health
