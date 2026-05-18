@@ -70,6 +70,18 @@ async def main():
     logger.info(f"⏰ Run time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S IST')}")
     logger.info("=" * 60)
 
+    # Restore session cookies from GitHub Secrets / Env if available (highly robust for CI workflows)
+    session_env = os.environ.get("NAUKRI_SESSION_COOKIES")
+    if session_env:
+        try:
+            from pathlib import Path
+            session_file = Path("data/naukri_session.json")
+            session_file.parent.mkdir(exist_ok=True, parents=True)
+            session_file.write_text(session_env.strip(), encoding="utf-8")
+            logger.info("🔑 Successfully restored active session cookies from NAUKRI_SESSION_COOKIES environment variable.")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to write session cookies from environment secret: {e}")
+
     # Load config
     try:
         config = load_config()

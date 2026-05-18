@@ -110,9 +110,12 @@ async def tailor_cv_content_ai(job_title: str, job_desc: str, cv_content: str, p
         f"Candidate Base CV:\n{cv_content}\n"
     )
 
+    if not api_key or not api_key.strip():
+        raise ValueError("Missing or empty OpenRouter API Key")
+
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {api_key.strip()}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/santifer/career-ops",
         "X-Title": "Naukri Apply Automation Bridge"
