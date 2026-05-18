@@ -8,7 +8,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(na
 logger = logging.getLogger("direct_profile_update")
 
 async def main():
-    pdf_path = Path("config/career-ops/output/cv-candidate-hatica-2026-05-18.pdf")
+    output_dir = Path("config/career-ops/output")
+    pdf_files = list(output_dir.glob("cv-candidate-*.pdf")) if output_dir.exists() else []
+    if pdf_files:
+        pdf_path = sorted(pdf_files, key=lambda p: p.stat().st_mtime, reverse=True)[0]
+        logger.info(f"📂 Dynamically detected latest tailored resume: {pdf_path.name}")
+    else:
+        pdf_path = Path("config/career-ops/output/cv-candidate-hatica-2026-05-18.pdf")
+        
     if not pdf_path.exists():
         logger.error(f"❌ Resume file not found at {pdf_path}")
         return
@@ -19,13 +26,13 @@ async def main():
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--window-size=1280,800"
+            "--start-maximized"
         ]
     )
     
     try:
         context = await browser.new_context(
-            viewport={"width": 1280, "height": 800},
+            no_viewport=True,
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )

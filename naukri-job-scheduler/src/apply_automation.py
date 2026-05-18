@@ -396,6 +396,10 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
     Automates loading the Naukri job application, uploading the tailored resume,
     answering standard form fields, and clicking Apply.
     """
+    if not job_url:
+        logger.error("❌ Cannot automate application: job_url is missing or None.")
+        return False
+        
     logger.info(f"⚡ Navigating to Naukri application portal: {job_url}")
     
     # Launch stealth-patched or standard Playwright Chromium based on env
@@ -404,14 +408,14 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--window-size=1280,800"
+            "--start-maximized"
         ]
     )
     
     try:
         # Load saved session if exists
         context = await browser.new_context(
-            viewport={"width": 1280, "height": 800},
+            no_viewport=True,
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
@@ -461,9 +465,14 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
                 except Exception as ex:
                     logger.error(f"❌ Failed to automate Google SSO in immediate overlay modal: {ex}")
 
-        # Check if standard login is needed
-        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
-        if login_btn and await login_btn.is_visible():
+        # Check if standard login is needed (robust cookie-based and URL redirection verification)
+        cookies = await context.cookies()
+        has_login_cookie = any(c.get('name') == 'is_login' and c.get('value') == '1' for c in cookies)
+        current_url = page.url
+        login_input = await page.query_selector("#usernameField, input[placeholder*='Username'], input[placeholder*='Email']")
+        
+        login_needed = not has_login_cookie or "login" in current_url or "nlogin" in current_url or (login_input and await login_input.is_visible())
+        if login_needed:
             logger.info("🔐 Active Naukri session not found. Attempting automated login...")
             
             env_keys = load_env_keys()
@@ -630,13 +639,13 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--window-size=1280,800"
+            "--start-maximized"
         ]
     )
     
     try:
         context = await browser.new_context(
-            viewport={"width": 1280, "height": 800},
+            no_viewport=True,
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
@@ -665,9 +674,14 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             await complete_btn.click()
             await page.wait_for_timeout(4000)
             
-        # Check if login is needed
-        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
-        if login_btn and await login_btn.is_visible():
+        # Check if login is needed (robust cookie-based and URL redirection verification)
+        cookies = await context.cookies()
+        has_login_cookie = any(c.get('name') == 'is_login' and c.get('value') == '1' for c in cookies)
+        current_url = page.url
+        login_input = await page.query_selector("#usernameField, input[placeholder*='Username'], input[placeholder*='Email']")
+        
+        login_needed = not has_login_cookie or "login" in current_url or "nlogin" in current_url or (login_input and await login_input.is_visible())
+        if login_needed:
             logger.info("🔐 Active Naukri session not found. Attempting automated login before profile update...")
             
             env_keys = load_env_keys()
