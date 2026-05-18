@@ -433,12 +433,20 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
         await apply_btn.click()
         await page.wait_for_timeout(2000)
 
-        # Check for resume upload input
-        file_input = await page.query_selector("input[type='file'], #attachCV")
+        # Check for resume upload input with multiple potential selectors
+        file_input = await page.query_selector("input[type='file'], #attachCV, input[id*='resume'], input[id*='cv'], input[name*='resume'], input[name*='cv']")
         if file_input:
+            logger.info(f"📤 Found file upload field. Uploading tailored resume: {pdf_path.name}...")
             await file_input.set_input_files(str(pdf_path))
-            logger.info(f"📤 Tailored resume uploaded successfully: {pdf_path.name}")
-            await page.wait_for_timeout(2000)
+            logger.info(f"✅ Tailored resume uploaded successfully!")
+            await page.wait_for_timeout(3000)
+        else:
+            logger.warning("⚠️ Resume file input selector not found on this application page. Trying to find any generic file upload fields...")
+            generic_input = await page.query_selector("input[type='file']")
+            if generic_input:
+                await generic_input.set_input_files(str(pdf_path))
+                logger.info(f"✅ Generic resume file upload field completed!")
+                await page.wait_for_timeout(3000)
 
         # Process any dynamic Questionnaire inputs if they exist
         textareas = await page.query_selector_all("textarea, input[type='text']")
@@ -476,9 +484,139 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
     finally:
         await browser.close()
 
+async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False) -> bool:
+    """
+    Automates logging into Naukri (if not already authenticated) and uploading the
+    latest generated tailored resume directly to the candidate's main Naukri profile.
+    This keeps the main profile resume updated and fresh for recruiters.
+    """
+    logger.info("📄 Initiating upload of the latest generated resume to Naukri profile...")
+    
+    browser = await launch_async(
+        headless=headless,
+        args=[
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--window-size=1280,800"
+        ]
+    )
+    
+    try:
+        context = await browser.new_context(
+            viewport={"width": 1280, "height": 800},
+            locale="en-IN",
+            timezone_id="Asia/Kolkata"
+        )
+        
+        # Restore active session cookies
+        session_file = Path("data/naukri_session.json")
+        if session_file.exists():
+            try:
+                cookies = json.loads(session_file.read_text())
+                await context.add_cookies(cookies)
+                logger.info("🔑 Restored active Naukri session cookies.")
+            except Exception as e:
+                logger.warning(f"Could not restore session cookies: {e}")
+
+        page = await context.new_page()
+        
+        # Navigate to Profile Page
+        logger.info("⚡ Navigating to Naukri profile page...")
+        await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
+        await page.wait_for_timeout(3000)
+        
+        # Check if login is needed
+        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+        if login_btn and await login_btn.is_visible():
+            logger.info("🔐 Active Naukri session not found. Attempting automated login before profile update...")
+            
+            env_keys = load_env_keys()
+            username = os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
+            password = os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+            
+            login_success = False
+            if username and password:
+                try:
+                    await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded", timeout=60000)
+                    await page.wait_for_timeout(3000)
+                    
+                    # Click Google login
+                    google_btn = await page.query_selector("a.socialbtn.google, a.google, [class*='google'], [id*='google']")
+                    if google_btn:
+                        await google_btn.click()
+                    else:
+                        google_oauth_url = "https://accounts.google.com/v3/signin/accountchooser?URL=https%3A%2F%2Fwww.naukri.com%2Fnlogin%2Flogin&access_type=online&approval_prompt=auto&client_id=495978633425-tvscej95bp780ok4qb58r90gsfeua30d.apps.googleusercontent.com"
+                        await page.goto(google_oauth_url, wait_until="domcontentloaded", timeout=60000)
+                    
+                    await page.wait_for_timeout(4000)
+                    
+                    account_item = await page.query_selector(f"[data-email='{username}'], div:has-text('{username}')")
+                    if account_item:
+                        await account_item.click()
+                        await page.wait_for_timeout(3000)
+                    else:
+                        email_input = await page.wait_for_selector("input[type='email'], #identifierId", timeout=15000)
+                        if email_input:
+                            await email_input.fill(username)
+                            await page.wait_for_timeout(1000)
+                            next_btn = await page.query_selector("#identifierNext, button:has-text('Next')")
+                            if next_btn:
+                                await next_btn.click()
+                            else:
+                                await page.keyboard.press("Enter")
+                            await page.wait_for_timeout(3000)
+                            
+                    password_input = await page.wait_for_selector("input[type='password'], name='password'", timeout=15000)
+                    if password_input:
+                        await password_input.fill(password)
+                        await page.wait_for_timeout(1000)
+                        pass_next_btn = await page.query_selector("#passwordNext, button:has-text('Next'), button:has-text('Sign in')")
+                        if pass_next_btn:
+                            await pass_next_btn.click()
+                        else:
+                            await page.keyboard.press("Enter")
+                        await page.wait_for_timeout(5000)
+                    
+                    # Return to profile page
+                    await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
+                    await page.wait_for_timeout(3000)
+                    
+                    login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+                    if not login_btn or not await login_btn.is_visible():
+                        logger.info("✅ Automated login successful!")
+                        login_success = True
+                        cookies = await context.cookies()
+                        session_file.parent.mkdir(exist_ok=True)
+                        session_file.write_text(json.dumps(cookies, indent=2))
+                except Exception as ex:
+                    logger.error(f"❌ Error during login for profile update: {ex}")
+            
+            if not login_success:
+                logger.error("❌ Authentication failed. Cannot update Naukri profile resume.")
+                return False
+        
+        # Look for the file input element (#attachCV) on the profile page
+        logger.info("🔍 Searching for resume upload input (#attachCV) on profile page...")
+        file_input = await page.wait_for_selector("input[type='file']#attachCV, input[type='file'][id*='attach']", timeout=15000)
+        if file_input:
+            logger.info(f"📤 Uploading resume: {pdf_path.name} directly to Naukri profile...")
+            await file_input.set_input_files(str(pdf_path))
+            await page.wait_for_timeout(5000)
+            logger.info("✅ Successfully uploaded and updated resume on your Naukri profile!")
+            return True
+        else:
+            logger.error("❌ Could not find the resume upload input field (#attachCV) on Naukri profile page.")
+            return False
+            
+    except Exception as e:
+        logger.error(f"❌ Error during Naukri profile resume update: {e}")
+        return False
+    finally:
+        await browser.close()
+
 # ─────────────────────── Integration Runner ────────────────────────
 
-async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless: bool = False):
+async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless: bool = False, update_profile_resume: bool = True):
     """Orchestrates tailoring the resume and applying to the job on Naukri."""
     print("=" * 60)
     print(f"[JOB] Processing: {job['title']} at {job['company']}")
@@ -529,6 +667,13 @@ async def process_and_apply_job(job: dict, api_key: str, profile: dict, headless
         with open(tracker_file, "a", encoding="utf-8") as f:
             f.write(entry)
         logger.info(f"Saved entry to applications.md tracker.")
+        
+        # 4. Profile Resume Update (Update default Naukri profile CV with generated PDF)
+        if update_profile_resume:
+            try:
+                await upload_resume_to_naukri_profile(pdf_path, headless=headless)
+            except Exception as p_ex:
+                logger.error(f"❌ Failed to upload resume to Naukri main profile: {p_ex}")
     else:
         print(f"[FAILED] Could not complete application for {job['title']} @ {job['company']}.")
     

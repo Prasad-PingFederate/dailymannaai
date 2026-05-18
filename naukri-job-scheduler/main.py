@@ -111,11 +111,12 @@ async def main():
             else:
                 is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
                 headless = True if is_ci else apply_cfg.get("headless", False)
+                update_profile_resume = apply_cfg.get("update_profile_resume", True)
                 for idx, job in enumerate(jobs, 1):
                     logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
                     try:
                         job_dict = job.to_dict()
-                        await process_and_apply_job(job_dict, api_key, profile, headless=headless)
+                        await process_and_apply_job(job_dict, api_key, profile, headless=headless, update_profile_resume=update_profile_resume)
                     except Exception as ex:
                         logger.error(f"❌ Failed applying to {job.title} @ {job.company}: {ex}")
     else:
