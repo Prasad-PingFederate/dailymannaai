@@ -41,6 +41,11 @@ This document acts as a persistent record of all suggestions, user requirements,
 * **Status:** **Implemented & Fully Pushed ✅**
 * **Technical Detail:** Implemented an active assertion in [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py) to raise a ValueError early if the key is empty, immediately prompting a safe fallback to 9Router or standard resume compilers instead of crashing with bad HTTP headers.
 
+### 8. Homepage Redirection & "Complete Profile" Navigation
+* **Suggestion:** Handle session situations where navigating directly to `/mnjuser/profile` redirects you back to the Naukri homepage `/mnjuser/homepage` (e.g., when active alerts are pending).
+* **Status:** **Implemented & Fully Pushed ✅**
+* **Technical Detail:** Integrated a smart homepage catcher in both [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py) and [direct_profile_update.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/direct_profile_update.py). If the browser lands on the homepage and detects the circular avatar card with a blue `"Complete profile"` button, the script will automatically click it to bypass the homepage blocker and land directly on the profile resume upload page!
+
 ---
 
 ## 📈 Next Steps & System Health
