@@ -29,7 +29,7 @@ async def main():
     
     env_keys = load_env_keys()
     username = env_keys.get("EMAIL_SENDER", "prasaddammai1@gmail.com")
-    password = env_keys.get("NAUKRI_PASSWORD") or env_keys.get("EMAIL_PASSWORD") or ""
+    password = env_keys.get("NAUKRI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or env_keys.get("EMAIL_PASSWORD") or ""
     
     logger.info(f"🔑 Target email: {username}")
     logger.info(f"🔑 Target password length: {len(password) if password else 0}")

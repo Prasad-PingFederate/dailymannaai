@@ -42,7 +42,7 @@ def load_env_keys() -> dict:
     keys = {}
     
     # 1. First load from system environment variables
-    for key in ["OPENROUTER_API_KEY", "EMAIL_SENDER", "EMAIL_PASSWORD", "NAUKRI_PASSWORD"]:
+    for key in ["OPENROUTER_API_KEY", "EMAIL_SENDER", "EMAIL_PASSWORD", "NAUKRI_PASSWORD", "NAUKARI_PASSWORD"]:
         val = os.environ.get(key)
         if val:
             keys[key] = val
@@ -403,7 +403,7 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
             logger.info("🔐 Immediate login overlay modal detected on page load. Proceeding to authenticate via Google SSO inside modal...")
             env_keys = load_env_keys()
             username = os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
-            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("NAUKARI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
             if username and password:
                 try:
                     logger.info("🖱️ Clicking 'Sign in with Google' in immediate overlay modal...")
@@ -435,7 +435,7 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
             
             env_keys = load_env_keys()
             username = os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
-            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("NAUKARI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
             
             login_success = False
             if username and password:
@@ -508,7 +508,7 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
             logger.info("🔐 Login overlay modal popped up after clicking Apply! Proceeding to authenticate via Google SSO inside modal...")
             env_keys = load_env_keys()
             username = os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
-            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("NAUKARI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
             if username and password:
                 try:
                     logger.info("🖱️ Clicking 'Sign in with Google' in post-click overlay modal...")
@@ -632,7 +632,7 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             
             env_keys = load_env_keys()
             username = os.environ.get("EMAIL_SENDER") or env_keys.get("EMAIL_SENDER")
-            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
+            password = os.environ.get("NAUKRI_PASSWORD") or env_keys.get("NAUKRI_PASSWORD") or os.environ.get("NAUKARI_PASSWORD") or env_keys.get("NAUKARI_PASSWORD") or os.environ.get("EMAIL_PASSWORD") or env_keys.get("EMAIL_PASSWORD")
             
             login_success = False
             if username and password:
