@@ -109,7 +109,8 @@ async def main():
             if not api_key:
                 logger.warning("⚠️ Skipping auto-apply: OPENROUTER_API_KEY is missing from .env.local")
             else:
-                headless = apply_cfg.get("headless", False)
+                is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
+                headless = True if is_ci else apply_cfg.get("headless", False)
                 for idx, job in enumerate(jobs, 1):
                     logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
                     try:
