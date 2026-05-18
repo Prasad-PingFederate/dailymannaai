@@ -1,0 +1,67 @@
+import asyncio
+import json
+import logging
+from pathlib import Path
+from cloakbrowser import launch_async
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s — %(message)s')
+logger = logging.getLogger("direct_profile_update")
+
+async def main():
+    pdf_path = Path("config/career-ops/output/cv-candidate-hatica-2026-05-18.pdf")
+    if not pdf_path.exists():
+        logger.error(f"❌ Resume file not found at {pdf_path}")
+        return
+        
+    logger.info(f"🚀 Launching headed CloakBrowser to upload tailored resume: {pdf_path.name}")
+    browser = await launch_async(
+        headless=False,
+        args=[
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--window-size=1280,800"
+        ]
+    )
+    
+    try:
+        context = await browser.new_context(
+            viewport={"width": 1280, "height": 800},
+            locale="en-IN",
+            timezone_id="Asia/Kolkata"
+        )
+        
+        # Load active session cookies
+        session_file = Path("data/naukri_session.json")
+        if session_file.exists():
+            cookies = json.loads(session_file.read_text())
+            await context.add_cookies(cookies)
+            logger.info("🔑 Loaded session cookies.")
+            
+        page = await context.new_page()
+        
+        # Go to profile
+        logger.info("⚡ Navigating to Naukri profile page...")
+        await page.goto("https://www.naukri.com/mnjuser/profile", wait_until="domcontentloaded", timeout=60000)
+        await page.wait_for_timeout(3000)
+        
+        # Upload resume
+        logger.info("🔍 Searching for resume file input (#attachCV)...")
+        file_input = await page.wait_for_selector("input[type='file']#attachCV, input[type='file'][id*='attach']", timeout=15000)
+        if file_input:
+            logger.info(f"📤 Uploading resume: {pdf_path.name} directly to Naukri profile...")
+            await file_input.set_input_files(str(pdf_path.resolve()))
+            await page.wait_for_timeout(5000)
+            logger.info("✅ Successfully uploaded and updated resume on your Naukri profile!")
+        else:
+            logger.error("❌ Could not find file input field on page.")
+            
+        logger.info("⏳ Browser will remain open for 20 seconds for verification...")
+        await page.wait_for_timeout(20000)
+        
+    except Exception as e:
+        logger.error(f"❌ Error occurred: {e}")
+    finally:
+        await browser.close()
+
+if __name__ == "__main__":
+    asyncio.run(main())

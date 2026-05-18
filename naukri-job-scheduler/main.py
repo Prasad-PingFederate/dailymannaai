@@ -120,6 +120,7 @@ async def main():
             headless = True if is_ci else apply_cfg.get("headless", False)
             update_profile_resume = apply_cfg.get("update_profile_resume", True)
             delay_between_applies = apply_cfg.get("delay_between_applies", 15)
+            max_applications_per_run = apply_cfg.get("max_applications_per_run", 5)
             
             # 1. Generate one tailored resume based on the top/first job and upload to profile once
             base_job = jobs[0].to_dict()
@@ -134,8 +135,11 @@ async def main():
                 )
                 logger.info("✅ Single resume generated and uploaded to profile successfully!")
                 
-                # 2. Apply to all found jobs using this precompiled resume
-                for idx, job in enumerate(jobs, 1):
+                # 2. Apply to target jobs using this precompiled resume (limited to top N)
+                jobs_to_apply = jobs[:max_applications_per_run]
+                logger.info(f"🎯 Limiting applications to the top {len(jobs_to_apply)} jobs for this run (Max: {max_applications_per_run}).")
+                
+                for idx, job in enumerate(jobs_to_apply, 1):
                     if idx > 1:
                         # Introduce a polite, randomized delay to simulate natural human activity
                         import random
@@ -143,7 +147,7 @@ async def main():
                         logger.info(f"⏳ Waiting for {wait_sec} seconds before applying to the next job to behave politely and bypass bot blocks...")
                         await asyncio.sleep(wait_sec)
                         
-                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs)}]: {job.title} @ {job.company}")
+                    logger.info(f"▶️ Applying to job [{idx}/{len(jobs_to_apply)}]: {job.title} @ {job.company}")
                     try:
                         job_dict = job.to_dict()
                         await apply_job_with_precompiled_resume(
