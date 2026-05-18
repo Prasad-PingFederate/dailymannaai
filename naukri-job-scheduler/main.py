@@ -137,8 +137,7 @@ async def main():
                     logger.error("❌ Email sending failed")
                     sys.exit(1)
             except ValueError as e:
-                logger.error(f"Email config error: {e}")
-                sys.exit(1)
+                logger.warning(f"⚠️ Email notification skipped: {e} (This is normal during local manual testing if email environment secrets are not configured.)")
     else:
         logger.info("📧 Email notifications disabled in config")
 
