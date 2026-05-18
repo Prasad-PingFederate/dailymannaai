@@ -48,7 +48,10 @@ def load_env_keys() -> dict:
             keys[key] = val
             
     # 2. Then override / supplement with .env.local
-    env_path = BASE_DIR / ".env.local"
+    env_path = SCHEDULER_DIR / ".env.local"
+    if not env_path.exists():
+        env_path = SCHEDULER_DIR.parent / ".env.local"
+        
     if env_path.exists():
         for line in env_path.read_text().splitlines():
             line = line.strip()
