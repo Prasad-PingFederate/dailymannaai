@@ -20,6 +20,8 @@ Thumbs.db
 
 # Build outputs
 config/career-ops/output/
+config/users/
+data/sessions/
 
 # IDE
 .vscode/

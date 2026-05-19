@@ -34,30 +34,33 @@ async def main():
     logger.info(f"🔑 Target email: {username}")
     logger.info(f"🔑 Target password length: {len(password) if password else 0}")
     
-    session_file = Path("data/naukri_session.json")
+    session_file = Path(os.environ.get("NAUKRI_SESSION_FILE", "data/naukri_session.json"))
     job_url = "https://www.naukri.com/nlogin/login"
     
     # Navigate to Naukri login page
     await page.goto(job_url, wait_until="domcontentloaded", timeout=60000)
     await page.wait_for_timeout(3000)
     
-    google_btn = await page.query_selector("a.socialbtn.google, a.google, [class*='google'], [id*='google']")
-    if google_btn:
-        logger.info("🖱️ Clicking 'Continue with Google' button...")
-        try:
-            async with context.expect_page(timeout=8000) as popup_info:
-                await google_btn.click()
-            sso_page = await popup_info.value
-            logger.info("📱 Detected Google SSO popup window! Automating inside popup...")
-        except Exception:
-            logger.info("ℹ️ No popup window detected. Assuming same-window redirect.")
-            sso_page = page
-            
-        sso_success = await perform_google_sso_flow(sso_page, username, password)
-        if sso_success:
-            logger.info("✅ Automated Google SSO form entries completed!")
-        else:
-            logger.warning("⚠️ Automated SSO flow skipped/incomplete. You can manually interact with the browser now.")
+    if password:
+        google_btn = await page.query_selector("a.socialbtn.google, a.google, [class*='google'], [id*='google']")
+        if google_btn:
+            logger.info("🖱️ Clicking 'Continue with Google' button...")
+            try:
+                async with context.expect_page(timeout=8000) as popup_info:
+                    await google_btn.click()
+                sso_page = await popup_info.value
+                logger.info("📱 Detected Google SSO popup window! Automating inside popup...")
+            except Exception:
+                logger.info("ℹ️ No popup window detected. Assuming same-window redirect.")
+                sso_page = page
+                
+            sso_success = await perform_google_sso_flow(sso_page, username, password)
+            if sso_success:
+                logger.info("✅ Automated Google SSO form entries completed!")
+            else:
+                logger.warning("⚠️ Automated SSO flow skipped/incomplete. You can manually interact with the browser now.")
+    else:
+        logger.info("🔑 No password provided. Please perform login manually in the browser window now...")
             
     # Wait for manual check or logout button/cookies
     logger.info("⏳ Browser will remain open for 120 seconds. Please manually complete the login and 2FA now...")

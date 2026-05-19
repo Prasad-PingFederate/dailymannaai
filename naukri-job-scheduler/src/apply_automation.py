@@ -136,10 +136,10 @@ async def launch_stealth_browser(headless=True, args=None):
 SCHEDULER_DIR = Path(__file__).resolve().parent.parent
 
 # 1. Primary path: repository-internal config/career-ops folder (checked into git)
-CAREER_OPS_DIR = SCHEDULER_DIR / "config" / "career-ops"
-CONFIG_YML = CAREER_OPS_DIR / "profile.yml"
-CV_MD = CAREER_OPS_DIR / "cv.md"
-TEMPLATE_HTML = CAREER_OPS_DIR / "templates" / "cv-template.html"
+CAREER_OPS_DIR = Path(os.environ.get("NAUKRI_CAREER_OPS_DIR", str(SCHEDULER_DIR / "config" / "career-ops")))
+CONFIG_YML = Path(os.environ.get("NAUKRI_PROFILE_FILE", str(CAREER_OPS_DIR / "profile.yml")))
+CV_MD = Path(os.environ.get("NAUKRI_CV_FILE", str(CAREER_OPS_DIR / "cv.md")))
+TEMPLATE_HTML = Path(os.environ.get("NAUKRI_TEMPLATE_HTML", str(CAREER_OPS_DIR / "templates" / "cv-template.html")))
 
 # 2. Fallback path: check for external career-ops directory if internal files are missing
 if not CONFIG_YML.exists():

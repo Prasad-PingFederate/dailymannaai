@@ -50,7 +50,9 @@ def setup_logging(level: str = "INFO"):
 
 # ─────────────────────── Config ───────────────────────────────────
 
-def load_config(path: str = "config/config.yml") -> dict:
+def load_config(path: str = None) -> dict:
+    if not path:
+        path = os.environ.get("NAUKRI_CONFIG_FILE", "config/config.yml")
     cfg_path = Path(path)
     if not cfg_path.exists():
         raise FileNotFoundError(f"Config file not found: {cfg_path.resolve()}")
@@ -60,7 +62,9 @@ def load_config(path: str = "config/config.yml") -> dict:
 
 # ─────────────────────── Job Saving ──────────────────────────────
 
-def save_jobs_json(jobs, output_dir: str = "data/results"):
+def save_jobs_json(jobs, output_dir: str = None):
+    if not output_dir:
+        output_dir = os.environ.get("NAUKRI_RESULTS_DIR", "data/results")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     filename = f"{output_dir}/jobs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     data = {
