@@ -8,11 +8,11 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s — %(message)s')
 logger = logging.getLogger("test_login")
 
-from src.apply_automation import load_env_keys, perform_google_login, launch_async, perform_google_sso_flow
+from src.apply_automation import load_env_keys, perform_google_login, launch_stealth_browser, perform_google_sso_flow
 
 async def main():
     logger.info("🚀 Launching headed browser for Google SSO test...")
-    browser = await launch_async(
+    browser = await launch_stealth_browser(
         headless=False,
         args=[
             "--no-sandbox",
@@ -59,15 +59,19 @@ async def main():
         else:
             logger.warning("⚠️ Automated SSO flow skipped/incomplete. You can manually interact with the browser now.")
             
-    # Wait for manual check or logout button
+    # Wait for manual check or logout button/cookies
     logger.info("⏳ Browser will remain open for 120 seconds. Please manually complete the login and 2FA now...")
     for i in range(60):
         await page.wait_for_timeout(2000)
-        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
+        
+        # Check cookies
+        cookies = await context.cookies()
+        cookie_map = {c["name"]: c["value"] for c in cookies}
+        has_login_cookie = cookie_map.get("is_login") == "1" or "nauk_at" in cookie_map
+        
         profile = await page.query_selector(".nI-g_profile, a[href*='logout'], [class*='profile'], [href*='logout']")
-        if (login_btn and not await login_btn.is_visible()) or not login_btn or profile:
+        if has_login_cookie or profile:
             logger.info("✅ Login detected! Saving cookies session...")
-            cookies = await context.cookies()
             session_file.parent.mkdir(exist_ok=True)
             session_file.write_text(json.dumps(cookies, indent=2))
             break
