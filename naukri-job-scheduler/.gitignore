@@ -18,6 +18,9 @@ data/seen_job_ids.json
 .DS_Store
 Thumbs.db
 
+# Build outputs
+config/career-ops/output/
+
 # IDE
 .vscode/
 .idea/

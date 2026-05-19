@@ -2,8 +2,7 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from cloakbrowser import launch_async
-from src.apply_automation import inject_stealth_scripts
+from src.apply_automation import inject_stealth_scripts, launch_stealth_browser
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s — %(message)s')
 logger = logging.getLogger("direct_profile_update")
@@ -22,7 +21,7 @@ async def main():
         return
         
     logger.info(f"🚀 Launching headed CloakBrowser to upload tailored resume: {pdf_path.name}")
-    browser = await launch_async(
+    browser = await launch_stealth_browser(
         headless=False,
         args=[
             "--no-sandbox",

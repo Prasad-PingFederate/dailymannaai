@@ -394,7 +394,7 @@ async def compile_tailored_pdf(job_company: str, tailored_data: dict, profile: d
 
     # Launch CloakBrowser headless to print PDF
     logger.info("🌐 Launching CloakBrowser to print PDF...")
-    browser = await launch_async(
+    browser = await launch_stealth_browser(
         headless=True,
         args=["--no-sandbox", "--disable-setuid-sandbox"]
     )
