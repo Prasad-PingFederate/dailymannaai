@@ -53,6 +53,22 @@ This document acts as a persistent record of all suggestions, user requirements,
   1. Developed a wrapper launcher `launch_stealth_browser` inside [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py) and [src/naukri_scraper.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/naukri_scraper.py). It detects if the program is running in GitHub Actions CI (`GITHUB_ACTIONS == 'true'`) and, if so, **automatically bypasses the custom stealth library** in favor of standard Playwright-installed Chromium, which is 100% stable, fully supported, and never crashes!
   2. Configured the pre-download task inside [.github/workflows/naukri_scheduler.yml](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/.github/workflows/naukri_scheduler.yml) to use `continue-on-error: true`. If the custom binary test crashes, the runner will safely skip it and rely on standard Playwright Chromium.
 
+### 10. Dual-Strategy Profile Resume Upload (Dummy Button vs Direct Input)
+* **Suggestion:** Handle dynamic changes in Naukri's profile resume upload layout, specifically dealing with the dummy "Update resume" button (`<input type="button" value="Update resume" class="dummyUpload typ-14Bold">`) which triggers a system file chooser popup instead of simple hidden file input fields.
+* **Status:** **Implemented & Fully Pushed ✅**
+* **Technical Detail:** 
+  Implemented a highly resilient, double-strategy upload handler in both [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py) and [direct_profile_update.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/direct_profile_update.py):
+  1. **Strategy A (Dialog Listener):** Looks for the dummy `Update resume` button using your exact HTML criteria. If found, it establishes a native Playwright `page.expect_file_chooser()` event listener, triggers the click, intercepts the file chooser popup asynchronously, and cleanly sets the tailored PDF resume.
+  2. **Strategy B (Fallback Direct Input):** If the dummy button is not found or fails, the script seamlessly falls back to querying the hidden direct file input element (`input[type='file']#attachCV`) and updates the resume directly.
+
+### 11. Robust Session Cookie-Based Login Bypass & Maximized Window Layouts
+* **Suggestion:** Resolve the false-positive login trigger loops where the scraper successfully restored cookies but the application flow detected `#login_Layer` elements (which are present but hidden in the DOM even when logged in) and forced a redirect to the login page which crashed on `#usernameField` timeouts.
+* **Status:** **Implemented & Fully Pushed ✅**
+* **Technical Detail:** 
+  1. **Precise Session Checks:** Replaced DOM-selector-based login checks with cookie-based verification in [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py). The script now checks for the active, native `is_login` cookie (value `"1"`) alongside URL redirection checking (detecting if routed to `nlogin`/`login` paths). This completely bypasses false-positive redirects when cookies are active.
+  2. **Maximized Browser Viewport:** Integrated `--start-maximized` launch parameters and `no_viewport=True` context settings across all browser automation scripts (including [direct_profile_update.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/direct_profile_update.py) and [src/apply_automation.py](file:///c:/Users/Infobell/.gemini/antigravity/scratch/dailymannaai/naukri-job-scheduler/src/apply_automation.py)) to strictly satisfy global viewport visibility rules.
+  3. **Resilient Parameter Checks:** Guarded `automate_naukri_application` against `None` or missing job URLs to prevent framework TypeError crashes.
+
 ---
 
 ## 📈 Next Steps & System Health

@@ -396,6 +396,10 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
     Automates loading the Naukri job application, uploading the tailored resume,
     answering standard form fields, and clicking Apply.
     """
+    if not job_url:
+        logger.error("❌ Cannot automate application: job_url is missing or None.")
+        return False
+        
     logger.info(f"⚡ Navigating to Naukri application portal: {job_url}")
     
     # Launch stealth-patched or standard Playwright Chromium based on env
@@ -404,14 +408,14 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--window-size=1280,800"
+            "--start-maximized"
         ]
     )
     
     try:
         # Load saved session if exists
         context = await browser.new_context(
-            viewport={"width": 1280, "height": 800},
+            no_viewport=True,
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
@@ -461,9 +465,14 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
                 except Exception as ex:
                     logger.error(f"❌ Failed to automate Google SSO in immediate overlay modal: {ex}")
 
-        # Check if standard login is needed
-        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
-        if login_btn and await login_btn.is_visible():
+        # Check if standard login is needed (robust cookie-based and URL redirection verification)
+        cookies = await context.cookies()
+        has_login_cookie = any(c.get('name') == 'is_login' and c.get('value') == '1' for c in cookies)
+        current_url = page.url
+        login_input = await page.query_selector("#usernameField, input[placeholder*='Username'], input[placeholder*='Email']")
+        
+        login_needed = not has_login_cookie or "login" in current_url or "nlogin" in current_url or (login_input and await login_input.is_visible())
+        if login_needed:
             logger.info("🔐 Active Naukri session not found. Attempting automated login...")
             
             env_keys = load_env_keys()
@@ -630,13 +639,13 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--window-size=1280,800"
+            "--start-maximized"
         ]
     )
     
     try:
         context = await browser.new_context(
-            viewport={"width": 1280, "height": 800},
+            no_viewport=True,
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
@@ -665,9 +674,14 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             await complete_btn.click()
             await page.wait_for_timeout(4000)
             
-        # Check if login is needed
-        login_btn = await page.query_selector("#login_Layer, .login-btn, a[href*='login']")
-        if login_btn and await login_btn.is_visible():
+        # Check if login is needed (robust cookie-based and URL redirection verification)
+        cookies = await context.cookies()
+        has_login_cookie = any(c.get('name') == 'is_login' and c.get('value') == '1' for c in cookies)
+        current_url = page.url
+        login_input = await page.query_selector("#usernameField, input[placeholder*='Username'], input[placeholder*='Email']")
+        
+        login_needed = not has_login_cookie or "login" in current_url or "nlogin" in current_url or (login_input and await login_input.is_visible())
+        if login_needed:
             logger.info("🔐 Active Naukri session not found. Attempting automated login before profile update...")
             
             env_keys = load_env_keys()
@@ -709,8 +723,25 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
                 logger.error("❌ Authentication failed. Cannot update Naukri profile resume.")
                 return False
         
-        # Look for the file input element (#attachCV) on the profile page
-        logger.info("🔍 Searching for resume upload input (#attachCV) on profile page...")
+        # Strategy A: Check for the dummy 'Update resume' button layout
+        logger.info("🔍 Checking for dummy 'Update resume' button layout...")
+        dummy_upload = await page.query_selector("input[type='button'][value='Update resume'], input.dummyUpload, .dummyUpload")
+        if dummy_upload and await dummy_upload.is_visible():
+            try:
+                logger.info("🖱️ Found dummy 'Update resume' button! Initiating file chooser listener...")
+                async with page.expect_file_chooser(timeout=10000) as fc_info:
+                    await dummy_upload.click()
+                file_chooser = await fc_info.value
+                logger.info(f"📤 Uploading resume: {pdf_path.name} via file chooser dialog...")
+                await file_chooser.set_files(str(pdf_path))
+                await page.wait_for_timeout(5000)
+                logger.info("✅ Successfully uploaded and updated resume via dummy upload dialog!")
+                return True
+            except Exception as fc_err:
+                logger.warning(f"⚠️ File chooser strategy failed ({fc_err}). Falling back to direct input field...")
+
+        # Strategy B: Fallback to direct hidden file input element (#attachCV)
+        logger.info("🔍 Searching for direct resume upload input (#attachCV) on profile page...")
         file_input = await page.wait_for_selector("input[type='file']#attachCV, input[type='file'][id*='attach']", timeout=15000)
         if file_input:
             logger.info(f"📤 Uploading resume: {pdf_path.name} directly to Naukri profile...")
@@ -719,7 +750,7 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             logger.info("✅ Successfully uploaded and updated resume on your Naukri profile!")
             return True
         else:
-            logger.error("❌ Could not find the resume upload input field (#attachCV) on Naukri profile page.")
+            logger.error("❌ Could not find any resume upload elements on Naukri profile page.")
             return False
             
     except Exception as e:
