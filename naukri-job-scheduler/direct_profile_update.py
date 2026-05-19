@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 from pathlib import Path
 from src.apply_automation import inject_stealth_scripts, launch_stealth_browser
 
@@ -8,13 +9,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(na
 logger = logging.getLogger("direct_profile_update")
 
 async def main():
-    output_dir = Path("config/career-ops/output")
+    output_dir = Path(os.environ.get("NAUKRI_OUTPUT_DIR", "config/career-ops/output"))
     pdf_files = list(output_dir.glob("cv-candidate-*.pdf")) if output_dir.exists() else []
     if pdf_files:
         pdf_path = sorted(pdf_files, key=lambda p: p.stat().st_mtime, reverse=True)[0]
         logger.info(f"📂 Dynamically detected latest tailored resume: {pdf_path.name}")
     else:
-        pdf_path = Path("config/career-ops/output/cv-candidate-hatica-2026-05-18.pdf")
+        pdf_path = output_dir / "cv-candidate-hatica-2026-05-18.pdf"
         
     if not pdf_path.exists():
         logger.error(f"❌ Resume file not found at {pdf_path}")
@@ -41,7 +42,7 @@ async def main():
         await inject_stealth_scripts(context)
         
         # Load active session cookies
-        session_file = Path("data/naukri_session.json")
+        session_file = Path(os.environ.get("NAUKRI_SESSION_FILE", "data/naukri_session.json"))
         if session_file.exists():
             cookies = json.loads(session_file.read_text())
             await context.add_cookies(cookies)

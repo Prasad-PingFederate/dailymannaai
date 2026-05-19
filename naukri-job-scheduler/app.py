@@ -29,35 +29,93 @@ process_lock = threading.Lock()
 def ensure_dirs():
     (SCHEDULER_DIR / "logs").mkdir(exist_ok=True)
     (SCHEDULER_DIR / "data").mkdir(exist_ok=True)
+    (SCHEDULER_DIR / "data" / "sessions").mkdir(exist_ok=True, parents=True)
     RESULTS_DIR.mkdir(exist_ok=True, parents=True)
     OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
     (SCHEDULER_DIR / "config" / "career-ops" / "data").mkdir(exist_ok=True, parents=True)
 
 ensure_dirs()
 
-def run_process_in_background(cmd, task_name):
+def get_user_paths(user_email=None):
+    if not user_email or user_email == "default":
+        return {
+            "config": CONFIG_PATH,
+            "profile": PROFILE_PATH,
+            "cv": CV_PATH,
+            "applications": APPLICATIONS_PATH,
+            "results_dir": RESULTS_DIR,
+            "output_dir": OUTPUT_DIR,
+            "session": SCHEDULER_DIR / "data" / "naukri_session.json",
+            "log": LOG_FILE,
+            "career_ops_dir": SCHEDULER_DIR / "config" / "career-ops"
+        }
+    
+    # Normalize email to filesystem-safe string
+    safe_email = "".join([c if c.isalnum() or c in ".-_@" else "_" for c in user_email]).lower()
+    user_dir = SCHEDULER_DIR / "config" / "users" / safe_email
+    user_dir.mkdir(exist_ok=True, parents=True)
+    
+    u_config = user_dir / "config.yml"
+    u_profile = user_dir / "profile.yml"
+    u_cv = user_dir / "cv.md"
+    u_applications = user_dir / "data" / "applications.md"
+    u_results_dir = SCHEDULER_DIR / "data" / "results" / safe_email
+    u_output_dir = user_dir / "output"
+    
+    # Initialize files from global templates if they do not exist
+    if not u_config.exists() and CONFIG_PATH.exists():
+        u_config.write_text(CONFIG_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+    if not u_profile.exists() and PROFILE_PATH.exists():
+        u_profile.parent.mkdir(exist_ok=True, parents=True)
+        u_profile.write_text(PROFILE_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+    if not u_cv.exists() and CV_PATH.exists():
+        u_cv.parent.mkdir(exist_ok=True, parents=True)
+        u_cv.write_text(CV_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+        
+    u_applications.parent.mkdir(exist_ok=True, parents=True)
+    u_results_dir.mkdir(exist_ok=True, parents=True)
+    u_output_dir.mkdir(exist_ok=True, parents=True)
+    
+    return {
+        "config": u_config,
+        "profile": u_profile,
+        "cv": u_cv,
+        "applications": u_applications,
+        "results_dir": u_results_dir,
+        "output_dir": u_output_dir,
+        "session": SCHEDULER_DIR / "data" / "sessions" / f"{safe_email}_session.json",
+        "log": SCHEDULER_DIR / "logs" / f"web_run_{safe_email}.log",
+        "career_ops_dir": user_dir
+    }
+
+def run_process_in_background(cmd, task_name, log_file, env_overrides=None):
     global current_process, active_task_name
     with process_lock:
         if current_process and current_process.poll() is None:
             return False, "Another task is already running."
         
         # Clear or prepare log file
-        LOG_FILE.parent.mkdir(exist_ok=True)
-        with open(LOG_FILE, "w", encoding="utf-8") as f:
+        log_file.parent.mkdir(exist_ok=True)
+        with open(log_file, "w", encoding="utf-8") as f:
             f.write(f"=== Starting task: {task_name} at {time.strftime('%Y-%m-%d %H:%M:%S')} ===\n")
         
         # Start process
         try:
-            # We run python script using sys.executable to ensure we use the same environment
             full_cmd = [sys.executable] + cmd
             
-            # Start the process redirected to LOG_FILE
-            log_handle = open(LOG_FILE, "a", encoding="utf-8")
+            # Start the process redirected to log_file
+            log_handle = open(log_file, "a", encoding="utf-8")
+            
+            process_env = os.environ.copy()
+            if env_overrides:
+                process_env.update(env_overrides)
+                
             current_process = subprocess.Popen(
                 full_cmd,
                 stdout=log_handle,
                 stderr=log_handle,
                 cwd=str(SCHEDULER_DIR),
+                env=process_env,
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
             )
             active_task_name = task_name
@@ -66,7 +124,7 @@ def run_process_in_background(cmd, task_name):
             def monitor():
                 current_process.wait()
                 log_handle.close()
-                with open(LOG_FILE, "a", encoding="utf-8") as f:
+                with open(log_file, "a", encoding="utf-8") as f:
                     f.write(f"\n=== Task completed with exit code: {current_process.returncode} ===\n")
             
             threading.Thread(target=monitor, daemon=True).start()
@@ -74,9 +132,23 @@ def run_process_in_background(cmd, task_name):
         except Exception as e:
             return False, f"Failed to start task: {str(e)}"
 
+@app.route("/api/users", methods=["GET"])
+def list_users():
+    users = ["default"]
+    sessions_dir = SCHEDULER_DIR / "data" / "sessions"
+    if sessions_dir.exists():
+        for f in sessions_dir.glob("*_session.json"):
+            name = f.name[:-13] # remove "_session.json"
+            if name not in users:
+                users.append(name)
+    return jsonify(users)
+
 @app.route("/api/status", methods=["GET"])
 def get_status():
     global current_process, active_task_name
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    
     is_running = False
     exit_code = None
     
@@ -89,17 +161,16 @@ def get_status():
             
     # Read latest logs
     log_content = ""
-    if LOG_FILE.exists():
+    log_file = paths["log"]
+    if log_file.exists():
         try:
-            with open(LOG_FILE, "r", encoding="utf-8", errors="replace") as f:
-                # Read last 150 lines
+            with open(log_file, "r", encoding="utf-8", errors="replace") as f:
                 lines = f.readlines()
                 log_content = "".join(lines[-150:])
         except Exception as e:
             log_content = f"Error reading logs: {str(e)}"
             
-    # Check if login session exists
-    session_file = SCHEDULER_DIR / "data" / "naukri_session.json"
+    session_file = paths["session"]
     session_exists = session_file.exists()
     session_time = None
     if session_exists:
@@ -130,31 +201,59 @@ def stop_task():
                 return jsonify({"success": False, "message": f"Failed to stop task: {str(e)}"})
         return jsonify({"success": False, "message": "No active task to stop."})
 
+def get_user_env_overrides(paths):
+    return {
+        "NAUKRI_SESSION_FILE": str(paths["session"]),
+        "NAUKRI_CONFIG_FILE": str(paths["config"]),
+        "NAUKRI_PROFILE_FILE": str(paths["profile"]),
+        "NAUKRI_CV_FILE": str(paths["cv"]),
+        "NAUKRI_APPLICATIONS_FILE": str(paths["applications"]),
+        "NAUKRI_RESULTS_DIR": str(paths["results_dir"]),
+        "NAUKRI_OUTPUT_DIR": str(paths["output_dir"]),
+        "NAUKRI_CAREER_OPS_DIR": str(paths["career_ops_dir"]),
+        "SKIP_OPENROUTER": "true" # Force local/manual resume tailoring fallback if no key is defined
+    }
+
 @app.route("/api/run", methods=["POST"])
 def run_scheduler():
-    success, message = run_process_in_background(["main.py"], "Scrape & Auto Apply")
+    user = request.json.get("user", "default")
+    paths = get_user_paths(user)
+    env = get_user_env_overrides(paths)
+    success, message = run_process_in_background(["main.py"], f"Scrape & Auto Apply ({user})", paths["log"], env)
     return jsonify({"success": success, "message": message})
 
 @app.route("/api/login-test", methods=["POST"])
 def run_login():
-    # Use test_login.py in headed mode
-    success, message = run_process_in_background(["test_login.py"], "Manual Browser Login Check")
+    user = request.json.get("user", "default")
+    paths = get_user_paths(user)
+    env = get_user_env_overrides(paths)
+    # Remove password to force manual login mode in Playwright browser window
+    if "NAUKRI_PASSWORD" in env: del env["NAUKRI_PASSWORD"]
+    if "NAUKARI_PASSWORD" in env: del env["NAUKARI_PASSWORD"]
+    
+    success, message = run_process_in_background(["test_login.py"], f"Manual Browser Login ({user})", paths["log"], env)
     return jsonify({"success": success, "message": message})
 
 @app.route("/api/profile-update", methods=["POST"])
 def run_profile_update():
-    success, message = run_process_in_background(["direct_profile_update.py"], "Direct Profile Resume Upload")
+    user = request.json.get("user", "default")
+    paths = get_user_paths(user)
+    env = get_user_env_overrides(paths)
+    success, message = run_process_in_background(["direct_profile_update.py"], f"Direct Profile Resume Upload ({user})", paths["log"], env)
     return jsonify({"success": success, "message": message})
 
 # Config APIs
 @app.route("/api/config", methods=["GET", "POST"])
 def handle_config():
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    config_path = paths["config"]
+    
     if request.method == "GET":
-        if not CONFIG_PATH.exists():
+        if not config_path.exists():
             return jsonify({"error": "Config file not found"}), 404
         try:
-            content = CONFIG_PATH.read_text(encoding="utf-8")
-            # Parse YAML to return structured config as well as raw text
+            content = config_path.read_text(encoding="utf-8")
             parsed = yaml.safe_load(content)
             return jsonify({
                 "raw": content,
@@ -163,16 +262,13 @@ def handle_config():
         except Exception as e:
             return jsonify({"error": f"Failed to read config: {str(e)}"}), 500
     else:
-        # POST
         data = request.json
         if not data or "raw" not in data:
             return jsonify({"error": "Missing raw YAML config content"}), 400
         try:
-            # Validate YAML format first
             yaml.safe_load(data["raw"])
-            # Save it
-            CONFIG_PATH.parent.mkdir(exist_ok=True, parents=True)
-            CONFIG_PATH.write_text(data["raw"], encoding="utf-8")
+            config_path.parent.mkdir(exist_ok=True, parents=True)
+            config_path.write_text(data["raw"], encoding="utf-8")
             return jsonify({"success": True, "message": "Config updated successfully!"})
         except Exception as e:
             return jsonify({"error": f"Invalid YAML format: {str(e)}"}), 400
@@ -180,11 +276,15 @@ def handle_config():
 # Profile APIs
 @app.route("/api/profile", methods=["GET", "POST"])
 def handle_profile():
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    profile_path = paths["profile"]
+    
     if request.method == "GET":
-        if not PROFILE_PATH.exists():
+        if not profile_path.exists():
             return jsonify({"raw": "", "parsed": {}})
         try:
-            content = PROFILE_PATH.read_text(encoding="utf-8")
+            content = profile_path.read_text(encoding="utf-8")
             parsed = yaml.safe_load(content)
             return jsonify({
                 "raw": content,
@@ -193,14 +293,13 @@ def handle_profile():
         except Exception as e:
             return jsonify({"error": f"Failed to read profile.yml: {str(e)}"}), 500
     else:
-        # POST
         data = request.json
         if not data or "raw" not in data:
             return jsonify({"error": "Missing raw profile.yml content"}), 400
         try:
             yaml.safe_load(data["raw"])
-            PROFILE_PATH.parent.mkdir(exist_ok=True, parents=True)
-            PROFILE_PATH.write_text(data["raw"], encoding="utf-8")
+            profile_path.parent.mkdir(exist_ok=True, parents=True)
+            profile_path.write_text(data["raw"], encoding="utf-8")
             return jsonify({"success": True, "message": "Profile yml updated successfully!"})
         except Exception as e:
             return jsonify({"error": f"Invalid YAML format: {str(e)}"}), 400
@@ -208,22 +307,25 @@ def handle_profile():
 # CV markdown APIs
 @app.route("/api/cv", methods=["GET", "POST"])
 def handle_cv():
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    cv_path = paths["cv"]
+    
     if request.method == "GET":
-        if not CV_PATH.exists():
+        if not cv_path.exists():
             return jsonify({"content": ""})
         try:
-            content = CV_PATH.read_text(encoding="utf-8")
+            content = cv_path.read_text(encoding="utf-8")
             return jsonify({"content": content})
         except Exception as e:
             return jsonify({"error": f"Failed to read cv.md: {str(e)}"}), 500
     else:
-        # POST
         data = request.json
         if not data or "content" not in data:
             return jsonify({"error": "Missing cv.md markdown content"}), 400
         try:
-            CV_PATH.parent.mkdir(exist_ok=True, parents=True)
-            CV_PATH.write_text(data["content"], encoding="utf-8")
+            cv_path.parent.mkdir(exist_ok=True, parents=True)
+            cv_path.write_text(data["content"], encoding="utf-8")
             return jsonify({"success": True, "message": "cv.md updated successfully!"})
         except Exception as e:
             return jsonify({"error": f"Failed to save cv.md: {str(e)}"}), 500
@@ -231,17 +333,18 @@ def handle_cv():
 # Scraped jobs
 @app.route("/api/jobs", methods=["GET"])
 def get_scraped_jobs():
-    if not RESULTS_DIR.exists():
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    results_dir = paths["results_dir"]
+    
+    if not results_dir.exists():
         return jsonify([])
     try:
-        # Get all jobs_*.json files
-        json_files = list(RESULTS_DIR.glob("jobs_*.json"))
+        json_files = list(results_dir.glob("jobs_*.json"))
         if not json_files:
             return jsonify([])
             
-        # Sort by creation time / name descending
         latest_file = sorted(json_files, key=lambda p: p.stat().st_mtime, reverse=True)[0]
-        
         data = json.loads(latest_file.read_text(encoding="utf-8"))
         return jsonify({
             "filename": latest_file.name,
@@ -255,23 +358,23 @@ def get_scraped_jobs():
 # Parsed applications from applications.md
 @app.route("/api/applications", methods=["GET"])
 def get_applications():
-    if not APPLICATIONS_PATH.exists():
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    applications_path = paths["applications"]
+    
+    if not applications_path.exists():
         return jsonify([])
     try:
-        lines = APPLICATIONS_PATH.read_text(encoding="utf-8").splitlines()
+        lines = applications_path.read_text(encoding="utf-8").splitlines()
         applications = []
         
-        # Look for table rows: | 001 | 2026-05-19 | Hatica | ...
         for line in lines:
             line = line.strip()
             if not line.startswith("|") or line.startswith("| -") or "Number" in line or "Company" in line:
                 continue
             parts = [p.strip() for p in line.split("|")[1:-1]]
             if len(parts) >= 6:
-                # | Number | Date | Company | Title | Match Score | Status | Uploaded | Resume Link |
-                # parts: ['001', '2026-05-19', 'Company', 'Title', 'Score', 'Status', 'Uploaded', 'Resume']
                 resume_link = parts[7] if len(parts) > 7 else ""
-                # Parse resume name from [cv](output/cv-candidate-hatica-2026-05-18.pdf)
                 resume_file = ""
                 if "output/" in resume_link:
                     match = re.search(r"output/(cv-candidate-[^)]+)", resume_link)
@@ -288,7 +391,6 @@ def get_applications():
                     "uploaded": parts[6] if len(parts) > 6 else "",
                     "resume_file": resume_file
                 })
-        # Reverse to show latest first
         applications.reverse()
         return jsonify(applications)
     except Exception as e:
@@ -296,16 +398,18 @@ def get_applications():
         traceback.print_exc()
         return jsonify({"error": f"Failed to parse applications.md: {str(e)}"}), 500
 
-
 # Serve latest resume PDF
 @app.route("/api/pdf", methods=["GET"])
 def get_pdf():
+    user = request.args.get("user", "default")
+    paths = get_user_paths(user)
+    output_dir = paths["output_dir"]
+    
     filename = request.args.get("file")
     if filename:
-        pdf_path = OUTPUT_DIR / filename
+        pdf_path = output_dir / filename
     else:
-        # Find latest pdf in output dir
-        pdf_files = list(OUTPUT_DIR.glob("cv-candidate-*.pdf"))
+        pdf_files = list(output_dir.glob("cv-candidate-*.pdf"))
         if not pdf_files:
             return jsonify({"error": "No PDFs found"}), 404
         pdf_path = sorted(pdf_files, key=lambda p: p.stat().st_mtime, reverse=True)[0]
@@ -318,7 +422,6 @@ def get_pdf():
 # Serving the Single Page Application UI
 @app.route("/")
 def index():
-    # We embed the UI template as string inside app.py for ultimate portability!
     return render_template_string(UI_HTML)
 
 UI_HTML = """
@@ -328,9 +431,7 @@ UI_HTML = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Naukri Job Scheduler — Control Center</title>
-    <!-- Google Fonts Outfit & Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -375,7 +476,6 @@ UI_HTML = """
             letter-spacing: -0.02em;
         }
 
-        /* Layout Grid */
         .app-container {
             display: flex;
             flex-direction: column;
@@ -385,7 +485,6 @@ UI_HTML = """
             gap: 24px;
         }
 
-        /* Header styling */
         header {
             display: flex;
             justify-content: space-between;
@@ -431,6 +530,33 @@ UI_HTML = """
             font-weight: 700;
         }
 
+        .user-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 4px 14px;
+            border-radius: 12px;
+        }
+
+        .user-selector-container select {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            padding: 6px;
+        }
+
+        .user-selector-container select option {
+            background: var(--bg-color);
+            color: #fff;
+        }
+
         .system-indicators {
             display: flex;
             gap: 20px;
@@ -469,7 +595,6 @@ UI_HTML = """
             box-shadow: 0 0 8px var(--warning);
         }
 
-        /* Grid content */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 350px 1fr;
@@ -482,7 +607,6 @@ UI_HTML = """
             }
         }
 
-        /* Glass Cards */
         .glass-card {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
@@ -530,14 +654,12 @@ UI_HTML = """
             color: var(--secondary);
         }
 
-        /* Sidebar Panels */
         .control-panel {
             display: flex;
             flex-direction: column;
             gap: 24px;
         }
 
-        /* Buttons styling */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -605,7 +727,6 @@ UI_HTML = """
             box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
 
-        /* Tab Layout */
         .tabs {
             display: flex;
             gap: 12px;
@@ -655,7 +776,6 @@ UI_HTML = """
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Config Editors */
         .editor-container {
             display: flex;
             flex-direction: column;
@@ -693,7 +813,6 @@ UI_HTML = """
             box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
         }
 
-        /* Tables */
         .table-responsive {
             overflow-x: auto;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -747,7 +866,6 @@ UI_HTML = """
         .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
         .badge-info { background: rgba(6, 182, 212, 0.15); color: var(--secondary); border: 1px solid rgba(6, 182, 212, 0.2); }
 
-        /* Terminal Console */
         .terminal {
             background: #030712;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -786,7 +904,6 @@ UI_HTML = """
             color: #fff;
         }
 
-        /* Form elements inside yml parsed dashboard */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -820,7 +937,6 @@ UI_HTML = """
             outline: none;
         }
 
-        /* Notifications */
         .toast {
             position: fixed;
             bottom: 24px;
@@ -844,7 +960,6 @@ UI_HTML = """
             opacity: 1;
         }
 
-        /* Quick Stats Card */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -930,14 +1045,22 @@ UI_HTML = """
                     <span id="version-badge">Active Engine</span>
                 </div>
             </div>
+            
+            <div class="user-selector-container">
+                <i class="fa-solid fa-circle-user" style="color: var(--secondary);"></i>
+                <select id="user-selector">
+                    <option value="default">Default Profile</option>
+                </select>
+            </div>
+
             <div class="system-indicators">
                 <div class="indicator">
                     <span class="dot" id="cookie-dot"></span>
-                    <span>Session Cookies: <strong id="cookie-status">Checking...</strong></span>
+                    <span>Session: <strong id="cookie-status">Checking...</strong></span>
                 </div>
                 <div class="indicator">
                     <span class="dot" id="engine-dot"></span>
-                    <span>Engine Status: <strong id="engine-status">Idle</strong></span>
+                    <span>Engine: <strong id="engine-status">Idle</strong></span>
                 </div>
             </div>
         </header>
@@ -947,6 +1070,22 @@ UI_HTML = """
             <!-- Left Sidebar Controls -->
             <div class="control-panel">
                 
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-user-plus"></i> Multi-User Manager</h2>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <input type="email" id="new-user-email" placeholder="enter-email@gmail.com" 
+                               style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); border-radius:8px; color:#fff; font-size:13px; outline:none;" />
+                        <button class="btn btn-secondary" id="btn-add-user">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login & Register User
+                        </button>
+                        <p style="font-size: 11px; color: var(--text-muted); text-align: center;">
+                            No password is saved. Launches headed browser to authenticate securely with Naukri.
+                        </p>
+                    </div>
+                </div>
+
                 <div class="glass-card">
                     <div class="card-header">
                         <h2><i class="fa-solid fa-gears"></i> Execution Center</h2>
@@ -1016,7 +1155,6 @@ UI_HTML = """
                         <span id="jobs-filename" style="font-size: 11px; color: var(--text-muted);"></span>
                     </div>
                     <div class="jobs-list" id="scraped-jobs-container">
-                        <!-- Loaded dynamically -->
                         <div style="text-align: center; padding: 40px; color: var(--text-muted);">
                             <i class="fa-solid fa-circle-nodes fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
                             <p>Loading scraped jobs...</p>
@@ -1117,6 +1255,8 @@ UI_HTML = """
     </div>
 
     <script>
+        const userSelector = document.getElementById('user-selector');
+        
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1144,45 +1284,69 @@ UI_HTML = """
             }, 3500);
         }
 
-        // Fetch configurations
-        async function loadConfig() {
+        // Fetch user list
+        async function loadUsers() {
             try {
-                const res = await fetch('/api/config');
-                const data = await res.json();
-                document.getElementById('config-raw').value = data.raw;
+                const res = await fetch('/api/users');
+                const users = await res.json();
+                const currentSelection = userSelector.value;
+                
+                userSelector.innerHTML = '';
+                users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u;
+                    opt.innerText = u === 'default' ? 'Default Profile' : u;
+                    userSelector.appendChild(opt);
+                });
+                
+                if (users.includes(currentSelection)) {
+                    userSelector.value = currentSelection;
+                } else {
+                    userSelector.value = 'default';
+                }
             } catch(e) {
-                console.error("Failed to load config", e);
+                console.error("Failed to load users", e);
             }
         }
 
-        async function loadProfile() {
+        // Load configs and user data
+        async function loadUserData() {
+            const user = userSelector.value;
             try {
-                const res = await fetch('/api/profile');
-                const data = await res.json();
-                document.getElementById('profile-raw').value = data.raw;
+                // Config
+                let res = await fetch(`/api/config?user=${user}`);
+                let data = await res.json();
+                document.getElementById('config-raw').value = data.raw || '';
+                
+                // Profile
+                res = await fetch(`/api/profile?user=${user}`);
+                data = await res.json();
+                document.getElementById('profile-raw').value = data.raw || '';
+                
+                // CV
+                res = await fetch(`/api/cv?user=${user}`);
+                data = await res.json();
+                document.getElementById('cv-raw').value = data.content || '';
+                
+                // Reload list logs
+                loadScrapedJobs();
+                loadApplications();
             } catch(e) {
-                console.error("Failed to load profile", e);
+                console.error("Failed to load user config", e);
             }
         }
 
-        async function loadCV() {
-            try {
-                const res = await fetch('/api/cv');
-                const data = await res.json();
-                document.getElementById('cv-raw').value = data.content;
-            } catch(e) {
-                console.error("Failed to load CV", e);
-            }
-        }
+        userSelector.addEventListener('change', loadUserData);
 
         // Save handlers
         document.getElementById('btn-save-config').addEventListener('click', async () => {
             const raw = document.getElementById('config-raw').value;
+            const user = userSelector.value;
             try {
                 const res = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ raw })
+                    body: JSON.stringify({ raw, user })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -1197,11 +1361,12 @@ UI_HTML = """
 
         document.getElementById('btn-save-profile').addEventListener('click', async () => {
             const raw = document.getElementById('profile-raw').value;
+            const user = userSelector.value;
             try {
                 const res = await fetch('/api/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ raw })
+                    body: JSON.stringify({ raw, user })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -1216,11 +1381,12 @@ UI_HTML = """
 
         document.getElementById('btn-save-cv').addEventListener('click', async () => {
             const content = document.getElementById('cv-raw').value;
+            const user = userSelector.value;
             try {
                 const res = await fetch('/api/cv', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content })
+                    body: JSON.stringify({ content, user })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -1233,10 +1399,11 @@ UI_HTML = """
             }
         });
 
-        // Load jobs
+        // Load scraped jobs
         async function loadScrapedJobs() {
+            const user = userSelector.value;
             try {
-                const res = await fetch('/api/jobs');
+                const res = await fetch(`/api/jobs?user=${user}`);
                 const data = await res.json();
                 const container = document.getElementById('scraped-jobs-container');
                 
@@ -1279,8 +1446,9 @@ UI_HTML = """
 
         // Load applied history
         async function loadApplications() {
+            const user = userSelector.value;
             try {
-                const res = await fetch('/api/applications');
+                const res = await fetch(`/api/applications?user=${user}`);
                 const data = await res.json();
                 const tbody = document.getElementById('applications-table-body');
                 document.getElementById('stat-total-applied').innerText = data.length;
@@ -1294,8 +1462,8 @@ UI_HTML = """
                 data.forEach(app => {
                     const badgeClass = app.status.toLowerCase() === 'applied' ? 'badge-success' : 'badge-warning';
                     const pdfButton = app.resume_file 
-                        ? `<a href="/api/pdf?file=${app.resume_file}" target="_blank" style="color: var(--secondary);"><i class="fa-solid fa-file-pdf"></i> cv.pdf</a>`
-                        : `<a href="/api/pdf" target="_blank" style="color: var(--text-muted);"><i class="fa-solid fa-file-pdf"></i> Latest</a>`;
+                        ? `<a href="/api/pdf?user=${user}&file=${app.resume_file}" target="_blank" style="color: var(--secondary);"><i class="fa-solid fa-file-pdf"></i> cv.pdf</a>`
+                        : `<a href="/api/pdf?user=${user}" target="_blank" style="color: var(--text-muted);"><i class="fa-solid fa-file-pdf"></i> Latest</a>`;
                         
                     html += `
                     <tr>
@@ -1316,8 +1484,13 @@ UI_HTML = """
 
         // Actions trigger
         async function triggerAction(endpoint, name) {
+            const user = userSelector.value;
             try {
-                const res = await fetch(endpoint, { method: 'POST' });
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user })
+                });
                 const data = await res.json();
                 if (data.success) {
                     showToast(data.message);
@@ -1343,6 +1516,39 @@ UI_HTML = """
             }
         });
 
+        // Add new user / register manual login
+        document.getElementById('btn-add-user').addEventListener('click', async () => {
+            const emailInput = document.getElementById('new-user-email');
+            const email = emailInput.value.trim();
+            if (!email) {
+                showToast("Please enter a valid email address.", true);
+                return;
+            }
+            
+            showToast(`Initiating authentication window for ${email}...`);
+            try {
+                const res = await fetch('/api/login-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: email })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message);
+                    // Add option immediately to selector
+                    setTimeout(async () => {
+                        await loadUsers();
+                        userSelector.value = email.toLowerCase();
+                        loadUserData();
+                    }, 2000);
+                } else {
+                    showToast(data.message, true);
+                }
+            } catch(e) {
+                showToast("Failed to start login test", true);
+            }
+        });
+
         // Clear logs
         document.getElementById('btn-clear-logs').addEventListener('click', () => {
             document.getElementById('terminal-body').innerText = 'Logs cleared.';
@@ -1351,20 +1557,20 @@ UI_HTML = """
         // Poll engine status and logs
         let lastLogLength = 0;
         async function pollStatus() {
+            const user = userSelector.value;
             try {
-                const res = await fetch('/api/status');
+                const res = await fetch(`/api/status?user=${user}`);
                 const status = await res.json();
                 
-                // Indicators
                 const cookieDot = document.getElementById('cookie-dot');
                 const cookieStatus = document.getElementById('cookie-status');
                 if (status.session_exists) {
                     cookieDot.className = 'dot active';
-                    cookieStatus.innerText = 'Valid / Cached';
+                    cookieStatus.innerText = 'Valid';
                     document.getElementById('session-timestamp').innerText = `Session verified: ${status.session_time}`;
                 } else {
                     cookieDot.className = 'dot inactive';
-                    cookieStatus.innerText = 'Not Found';
+                    cookieStatus.innerText = 'Not Logged In';
                     document.getElementById('session-timestamp').innerText = `No session file found`;
                 }
                 
@@ -1374,7 +1580,7 @@ UI_HTML = """
                 
                 if (status.running) {
                     engineDot.className = 'dot warning';
-                    engineStatus.innerText = `Running (${status.active_task})`;
+                    engineStatus.innerText = `Running`;
                     stopBtn.style.display = 'inline-flex';
                 } else {
                     engineDot.className = 'dot active';
@@ -1382,19 +1588,17 @@ UI_HTML = """
                     stopBtn.style.display = 'none';
                 }
                 
-                // Terminal output
                 const terminal = document.getElementById('terminal-body');
                 if (status.logs) {
                     terminal.innerText = status.logs;
-                    // Auto-scroll to bottom if new content arrived
                     if (status.logs.length !== lastLogLength) {
                         terminal.scrollTop = terminal.scrollHeight;
                         lastLogLength = status.logs.length;
                         
-                        // If task just finished, reload list of jobs/applications
                         if (!status.running) {
                             loadScrapedJobs();
                             loadApplications();
+                            loadUsers(); // Refresh users list just in case a new session was created
                         }
                     }
                 } else if (!status.running) {
@@ -1406,15 +1610,14 @@ UI_HTML = """
         }
 
         // Initial loading
-        loadConfig();
-        loadProfile();
-        loadCV();
-        loadScrapedJobs();
-        loadApplications();
+        async function init() {
+            await loadUsers();
+            await loadUserData();
+            setInterval(pollStatus, 1500);
+            pollStatus();
+        }
         
-        // Start polling status
-        setInterval(pollStatus, 1500);
-        pollStatus();
+        init();
     </script>
 </body>
 </html>
