@@ -225,50 +225,79 @@ async def tailor_cv_content_ai(job_title: str, job_desc: str, cv_content: str, p
         f"Candidate Base CV:\n{cv_content}\n"
     )
 
+    # 5 Fallback models on OpenRouter
+    openrouter_models = [
+        "google/gemini-2.5-flash",
+        "meta-llama/llama-3-8b-instruct:free",
+        "qwen/qwen-2-7b-instruct:free",
+        "google/gemini-2.5-pro",
+        "deepseek/deepseek-chat"
+    ]
+    
+    # 3 Fallback models on local 9Router
+    local_models = [
+        "oc/nemotron-3-super-free",
+        "oc/minimax-m2.5-free",
+        "oc/ring-2.6-1t-free"
+    ]
+
     async def try_9router_fallback():
-        logger.info("🤖 Using local 9Router for resume tailoring...")
+        logger.info("🤖 Attempting local 9Router model fallback chain...")
         url_9r = "http://localhost:20128/v1/chat/completions"
         headers_9r = {
             "Authorization": "Bearer 9r-98fa4daf16ff4b9680a1aad8e8676c08",
             "Content-Type": "application/json"
         }
-        payload_9r = {
-            "model": "oc/nemotron-3-super-free",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.3
-        }
-        try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                resp = await client.post(url_9r, json=payload_9r, headers=headers_9r)
-                resp.raise_for_status()
-                result = resp.json()
-                content = result["choices"][0]["message"]["content"]
-                json_match = re.search(r"(\{.*\})", content, re.DOTALL)
-                if json_match:
-                    content = json_match.group(1)
-                return json.loads(content)
-        except Exception as e_9r:
-            logger.error(f"❌ 9Router fallback failed: {e_9r}")
-            return {
-                "summary_text": f"Experienced engineer seeking to contribute to the '{job_title}' position.",
-                "competencies_tags": ["Software Engineering", "Automation", "Problem Solving"],
-                "experience_html": "<div class='job'><div class='job-company'>Consultant</div><div class='job-role'>Senior Engineer</div><ul><li>Contributed to target project deliverables and scaled test coverage</li></ul></div>",
-                "projects_html": "<div class='project'><div class='project-title'>System Automation</div><div class='project-desc'>Automated key business systems using modern cloud tools.</div></div>",
-                "skills_html": "<div class='skill-item'><span class='skill-category'>Languages:</span> Python, JavaScript</div>",
-                "questionnaire_answers": {
-                    "why_join": "I am deeply interested in this position and confident that my background aligns with your core engineering needs.",
-                    "experience_summary": "I have over 3 years of hands-on experience in automation engineering.",
-                    "notice_period": "Available for immediate onboarding."
-                }
+        
+        for model in local_models:
+            logger.info(f"🔄 Trying local 9Router model: {model}")
+            payload_9r = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.3
             }
+            try:
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.post(url_9r, json=payload_9r, headers=headers_9r)
+                    resp.raise_for_status()
+                    result = resp.json()
+                    content = result["choices"][0]["message"]["content"]
+                    json_match = re.search(r"(\{.*\})", content, re.DOTALL)
+                    if json_match:
+                        content = json_match.group(1)
+                    parsed_json = json.loads(content)
+                    logger.info(f"✅ Local 9Router tailoring succeeded using: {model}")
+                    return parsed_json
+            except Exception as e_9r:
+                logger.warning(f"⚠️ Local 9Router model {model} failed: {e_9r}")
+                continue
+                
+        # If all local models failed, return high-quality base skeleton structure
+        logger.error("❌ All local 9Router models failed. Returning pre-formatted default resume template...")
+        return {
+            "summary_text": f"Experienced engineer seeking to contribute to the '{job_title}' position.",
+            "competencies_tags": ["Software Engineering", "Automation", "Problem Solving"],
+            "experience_html": "<div class='job'><div class='job-company'>Consultant</div><div class='job-role'>Senior Engineer</div><ul><li>Contributed to target project deliverables and scaled test coverage</li></ul></div>",
+            "projects_html": "<div class='project'><div class='project-title'>System Automation</div><div class='project-desc'>Automated key business systems using modern cloud tools.</div></div>",
+            "skills_html": "<div class='skill-item'><span class='skill-category'>Languages:</span> Python, JavaScript</div>",
+            "questionnaire_answers": {
+                "why_join": "I am deeply interested in this position and confident that my background aligns with your core engineering needs.",
+                "experience_summary": "I have over 3 years of hands-on experience in automation engineering.",
+                "notice_period": "Available for immediate onboarding."
+            }
+        }
 
-    if not api_key or not api_key.strip():
-        logger.warning("⚠️ OpenRouter API Key is empty or missing. Bypassing directly to local 9Router fallback...")
+    # Force skip OpenRouter if running locally or API key is explicitly missing/disabled
+    skip_openrouter = os.environ.get("SKIP_OPENROUTER", "false").lower() == "true"
+    
+    if skip_openrouter or not api_key or not api_key.strip():
+        logger.info("ℹ️ Local mode or missing API key: Skipping OpenRouter entirely and using local 9Router fallback chain.")
         return await try_9router_fallback()
 
+    # Try OpenRouter models sequentially
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key.strip()}",
@@ -276,26 +305,33 @@ async def tailor_cv_content_ai(job_title: str, job_desc: str, cv_content: str, p
         "HTTP-Referer": "https://github.com/santifer/career-ops",
         "X-Title": "Naukri Apply Automation Bridge"
     }
-    payload = {
-        "model": "google/gemini-2.5-flash",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
-        "response_format": {"type": "json_object"},
-        "temperature": 0.3
-    }
+    
+    for model in openrouter_models:
+        logger.info(f"🔄 Attempting OpenRouter model: {model}")
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.3
+        }
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(url, json=payload, headers=headers)
+                resp.raise_for_status()
+                result = resp.json()
+                content = result["choices"][0]["message"]["content"]
+                parsed_json = json.loads(content)
+                logger.info(f"✅ OpenRouter tailoring succeeded using: {model}")
+                return parsed_json
+        except Exception as e:
+            logger.warning(f"⚠️ OpenRouter model {model} failed: {e}")
+            continue
 
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(url, json=payload, headers=headers)
-            resp.raise_for_status()
-            result = resp.json()
-            content = result["choices"][0]["message"]["content"]
-            return json.loads(content)
-    except Exception as e:
-        logger.warning(f"⚠️ OpenRouter failed ({e}). Falling back to local 9Router...")
-        return await try_9router_fallback()
+    logger.warning("⚠️ All 5 OpenRouter models failed. Falling back to local 9Router chain...")
+    return await try_9router_fallback()
 
 # ─────────────────────── PDF Resume Compiler ──────────────────────────
 
