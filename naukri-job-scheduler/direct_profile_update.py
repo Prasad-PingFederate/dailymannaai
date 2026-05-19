@@ -3,6 +3,7 @@ import json
 import logging
 from pathlib import Path
 from cloakbrowser import launch_async
+from src.apply_automation import inject_stealth_scripts
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s — %(message)s')
 logger = logging.getLogger("direct_profile_update")
@@ -26,7 +27,9 @@ async def main():
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--start-maximized"
+            "--start-maximized",
+            "--disable-http2",
+            "--disable-blink-features=AutomationControlled"
         ]
     )
     
@@ -36,6 +39,7 @@ async def main():
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
+        await inject_stealth_scripts(context)
         
         # Load active session cookies
         session_file = Path("data/naukri_session.json")

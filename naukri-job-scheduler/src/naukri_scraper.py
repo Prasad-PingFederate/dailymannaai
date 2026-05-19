@@ -27,6 +27,77 @@ _USER_AGENTS = [
 ]
 
 
+async def inject_stealth_scripts(context):
+    """
+    Injects custom state-of-the-art stealth scripts into a browser context
+    to fully bypass advanced bot-detection frameworks.
+    """
+    stealth_script = """
+    // 1. Remove navigator.webdriver indicator
+    Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined
+    });
+
+    // 2. Mock Chrome runtime structure
+    window.chrome = {
+        runtime: {},
+        app: {
+            InstallState: {"DISABLED": "Disabled", "INSTALLED": "Installed", "NOT_INSTALLED": "Not Installed"},
+            RunningState: {"CANNOT_RUN": "Cannot Run", "READY_TO_RUN": "Ready To Run", "RUNNING": "Running"},
+            getDetails: () => {},
+            getIsInstalled: () => {},
+            install: () => {},
+            isInstalled: false
+        },
+        csi: () => {},
+        loadTimes: () => {}
+    };
+
+    // 3. Mock realistic Plugins
+    const mockPlugins = [
+        { name: 'PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+        { name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+        { name: 'Chromium PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' }
+    ];
+    Object.defineProperty(navigator, 'plugins', {
+        get: () => {
+            const list = [...mockPlugins];
+            list.item = (i) => list[i];
+            list.namedItem = (name) => list.find(p => p.name === name);
+            return list;
+        }
+    });
+
+    // 4. Mock native Languages
+    Object.defineProperty(navigator, 'languages', {
+        get: () => ['en-IN', 'en-GB', 'en-US', 'en']
+    });
+
+    // 5. Mock WebGL Parameters to strip Headless/Software GPU signatures
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter) {
+        // UNMASKED_VENDOR_WEBGL
+        if (parameter === 37445) {
+            return 'Intel Inc.';
+        }
+        // UNMASKED_RENDERER_WEBGL
+        if (parameter === 37446) {
+            return 'Intel(R) Iris(R) Xe Graphics';
+        }
+        return getParameter.call(this, parameter);
+    };
+
+    // 6. Mock Permissions API inconsistencies
+    const originalQuery = navigator.permissions.query;
+    navigator.permissions.query = (parameters) => (
+        parameters.name === 'notifications' ?
+            Promise.resolve({ state: Notification.permission }) :
+            originalQuery(parameters)
+    );
+    """
+    await context.add_init_script(stealth_script)
+
+
 async def launch_stealth_browser(headless=True, args=None):
     """
     Launches browser. Bypasses CloakBrowser in CI environments (GitHub Actions)
@@ -34,6 +105,18 @@ async def launch_stealth_browser(headless=True, args=None):
     """
     is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
     
+    if not args:
+        args = ["--no-sandbox", "--disable-setuid-sandbox"]
+        
+    # Inject standard anti-bot stealth parameters to prevent detection and ERR_HTTP2_PROTOCOL_ERROR
+    stealth_args = [
+        "--disable-http2",
+        "--disable-blink-features=AutomationControlled"
+    ]
+    for arg in stealth_args:
+        if arg not in args:
+            args.append(arg)
+            
     if not is_ci:
         try:
             from cloakbrowser import launch_async as cloak_launch
@@ -47,7 +130,7 @@ async def launch_stealth_browser(headless=True, args=None):
     playwright = await async_playwright().start()
     browser = await playwright.chromium.launch(
         headless=headless,
-        args=args or ["--no-sandbox", "--disable-setuid-sandbox"]
+        args=args
     )
     
     # Monkey patch browser.close to also stop the playwright driver cleanly
@@ -549,6 +632,7 @@ class NaukriScraper:
                         "sec-ch-ua-platform": '"Windows"',
                     },
                 )
+                await inject_stealth_scripts(context)
                 page = await context.new_page()
 
                 # Login once per scraper lifetime (cookie-first, no redundant logins)

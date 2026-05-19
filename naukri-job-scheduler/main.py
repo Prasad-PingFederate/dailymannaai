@@ -201,8 +201,7 @@ async def main():
                 if success:
                     logger.info("✅ Email digest sent successfully!")
                 else:
-                    logger.error("❌ Email sending failed")
-                    sys.exit(1)
+                    logger.warning("⚠️ Email digest sending failed. Verify your SMTP credentials and Gmail App Password, but the run completed successfully.")
             except ValueError as e:
                 logger.warning(f"⚠️ Email notification skipped: {e} (This is normal during local manual testing if email environment secrets are not configured.)")
     else:

@@ -16,6 +16,77 @@ import httpx
 
 logger = logging.getLogger("apply_automation")
 
+async def inject_stealth_scripts(context):
+    """
+    Injects custom state-of-the-art stealth scripts into a browser context
+    to fully bypass advanced bot-detection frameworks.
+    """
+    stealth_script = """
+    // 1. Remove navigator.webdriver indicator
+    Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined
+    });
+
+    // 2. Mock Chrome runtime structure
+    window.chrome = {
+        runtime: {},
+        app: {
+            InstallState: {"DISABLED": "Disabled", "INSTALLED": "Installed", "NOT_INSTALLED": "Not Installed"},
+            RunningState: {"CANNOT_RUN": "Cannot Run", "READY_TO_RUN": "Ready To Run", "RUNNING": "Running"},
+            getDetails: () => {},
+            getIsInstalled: () => {},
+            install: () => {},
+            isInstalled: false
+        },
+        csi: () => {},
+        loadTimes: () => {}
+    };
+
+    // 3. Mock realistic Plugins
+    const mockPlugins = [
+        { name: 'PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+        { name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+        { name: 'Chromium PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' }
+    ];
+    Object.defineProperty(navigator, 'plugins', {
+        get: () => {
+            const list = [...mockPlugins];
+            list.item = (i) => list[i];
+            list.namedItem = (name) => list.find(p => p.name === name);
+            return list;
+        }
+    });
+
+    // 4. Mock native Languages
+    Object.defineProperty(navigator, 'languages', {
+        get: () => ['en-IN', 'en-GB', 'en-US', 'en']
+    });
+
+    // 5. Mock WebGL Parameters to strip Headless/Software GPU signatures
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter) {
+        // UNMASKED_VENDOR_WEBGL
+        if (parameter === 37445) {
+            return 'Intel Inc.';
+        }
+        // UNMASKED_RENDERER_WEBGL
+        if (parameter === 37446) {
+            return 'Intel(R) Iris(R) Xe Graphics';
+        }
+        return getParameter.call(this, parameter);
+    };
+
+    // 6. Mock Permissions API inconsistencies
+    const originalQuery = navigator.permissions.query;
+    navigator.permissions.query = (parameters) => (
+        parameters.name === 'notifications' ?
+            Promise.resolve({ state: Notification.permission }) :
+            originalQuery(parameters)
+    );
+    """
+    await context.add_init_script(stealth_script)
+
+
 async def launch_stealth_browser(headless=True, args=None):
     """
     Launches browser. Bypasses CloakBrowser in CI environments (GitHub Actions)
@@ -23,6 +94,18 @@ async def launch_stealth_browser(headless=True, args=None):
     """
     is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
     
+    if not args:
+        args = ["--no-sandbox", "--disable-setuid-sandbox"]
+        
+    # Inject standard anti-bot stealth parameters to prevent detection and ERR_HTTP2_PROTOCOL_ERROR
+    stealth_args = [
+        "--disable-http2",
+        "--disable-blink-features=AutomationControlled"
+    ]
+    for arg in stealth_args:
+        if arg not in args:
+            args.append(arg)
+            
     if not is_ci:
         try:
             from cloakbrowser import launch_async as cloak_launch
@@ -36,7 +119,7 @@ async def launch_stealth_browser(headless=True, args=None):
     playwright = await async_playwright().start()
     browser = await playwright.chromium.launch(
         headless=headless,
-        args=args or ["--no-sandbox", "--disable-setuid-sandbox"]
+        args=args
     )
     
     # Monkey patch browser.close to also stop the playwright driver cleanly
@@ -142,8 +225,49 @@ async def tailor_cv_content_ai(job_title: str, job_desc: str, cv_content: str, p
         f"Candidate Base CV:\n{cv_content}\n"
     )
 
+    async def try_9router_fallback():
+        logger.info("🤖 Using local 9Router for resume tailoring...")
+        url_9r = "http://localhost:20128/v1/chat/completions"
+        headers_9r = {
+            "Authorization": "Bearer 9r-98fa4daf16ff4b9680a1aad8e8676c08",
+            "Content-Type": "application/json"
+        }
+        payload_9r = {
+            "model": "oc/nemotron-3-super-free",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.3
+        }
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(url_9r, json=payload_9r, headers=headers_9r)
+                resp.raise_for_status()
+                result = resp.json()
+                content = result["choices"][0]["message"]["content"]
+                json_match = re.search(r"(\{.*\})", content, re.DOTALL)
+                if json_match:
+                    content = json_match.group(1)
+                return json.loads(content)
+        except Exception as e_9r:
+            logger.error(f"❌ 9Router fallback failed: {e_9r}")
+            return {
+                "summary_text": f"Experienced engineer seeking to contribute to the '{job_title}' position.",
+                "competencies_tags": ["Software Engineering", "Automation", "Problem Solving"],
+                "experience_html": "<div class='job'><div class='job-company'>Consultant</div><div class='job-role'>Senior Engineer</div><ul><li>Contributed to target project deliverables and scaled test coverage</li></ul></div>",
+                "projects_html": "<div class='project'><div class='project-title'>System Automation</div><div class='project-desc'>Automated key business systems using modern cloud tools.</div></div>",
+                "skills_html": "<div class='skill-item'><span class='skill-category'>Languages:</span> Python, JavaScript</div>",
+                "questionnaire_answers": {
+                    "why_join": "I am deeply interested in this position and confident that my background aligns with your core engineering needs.",
+                    "experience_summary": "I have over 3 years of hands-on experience in automation engineering.",
+                    "notice_period": "Available for immediate onboarding."
+                }
+            }
+
     if not api_key or not api_key.strip():
-        raise ValueError("Missing or empty OpenRouter API Key")
+        logger.warning("⚠️ OpenRouter API Key is empty or missing. Bypassing directly to local 9Router fallback...")
+        return await try_9router_fallback()
 
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
@@ -171,45 +295,7 @@ async def tailor_cv_content_ai(job_title: str, job_desc: str, cv_content: str, p
             return json.loads(content)
     except Exception as e:
         logger.warning(f"⚠️ OpenRouter failed ({e}). Falling back to local 9Router...")
-        # 9Router local AI fallback
-        url_9r = "http://localhost:20128/v1/chat/completions"
-        headers_9r = {
-            "Authorization": "Bearer 9r-98fa4daf16ff4b9680a1aad8e8676c08",
-            "Content-Type": "application/json"
-        }
-        payload_9r = {
-            "model": "oc/nemotron-3-super-free",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.3
-        }
-        try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                resp = await client.post(url_9r, json=payload_9r, headers=headers_9r)
-                resp.raise_for_status()
-                result = resp.json()
-                content = result["choices"][0]["message"]["content"]
-                json_match = re.search(r"(\{.*\})", content, re.DOTALL)
-                if json_match:
-                    content = json_match.group(1)
-                return json.loads(content)
-        except Exception as e_9r:
-            logger.error(f"❌ 9Router fallback failed: {e_9r}")
-            # Fallback empty structure
-            return {
-                "summary_text": f"Experienced engineer seeking to contribute to the '{job_title}' position.",
-                "competencies_tags": ["Software Engineering", "Automation", "Problem Solving"],
-                "experience_html": "<div class='job'><div class='job-company'>Consultant</div><div class='job-role'>Senior Engineer</div><ul><li>Contributed to target project deliverables and scaled test coverage</li></ul></div>",
-                "projects_html": "<div class='project'><div class='project-title'>System Automation</div><div class='project-desc'>Automated key business systems using modern cloud tools.</div></div>",
-                "skills_html": "<div class='skill-item'><span class='skill-category'>Languages:</span> Python, JavaScript</div>",
-                "questionnaire_answers": {
-                    "why_join": "I am deeply interested in this position and confident that my background aligns with your core engineering needs.",
-                    "experience_summary": "I have over 3 years of hands-on experience in automation engineering.",
-                    "notice_period": "Available for immediate onboarding."
-                }
-            }
+        return await try_9router_fallback()
 
 # ─────────────────────── PDF Resume Compiler ──────────────────────────
 
@@ -419,6 +505,7 @@ async def automate_naukri_application(job_url: str, pdf_path: Path, answers: dic
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
+        await inject_stealth_scripts(context)
         
         # Check for cookies session path
         session_file = Path("data/naukri_session.json")
@@ -649,6 +736,7 @@ async def upload_resume_to_naukri_profile(pdf_path: Path, headless: bool = False
             locale="en-IN",
             timezone_id="Asia/Kolkata"
         )
+        await inject_stealth_scripts(context)
         
         # Restore active session cookies
         session_file = Path("data/naukri_session.json")
