@@ -133,12 +133,14 @@ async def main():
             )
             
             keys = load_env_keys()
+            skip_openrouter = keys.get("SKIP_OPENROUTER", "false").lower() == "true" or os.environ.get("SKIP_OPENROUTER", "false").lower() == "true"
             api_key = keys.get("OPENROUTER_API_KEY")
             profile = load_profile_config()
             
-            if not api_key:
-                logger.info("ℹ️ OPENROUTER_API_KEY is missing. Proceeding using local 9Router and standard fallback resume tailoring...")
+            if skip_openrouter or not api_key:
+                logger.info("ℹ️ Skipping OpenRouter (local/disabled mode). Proceeding using local 9Router and standard fallback resume tailoring...")
                 api_key = ""
+                os.environ["SKIP_OPENROUTER"] = "true"
 
             is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
             headless = True if is_ci else apply_cfg.get("headless", False)
@@ -201,8 +203,7 @@ async def main():
                 if success:
                     logger.info("✅ Email digest sent successfully!")
                 else:
-                    logger.error("❌ Email sending failed")
-                    sys.exit(1)
+                    logger.warning("⚠️ Email digest sending failed. Verify your SMTP credentials and Gmail App Password, but the run completed successfully.")
             except ValueError as e:
                 logger.warning(f"⚠️ Email notification skipped: {e} (This is normal during local manual testing if email environment secrets are not configured.)")
     else:
