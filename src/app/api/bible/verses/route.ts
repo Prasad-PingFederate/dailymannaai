@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCosmosContainer } from "@/lib/cosmos";
-import { getAstraDb } from "@/lib/astra";
+import { getDatabase } from "@/lib/mongodb";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -11,9 +10,7 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const bookRaw = searchParams.get("book")?.trim() || "";
         
-        // Canonical book name map — guarantees exact DB match for ALL 66 books
         const CANONICAL_BOOKS: Record<string, string> = {
-            // Old Testament
             'genesis': 'Genesis', 'exodus': 'Exodus', 'leviticus': 'Leviticus',
             'numbers': 'Numbers', 'deuteronomy': 'Deuteronomy', 'joshua': 'Joshua',
             'judges': 'Judges', 'ruth': 'Ruth', '1 samuel': '1 Samuel', '2 samuel': '2 Samuel',
@@ -26,7 +23,6 @@ export async function GET(req: Request) {
             'amos': 'Amos', 'obadiah': 'Obadiah', 'jonah': 'Jonah', 'micah': 'Micah',
             'nahum': 'Nahum', 'habakkuk': 'Habakkuk', 'zephaniah': 'Zephaniah',
             'haggai': 'Haggai', 'zechariah': 'Zechariah', 'malachi': 'Malachi',
-            // New Testament
             'matthew': 'Matthew', 'mark': 'Mark', 'luke': 'Luke', 'john': 'John',
             'acts': 'Acts', 'romans': 'Romans', '1 corinthians': '1 Corinthians',
             '2 corinthians': '2 Corinthians', 'galatians': 'Galatians', 'ephesians': 'Ephesians',
@@ -42,101 +38,35 @@ export async function GET(req: Request) {
         const chapter = parseInt(searchParams.get("chapter") || "0");
         const translationRaw = searchParams.get("translation")?.toLowerCase() || "kjv";
 
-        // LOGGING FOR FUTURE MONITORING
         console.log(`[BIBLE_API] Request: ${book} ${chapter} (Translation: ${translationRaw})`);
 
         if (!book || !chapter) {
             return NextResponse.json({ error: "Book and Chapter are required" }, { status: 400 });
         }
 
-        // VERSION RESOLVER: Maps legacy UI IDs to actual DB Version Codes
         const VERSION_RESOLVER: Record<string, string> = {
-            'tl': 'TGLULB',
-            'th': 'THAKJV',
-            'ja': 'JPN1965',
-            'vi': 'VIE1934',
-            'my': 'MYA',
-            'it': 'ITA1927',
-            'pl': 'POLUBG',
-            'tr': 'TURYTC',
-            'ro': 'RONBTF',
-            'sw': 'SWHONEN',
-            'nl': 'NLDNBG',
-            'uk': 'UKR1871',
-            'sv': 'SWE',
-            'fi': 'FINPR',
-            'da': 'DAN1931',
-            'cs': 'CES1613',
-            'hr': 'HRV',
-            'sr': 'SRP1865',
-            'la': 'LATVUC',
-            'et': 'EKK',
-            'lt': 'LIT',
-            'eo': 'EPO',
-            'ru': 'RUSSYN',
-            'ko': 'KOR',
-            'de': 'DEUTKW',
-            'fr': 'FRANCL',
-            'pt': 'PORONBV',
-            'zh': 'ZH',
-            'es': 'SPARV1909',
-            'ar': 'ARBNAV',
-            'el': 'GRCMT',
-            'he': 'HEBSG',
-            'grc': 'GRCLXX',
-            'hbo': 'HBOWLC',
-            'syr': 'SYR',
-            'got': 'GOT',
-            'cop': 'COP',
-            'cu': 'CU',
-            'pck': 'PCK',
-            'pes-xml': 'PESOPV',
-            'arb-xml': 'ARBNAV',
-            'my-xml': 'MYA',
-            'tl-xml': 'TGLULB',
-            'tr-xml': 'TURYTC',
-            'hindi': 'HIN2017',
-            'hi': 'HIN2017',
-            'bengali': 'BENIRV',
-            'bn': 'BENIRV',
-            'kannada': 'KANIRV',
-            'kn': 'KANIRV',
-            'telugu': 'TEL2017',
-            'te': 'TEL2017',
-            'tamil': 'TAM2017',
-            'ta': 'TAM2017',
-            'malayalam': 'MALIRV',
-            'ml': 'MALIRV',
-            'gujarati': 'GUJIRV',
-            'gu': 'GUJIRV',
-            'marathi': 'MARIRV',
-            'mr': 'MARIRV',
-            'punjabi': 'PANIRV',
-            'pa': 'PANIRV',
-            'oriya': 'ORIIRV',
-            'or': 'ORIIRV',
-            'nepali': 'NPIULB',
-            'indonesian': 'IND',
-            'english': 'ENG-WEB-C',
-            'afrikaans': 'AFR1953',
-            'sq': 'ALB',
-            'nb': 'NOB',
-            'lv': 'LAT',
-            'eu': 'EUS',
-            'mi': 'MAO',
-            'ctu': 'CTUBL',
-            'kyg': 'KYG',
-            'dww': 'DWW',
-            'isl': 'ISL',
-            'kgf': 'KGF',
-            'ssd': 'SSD',
-            'cesnb': 'CESLB',
-            'cesnkb': 'CESNKB',
+            'tl': 'TGLULB', 'th': 'THAKJV', 'ja': 'JPN1965', 'vi': 'VIE1934', 'my': 'MYA',
+            'it': 'ITA1927', 'pl': 'POLUBG', 'tr': 'TURYTC', 'ro': 'RONBTF', 'sw': 'SWHONEN',
+            'nl': 'NLDNBG', 'uk': 'UKR1871', 'sv': 'SWE', 'fi': 'FINPR', 'da': 'DAN1931',
+            'cs': 'CES1613', 'hr': 'HRV', 'sr': 'SRP1865', 'la': 'LATVUC', 'et': 'EKK',
+            'lt': 'LIT', 'eo': 'EPO', 'ru': 'RUSSYN', 'ko': 'KOR', 'de': 'DEUTKW',
+            'fr': 'FRANCL', 'pt': 'PORONBV', 'zh': 'ZH', 'es': 'SPARV1909', 'ar': 'ARBNAV',
+            'el': 'GRCMT', 'he': 'HEBSG', 'grc': 'GRCLXX', 'hbo': 'HBOWLC', 'syr': 'SYR',
+            'got': 'GOT', 'cop': 'COP', 'cu': 'CU', 'pck': 'PCK', 'pes-xml': 'PESOPV',
+            'arb-xml': 'ARBNAV', 'my-xml': 'MYA', 'tl-xml': 'TGLULB', 'tr-xml': 'TURYTC',
+            'hindi': 'HIN2017', 'hi': 'HIN2017', 'bengali': 'BENIRV', 'bn': 'BENIRV',
+            'kannada': 'KANIRV', 'kn': 'KANIRV', 'telugu': 'TEL2017', 'te': 'TEL2017',
+            'tamil': 'TAM2017', 'ta': 'TAM2017', 'malayalam': 'MALIRV', 'ml': 'MALIRV',
+            'gujarati': 'GUJIRV', 'gu': 'GUJIRV', 'marathi': 'MARIRV', 'mr': 'MARIRV',
+            'punjabi': 'PANIRV', 'pa': 'PANIRV', 'oriya': 'ORIIRV', 'or': 'ORIIRV',
+            'nepali': 'NPIULB', 'indonesian': 'IND', 'english': 'ENG-WEB-C', 'afrikaans': 'AFR1953',
+            'sq': 'ALB', 'nb': 'NOB', 'lv': 'LAT', 'eu': 'EUS', 'mi': 'MAO',
+            'ctu': 'CTUBL', 'kyg': 'KYG', 'dww': 'DWW', 'isl': 'ISL', 'kgf': 'KGF',
+            'ssd': 'SSD', 'cesnb': 'CESLB', 'cesnkb': 'CESNKB',
         };
 
         const translation = VERSION_RESOLVER[translationRaw] || translationRaw.toUpperCase();
         
-        // Helper to fetch from local JSON fallback files if DB fails
         const getVersesFromLocalJson = (targetVer: string, bookName: string, chapterNum: number) => {
             const VERSION_TO_FILE: Record<string, string> = {
                 'SPARV1909': 'bible_es_export.json',
@@ -164,14 +94,11 @@ export async function GET(req: Request) {
                     if (!line.trim()) continue;
                     try {
                         const verseObj = JSON.parse(line);
-                        // Check book, chapter AND version (if in the big translations file)
                         const matchesBook = verseObj.book?.toLowerCase() === bookName.toLowerCase();
                         const matchesChapter = verseObj.chapter === chapterNum;
                         
                         if (matchesBook && matchesChapter) {
                             if (filename === 'bible_translations_export.json') {
-                                // For the general file, try to match the version string (e.g. "BENGALI", "HINDI")
-                                // or the targetVer code if it's stored there.
                                 if (verseObj.version?.toUpperCase() === targetVer.toUpperCase() || 
                                     verseObj.version?.toUpperCase() === translationRaw.toUpperCase()) {
                                     localVerses.push(verseObj);
@@ -189,13 +116,6 @@ export async function GET(req: Request) {
             }
         };
 
-        // ------------------------------------------------------------------------
-        // CHANGED TO COSMOS DB
-        // ------------------------------------------------------------------------
-        // We no longer query split collections like `bible_ar` vs `bible_kjv`.
-        // Cosmos DB contains ALL verses in the single `verses` container!
-        
-        // SMART FALLBACK SYSTEM: Combine fragments (e.g. Greek LXX + NT)
         const PRIMARY_VERSION = translation;
         const FALLBACK_STRATEGY: Record<string, string[]> = {
             'GRCMT': ['GRCLXX', 'GRC-TISCH', 'GRCTCGNT', 'GRCSBL'],
@@ -213,66 +133,44 @@ export async function GET(req: Request) {
         
         let result: any[] = [];
         let finalResolvedVersion = PRIMARY_VERSION;
-        let dataSource = "AstraDB";
+        let dataSource = "MongoDB";
 
-        // 1. PRIMARY SOURCE: ASTRA DB (80GB Data Source)
-        console.log(`[BIBLE_API] Querying Astra DB: ${book} ${chapter} (Version: ${PRIMARY_VERSION})`);
+        // 1. PRIMARY SOURCE: MongoDB
         try {
-            const astraDb = getAstraDb();
-            const astraColl = astraDb.collection('bible_verses');
+            console.log(`[BIBLE_API] Connecting to MongoDB...`);
+            const db = await getDatabase();
             
-            const astraRes = await astraColl.find({
-                book: book.toUpperCase(),
-                chapter: chapter,
-                version: PRIMARY_VERSION.toUpperCase()
-            }).toArray();
-
-            if (astraRes && astraRes.length > 0) {
-                result = astraRes;
-                console.log(`[BIBLE_API] Astra DB SUCCESS! Found ${result.length} verses.`);
-            }
-        } catch (err) {
-            console.warn("[BIBLE_API] Astra DB Primary query failed:", err);
-        }
-
-        // 2. SECONDARY SOURCE: COSMOS DB (Fallback)
-        if (result.length === 0) {
-            console.log(`[BIBLE_API] Astra empty/failed. Attempting Cosmos DB Fallback...`);
-            try {
-                const container = getCosmosContainer("BibleDatabase", "verses");
+            // Try both 'bible_verses' and 'verses' collections
+            const collectionsToTry = ['bible_verses', 'verses'];
+            
+            for (const collName of collectionsToTry) {
+                const collection = db.collection(collName);
+                
                 for (const targetVer of versionTries) {
-                    console.log(`[BIBLE_API] Querying Cosmos Fallback: ${book} ${chapter} (Version: ${targetVer})`);
-                    try {
-                        const querySpec = {
-                            query: "SELECT * FROM c WHERE UPPER(c.book) = @book AND c.chapter = @chapter AND c.version = @version",
-                            parameters: [
-                                { name: "@book", value: book.toUpperCase() },
-                                { name: "@chapter", value: chapter },
-                                { name: "@version", value: targetVer }
-                            ]
-                        };
+                    console.log(`[BIBLE_API] Querying MongoDB ${collName}: ${book} ${chapter} (Version: ${targetVer})`);
+                    
+                    const mongoRes = await collection.find({
+                        book: book.toUpperCase(),
+                        chapter: chapter,
+                        version: targetVer
+                    }).toArray();
 
-                        const { resources: currentResult } = await container.items.query(querySpec, { 
-                            partitionKey: targetVer,
-                            maxItemCount: 200 
-                        }).fetchAll();
-
-                        if (currentResult && currentResult.length > 0) {
-                            result = currentResult;
-                            finalResolvedVersion = targetVer;
-                            dataSource = "CosmosDB";
-                            break; 
-                        }
-                    } catch (cosmosError) {
-                        console.warn(`[BIBLE_API] Cosmos Fallback Failed for ${targetVer}:`, cosmosError);
+                    if (mongoRes && mongoRes.length > 0) {
+                        result = mongoRes;
+                        finalResolvedVersion = targetVer;
+                        console.log(`[BIBLE_API] MongoDB SUCCESS in ${collName}! Found ${result.length} verses.`);
+                        break;
                     }
                 }
-            } catch (e) {
-                console.error("[BIBLE_API] Cosmos Client Initialization Failed:", e);
+                
+                if (result.length > 0) break;
             }
+            
+        } catch (err: any) {
+            console.warn("[BIBLE_API] MongoDB query failed:", err.message);
         }
 
-        // 3. TERTIARY SOURCE: JSON FALLBACK
+        // 2. FALLBACK SOURCE: Local JSON files
         if (result.length === 0) {
             console.log(`[BIBLE_API] No DB results. Attempting JSON Fallback for ${book} ${chapter}`);
             const localVerses = getVersesFromLocalJson(PRIMARY_VERSION, book, chapter);
@@ -290,7 +188,6 @@ export async function GET(req: Request) {
             console.log(`[BIBLE_API] Success! Found ${result.length} verses in ${finalResolvedVersion} from ${dataSource}.`);
         }
 
-        // Manual sort by verse number locally
         result.sort((a: any, b: any) => (a.verse || 0) - (b.verse || 0));
 
         return NextResponse.json({ 
@@ -310,7 +207,6 @@ export async function GET(req: Request) {
         console.error("Bible Fetch Error Details:", {
             message: error.message,
             stack: error.stack,
-            url: req.url
         });
         return NextResponse.json({ 
             error: "Failed to load scripture content", 

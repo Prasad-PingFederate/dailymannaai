@@ -8,16 +8,16 @@ export async function getDatabase(): Promise<Db> {
         return cachedDb;
     }
 
-    const uri = process.env.MONGODB_URI;
-    const dbName = process.env.MONGODB_DB || 'DailyMannaAI';
+    const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    const dbName = process.env.MONGODB_DB || process.env.MONGO_DB_NAME || 'dailymannaai';
 
     if (!uri) {
-        throw new Error("MONGODB_URI is MISSING. Please add it to your Vercel Environment Variables.");
+        throw new Error("MONGODB_URI or MONGO_URI is MISSING. Please add it to your environment variables.");
     }
 
     if (!uri.startsWith("mongodb://") && !uri.startsWith("mongodb+srv://")) {
         const preview = uri.substring(0, 15);
-        throw new Error(`MONGODB_URI is INVALID. It starts with "${preview}...". It MUST start with exactly 'mongodb://' or 'mongodb+srv://'. (Did you accidentally include the variable name in the value box?)`);
+        throw new Error(`MongoDB URI is INVALID. It starts with "${preview}...". It MUST start with exactly 'mongodb://' or 'mongodb+srv://'.`);
     }
 
     try {

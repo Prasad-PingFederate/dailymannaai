@@ -1,314 +1,176 @@
-/**
- * AI Provider Abstraction Layer (Final Bulletproof Version)
- * Supports multiple providers with v1 API support and deep fallback chains
- */
-
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import Groq from "groq-sdk";
-import { HfInference } from "@huggingface/inference";
-
-import { TrainingLogger } from "./training-logger";
-
-// 🛡️ PERMISSIVE SAFETY CONFIG FOR RELIGIOUS DIALOGUE
-const RELIGIOUS_SAFETY_SETTINGS = [
-    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-];
+import { generateText, streamText } from 'ai';
+import { google } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
 
 export interface AIProvider {
     name: string;
     generateResponse(prompt: string): Promise<string>;
-    generateStream?(prompt: string): Promise<ReadableStream>;
-    transcribeVideo?(videoUrl: string): Promise<string>;
-    transcribeAudio?(audioUrl: string): Promise<string>;
+    generateStream(prompt: string): Promise<ReadableStream>;
 }
 
-/**
- * Transforms an SSE (Server-Sent Events) stream from OpenAI-compatible APIs
- * into a plain text ReadableStream that the frontend can display directly.
- */
-function parseSSEStream(rawStream: ReadableStream): ReadableStream {
-    const reader = rawStream.getReader();
-    const decoder = new TextDecoder();
-    const encoder = new TextEncoder();
-    let buffer = '';
+export class AIProviderManager {
+    private providers: AIProvider[] = [];
 
-    return new ReadableStream({
-        async pull(controller) {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    // Process any remaining buffer
-                    if (buffer.trim()) {
-                        const lines = buffer.split('\n');
-                        for (const line of lines) {
-                            const content = extractSSEContent(line);
-                            if (content) controller.enqueue(encoder.encode(content));
-                        }
-                    }
-                    controller.close();
-                    return;
-                }
+    constructor() {
+        const geminiKey = process.env.GEMINI_API_KEY;
+        const groqKey = process.env.GROQ_API_KEY;
+        const togetherKey = process.env.TOGETHER_API_KEY;
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-                for (const line of lines) {
-                    const content = extractSSEContent(line);
-                    if (content) {
-                        controller.enqueue(encoder.encode(content));
-                        return; // Yield after each chunk for streaming effect
-                    }
-                }
-            }
-        },
-        cancel() {
-            reader.cancel();
-        }
-    });
-}
-
-function extractSSEContent(line: string): string | null {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('data:')) return null;
-    const data = trimmed.slice(5).trim();
-    if (data === '[DONE]') return null;
-    try {
-        const parsed = JSON.parse(data);
-        return parsed.choices?.[0]?.delta?.content || null;
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Utility to detect if an AI response is a "refusal" 
- * (e.g. "I cannot access YouTube") rather than a transcript.
- */
-export function isRefusalResponse(text: string): boolean {
-    const refusalPatterns = [
-        "cannot directly access",
-        "don't have access to",
-        "cannot transcribe",
-        "am an AI",
-        "unable to visit",
-        "I can't access",
-        "I am unable to access",
-        "as an AI language model",
-        "I don't have real-time",
-        "unfortunately, i cannot",
-        "sorry, i had trouble",
-        "3rd party tools",
-        "manual transcription"
-    ];
-    const lower = text.toLowerCase();
-    return refusalPatterns.some(p => lower.includes(p));
-}
-
-/**
- * Gemini Provider (Switching to v1 API)
- */
-class GeminiProvider implements AIProvider {
-    name = "Gemini";
-    private client: GoogleGenerativeAI;
-
-    constructor(apiKey: string) {
-        this.client = new GoogleGenerativeAI(apiKey);
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        // Broad list of stable model identifiers
-        const modelNames = [
-            "gemini-2.0-flash-exp",
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
-            "gemini-pro"
-        ];
-        let lastError = "";
-
-        for (const modelName of modelNames) {
-            try {
-                console.log(`[AI] Gemini testing: ${modelName}...`);
-                // Use generic approach to allow beta models
-                const model = this.client.getGenerativeModel({
-                    model: modelName,
-                    safetySettings: RELIGIOUS_SAFETY_SETTINGS
-                });
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                return response.text();
-            } catch (error: any) {
-                lastError = error.message || String(error);
-                console.warn(`[AI] Gemini ${modelName} failed: ${lastError.substring(0, 100)}`);
-                continue; // Always try next model
-            }
-        }
-        throw new Error(`Gemini failed all model attempts. Last error: ${lastError}`);
-    }
-
-    async generateStream(prompt: string): Promise<ReadableStream> {
-        const model = this.client.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            safetySettings: RELIGIOUS_SAFETY_SETTINGS
-        });
-        const result = await model.generateContentStream(prompt);
-
-        return new ReadableStream({
-            async start(controller) {
-                const encoder = new TextEncoder();
-                try {
-                    for await (const chunk of result.stream) {
-                        const text = chunk.text();
-                        if (text) {
-                            controller.enqueue(encoder.encode(text));
-                        }
-                    }
-                    controller.close();
-                } catch (e) {
-                    controller.error(e);
-                }
-            },
-        });
-    }
-
-    async transcribeVideo(videoUrl: string): Promise<string> {
-        console.log(`[AI] Deep Transcription starting for: ${videoUrl}`);
-
-        // Try multiple models in order of priority
-        const transcriptionModels = [
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-latest",
-            "gemini-1.5-pro",
-            "gemini-1.5-pro-latest",
-            "gemini-pro"
-        ];
-
-        let lastError = "";
-        for (const modelName of transcriptionModels) {
-            try {
-                console.log(`[AI] Transcription attempt with: ${modelName}`);
-                const model = this.client.getGenerativeModel({
-                    model: modelName,
-                    safetySettings: RELIGIOUS_SAFETY_SETTINGS
-                });
-
-                const prompt = `
-                Mission: Act as a high-precision transcription engine.
-                Source: ${videoUrl}
-                Task: Provide a FULL, VERBATIM TRANSCRIPT of the speech content in this video.
-                Constraint 1: If you can access the video content directly (via URL analysis or internal tools), do so.
-                Constraint 2: If you CANNOT access the video directly, use your extensive internal knowledge of historical sermons, transcriptions, and metadata for this specific Video ID to reconstruct the SPEECH as accurately as possible. 
-                Constraint 3: Do NOT summarize. Provide the actual spoken words as if you were transcribing them.
-                Output: Just the transcript text, no preamble or summary headers.
-                `;
-
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const text = response.text();
-
-                if (text && text.length > 50) {
-                    if (isRefusalResponse(text)) {
-                        console.warn(`[AI] ${modelName} returned a refusal message. Treating as failure.`);
-                        continue;
-                    }
-                    console.log(`[AI] ✅ Success with model: ${modelName}`);
+        // 1. Google Gemini (Vercel AI SDK)
+        if (geminiKey) {
+            this.providers.push({
+                name: "Gemini",
+                async generateResponse(prompt: string) {
+                    const { text } = await generateText({
+                        model: google('gemini-1.5-flash'),
+                        prompt: prompt,
+                    });
                     return text;
+                },
+                async generateStream(prompt: string) {
+                    const { textStream } = await streamText({
+                        model: google('gemini-1.5-flash'),
+                        prompt: prompt,
+                    });
+                    const encoder = new TextEncoder();
+                    return new ReadableStream({
+                        async start(controller) {
+                            for await (const chunk of textStream) {
+                                controller.enqueue(encoder.encode(chunk));
+                            }
+                            controller.close();
+                        }
+                    });
                 }
+            });
+        }
+
+        // 2. Groq (OpenAI Compatible via Vercel AI SDK)
+        if (groqKey) {
+            const groq = createOpenAI({
+                baseURL: 'https://api.groq.com/openai/v1',
+                apiKey: groqKey,
+            });
+            this.providers.push({
+                name: "Groq",
+                async generateResponse(prompt: string) {
+                    const { text } = await generateText({
+                        model: groq('llama-3.3-70b-versatile'),
+                        prompt: prompt,
+                    });
+                    return text;
+                },
+                async generateStream(prompt: string) {
+                    const { textStream } = await streamText({
+                        model: groq('llama-3.3-70b-versatile'),
+                        prompt: prompt,
+                    });
+                    const encoder = new TextEncoder();
+                    return new ReadableStream({
+                        async start(controller) {
+                            for await (const chunk of textStream) {
+                                controller.enqueue(encoder.encode(chunk));
+                            }
+                            controller.close();
+                        }
+                    });
+                }
+            });
+        }
+
+        // 3. Together AI (OpenAI Compatible via Vercel AI SDK)
+        if (togetherKey) {
+            const together = createOpenAI({
+                baseURL: 'https://api.together.xyz/v1',
+                apiKey: togetherKey,
+            });
+            this.providers.push({
+                name: "Together AI",
+                async generateResponse(prompt: string) {
+                    const { text } = await generateText({
+                        model: together('meta-llama/Llama-3.1-8b-chat-hf'),
+                        prompt: prompt,
+                    });
+                    return text;
+                },
+                async generateStream(prompt: string) {
+                    const { textStream } = await streamText({
+                        model: together('meta-llama/Llama-3.1-8b-chat-hf'),
+                        prompt: prompt,
+                    });
+                    const encoder = new TextEncoder();
+                    return new ReadableStream({
+                        async start(controller) {
+                            for await (const chunk of textStream) {
+                                controller.enqueue(encoder.encode(chunk));
+                            }
+                            controller.close();
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    async generateResponse(prompt: string): Promise<{ response: string, provider: string }> {
+        if (this.providers.length === 0) {
+            throw new Error("No AI providers configured. Please set GEMINI_API_KEY, GROQ_API_KEY, or TOGETHER_API_KEY.");
+        }
+
+        let lastError = "";
+        for (const provider of this.providers) {
+            try {
+                console.log(`[AI-Manager] Trying ${provider.name}...`);
+                const response = await provider.generateResponse(prompt);
+                return { response, provider: provider.name };
             } catch (error: any) {
                 lastError = error.message;
-                console.warn(`[AI] Transcription with ${modelName} failed: ${lastError}`);
+                console.warn(`[AI-Manager] ${provider.name} failed: ${lastError}`);
             }
         }
-
-        throw new Error(`AI transcription totally failed across all Gemini models. Last: ${lastError}`);
-    }
-}
-
-/**
- * Groq Provider
- */
-class GroqProvider implements AIProvider {
-    name = "Groq";
-    private apiKey: string;
-
-    constructor(apiKey: string) {
-        this.apiKey = apiKey;
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        try {
-            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${this.apiKey}`,
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [{ role: "user", content: prompt }],
-                }),
-                signal: controller.signal,
-            });
-
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`Groq Error ${response.status}: ${text}`);
-            }
-
-            const data = await response.json();
-            return data.choices[0]?.message?.content || "";
-        } finally {
-            clearTimeout(timeoutId);
-        }
+        throw new Error(`All configured AI providers failed. Last Error: ${lastError}`);
     }
 
     async generateStream(prompt: string): Promise<ReadableStream> {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${this.apiKey}`,
-            },
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [{ role: "user", content: prompt }],
-                stream: true,
-            }),
-        });
-
-        if (!response.ok) {
-            const err = await response.text();
-            throw new Error(`Groq Stream Error: ${err}`);
+        if (this.providers.length === 0) {
+            throw new Error("No AI providers configured. Please set GEMINI_API_KEY, GROQ_API_KEY, or TOGETHER_API_KEY.");
         }
 
-        return parseSSEStream(response.body!);
+        let lastError = "";
+        for (const provider of this.providers) {
+            try {
+                console.log(`[AI-Manager] Stream trying ${provider.name}...`);
+                const stream = await provider.generateStream(prompt);
+                return stream;
+            } catch (error: any) {
+                lastError = error.message;
+                console.warn(`[AI-Manager] ${provider.name} stream failed: ${lastError}`);
+            }
+        }
+        throw new Error(`All configured AI providers failed streaming. Last Error: ${lastError}`);
     }
 
     async transcribeAudio(audioUrl: string): Promise<string> {
-        console.log(`[AI] Groq (Whisper) transcription for: ${audioUrl.substring(0, 50)}...`);
+        const groqKey = process.env.GROQ_API_KEY;
+        if (!groqKey) {
+            throw new Error("GROQ_API_KEY is required for audio transcription.");
+        }
+
+        console.log(`[AI-Manager] Groq (Whisper) transcription for: ${audioUrl.substring(0, 50)}...`);
         try {
-            // 1. Fetch the audio file
             const audioRes = await fetch(audioUrl);
             if (!audioRes.ok) throw new Error(`Failed to fetch audio: ${audioRes.status}`);
             const blob = await audioRes.blob();
 
-            // 2. Prepare multipart form data
             const formData = new FormData();
             formData.append('file', blob, 'audio.mp3');
             formData.append('model', 'whisper-large-v3');
             formData.append('response_format', 'json');
 
-            // 3. Call Groq's transcription endpoint
             const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
+                    "Authorization": `Bearer ${groqKey}`,
                 },
                 body: formData
             });
@@ -321,655 +183,12 @@ class GroqProvider implements AIProvider {
             const data = await response.json();
             return data.text || "";
         } catch (error: any) {
-            console.error(`[AI] Groq transcription failed: ${error.message}`);
+            console.error(`[AI-Manager] Groq transcription failed: ${error.message}`);
             throw error;
         }
     }
 }
 
-/**
- * xAI Provider (Grok)
- */
-class XAIProvider implements AIProvider {
-    name = "xAI (Grok)";
-    private apiKey: string;
-
-    constructor(apiKey: string) {
-        this.apiKey = apiKey;
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
-
-        try {
-            const response = await fetch("https://api.x.ai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${this.apiKey}`,
-                },
-                body: JSON.stringify({
-                    model: "grok-3-mini-fast",
-                    messages: [{ role: "user", content: prompt }],
-                }),
-                signal: controller.signal,
-            });
-
-            if (!response.ok) {
-                const text = await response.text();
-                if (text.includes("credits")) {
-                    throw new Error("Grok requires a credit purchase to use the API.");
-                }
-                throw new Error(`xAI Error ${response.status}: ${text}`);
-            }
-
-            const data = await response.json();
-            return data.choices[0]?.message?.content || "";
-        } finally {
-            clearTimeout(timeoutId);
-        }
-    }
-}
-
-/**
- * OpenRouter Provider (Wide variety of free endpoints)
- */
-class OpenRouterProvider implements AIProvider {
-    name = "OpenRouter";
-    private apiKey: string;
-
-    constructor(apiKey: string) {
-        this.apiKey = apiKey;
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        const fallbackModels = [
-            "anthropic/claude-3.5-sonnet",
-            "google/gemini-2.0-flash-exp:free",
-            "deepseek/deepseek-r1:free",
-            "meta-llama/llama-3.3-70b-instruct:free",
-            "mistralai/mistral-7b-instruct:free",
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "qwen/qwen-2.5-72b-instruct:free"
-        ];
-
-        let lastError = "";
-
-        for (const modelId of fallbackModels) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
-
-            try {
-                console.log(`[AI] OpenRouter testing: ${modelId}...`);
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${this.apiKey}`,
-                        "HTTP-Referer": "https://dailymannaai.com",
-                        "X-Title": "Daily Manna AI",
-                    },
-                    body: JSON.stringify({
-                        model: modelId,
-                        messages: [{ role: "user", content: prompt }],
-                        max_tokens: 4096,
-                        temperature: 0.7,
-                        repetition_penalty: 1.1,
-                        top_p: 0.9,
-                    }),
-                    signal: controller.signal,
-                });
-
-                const data = await response.json().catch(() => ({ error: { message: "Invalid JSON" } }));
-
-                if (!response.ok) {
-                    lastError = data.error?.message || response.statusText;
-                    console.warn(`[AI] OpenRouter ${modelId} failed: ${lastError}`);
-                    if (response.status === 404 || lastError.toLowerCase().includes("endpoints") || lastError.toLowerCase().includes("credits")) {
-                        continue;
-                    }
-                    throw new Error(lastError);
-                }
-
-                return data.choices[0]?.message?.content || "";
-            } catch (error: any) {
-                lastError = error.name === 'AbortError' ? 'Request timeout (8s)' : error.message;
-                continue;
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-        throw new Error(`OpenRouter failed (likely credits or no free endpoints). Last: ${lastError}`);
-    }
-
-    async generateStream(prompt: string): Promise<ReadableStream> {
-        const models = ["deepseek/deepseek-r1:free", "deepseek/deepseek-chat", "google/gemini-2.0-flash-exp:free"];
-        let lastError = "";
-
-        for (const modelId of models) {
-            try {
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${this.apiKey}`,
-                    },
-                    body: JSON.stringify({
-                        model: modelId,
-                        messages: [{ role: "user", content: prompt }],
-                        stream: true,
-                    }),
-                });
-
-                if (!response.ok) {
-                    const err = await response.text();
-                    throw new Error(err);
-                }
-
-                return parseSSEStream(response.body!);
-            } catch (error: any) {
-                lastError = error.message;
-                continue;
-            }
-        }
-        throw new Error(`OpenRouter Stream failed: ${lastError}`);
-    }
-}
-
-/**
- * Claude Provider (Anthropic / OpenRouter Proxy)
- */
-class ClaudeProvider implements AIProvider {
-    name = "Claude";
-    private apiKey: string;
-    private baseUrl: string;
-
-    constructor(apiKey: string, baseUrl: string = "https://api.anthropic.com") {
-        this.apiKey = apiKey;
-        this.baseUrl = baseUrl || "https://api.anthropic.com";
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        const isOpenRouter = this.baseUrl.includes("openrouter.ai");
-        // OpenRouter provides a proxy of Anthropic's Messages API at /v1/messages if we want to use the same headers.
-        // But for consistency we'll use their native /v1/chat/completions for OpenRouter.
-        const url = isOpenRouter ? "https://openrouter.ai/api/v1/chat/completions" : `${this.baseUrl}/v1/messages`;
-
-        const payload = isOpenRouter ? {
-            model: "anthropic/claude-3.5-sonnet",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 4096,
-        } : {
-            model: "claude-3-5-sonnet-20241022",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 4096,
-        };
-
-        const headers: Record<string, string> = {
-            "Content-Type": "application/json",
-        };
-
-        if (isOpenRouter) {
-            headers["Authorization"] = `Bearer ${this.apiKey}`;
-            headers["HTTP-Referer"] = "https://dailymannaai.com";
-            headers["X-Title"] = "Daily Manna AI";
-        } else {
-            headers["x-api-key"] = this.apiKey;
-            headers["anthropic-version"] = "2023-06-01";
-        }
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            const err = await response.text();
-            throw new Error(`Claude Error ${response.status}: ${err}`);
-        }
-
-        const data = await response.json();
-        // OpenRouter returns choices[0].message.content, Anthropic returns content[0].text
-        return isOpenRouter ? data.choices?.[0]?.message?.content : data.content?.[0]?.text;
-    }
-
-    async generateStream(prompt: string): Promise<ReadableStream> {
-        const isOpenRouter = this.baseUrl.includes("openrouter.ai");
-        const url = isOpenRouter ? "https://openrouter.ai/api/v1/chat/completions" : `${this.baseUrl}/v1/messages`;
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...(isOpenRouter ? { 
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "HTTP-Referer": "https://dailymannaai.com",
-                    "X-Title": "Daily Manna AI"
-                } : {
-                    "x-api-key": this.apiKey,
-                    "anthropic-version": "2023-06-01"
-                })
-            },
-            body: JSON.stringify({
-                model: isOpenRouter ? "anthropic/claude-3.5-sonnet" : "claude-3-5-sonnet-20241022",
-                messages: [{ role: "user", content: prompt }],
-                stream: true,
-                max_tokens: 4096
-            }),
-        });
-
-        if (!response.ok) {
-            const err = await response.text();
-            throw new Error(`Claude Stream Error: ${err}`);
-        }
-
-        return parseSSEStream(response.body!);
-    }
-}
-
-/**
- * Hugging Face Provider
- */
-class HuggingFaceProvider implements AIProvider {
-    name = "Hugging Face";
-    private client: HfInference;
-
-    constructor(apiKey: string) {
-        this.client = new HfInference(apiKey);
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        // Try stable models that support conversational tasks
-        const models = [
-            "mistralai/Mistral-7B-Instruct-v0.2",
-            "meta-llama/Llama-3.2-1B-Instruct",
-            "HuggingFaceH4/zephyr-7b-beta"
-        ];
-
-        let lastError = "";
-        for (const model of models) {
-            try {
-                console.log(`[AI] HuggingFace testing: ${model}...`);
-                const response = await this.client.chatCompletion({
-                    model: model,
-                    messages: [{ role: "user", content: prompt }],
-                    max_tokens: 2048,
-                    temperature: 0.7,
-                    repetition_penalty: 1.1
-                });
-                return response.choices[0]?.message?.content || "";
-            } catch (error: any) {
-                lastError = error.message;
-                console.warn(`[AI] HuggingFace ${model} failed: ${lastError}`);
-                continue;
-            }
-        }
-        throw new Error(`Hugging Face failed models. Last: ${lastError}`);
-    }
-}
-
-/**
- * Together AI Provider
- */
-class TogetherProvider implements AIProvider {
-    name = "Together AI";
-    private apiKey: string;
-
-    constructor(apiKey: string) {
-        this.apiKey = apiKey;
-    }
-
-    async generateResponse(prompt: string): Promise<string> {
-        const models = [
-            "meta-llama/Llama-3.1-8b-chat-hf",
-            "mistralai/Mixtral-8x7B-Instruct-v0.1"
-        ];
-
-        let lastError = "";
-        for (const model of models) {
-            try {
-                console.log(`[AI] Together testing: ${model}...`);
-                const response = await fetch("https://api.together.xyz/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${this.apiKey}`,
-                    },
-                    body: JSON.stringify({
-                        model: model,
-                        messages: [{ role: "user", content: prompt }],
-                        max_tokens: 2048,
-                        temperature: 0.7,
-                        repetition_penalty: 1.1,
-                        top_p: 0.9
-                    }),
-                });
-
-                if (!response.ok) {
-                    lastError = await response.text();
-                    continue;
-                }
-
-                const data = await response.json();
-                return data.choices?.[0]?.message?.content || "";
-            } catch (error: any) {
-                lastError = error.message;
-                continue;
-            }
-        }
-        throw new Error(`Together AI failed. Last: ${lastError}`);
-    }
-}
-
-/**
- * Generic OpenAI-Compatible Provider (Sovereign Backup)
- * Use this for high-speed free backups like Sambanova, Cerebras, or Local Ollama
- */
-class OpenAICompatibleProvider implements AIProvider {
-    constructor(
-        public name: string,
-        private baseUrl: string,
-        private apiKey: string,
-        private modelId: string
-    ) { }
-
-    async generateResponse(prompt: string): Promise<string> {
-        const response = await fetch(`${this.baseUrl}/chat/completions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${this.apiKey}`,
-            },
-            body: JSON.stringify({
-                model: this.modelId,
-                messages: [{ role: "user", content: prompt }],
-            }),
-        });
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "";
-    }
-
-    async generateStream(prompt: string): Promise<ReadableStream> {
-        const response = await fetch(`${this.baseUrl}/chat/completions`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${this.apiKey}`,
-            },
-            body: JSON.stringify({
-                model: this.modelId,
-                messages: [{ role: "user", content: prompt }],
-                stream: true,
-            }),
-        });
-        if (!response.ok) throw new Error(`${this.name} status: ${response.status}`);
-        return parseSSEStream(response.body!);
-    }
-}
-
-/**
- * Multi-Provider Manager
- */
-export class AIProviderManager {
-    private providers: AIProvider[] = [];
-
-    constructor() {
-        const geminiKey = process.env.GEMINI_API_KEY;
-        const openRouterKey = process.env.OPENROUTER_API_KEY;
-        const groqKey = process.env.GROQ_API_KEY || process.env.groqKey;
-        const xaiKey = process.env.X_AI_API || process.env.XAI_API_KEY;
-        const mistralKey = process.env.MISTRAL_API_KEY || process.env.mistralKey;
-        const togetherKey = process.env.together_api || process.env.TOGETHER_API_KEY;
-        const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN;
-        const anthropicBase = process.env.ANTHROPIC_BASE_URL;
-
-        // 🏆 ELITE COALITION (Priority Order for 10k Users)
-
-        // 0. Claude (Primary Premium if Keys Exist)
-        if (anthropicKey) {
-            this.providers.push(new ClaudeProvider(anthropicKey, anthropicBase));
-            console.log(`[AI] Initialized Claude with base: ${anthropicBase || 'Official API'}`);
-        }
-
-        // 1. Google Gemini (1500 req/day + massive Flash context)
-        if (geminiKey) this.providers.push(new GeminiProvider(geminiKey));
-
-        // 2. Groq (Ultra-Fast, 14.4k req/day free beta)
-        if (groqKey && (groqKey.startsWith("gsk_") || groqKey.startsWith("xai-"))) {
-            const cleanGroqKey = groqKey.startsWith("xai-") ? groqKey : groqKey;
-            this.providers.push(new GroqProvider(cleanGroqKey));
-        }
-
-        // 3. Mistral (Huge monthly free quota)
-        if (mistralKey) {
-            this.providers.push(new OpenAICompatibleProvider(
-                "Mistral-Internal",
-                "https://api.mistral.ai/v1",
-                mistralKey,
-                "mistral-small-latest"
-            ));
-        }
-
-        // 4. Together AI
-        if (togetherKey && !togetherKey.includes("your_together")) {
-            this.providers.push(new TogetherProvider(togetherKey));
-        }
-
-        // 5. xAI (Grok)
-        const activeXaiKey = xaiKey || (groqKey && groqKey.startsWith("xai-") ? groqKey : null);
-        if (activeXaiKey) {
-            this.providers.push(new XAIProvider(activeXaiKey));
-        }
-
-        // 6. Gemini Backup (Second Google Key — Doubles Quota)
-        const geminiBackup = process.env.google_aistudio_key;
-        if (geminiBackup && geminiBackup !== geminiKey) {
-            this.providers.push(new GeminiProvider(geminiBackup));
-            // Rename it so logs are clear
-            const backupProvider = this.providers[this.providers.length - 1];
-            (backupProvider as any).name = "Gemini-Backup";
-        }
-
-        // 7. SambaNova (Lightning Fast Free Tier — LLaMA 3.1 70B)
-        const sambanovaKey = process.env.sambanova_api || process.env.SAMBANOVA_API_KEY;
-        if (sambanovaKey) {
-            this.providers.push(new OpenAICompatibleProvider(
-                "SambaNova",
-                "https://api.sambanova.ai/v1",
-                sambanovaKey,
-                "Meta-Llama-3.3-70B-Instruct"
-            ));
-        }
-
-        // 8. Cerebras (World's Fastest Inference — Free Tier)
-        const cerebrasKey = process.env.cerebras_api || process.env.CEREBRAS_API_KEY;
-        if (cerebrasKey) {
-            this.providers.push(new OpenAICompatibleProvider(
-                "Cerebras",
-                "https://api.cerebras.ai/v1",
-                cerebrasKey,
-                "llama-3.1-8b"
-            ));
-        }
-
-        // 9. OpenRouter (The Universal Catch-All)
-        if (openRouterKey) this.providers.push(new OpenRouterProvider(openRouterKey));
-
-        // 10. DeepInfra (High-Performance GPU Cloud — Free Tier)
-        const deepinfraKey = process.env.deepinfra || process.env.DEEPINFRA_API_KEY;
-        if (deepinfraKey) {
-            this.providers.push(new OpenAICompatibleProvider(
-                "DeepInfra",
-                "https://api.deepinfra.com/v1/openai",
-                deepinfraKey,
-                "meta-llama/Llama-3.3-70B-Instruct"
-            ));
-        }
-
-        // 11. Hugging Face (Final Fallback)
-        if (process.env.HUGGINGFACE_API_KEY) {
-            this.providers.push(new HuggingFaceProvider(process.env.HUGGINGFACE_API_KEY));
-        }
-    }
-
-    async generateResponse(prompt: string): Promise<{ response: string; provider: string }> {
-        if (this.providers.length === 0) {
-            throw new Error("No AI providers configured. Add API keys to .env.local");
-        }
-
-        const errors: Array<{ provider: string; error: any }> = [];
-        const startTime = Date.now();
-
-        for (const provider of this.providers) {
-            try {
-                console.log(`[AI] Attempting ${provider.name}...`);
-                const response = await provider.generateResponse(prompt);
-                const latency = Date.now() - startTime;
-
-                console.log(`[AI] ✅ SUCCESS with ${provider.name} (${latency}ms)`);
-
-                // 📊 Global Training Log: Success
-                await TrainingLogger.log({
-                    timestamp: new Date().toISOString(),
-                    request: { query: prompt, provider: provider.name, model: "auto" },
-                    response: { answer: response, latency, modelUsed: "auto" },
-                    metadata: { status: "success" }
-                }).catch(e => console.error("[MongoDB] Logging failed:", e.message));
-
-                return { response, provider: provider.name };
-            } catch (error: any) {
-                console.error(`[AI] ❌ FAILED ${provider.name}:`, error.message);
-                errors.push({ provider: provider.name, error });
-
-                // 📊 Global Training Log: Failure
-                await TrainingLogger.log({
-                    timestamp: new Date().toISOString(),
-                    request: { query: prompt, provider: provider.name, model: "auto" },
-                    response: { answer: error.message, latency: Date.now() - startTime, modelUsed: "auto" },
-                    metadata: { status: "error", error_stack: error.stack }
-                }).catch(e => console.error("[MongoDB] Logging failed:", e.message));
-
-                // Log error summary (Cosmos DB error logging can be added here if needed)
-                console.error(`[DB] Provider error — ${provider.name}: ${error.message}`);
-            }
-        }
-
-        const errorDetails = errors.map(e => `${e.provider}: ${e.error.message}`).join(", ");
-        console.error(`[AI-Manager] CRITICAL: All providers failed. ${errorDetails}`);
-        throw new Error("WISDOM_CENTERS_OFFLINE");
-    }
-
-    async transcribeVideo(videoUrl: string): Promise<string> {
-        console.log(`[AI-Manager] Starting multimodal transcription for: ${videoUrl}`);
-
-        // 1. Try Gemini (Primary Multi-modal Brain)
-        const gemini = this.providers.find(p => p.name === "Gemini");
-        if (gemini && gemini.transcribeVideo) {
-            try {
-                console.log(`[AI-Manager] Attempting Gemini Multimodal...`);
-                return await gemini.transcribeVideo(videoUrl);
-            } catch (err: any) {
-                console.error(`[AI-Manager] Gemini multimodal failed: ${err.message}`);
-            }
-        }
-
-        // 2. Try xAI / Grok (Aggressive fallback)
-        const xai = this.providers.find(p => p.name.includes("xAI"));
-        if (xai) {
-            try {
-                console.log(`[AI-Manager] Falling back to xAI (Grok) for transcription...`);
-                // Grok is very good at "external knowledge" reconstruction
-                const prompt = `Act as a high-precision transcription engine. Provide the FULL verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the audio directly, use your extensive real-time web knowledge and historical archives to provide the MOST ACCURATE transcript possible. Do NOT summarize.`;
-                const response = await xai.generateResponse(prompt);
-                if (response && response.length > 50 && !isRefusalResponse(response)) {
-                    return response;
-                }
-                console.warn(`[AI-Manager] xAI returned refusal or empty response.`);
-            } catch (err: any) {
-                console.error(`[AI-Manager] xAI transcription failed: ${err.message}`);
-            }
-        }
-
-        // 3. Try OpenRouter (Broad fallback)
-        const openRouter = this.providers.find(p => p.name === "OpenRouter");
-        if (openRouter) {
-            try {
-                console.log(`[AI-Manager] Falling back to OpenRouter...`);
-                const prompt = `Provide a full verbatim transcript for this YouTube video: ${videoUrl}. If you cannot access the live transcript, provide a highly detailed speech reconstruction.`;
-                const response = await openRouter.generateResponse(prompt);
-                if (response && response.length > 50 && !isRefusalResponse(response)) {
-                    return response;
-                }
-                console.warn(`[AI-Manager] OpenRouter returned refusal or empty response.`);
-            } catch (err: any) {
-                console.error(`[AI-Manager] OpenRouter transcription failed: ${err.message}`);
-            }
-        }
-
-        throw new Error("No AI providers could generate a transcript for this video.");
-    }
-
-    async transcribeAudio(audioUrl: string): Promise<string> {
-        console.log(`[AI-Manager] Starting audio stream transcription: ${audioUrl.substring(0, 40)}...`);
-
-        // Try Groq (Whisper) first for raw audio
-        const groq = this.providers.find(p => p.name === "Groq");
-        if (groq && groq.transcribeAudio) {
-            try {
-                return await groq.transcribeAudio(audioUrl);
-            } catch (err: any) {
-                console.error(`[AI-Manager] Groq Whisper failed: ${err.message}`);
-            }
-        }
-
-        throw new Error("No AI providers could transcribe this audio stream.");
-    }
-
-    async generateStream(prompt: string): Promise<{ stream: ReadableStream; provider: string }> {
-        if (this.providers.length === 0) {
-            throw new Error("No AI providers configured.");
-        }
-
-        const errors: string[] = [];
-
-        // 🚀 ATTEMPT 1: Live Streaming (DeepSeek Experience)
-        for (const provider of this.providers) {
-            if (provider.generateStream) {
-                try {
-                    console.log(`[AI-Manager] Attempting stream from ${provider.name}...`);
-                    const stream = await provider.generateStream(prompt);
-                    return { stream, provider: provider.name };
-                } catch (e: any) {
-                    const msg = e.message || String(e);
-                    console.warn(`[AI-Manager] Streaming failed on ${provider.name}: ${msg}`);
-                    errors.push(`${provider.name}: ${msg}`);
-                }
-            }
-        }
-
-        // 🛡️ ATTEMPT 2: Fallback to Static (The "Backup System")
-        console.warn("[AI-Manager] ⚠️ All stream attempts failed. Falling back to static response...");
-        try {
-            const { response, provider } = await this.generateResponse(prompt);
-
-            // Wrap the static response in a stream so the frontend doesn't break
-            const staticStream = new ReadableStream({
-                start(controller) {
-                    const encoder = new TextEncoder();
-                    controller.enqueue(encoder.encode(response));
-                    controller.close();
-                }
-            });
-
-            return { stream: staticStream, provider: `${provider} (Static Fallback)` };
-        } catch (e: any) {
-            throw new Error(`Critical Synthesis Failure: Both streaming AND static paths failed. [${errors.join(", ")}]`);
-        }
-    }
-
-    getActiveProviders(): string[] {
-        return this.providers.map(p => p.name);
-    }
+export function getProviderManager() {
+    return new AIProviderManager();
 }
