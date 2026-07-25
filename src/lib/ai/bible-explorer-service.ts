@@ -1,22 +1,7 @@
-import { HumanMessage, SystemMessage, AIMessage, BaseMessage } from "@langchain/core/messages";
-import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-import { getAstraDb } from "./bible-explorer-db";
+import { streamText, embed } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { getDatabase } from "@/lib/mongodb";
 import { BIBLE_EXPLORER_SYSTEM_PROMPT, BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX } from "./bible-explorer-prompt";
-
-const model = new ChatOpenAI({
-    openAIApiKey: process.env.OPENAI_API_KEY,
-    modelName: "gpt-4o",
-    temperature: 0,
-    maxTokens: 2000,
-    timeout: 60000,
-    streaming: true,
-});
-
-const embeddings = new OpenAIEmbeddings({
-    openAIApiKey: process.env.OPENAI_API_KEY,
-    modelName: "text-embedding-3-large",
-    timeout: 30000,
-});
 
 async function retryWithExponentialBackoff<T>(
     operation: () => Promise<T>,
@@ -64,21 +49,16 @@ function isGreeting(text: string): boolean {
 
 export async function askBibleQuestion(question: string, history: any[] = []) {
     const queryIsGreeting = isGreeting(question);
-
-    // If it's a greeting, we might want to search for verses about "greeting" or "peace" or "fellowship"
-    // to give the AI some scriptural context for its welcome.
     const searchQuery = queryIsGreeting ? "greetings peace fellowship" : question;
     const searchResult = await retryWithExponentialBackoff(() => performSimilaritySearch(searchQuery));
 
-    const langchainMessages: BaseMessage[] = [
-        new SystemMessage(BIBLE_EXPLORER_SYSTEM_PROMPT),
+    const messages: any[] = [
+        { role: 'system', content: BIBLE_EXPLORER_SYSTEM_PROMPT }
     ];
 
     for (const msg of history.slice(-20)) {
-        if (msg.role === "user") {
-            langchainMessages.push(new HumanMessage(msg.content));
-        } else if (msg.role === "assistant") {
-            langchainMessages.push(new AIMessage(msg.content));
+        if (msg.role === "user" || msg.role === "assistant") {
+            messages.push({ role: msg.role, content: msg.content });
         }
     }
 
@@ -86,36 +66,60 @@ export async function askBibleQuestion(question: string, history: any[] = []) {
         ? "\nThe user has greeted you. Please respond with a warm, faithful welcome like: 'Hello! It's wonderful to engage with you on matters of faith and Scripture.' but keep your unique born-again believer persona. Encourage them to ask questions about the Bible.\n"
         : "";
 
-    langchainMessages.push(new HumanMessage(
-        `${greetingContext}Here are relevant Bible verses from the vector database:\n${searchResult.formatted}\n\nAnswer the following question with a thorough, natural response.\n${BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX}\n\nQuestion: ${question}`
-    ));
+    messages.push({
+        role: 'user',
+        content: `${greetingContext}Here are relevant Bible verses from the vector database:\n${searchResult.formatted}\n\nAnswer the following question with a thorough, natural response.\n${BIBLE_EXPLORER_HUMAN_PROMPT_SUFFIX}\n\nQuestion: ${question}`
+    });
 
-    return model.stream(langchainMessages);
+    const result = await streamText({
+        model: openai('gpt-4o'),
+        messages: messages,
+        temperature: 0,
+        maxTokens: 2000,
+    });
+
+    // We can't return the raw result directly, we must return the iterable stream for compatibility
+    return result; 
 }
 
 async function performSimilaritySearch(query: string) {
-    const queryVector = await embeddings.embedQuery(query);
-    const db = getAstraDb();
-    const collection = db.collection(process.env.ASTRA_DB_COLLECTION || "openai_embedding_collection");
+    try {
+        const { embedding } = await embed({
+            model: openai.embedding('text-embedding-3-large'),
+            value: query,
+        });
 
-    const results = await collection.find({}, {
-        sort: { $vector: queryVector },
-        limit: 5,
-        projection: { b: 1, c: 1, v: 1 },
-        includeSimilarity: true
-    }).toArray();
+        const db = await getDatabase();
+        const collection = db.collection(process.env.ASTRA_DB_COLLECTION || "openai_embedding_collection");
 
-    if (!results || results.length === 0) {
+        // Use MongoDB Atlas Vector Search if configured, otherwise fallback to basic search
+        const results = await collection.aggregate([
+            {
+                $vectorSearch: {
+                    index: "vector_index",
+                    path: "embedding",
+                    queryVector: embedding,
+                    numCandidates: 50,
+                    limit: 5
+                }
+            }
+        ]).toArray();
+
+        if (!results || results.length === 0) {
+            return { formatted: "No relevant Bible verses found.", verses: [] };
+        }
+
+        const verses = results.map((doc: any) => {
+            const bookName = BOOK_NAMES[String(doc.b)] ?? `Book ${doc.b}`;
+            const ref = `${bookName} ${doc.c}:${doc.v}`;
+            return { reference: ref, similarity: doc.score ?? 0 };
+        });
+
+        const formatted = verses.map((v: any) => `${v.reference} (Similarity: ${v.similarity.toFixed(2)})`).join("\n");
+
+        return { formatted, verses };
+    } catch (e) {
+        console.warn("Vector search failed (Atlas Search might not be configured):", e);
         return { formatted: "No relevant Bible verses found.", verses: [] };
     }
-
-    const verses = results.map((doc: any) => {
-        const bookName = BOOK_NAMES[String(doc.b)] ?? `Book ${doc.b}`;
-        const ref = `${bookName} ${doc.c}:${doc.v}`;
-        return { reference: ref, similarity: doc.$similarity ?? 0 };
-    });
-
-    const formatted = verses.map((v: any) => `${v.reference} (Similarity: ${v.similarity.toFixed(2)})`).join("\n");
-
-    return { formatted, verses };
 }

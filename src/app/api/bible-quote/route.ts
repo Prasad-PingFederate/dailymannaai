@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getProviderManager } from "@/lib/ai/gemini";
-import { DataAPIClient } from "@datastax/astra-db-ts";
+import { getProviderManager } from "@/lib/ai/providers";
+import { getDatabase } from "@/lib/mongodb";
 
 const TOPIC_MAP: Record<string, string> = {
     faith: 'faith, trust in God, believing without seeing',
@@ -13,42 +13,23 @@ const TOPIC_MAP: Record<string, string> = {
     hope: "hope in Christ, eternal promises of God",
 };
 
-let astraDbCache: any = null;
-
-function getAstraDatabase() {
-    if (astraDbCache) return astraDbCache;
-    const { ASTRA_DB_APPLICATION_TOKEN, ASTRA_DB_API_ENDPOINT, ASTRA_DB_NAMESPACE } = process.env;
-    if (!ASTRA_DB_APPLICATION_TOKEN || !ASTRA_DB_API_ENDPOINT) return null;
-
-    const client = new DataAPIClient(ASTRA_DB_APPLICATION_TOKEN);
-    astraDbCache = client.db(ASTRA_DB_API_ENDPOINT, {
-        keyspace: ASTRA_DB_NAMESPACE || "default_keyspace"
-    });
-    return astraDbCache;
-}
-
 export async function POST(req: Request) {
     try {
         const { category, customTopic, usedReferences = [] } = await req.json();
         const topic = customTopic || TOPIC_MAP[category] || 'Christian encouragement';
 
-        // --- ATTEMPT 1: AstraDB "sermons_archive" Database Random Pull ---
-        const db = getAstraDatabase();
-        if (db && Math.random() > 0.4) { // 60% chance to try Astra DB Sermons vs Bible LLM
+        // --- ATTEMPT 1: MongoDB "sermons_archive" Random Pull ---
+        if (Math.random() > 0.4) { // 60% chance to try DB Sermons vs Bible LLM
             try {
+                const db = await getDatabase();
                 const collection = db.collection('sermons_archive');
 
-                // Astra native random requires skipping mathematically. 
-                // There are hundreds of sermons, so we'll pick a random skip between 0-250.
-                const skipAmount = Math.floor(Math.random() * 250);
-                const sermonCursor = await collection.find({}, { skip: skipAmount, limit: 10 });
-                const sermonsList = await sermonCursor.toArray();
+                // MongoDB native random using $sample aggregation
+                const sermonsList = await collection.aggregate([{ $sample: { size: 1 } }]).toArray();
 
                 if (sermonsList && sermonsList.length > 0) {
-                    // Pick a random sermon
-                    const randomSermon = sermonsList[Math.floor(Math.random() * sermonsList.length)];
+                    const randomSermon = sermonsList[0];
 
-                    // Extract a raw chunk from the content text
                     if (randomSermon.content && randomSermon.content.length > 100) {
                         const words = randomSermon.content.split(/\s+/);
                         const startWordIdx = Math.floor(Math.random() * Math.max(1, words.length - 80));
@@ -56,7 +37,6 @@ export async function POST(req: Request) {
 
                         const preacherName = randomSermon.preacher || "Classic Sermon";
 
-                        // Let Gemini beautifully reframe the raw text into a proper, grammatical quote
                         const formatPrompt = `You are a pastor editing a daily devotional. 
 Take this raw, incomplete chunk from a historic sermon by ${preacherName}:
 "${rawSnippet}"
@@ -74,27 +54,26 @@ Return ONLY valid JSON (no markdown block):
 
                         try {
                             const data = JSON.parse(cleanText);
-                            // Make sure we aren't repeating it based on frontend tracker
                             if (!usedReferences.includes(data.quote.substring(0, 20))) {
-                                console.log("Successfully fetched AND formatted quote from AstraDB!");
+                                console.log("Successfully fetched AND formatted quote from MongoDB!");
                                 return NextResponse.json({
                                     quote: data.quote,
-                                    reference: data.reference, // Just the name, fixes the canvas overlap bug
+                                    reference: data.reference,
                                     reflection: data.reflection,
                                     testament: ""
                                 });
                             }
                         } catch (parseErr) {
-                            console.warn("Failed to parse LLM formatted Astra quote, falling back to native LLM", parseErr);
+                            console.warn("Failed to parse LLM formatted DB quote, falling back to native LLM", parseErr);
                         }
                     }
                 }
             } catch (err) {
-                console.warn("AstraDB Sermon fetch failed, falling back to LLM", err);
+                console.warn("MongoDB Sermon fetch failed, falling back to LLM", err);
             }
         }
 
-        // --- ATTEMPT 2: Fallback to Gemini AI Native Generation ---
+        // --- ATTEMPT 2: Fallback to AI Native Generation ---
         const avoidConstraint = usedReferences.length > 0
             ? `\nCRITICAL: Do NOT use any of these references that have already been shown: ${usedReferences.join(', ')}.`
             : '';
@@ -121,7 +100,6 @@ Ensure the chosen text is:
 
         const { response } = await getProviderManager().generateResponse(prompt);
 
-        // Clean response of any markdown backticks
         const cleanText = response.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
 
         let data;
@@ -131,7 +109,6 @@ Ensure the chosen text is:
             throw new Error("Failed to parse AI response into JSON. Text was: " + cleanText);
         }
 
-        // Validate required fields
         if (!data.quote || !data.reference) {
             throw new Error('Invalid response format');
         }
