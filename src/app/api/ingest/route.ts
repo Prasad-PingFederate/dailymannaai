@@ -229,6 +229,7 @@ async function performGeminiOCR(buffer: Buffer, mimeType: string): Promise<strin
         const data = new Uint8Array(buffer);
 
         const { text } = await generateText({
+            // @ts-ignore
             model: google('gemini-1.5-flash'),
             messages: [
                 {
