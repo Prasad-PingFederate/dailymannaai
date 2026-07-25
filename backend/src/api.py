@@ -4,16 +4,17 @@ from typing import Optional
 import os
 import traceback
 import logging
+from bson.objectid import ObjectId
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
-    from astrapy import DataAPIClient
-    HAS_ASTRAPY = True
+    from pymongo import MongoClient
+    HAS_PYMONGO = True
 except ImportError:
-    HAS_ASTRAPY = False
-    logger.error("❌ astrapy not found. Run: pip install astrapy")
+    HAS_PYMONGO = False
+    logger.error("❌ pymongo not found. Run: pip install pymongo")
 
 app = FastAPI(title="DailyMannaAI — Sermons API")
 
@@ -25,21 +26,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ASTRA_TOKEN    = os.getenv("ASTRA_DB_APPLICATION_TOKEN") or os.getenv("ASTRA_DB_TOKEN")
-ASTRA_ENDPOINT = os.getenv("ASTRA_DB_API_ENDPOINT")     or os.getenv("ASTRA_DB_ENDPOINT")
-ASTRA_KEYSPACE = os.getenv("ASTRA_DB_NAMESPACE")         or os.getenv("ASTRA_DB_KEYSPACE", "default_keyspace")
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "dailymannaai")
+
+_mongo_client = None
 
 def get_db():
-    if not HAS_ASTRAPY:
-        raise HTTPException(status_code=500, detail="astrapy library missing")
-    if not ASTRA_TOKEN or not ASTRA_ENDPOINT:
-        raise HTTPException(status_code=500, detail="Astra DB credentials missing in environment")
+    global _mongo_client
+    if not HAS_PYMONGO:
+        raise HTTPException(status_code=500, detail="pymongo library missing")
+    if not MONGO_URI:
+        raise HTTPException(status_code=500, detail="MongoDB URI missing in environment")
     try:
-        client = DataAPIClient(ASTRA_TOKEN)
-        # BUG 3 FIX: use get_database_by_api_endpoint() not get_database()
-        return client.get_database_by_api_endpoint(ASTRA_ENDPOINT, keyspace=ASTRA_KEYSPACE)
+        if _mongo_client is None:
+            _mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        return _mongo_client[MONGO_DB_NAME]
     except Exception as e:
-        logger.error(f"❌ Astra Connection Failed: {str(e)}")
+        logger.error(f"❌ MongoDB Connection Failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
 
 def get_col():
@@ -69,8 +72,7 @@ def map_sermon(doc: dict) -> dict:
 async def get_speakers():
     try:
         col = get_col()
-        # BUG 4 FIX: projection including _id: False
-        cursor = col.find({}, projection={"preacher": True, "speaker": True, "_id": False}, limit=1000)
+        cursor = col.find({}, {"preacher": True, "speaker": True, "_id": False}).limit(1000)
         docs = list(cursor)
 
         counts = {}
@@ -91,11 +93,9 @@ async def get_speakers():
 @app.get("/sermons/debug")
 async def debug_diagnostics():
     diag = {
-        "HAS_ASTRAPY":  HAS_ASTRAPY,
-        "ENV_TOKEN":    "✅ Set" if ASTRA_TOKEN    else "❌ MISSING",
-        "ENV_ENDPOINT": "✅ Set" if ASTRA_ENDPOINT else "❌ MISSING",
-        "ASTRA_ENDPOINT_PREVIEW": (ASTRA_ENDPOINT[:40] + "...") if ASTRA_ENDPOINT else None,
-        "KEYSPACE":     ASTRA_KEYSPACE,
+        "HAS_PYMONGO":  HAS_PYMONGO,
+        "ENV_MONGO_URI": "✅ Set" if MONGO_URI else "❌ MISSING",
+        "DB_NAME":      MONGO_DB_NAME,
         "DB_TEST":      None,
         "COLLECTIONS":  None,
         "COL_TEST":     None,
@@ -114,12 +114,8 @@ async def debug_diagnostics():
             diag["COL_TEST"] = "✅ sermons_archive found"
             doc = db.get_collection("sermons_archive").find_one({})
             if doc:
-                diag["SAMPLE_FIELDS"] = [k for k in doc.keys() if k != "$vector"]
-                diag["SAMPLE_VALUES"] = {
-                    k: str(v)[:80]
-                    for k, v in doc.items()
-                    if k != "$vector"
-                }
+                diag["SAMPLE_FIELDS"] = [k for k in doc.keys()]
+                diag["SAMPLE_VALUES"] = {k: str(v)[:80] for k, v in doc.items()}
         else:
             diag["COL_TEST"] = f"❌ 'sermons_archive' NOT found. Available: {col_names}"
 
@@ -157,11 +153,12 @@ async def get_sermons(
                 {"scripture_reference": {"$regex": search, "$options": "i"}},
                 {"content":             {"$regex": search, "$options": "i"}},
             ]}
-            filter_dict = {"$and": [filter_dict, search_clause]} if filter_dict else search_clause
+            if filter_dict:
+                filter_dict = {"$and": [filter_dict, search_clause]}
+            else:
+                filter_dict = search_clause
 
-        results = list(col.find(filter_dict, limit=limit, skip=skip))
-
-        # BUG 2 FIX: return {"data": [...]}
+        results = list(col.find(filter_dict).limit(limit).skip(skip))
         return {"data": [map_sermon(s) for s in results]}
 
     except Exception as e:
@@ -174,7 +171,13 @@ async def get_sermons(
 async def get_sermon(sermon_id: str):
     try:
         col = get_col()
-        doc = col.find_one({"_id": sermon_id})
+        
+        # Determine how to query the ID
+        query = {"_id": sermon_id}
+        if ObjectId.is_valid(sermon_id):
+            query = {"$or": [{"_id": sermon_id}, {"_id": ObjectId(sermon_id)}]}
+
+        doc = col.find_one(query)
         if not doc:
             raise HTTPException(status_code=404, detail="Sermon not found")
         return map_sermon(doc)
@@ -188,4 +191,4 @@ async def get_sermon(sermon_id: str):
 # ── HEALTH ────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
-    return {"status": "online", "service": "DailyMannaAI Sermons", "db": "AstraDB"}
+    return {"status": "online", "service": "DailyMannaAI Sermons", "db": "MongoDB"}
