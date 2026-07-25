@@ -216,32 +216,32 @@ export async function POST(req: Request) {
 }
 
 // Helper for Gemini Vision/OCR
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText } from "ai";
+import { google } from "@ai-sdk/google";
 
 async function performGeminiOCR(buffer: Buffer, mimeType: string): Promise<string> {
     try {
         if (!process.env.GEMINI_API_KEY) return "";
 
-        console.log("Creating Gemini instance for OCR...");
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Use Flash for speed locally, or Pro if needed. Flash handles PDFs natively.
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        console.log("Sending document to Gemini Flash for OCR via Vercel AI SDK...");
+        
+        // Convert Buffer to Uint8Array for Vercel AI SDK
+        const data = new Uint8Array(buffer);
 
-        const parts = [
-            {
-                inlineData: {
-                    mimeType: mimeType,
-                    data: buffer.toString("base64")
+        const { text } = await generateText({
+            model: google('gemini-1.5-flash'),
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: "Extract all text from this document verbatim. Provide only the text content." },
+                        { type: 'file', data: data, mimeType: mimeType }
+                    ]
                 }
-            },
-            { text: "Extract all text from this document verbatim. Provide only the text content." }
-        ];
+            ]
+        });
 
-        console.log("Sending document to Gemini Flash for OCR...");
-        const result = await model.generateContent(parts);
-        const text = result.response.text();
         console.log(`Gemini OCR success. Extracted ${text.length} chars.`);
-
         return text;
     } catch (e: any) {
         console.error("Gemini OCR Failed:", e.message);
