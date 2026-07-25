@@ -1,4 +1,5 @@
-import { getAstraDb, getCollection } from "./astra";
+import { getDatabase as getAstraDb } from "./mongodb";
+async function getCollection(name: string) { const db = await getAstraDb(); return db.collection(name); }
 import { randomUUID } from "crypto";
 
 export interface DBUser {

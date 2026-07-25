@@ -1,6 +1,6 @@
 // src/app/api/sermons/speakers/route.ts
 import { NextResponse } from "next/server";
-import { getAstraDatabase } from "@/lib/astra-db";
+import { getDatabase as getAstraDatabase } from "@/lib/mongodb";
 
 /**
  * GET /api/sermons/speakers

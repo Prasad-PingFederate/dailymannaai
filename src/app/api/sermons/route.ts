@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAstraDatabase } from "@/lib/astra-db";
+import { getDatabase as getAstraDatabase } from "@/lib/mongodb";
 
 function getInitials(name: string): string {
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
