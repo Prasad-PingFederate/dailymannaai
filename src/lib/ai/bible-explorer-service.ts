@@ -72,6 +72,7 @@ export async function askBibleQuestion(question: string, history: any[] = []) {
     });
 
     const result = await streamText({
+        // @ts-ignore
         model: openai('gpt-4o'),
         messages: messages,
         temperature: 0,

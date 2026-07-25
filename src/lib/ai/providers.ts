@@ -22,6 +22,7 @@ export class AIProviderManager {
                 name: "Gemini",
                 async generateResponse(prompt: string) {
                     const { text } = await generateText({
+                        // @ts-ignore
                         model: google('gemini-1.5-flash'),
                         prompt: prompt,
                     });
@@ -29,6 +30,7 @@ export class AIProviderManager {
                 },
                 async generateStream(prompt: string) {
                     const { textStream } = await streamText({
+                        // @ts-ignore
                         model: google('gemini-1.5-flash'),
                         prompt: prompt,
                     });
@@ -55,6 +57,7 @@ export class AIProviderManager {
                 name: "Groq",
                 async generateResponse(prompt: string) {
                     const { text } = await generateText({
+                        // @ts-ignore
                         model: groq('llama-3.3-70b-versatile'),
                         prompt: prompt,
                     });
@@ -62,6 +65,7 @@ export class AIProviderManager {
                 },
                 async generateStream(prompt: string) {
                     const { textStream } = await streamText({
+                        // @ts-ignore
                         model: groq('llama-3.3-70b-versatile'),
                         prompt: prompt,
                     });
@@ -88,6 +92,7 @@ export class AIProviderManager {
                 name: "Together AI",
                 async generateResponse(prompt: string) {
                     const { text } = await generateText({
+                        // @ts-ignore
                         model: together('meta-llama/Llama-3.1-8b-chat-hf'),
                         prompt: prompt,
                     });
@@ -95,6 +100,7 @@ export class AIProviderManager {
                 },
                 async generateStream(prompt: string) {
                     const { textStream } = await streamText({
+                        // @ts-ignore
                         model: together('meta-llama/Llama-3.1-8b-chat-hf'),
                         prompt: prompt,
                     });

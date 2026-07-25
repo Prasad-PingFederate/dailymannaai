@@ -23,7 +23,7 @@ export async function GET(
         }
 
         const collection = db.collection("sermons_archive");
-        let doc = await collection.findOne({ _id: id });
+        let doc = await collection.findOne({ _id: id as any });
         
         // Fallback in case they used standard UUID 'id' instead of '_id'
         if (!doc) {

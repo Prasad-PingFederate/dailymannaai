@@ -207,11 +207,7 @@ async function crawlFeed(
     const db = await getDatabase();
     const newsCollection = db.collection<ArticleDocument>(CONFIG.NEWS_COLLECTION);
 
-    let astraCollection: any = null;
-    try {
-        const astraDb = await getAstraDatabase();
-        if (astraDb) astraCollection = astraDb.collection(CONFIG.NEWS_COLLECTION);
-    } catch (_) { /* Astra is optional */ }
+
 
     // ── 3. Process Items ────────────────────────────────────────────────────
     const items = (feed.items || []).slice(0, CONFIG.MAX_ITEMS_PER_FEED);
@@ -325,12 +321,7 @@ async function crawlFeed(
                 result.skippedCount += batch.length - inserted;
             }
 
-            // Mirror to Astra DB
-            if (astraCollection) {
-                try {
-                    await astraCollection.insertMany(batch, { ordered: false });
-                } catch (_) { /* Non-fatal */ }
-            }
+
         }
     }
 
