@@ -41,6 +41,7 @@
     "spurgeon_data",
     "DailyMannaAI-Mobile",
     "android",
-    "capacitor.config.ts"
+    "capacitor.config.ts",
+    "scripts"
   ]
 }

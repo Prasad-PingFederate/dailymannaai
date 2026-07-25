@@ -50,7 +50,7 @@ export async function fetchYoutubeTranscript(url: string): Promise<string> {
   // --- Strategy 1: AI-based Multimodal Transcription (PRIMARY Strategy) ---
   try {
     console.log('[YT-Utils] Strategy 1: AI-based Transcription (Primary)');
-    const transcript = await getProviderManager().transcribeVideo(normalizedUrl);
+    const transcript = await getProviderManager().transcribeAudio(normalizedUrl);
     if (transcript && transcript.length > 50) {
       console.log(`[YT-Utils] Strategy 1 success (${transcript.length} chars)`);
       return transcript;

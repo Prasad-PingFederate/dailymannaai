@@ -53,22 +53,6 @@ async function indexVerse(book: string, chapter: number, verse: number) {
             console.warn(`[BibleIndex] MongoDB Fail: ${dbErr}`);
         }
 
-        // 2. Save to Astra DB (Global Christian Index)
-        try {
-            const endpoint = process.env.ASTRA_DB_API_ENDPOINT;
-            if (endpoint) {
-                const astraDb = await getAstraDatabase();
-                const astraCollection = astraDb.collection('bible_verses');
-                await astraCollection.updateOne(
-                    { reference: verseData.reference },
-                    { $set: verseData },
-                    { upsert: true }
-                );
-            }
-        } catch (astraErr) {
-            // Silently fail if Astra not configured/down
-        }
-
         return verseData;
 
     } catch (err: any) {

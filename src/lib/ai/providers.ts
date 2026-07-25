@@ -22,6 +22,7 @@ export class AIProviderManager {
                 name: "Gemini",
                 async generateResponse(prompt: string) {
                     const { text } = await generateText({
+                        // @ts-ignore
                         model: google('gemini-1.5-flash'),
                         prompt: prompt,
                     });
@@ -29,6 +30,7 @@ export class AIProviderManager {
                 },
                 async generateStream(prompt: string) {
                     const { textStream } = await streamText({
+                        // @ts-ignore
                         model: google('gemini-1.5-flash'),
                         prompt: prompt,
                     });
@@ -55,6 +57,7 @@ export class AIProviderManager {
                 name: "Groq",
                 async generateResponse(prompt: string) {
                     const { text } = await generateText({
+                        // @ts-ignore
                         model: groq('llama-3.3-70b-versatile'),
                         prompt: prompt,
                     });
@@ -62,6 +65,7 @@ export class AIProviderManager {
                 },
                 async generateStream(prompt: string) {
                     const { textStream } = await streamText({
+                        // @ts-ignore
                         model: groq('llama-3.3-70b-versatile'),
                         prompt: prompt,
                     });
@@ -88,6 +92,7 @@ export class AIProviderManager {
                 name: "Together AI",
                 async generateResponse(prompt: string) {
                     const { text } = await generateText({
+                        // @ts-ignore
                         model: together('meta-llama/Llama-3.1-8b-chat-hf'),
                         prompt: prompt,
                     });
@@ -95,6 +100,7 @@ export class AIProviderManager {
                 },
                 async generateStream(prompt: string) {
                     const { textStream } = await streamText({
+                        // @ts-ignore
                         model: together('meta-llama/Llama-3.1-8b-chat-hf'),
                         prompt: prompt,
                     });
@@ -110,6 +116,10 @@ export class AIProviderManager {
                 }
             });
         }
+    }
+
+    getActiveProviders(): string[] {
+        return this.providers.map(p => p.name);
     }
 
     async generateResponse(prompt: string): Promise<{ response: string, provider: string }> {
@@ -131,7 +141,7 @@ export class AIProviderManager {
         throw new Error(`All configured AI providers failed. Last Error: ${lastError}`);
     }
 
-    async generateStream(prompt: string): Promise<ReadableStream> {
+    async generateStream(prompt: string): Promise<{ stream: ReadableStream, provider: string }> {
         if (this.providers.length === 0) {
             throw new Error("No AI providers configured. Please set GEMINI_API_KEY, GROQ_API_KEY, or TOGETHER_API_KEY.");
         }
@@ -141,7 +151,7 @@ export class AIProviderManager {
             try {
                 console.log(`[AI-Manager] Stream trying ${provider.name}...`);
                 const stream = await provider.generateStream(prompt);
-                return stream;
+                return { stream, provider: provider.name };
             } catch (error: any) {
                 lastError = error.message;
                 console.warn(`[AI-Manager] ${provider.name} stream failed: ${lastError}`);

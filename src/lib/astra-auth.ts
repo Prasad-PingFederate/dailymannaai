@@ -18,12 +18,12 @@ export interface DBUser {
 
 // Helper to ensure collection exists
 async function ensureUsersCollection() {
-    const db = getAstraDb();
     try {
-        const collections = await db.listCollections();
+        const db = await getAstraDb();
+        const collections = await db.listCollections().toArray();
         const exists = collections.find((c: any) => c.name === "users" || c === "users");
         if (!exists) {
-            console.log("Creating 'users' collection in AstraDB Data API...");
+            console.log("Creating 'users' collection in MongoDB...");
             await db.createCollection("users");
         }
     } catch (err) {
@@ -72,7 +72,7 @@ export async function createUser(data: {
         };
 
         const collection = await getCollection("users");
-        await collection.insertOne(user);
+        await collection.insertOne(user as any);
 
         return { success: true, user };
     } catch (err) {

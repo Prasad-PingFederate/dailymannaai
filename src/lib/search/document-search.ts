@@ -1,6 +1,5 @@
 import { searchRelevantChunks } from "../storage/vector-store";
 import { getDatabase } from "../mongodb";
-import { getCollection } from "../astra";
 
 export interface DocSearchResult {
     title: string;
