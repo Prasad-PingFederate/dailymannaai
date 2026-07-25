@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import { searchRSSFeeds } from "@/lib/rss-fetcher";
 import { detectInstantAnswer } from "@/lib/instant-answers";
-import { getAstraDatabase } from "@/lib/astra-db";
+import { getDatabase as getAstraDatabase } from "@/lib/mongodb";
 import {
     isBibleRef, lookupBibleVerse,
     searchBibleByKeyword, bibleGatewayUrl,

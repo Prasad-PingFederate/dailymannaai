@@ -14,7 +14,7 @@ import Parser from 'rss-parser';
 import pLimit from 'p-limit';
 import crypto from 'crypto';
 import { getDatabase } from '../mongodb';
-import { getAstraDatabase } from '../astra-db';
+
 import { RSS_FEEDS, RSSFeedSource } from './sources';
 import {
     classifyContent,

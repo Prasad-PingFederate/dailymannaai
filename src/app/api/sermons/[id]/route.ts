@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAstraDatabase } from "@/lib/astra-db";
+import { getDatabase as getAstraDatabase } from "@/lib/mongodb";
 
 export async function GET(
     request: NextRequest,

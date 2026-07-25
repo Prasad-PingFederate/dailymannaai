@@ -3,7 +3,7 @@
 import axios from 'axios';
 import pLimit from 'p-limit';
 import { getDatabase } from '../mongodb';
-import { getAstraDatabase } from '../astra-db';
+
 import { BIBLE_BOOKS } from './sources';
 
 // BIBLE API (KJV/ASV)
